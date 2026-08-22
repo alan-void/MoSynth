@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using AnimationTools;
 using UnityEngine;
+using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionField
 {
@@ -19,17 +20,21 @@ namespace MotionField
 public class MotionFieldConfig : ScriptableObject, IPoseSetSource
 {
     [Header("Animation Database")]
-    [Tooltip("Clips forming the motion field. The first one supplies the skeleton.")]
+    [Tooltip("Clips forming the motion field.")]
     public List<AnnotatedAnimationClip> animationClips = new();
+
+    [Tooltip("The pose skeleton: root must be the rig's identity armature node. Index 0 of this " +
+             "skeleton IS the SimulationBone; index 1 is the first real bone (Hips).")]
+    [SerializeField] private Skeleton skeleton = new();
 
     [Tooltip("Foot speed below which a toe counts as planted.")]
     public float contactVelocityThreshold = 0.15f;
 
     [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
-    public BoneTransform leftContactBone = new();
+    public SkeletonBone leftContactBone = new();
 
     [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
-    public BoneTransform rightContactBone = new();
+    public SkeletonBone rightContactBone = new();
 
     [Header("Python Runtime")]
     [Tooltip("Full path to the CPython shared library, e.g. .../python313.dll. Leave empty to use " +
@@ -212,8 +217,11 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
 
     public List<AnnotatedAnimationClip> AnimationClips => animationClips;
     public float ContactVelocityThreshold => contactVelocityThreshold;
-    public string LeftContactBoneName => leftContactBone?.BoneName;
-    public string RightContactBoneName => rightContactBone?.BoneName;
+    public string LeftContactBoneName => leftContactBone?.Name;
+    public string RightContactBoneName => rightContactBone?.Name;
+
+    /// <summary>The pose skeleton. Index 0 is the SimulationBone; index 1 is the first real bone.</summary>
+    public Skeleton Skeleton => skeleton;
 
     /// <summary>No trajectory features, so every pose is usable.</summary>
     public int MaximumFramesPrediction => 0;
@@ -288,12 +296,62 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
 
     // --- Pose database ----------------------------------------------------------------------
 
+    /// <summary>
+    /// Checks that this config can produce a pose database: a skeleton, at least one clip, and
+    /// every clip's skeleton lining up with this one from bone 1 onward (bone 0 here is the
+    /// SimulationBone, which no clip has). Returns false with a message suitable for an Inspector
+    /// HelpBox. Never logs — inspectors call it every repaint.
+    /// </summary>
+    public bool TryValidate(out string error)
+    {
+        if (skeleton == null || !skeleton.IsSet)
+        {
+            error = "No skeleton assigned. Drop the rig's armature node here — it becomes the " +
+                    "SimulationBone at index 0, with the first real bone at index 1.";
+            return false;
+        }
+
+        if (animationClips == null || animationClips.Count == 0)
+        {
+            error = "Assign at least one animation clip.";
+            return false;
+        }
+
+        for (var i = 0; i < animationClips.Count; i++)
+        {
+            var clip = animationClips[i];
+            if (clip == null)
+            {
+                error = $"Clip {i} is empty.";
+                return false;
+            }
+
+            if (!clip.TryValidate(out var clipError))
+            {
+                error = $"Clip \"{clip.name}\": {clipError}";
+                return false;
+            }
+
+            if (!skeleton.MatchesFrom(1, clip.Skeleton))
+            {
+                error = $"Clip \"{clip.name}\" has {clip.Skeleton.BoneCount} bones, which do not match this " +
+                        $"config's skeleton from bone 1 onward ({skeleton.BoneCount - 1} bones).";
+                return false;
+            }
+        }
+
+        error = null;
+        return true;
+    }
+
+    /// <summary>Null when <see cref="TryValidate"/> fails; the config's inspector reports why.</summary>
     public PoseSet GetOrImportPoseSet()
     {
         if (_poseSet != null) return _poseSet;
+        if (!TryValidate(out _)) return null;
 
         var serializer = new PoseSerializer();
-        if (serializer.Deserialize(GetAssetPath(), name, out PoseSet poseSet))
+        if (serializer.Deserialize(GetAssetPath(), name, skeleton, out PoseSet poseSet))
         {
             _poseSet = poseSet;
             return _poseSet;
@@ -308,14 +366,27 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// <summary>Extract the pose database from the animation clips, in memory.</summary>
     public void ImportPoseSet()
     {
-        Debug.Assert(animationClips.Count > 0, $"[MotionField] '{name}' has no animation clips.");
+        if (!TryValidate(out var error))
+        {
+            Debug.LogError($"[MotionField] '{name}': {error}");
+            _poseSet = null;
+            return;
+        }
 
         _poseSet = new PoseSet();
-        _poseSet.SetSkeletonFromBvh(animationClips[0].Skeleton);
+        _poseSet.SetSkeleton(skeleton);
 
         for (int i = 0; i < animationClips.Count; i++)
         {
-            if (!PoseExtractor.Extract(animationClips[i], _poseSet, this))
+            var clip = animationClips[i];
+            if (clip == null || clip.Skeleton == null || !skeleton.MatchesFrom(1, clip.Skeleton))
+            {
+                Debug.LogError($"[MotionField] Clip {i} (\"{(clip != null ? clip.name : "null")}\")'s skeleton " +
+                               "does not match this config's skeleton from bone 1 (Hips) onward; skipping.");
+                continue;
+            }
+
+            if (!PoseExtractor.Extract(clip, _poseSet, this))
             {
                 Debug.LogWarning($"[MotionField] Failed to extract poses from clip {i} of '{name}'.");
             }
@@ -331,15 +402,15 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     }
 
     /// <summary>
-    /// The joint hierarchy of the generated database, read without the pose data beside it.
-    /// False before the database has been generated.
+    /// This config's own pose skeleton -- the skeleton the similarity metric is actually computed
+    /// over, which is why the bone weight editor reads it here rather than from the source
+    /// animation clips: the clips carry a BVH hierarchy with no simulation bone, so its joint list
+    /// would not line up. False when no skeleton has been assigned.
     /// </summary>
-    /// <remarks>
-    /// This is the skeleton the similarity metric is actually computed over, which is why the bone
-    /// weight editor reads it here rather than from the source animation clips: the clips carry a
-    /// BVH hierarchy with no simulation bone, so its joint list would not line up.
-    /// </remarks>
-    public bool TryGetDatabaseSkeleton(out Skeleton skeleton) =>
-        PoseSerializer.TryDeserializeSkeleton(GetAssetPath(), name, out skeleton);
+    public bool TryGetDatabaseSkeleton(out Skeleton result)
+    {
+        result = skeleton;
+        return skeleton != null && skeleton.IsSet;
+    }
 }
 }

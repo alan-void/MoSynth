@@ -15,42 +15,30 @@ using static AnimationTools.BinarySerializerExtensions;
 public class PoseSerializer
 {
     /// <summary>
+    /// Format version written at the start of every .mmpose file. Bumped whenever the binary
+    /// layout changes so an old file is rejected with a clear message instead of misparsed.
+    /// </summary>
+    private const uint MmPoseFormatVersion = 2;
+
+    private static readonly byte[] MmPoseMagic = { (byte)'M', (byte)'M', (byte)'P', (byte)'S' };
+
+    /// <summary>
     /// Stores the full pose representation of all poses for Motion Matching in a binary format
     /// in the specified path with name filename and extension .mmpose
-    /// It also stores the skeleton used in poseSet with extension .mmskeleton
     /// </summary>
     public void Serialize(PoseSet poseSet, string path, string fileName)
     {
         Directory.CreateDirectory(path); // create directory and parent directories if they don't exist
-
-        // Write Skeleton
-        using (var stream = File.Open(Path.Combine(path, fileName + ".mmskeleton"), FileMode.Create))
-        {
-            using (var writer = new BinaryWriter(stream, Encoding.UTF8))
-            {
-                var skeleton = poseSet.Skeleton;
-                // Magic + format version
-                writer.Write(new byte[] { (byte)'M', (byte)'M', (byte)'S', (byte)'K' });
-                writer.Write(2u);
-                // Write Number Joints
-                writer.Write((uint)skeleton.BoneCount);
-                // Write Joints
-                for (var i = 0; i < skeleton.BoneCount; ++i)
-                {
-                    var bone = skeleton.GetBone(i);
-                    writer.Write(bone.name);
-                    writer.Write((uint)bone.parentIndex); // root's -1 round-trips as 0xFFFFFFFF
-                    WriteFloat3(writer, bone.restLocalPosition);
-                    WriteQuaternion(writer, bone.restLocalRotation);
-                }
-            }
-        }
 
         // Write Poses
         using (var stream = File.Open(Path.Combine(path, fileName + ".mmpose"), FileMode.Create))
         {
             using (var writer = new BinaryWriter(stream, Encoding.UTF8))
             {
+                // Magic + format version
+                writer.Write(MmPoseMagic);
+                writer.Write(MmPoseFormatVersion);
+
                 // Serialize Number Animation Clips
                 writer.Write((uint)poseSet.NumberClips);
                 // Serialize Animation Clips
@@ -96,85 +84,15 @@ public class PoseSerializer
     }
 
     /// <summary>
-    /// Reads only the .mmskeleton file into an in-memory <see cref="AnimationTools.Skeleton"/>,
-    /// without touching the far larger .mmpose alongside it. Returns false if the file is not
-    /// there, holds no joints, or is not a recognized MMSK v2 file. The bone list mirrors the
-    /// file's joint order (index i, id i + 1) including rest offsets and rotations.
-    /// </summary>
-    /// <remarks>
-    /// Split out of <see cref="Deserialize"/> for callers that want the joint hierarchy on its own
-    /// -- an inspector listing bone names, for instance, which would otherwise pay for megabytes of
-    /// pose data on every repaint.
-    /// </remarks>
-    public static bool TryDeserializeSkeleton(string path, string fileName, out Skeleton skeleton)
-    {
-        skeleton = null;
-
-        string skeletonPath = Path.Combine(path, fileName + ".mmskeleton");
-        if (!File.Exists(skeletonPath))
-            return false;
-
-        byte[] skeletonData = File.ReadAllBytes(skeletonPath);
-        using (var ms = new MemoryStream(skeletonData))
-        {
-            using (var reader = new BinaryReader(ms, Encoding.UTF8))
-            {
-                var magic = reader.ReadBytes(4);
-                if (magic.Length != 4 || magic[0] != (byte)'M' || magic[1] != (byte)'M' ||
-                    magic[2] != (byte)'S' || magic[3] != (byte)'K')
-                {
-                    Debug.LogError($"\"{fileName}.mmskeleton\" is an old or unknown format (expected MMSK v2) — regenerate the databases from the MotionMatchingData editor.");
-                    return false;
-                }
-
-                uint version = reader.ReadUInt32();
-                if (version != 2)
-                {
-                    Debug.LogError($"\"{fileName}.mmskeleton\" is an old or unknown format (expected MMSK v2) — regenerate the databases from the MotionMatchingData editor.");
-                    return false;
-                }
-
-                uint nJoints = reader.ReadUInt32();
-                if (nJoints == 0)
-                    return false;
-
-                var bones = new List<SkeletonBoneData>((int)nJoints);
-                for (int i = 0; i < nJoints; i++)
-                {
-                    string jointName = reader.ReadString();
-                    uint jointParentIndex = reader.ReadUInt32(); // root's 0xFFFFFFFF -> -1
-                    float3 jointLocalOffset = ReadFloat3(reader);
-                    quaternion jointLocalRotation = ReadQuaternion(reader);
-                    bones.Add(new SkeletonBoneData
-                    {
-                        name = jointName,
-                        parentIndex = (int)jointParentIndex,
-                        restLocalPosition = jointLocalOffset,
-                        restLocalRotation = jointLocalRotation
-                    });
-                }
-
-                skeleton = new Skeleton(bones, fileName + "_Skeleton");
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
     /// Reads the full pose representation of all poses for Motion Matching from a binary format
-    /// in the specified path with name filename and extension .mmpose and .mmskeleton
-    /// Returns true if poseSet was successfully deserialized, false otherwise
+    /// in the specified path with name filename and extension .mmpose, over the given
+    /// <paramref name="skeleton"/>. Returns true if poseSet was successfully deserialized, false
+    /// otherwise.
     /// </summary>
-    public bool Deserialize(string path, string fileName, out PoseSet poseSet)
+    public bool Deserialize(string path, string fileName, Skeleton skeleton, out PoseSet poseSet)
     {
         poseSet = new PoseSet();
-
-        // --------------------
-        // Read Skeleton File
-        // --------------------
-        if (!TryDeserializeSkeleton(path, fileName, out Skeleton skeleton))
-            return false;
+        if (skeleton == null || !skeleton.IsSet) return false;
 
         poseSet.SetSkeleton(skeleton);
 
@@ -190,6 +108,21 @@ public class PoseSerializer
         {
             using (var reader = new BinaryReader(ms, Encoding.UTF8))
             {
+                var magic = reader.ReadBytes(4);
+                if (magic.Length != 4 || magic[0] != MmPoseMagic[0] || magic[1] != MmPoseMagic[1] ||
+                    magic[2] != MmPoseMagic[2] || magic[3] != MmPoseMagic[3])
+                {
+                    Debug.LogError($"\"{fileName}.mmpose\" is an old or unknown format (expected MMPS v{MmPoseFormatVersion}) — regenerate the databases from the MotionMatchingData editor.");
+                    return false;
+                }
+
+                uint version = reader.ReadUInt32();
+                if (version != MmPoseFormatVersion)
+                {
+                    Debug.LogError($"\"{fileName}.mmpose\" is an old or unknown format (expected MMPS v{MmPoseFormatVersion}) — regenerate the databases from the MotionMatchingData editor.");
+                    return false;
+                }
+
                 uint nClips = reader.ReadUInt32();
                 poseSet.SetClipCapacity(nClips);
                 for (int i = 0; i < nClips; i++)
@@ -203,7 +136,11 @@ public class PoseSerializer
                 uint nPoses = reader.ReadUInt32();
                 uint nJoints = reader.ReadUInt32();
                 uint nTags = reader.ReadUInt32();
-                Debug.Assert(nJoints == skeleton.BoneCount, "Number of joints in skeleton and pose do not match");
+                if (nJoints != skeleton.BoneCount)
+                {
+                    Debug.LogError($"\"{fileName}.mmpose\" has {nJoints} joints but skeleton \"{skeleton.Name}\" has {skeleton.BoneCount} — regenerate the databases from the MotionMatchingData editor.");
+                    return false;
+                }
 
                 // Precompute sizes for the buffers (they remain constant across iterations)
                 int float3BufferSize = (int)nJoints * 3 * sizeof(float);

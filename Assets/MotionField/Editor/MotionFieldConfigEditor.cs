@@ -6,6 +6,7 @@ using AnimationTools.Editor;
 using Python.Runtime;
 using UnityEditor;
 using UnityEngine;
+using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionField.Editor
 {
@@ -71,6 +72,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
             MarkStale(config, database: true);
         }
 
+        DrawSkeletonValidation(config);
+
         EditorGUILayout.Space();
         DrawImportSection(config);
 
@@ -106,22 +109,64 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         EditorUtility.SetDirty(config);
     }
 
-    /// <summary>Rig a bone picker draws its dropdown from: the first animation clip's imported rig.</summary>
+    /// <summary>Rig a bone picker draws its dropdown from: this config's skeleton root.</summary>
     private static Transform GetRigRoot(MotionFieldConfig config)
     {
-        if (config.animationClips == null || config.animationClips.Count == 0) return null;
+        return config.Skeleton != null && config.Skeleton.IsSet ? config.Skeleton.Root : null;
+    }
 
-        var clip = config.animationClips[0];
-        return clip != null && clip.Rig != null ? clip.Rig.transform : null;
+    /// <summary>
+    /// One HelpBox per problem the skeleton or an animation clip has, mirroring
+    /// <c>MotionMatchingDataEditor</c>'s per-clip validation.
+    /// </summary>
+    private static void DrawSkeletonValidation(MotionFieldConfig config)
+    {
+        if (config.Skeleton == null || !config.Skeleton.IsSet)
+        {
+            EditorGUILayout.HelpBox(
+                "No skeleton assigned. Assign the rig's identity armature node as the skeleton root.",
+                MessageType.Error);
+            return;
+        }
+
+        var clips = config.animationClips;
+        for (var i = 0; i < clips.Count; i++)
+        {
+            var clip = clips[i];
+            if (clip == null)
+            {
+                EditorGUILayout.HelpBox($"Animation clip {i} is not assigned.", MessageType.Error);
+                continue;
+            }
+
+            if (clip.Skeleton == null)
+            {
+                EditorGUILayout.HelpBox($"Clip \"{clip.name}\" has no resolvable skeleton.", MessageType.Error);
+                continue;
+            }
+
+            if (!clip.TryValidate(out var error))
+            {
+                EditorGUILayout.HelpBox($"Clip \"{clip.name}\": {error}", MessageType.Error);
+                continue;
+            }
+
+            if (!config.Skeleton.MatchesFrom(1, clip.Skeleton))
+            {
+                EditorGUILayout.HelpBox(
+                    $"Clip \"{clip.name}\"'s skeleton does not match this config's skeleton from bone 1 (Hips) onward.",
+                    MessageType.Error);
+            }
+        }
     }
 
     private void DrawContactBones(Transform rigRoot)
     {
         EditorGUILayout.LabelField("Contact Bones", EditorStyles.boldLabel);
-        BoneTransformDrawer.DrawLayout(
+        SkeletonBoneDrawer.DrawLayout(
             new GUIContent("Left Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
             _leftContactBoneProperty, rigRoot);
-        BoneTransformDrawer.DrawLayout(
+        SkeletonBoneDrawer.DrawLayout(
             new GUIContent("Right Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
             _rightContactBoneProperty, rigRoot);
     }
@@ -151,14 +196,33 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         {
             if (GUILayout.Button("Copy Settings"))
             {
+                var rigRoot = GetRigRoot(config);
                 Undo.RecordObject(config, "Import MotionField settings");
                 config.contactVelocityThreshold = source.ContactVelocityThreshold;
-                config.leftContactBone = new BoneTransform(source.LeftContactBoneName);
-                config.rightContactBone = new BoneTransform(source.RightContactBoneName);
+                config.leftContactBone = ResolveContactBone(source.LeftContactBoneName, rigRoot);
+                config.rightContactBone = ResolveContactBone(source.RightContactBoneName, rigRoot);
                 MarkStale(config, database: true); // rewrites the clips extraction reads
                 Debug.Log($"[MotionField] Copied contact threshold and contact bones from '{source.name}'.");
             }
         }
+    }
+
+    /// <summary>
+    /// A <see cref="SkeletonBone"/> names a Transform, not a bare string, so a name copied from
+    /// another asset has to be resolved against this config's own rig immediately rather than
+    /// carried across unresolved. Returns an unset bone when the rig has no bone of that name.
+    /// </summary>
+    private static SkeletonBone ResolveContactBone(string boneName, Transform rigRoot)
+    {
+        if (string.IsNullOrEmpty(boneName) || rigRoot == null) return new SkeletonBone();
+
+        foreach (var transform in Skeleton.CollectTransformsDfs(rigRoot))
+        {
+            if (transform.name == boneName) return new SkeletonBone(new Skeleton(rigRoot), transform);
+        }
+
+        Debug.LogWarning($"[MotionField] Could not find bone \"{boneName}\" under rig \"{rigRoot.name}\" to copy.");
+        return new SkeletonBone();
     }
 
     private void DrawDatabaseSection(MotionFieldConfig config)
@@ -258,7 +322,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         for (int i = 0; i < _skeleton.BoneCount; i++)
         {
             var bone = _skeleton.GetBone(i);
-            MotionFieldConfig.BoneWeight weight = config.GetBoneWeight(bone.name);
+            MotionFieldConfig.BoneWeight weight = config.GetBoneWeight(bone.Name);
 
             // Row 0 is the simulation bone. Forward kinematics pins it to the origin with identity
             // rotation before the feature is built, so its position and velocity are structurally
@@ -269,7 +333,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
             {
                 GUILayout.Space(_jointDepths[i] * 12f);
 
-                var label = new GUIContent(bone.name, isRoot
+                var label = new GUIContent(bone.Name, isRoot
                     ? "The root is pinned to the origin when the metric is built, so its rows are " +
                       "always zero and its weight has no effect."
                     : $"joint {i}");
@@ -289,7 +353,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
                     Undo.RecordObject(config, "Edit bone weight");
                     config.SetBoneWeight(new MotionFieldConfig.BoneWeight(
-                        bone.name, Mathf.Max(0f, position), Mathf.Max(0f, velocity)));
+                        bone.Name, Mathf.Max(0f, position), Mathf.Max(0f, velocity)));
                     // The metric changes, the extraction does not, so only the training is stale.
                     MarkStale(config, database: false);
                 }
@@ -365,12 +429,12 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         for (int i = 0; i < skeleton.BoneCount; i++)
         {
             int depth = 0;
-            int parent = skeleton.GetBone(i).parentIndex;
+            int parent = skeleton.GetParentIndex(i);
             // Bounded by the joint count so a cyclic parentIndex cannot hang the inspector.
             while (parent >= 0 && parent < skeleton.BoneCount && depth < skeleton.BoneCount)
             {
                 depth++;
-                parent = skeleton.GetBone(parent).parentIndex;
+                parent = skeleton.GetParentIndex(parent);
             }
 
             _jointDepths[i] = depth;

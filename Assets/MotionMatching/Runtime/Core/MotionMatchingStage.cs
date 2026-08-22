@@ -80,7 +80,14 @@ public class MotionMatchingStage : MoSynthStage
         _owner = motionSynthesisComponent;
         _poseSet = mmData.GetOrImportPoseSet();
         var featureSet = mmData.GetOrImportFeatureSet();
-        
+
+        if (_poseSet == null || featureSet == null)
+        {
+            mmData.TryValidate(out var error);
+            Debug.LogError($"MotionMatchingStage: MotionMatchingData \"{mmData.name}\" is not usable — {error}");
+            return;
+        }
+
         Assert.IsTrue(controlInput, "mmCharacterController not set");
         // Force search on significant input change
         controlInput.OnHighInputChange += () => { _searchTimeLeft = 0; };
@@ -120,7 +127,9 @@ public class MotionMatchingStage : MoSynthStage
     public override Skeleton GetSkeleton(Skeleton inSkeleton)
     {
         _poseSet = mmData.GetOrImportPoseSet();
-        return _poseSet.Skeleton;
+        // Null when mmData is misconfigured; MotionSynthesisComponent reports "no stage provided
+        // a skeleton" and disables itself, and the asset's own inspector says what is wrong.
+        return _poseSet?.Skeleton;
     }
     
     public override bool Apply(PoseBuffer pose, float deltaTime)
@@ -261,7 +270,13 @@ public class MotionMatchingStage : MoSynthStage
     public override void OnValidate()
     {
         if(mmData == null) return;
-        var featureSize = mmData.GetOrImportFeatureSet().FeatureSize;
+
+        // Null while the asset is misconfigured; its own inspector reports why, and OnValidate
+        // runs every repaint, so this must stay silent.
+        var featureSet = mmData.GetOrImportFeatureSet();
+        if (featureSet == null) return;
+
+        var featureSize = featureSet.FeatureSize;
         if(featureWeights.Count < featureSize)
         {
             for (var i = featureWeights.Count; i < featureSize; i++)

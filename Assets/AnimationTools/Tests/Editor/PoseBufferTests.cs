@@ -42,6 +42,7 @@ public class PoseBufferTests
     public void TearDown()
     {
         buffer.Dispose();
+        TestSkeletons.DestroyAll();
     }
 
     [Test]

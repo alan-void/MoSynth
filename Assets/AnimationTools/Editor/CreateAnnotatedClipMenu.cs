@@ -36,10 +36,22 @@ public static class CreateAnnotatedClipMenu
             return;
         }
 
+        // The only place the root bone is guessed. The asset stores the result, so a rig this
+        // heuristic cannot read has to be caught here rather than failing later with an empty
+        // skeleton.
         var rootBone = GuessRootBone(rig.transform);
+        if (rootBone == null)
+        {
+            EditorUtility.DisplayDialog("Annotated Clip",
+                $"Could not find a root bone in \"{rig.name}\" — no descendant named '*Hips' and no " +
+                "single-child chain to follow. Create the asset from a rig that has one, then assign " +
+                "the skeleton root by hand.",
+                "OK");
+            return;
+        }
 
         var asset = ScriptableObject.CreateInstance<AnnotatedAnimationClip>();
-        asset.SetSource(clip, rig, rootBone);
+        asset.SetSource(clip, rootBone);
         asset.endFrame = ((SkeletonAnimation)asset).FrameCount;
 
         var dir = Path.GetDirectoryName(assetPath);
@@ -56,7 +68,7 @@ public static class CreateAnnotatedClipMenu
         }
     }
 
-    private static bool TryResolveClipAndRig(Object selected, out AnimationClip clip, out GameObject rig, out string assetPath)
+    private static bool TryResolveClipAndRig(Object selected, out AnimationClip clip, out Transform rig, out string assetPath)
     {
         clip = null;
         rig = null;
@@ -66,7 +78,8 @@ public static class CreateAnnotatedClipMenu
         {
             clip = selectedClip;
             assetPath = AssetDatabase.GetAssetPath(clip);
-            rig = AssetDatabase.LoadMainAssetAtPath(assetPath) as GameObject;
+            var go = AssetDatabase.LoadMainAssetAtPath(assetPath) as GameObject;
+            rig = go?.transform;
             if (rig == null)
             {
                 EditorUtility.DisplayDialog("Annotated Clip", "This AnimationClip's asset has no GameObject as its main object.", "OK");
@@ -78,7 +91,7 @@ public static class CreateAnnotatedClipMenu
 
         if (selected is GameObject selectedRig)
         {
-            rig = selectedRig;
+            rig = selectedRig.transform;
             assetPath = AssetDatabase.GetAssetPath(rig);
 
             foreach (var representation in AssetDatabase.LoadAllAssetRepresentationsAtPath(assetPath))

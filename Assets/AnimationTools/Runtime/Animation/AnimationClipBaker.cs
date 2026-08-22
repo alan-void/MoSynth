@@ -18,12 +18,25 @@ namespace AnimationTools
 /// </remarks>
 public static class AnimationClipBaker
 {
-    public static float[] Bake(AnimationClip clip, GameObject rig, Transform rootBoneInRig,
-        Skeleton skeleton, int frameCount, float frameTime)
+    /// <summary>
+    /// Returns null when the hierarchy under <paramref name="skeleton"/>'s root has a different
+    /// bone count than the skeleton itself; use <see cref="SkeletonAnimation.TryValidate"/> to
+    /// report why.
+    /// </summary>
+    public static float[] Bake(AnimationClip clip, Skeleton skeleton, int frameCount, float frameTime)
     {
+        var skeletonRoot = skeleton.Root;
+
+        // SampleAnimation matches the clip's curve paths against the hierarchy under the object it
+        // is handed, and an importer writes those paths relative to the asset's main object — the
+        // FBX root, or the container a .bvh import puts its bones under. That object is the
+        // skeleton root's topmost ancestor, so it is derived rather than stored: a second field
+        // could disagree with the skeleton, this cannot.
+        var rig = skeletonRoot.root;
+
         var path = new List<int>();
-        var walker = rootBoneInRig;
-        while (walker != null && walker != rig.transform)
+        var walker = skeletonRoot;
+        while (walker != null && walker != rig)
         {
             path.Add(walker.GetSiblingIndex());
             walker = walker.parent;
@@ -45,11 +58,8 @@ public static class AnimationClipBaker
                 chain.Add(instanceRootBone);
             }
 
-            var skeletonRoot = new SkeletonRoot();
-            skeletonRoot.SetRoot(instanceRootBone);
-            var transforms = SkeletonRoot.CollectTransformsDfs(skeletonRoot.Root);
-            Debug.Assert(transforms.Count == skeleton.BoneCount,
-                $"AnimationClipBaker: rig \"{rig.name}\" root bone \"{instanceRootBone.name}\" has {transforms.Count} descendants, but skeleton \"{skeleton.Name}\" has {skeleton.BoneCount} bones.");
+            var transforms = Skeleton.CollectTransformsDfs(instanceRootBone);
+            if (transforms.Count != skeleton.BoneCount) return null;
 
             WarnOnNonUnitScaleOnce(chain, transforms, rig.name);
 
@@ -62,7 +72,7 @@ public static class AnimationClipBaker
             var template = new float[layout.FloatCount];
             for (var b = 0; b < skeleton.BoneCount; b++)
             {
-                var restPosition = skeleton.GetBone(b).restLocalPosition;
+                var restPosition = skeleton.GetBone(b).RestLocalPosition;
                 template[d.PositionStart + b * 3 + 0] = restPosition.x;
                 template[d.PositionStart + b * 3 + 1] = restPosition.y;
                 template[d.PositionStart + b * 3 + 2] = restPosition.z;
@@ -74,7 +84,7 @@ public static class AnimationClipBaker
                 var frameBase = f * layout.FloatCount;
                 Array.Copy(template, 0, result, frameBase, layout.FloatCount);
 
-                clip.SampleAnimation(instance, f * frameTime);
+                clip.SampleAnimation(instance.gameObject, f * frameTime);
 
                 var rootPosition = instanceRootBone.position;
                 var positionBase = frameBase + d.PositionStart;
@@ -104,7 +114,9 @@ public static class AnimationClipBaker
         }
         finally
         {
-            UnityEngine.Object.DestroyImmediate(instance);
+            // instance is a Transform; Unity refuses to destroy a Transform component, and the
+            // clone is flagged HideAndDontSave, so getting this wrong leaks the whole rig.
+            UnityEngine.Object.DestroyImmediate(instance.gameObject);
         }
     }
 

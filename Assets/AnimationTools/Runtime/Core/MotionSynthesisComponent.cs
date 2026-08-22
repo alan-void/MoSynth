@@ -20,14 +20,17 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     // Reused every LateUpdate as the mutable pose the stage chain runs on.
     private PoseBuffer _scratchPose;
 
+    // Built from the stages (an asset rig at its rest pose), deliberately not from characterRig:
+    // a skeleton over a live scene rig would report whatever pose it's currently animated to as
+    // its rest pose, which silently corrupts FK.
     private Skeleton _skeleton;
     public Skeleton Skeleton => _skeleton;
 
     [SerializeField]
     [Tooltip("The rig this component drives; bones are bound to the pipeline skeleton by name.")]
-    private SkeletonRoot characterRig = new();
+    private SkeletonBoneOverrides characterRig = new();
 
-    public SkeletonRoot CharacterRig => characterRig;
+    public SkeletonBoneOverrides CharacterRig => characterRig;
 
     /// <summary>
     /// The transforms of the character controlled by this <see cref="MotionSynthesisComponent"/>.
@@ -97,14 +100,14 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
             return;
         }
 
-        if (characterRig == null) characterRig = new SkeletonRoot();
+        if (characterRig == null) characterRig = new SkeletonBoneOverrides();
         if (!characterRig.IsSet)
         {
             Debug.LogWarning($"MotionSynthesisComponent \"{name}\": characterRig is unset; searching under this component's own transform.");
             characterRig.SetRoot(transform);
         }
 
-        SkeletonTransforms = characterRig.BindByName(_skeleton, indexZeroOverride: transform);
+        SkeletonTransforms = characterRig.Bind(_skeleton, indexZeroOverride: transform);
 
         var missingBoneCount = 0;
         for (var i = 1; i < SkeletonTransforms.Length; i++)

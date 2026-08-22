@@ -1,220 +1,366 @@
-using System;
-using System.Collections.Generic;
 using AnimationTools;
 using NUnit.Framework;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace AnimationTools.Tests
 {
 public class SkeletonTests
 {
-    private static SkeletonBoneData MakeBone(string name, int parentIndex)
+    private const float Tolerance = 1e-4f;
+
+    [TearDown]
+    public void TearDown()
     {
-        return new SkeletonBoneData
+        TestSkeletons.DestroyAll();
+    }
+
+    // --- Construction and ordering ---------------------------------------------------------
+
+    [Test]
+    public void Unset_ReportsNoBones()
+    {
+        var skeleton = new Skeleton();
+
+        Assert.IsFalse(skeleton.IsSet);
+        Assert.AreEqual(0, skeleton.BoneCount);
+        Assert.AreEqual(0, skeleton.ContentHash);
+        Assert.AreEqual(-1, skeleton.IndexOf((Transform)null));
+    }
+
+    [Test]
+    public void BoneOrder_IsPreorderDepthFirstFromRoot()
+    {
+        var skeleton = TestSkeletons.CreateBranch4();
+
+        Assert.AreEqual(4, skeleton.BoneCount);
+        Assert.AreEqual("root", skeleton.GetBone(0).Name);
+        Assert.AreEqual("spine", skeleton.GetBone(1).Name);
+        Assert.AreEqual("leftHand", skeleton.GetBone(2).Name);
+        Assert.AreEqual("rightHand", skeleton.GetBone(3).Name);
+    }
+
+    [Test]
+    public void RootIsBoneZero_AndHasNoParent()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+
+        Assert.AreSame(skeleton.Root, skeleton.GetBone(0).Transform);
+        Assert.AreEqual(-1, skeleton.GetParentIndex(0));
+        Assert.IsNull(skeleton.GetParent(0));
+    }
+
+    [Test]
+    public void EveryBonesParentPrecedesIt()
+    {
+        var skeleton = TestSkeletons.CreateBranch4();
+
+        for (var i = 1; i < skeleton.BoneCount; i++)
         {
-            name = name, parentIndex = parentIndex,
-            restLocalPosition = float3.zero, restLocalRotation = quaternion.identity
-        };
-    }
-
-    [Test]
-    public void Constructor_RejectsEmptyList()
-    {
-        Assert.Throws<ArgumentException>(() => new Skeleton(new List<SkeletonBoneData>()));
-    }
-
-    [Test]
-    public void Constructor_RejectsNonRootAtIndexZero()
-    {
-        var bones = new List<SkeletonBoneData> { MakeBone("root", 0) };
-        Assert.Throws<ArgumentException>(() => new Skeleton(bones));
-    }
-
-    [Test]
-    public void Constructor_RejectsParentIndexAtOrAfterOwnIndex()
-    {
-        var bones = new List<SkeletonBoneData> { MakeBone("root", -1), MakeBone("spine", 1) };
-        Assert.Throws<ArgumentException>(() => new Skeleton(bones));
-    }
-
-    [Test]
-    public void Constructor_RejectsNegativeParentIndexOnNonRoot()
-    {
-        var bones = new List<SkeletonBoneData> { MakeBone("root", -1), MakeBone("spine", -1) };
-        Assert.Throws<ArgumentException>(() => new Skeleton(bones));
-    }
-
-    [Test]
-    public void Constructor_AcceptsValidChain()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        Assert.AreEqual(3, skeleton.BoneCount);
-    }
-
-    [Test]
-    public void TryFindByName_ReturnsIndexOnHit()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        Assert.IsTrue(skeleton.TryFindByName("head", out var index));
-        Assert.AreEqual(2, index);
-    }
-
-    [Test]
-    public void TryFindByName_ReturnsFalseOnMiss()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        Assert.IsFalse(skeleton.TryFindByName("ghost", out var index));
-        Assert.AreEqual(-1, index);
-    }
-
-    [Test]
-    public void IndexOfName_MirrorsTryFindByName()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        Assert.AreEqual(1, skeleton.IndexOfName("spine"));
-        Assert.AreEqual(-1, skeleton.IndexOfName("ghost"));
-    }
-
-    [Test]
-    public void IndexOfId_ZeroIsUnsetAndReturnsNegativeOne()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        Assert.AreEqual(-1, skeleton.IndexOfId(0));
-    }
-
-    [Test]
-    public void IndexOfId_OneBeyondBoneCountReturnsNegativeOne()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        Assert.AreEqual(-1, skeleton.IndexOfId(skeleton.BoneCount + 1));
-    }
-
-    [Test]
-    public void IndexOfId_OneResolvesToIndexZero()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        Assert.AreEqual(0, skeleton.IndexOfId(1));
-    }
-
-    [Test]
-    public void WithRootPrepended_AddsOneBone()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        var prepended = skeleton.WithRootPrepended("SimulationBone");
-        Assert.AreEqual(skeleton.BoneCount + 1, prepended.BoneCount);
-    }
-
-    [Test]
-    public void WithRootPrepended_NewRootIsAtIndexZeroWithNoParent()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        var prepended = skeleton.WithRootPrepended("SimulationBone");
-
-        var newRoot = prepended.GetBone(0);
-        Assert.AreEqual("SimulationBone", newRoot.name);
-        Assert.AreEqual(-1, newRoot.parentIndex);
-    }
-
-    [Test]
-    public void WithRootPrepended_OldRootBecomesChildOfNewRoot()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        var prepended = skeleton.WithRootPrepended("SimulationBone");
-
-        var oldRoot = prepended.GetBone(1);
-        Assert.AreEqual("root", oldRoot.name);
-        Assert.AreEqual(0, oldRoot.parentIndex);
-    }
-
-    [Test]
-    public void WithRootPrepended_DeeperBonesShiftParentIndexByOne()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        var prepended = skeleton.WithRootPrepended("SimulationBone");
-
-        var spine = prepended.GetBone(2);
-        Assert.AreEqual("spine", spine.name);
-        Assert.AreEqual(1, spine.parentIndex);
-
-        var head = prepended.GetBone(3);
-        Assert.AreEqual("head", head.name);
-        Assert.AreEqual(2, head.parentIndex);
-    }
-
-    [Test]
-    public void WithRootPrepended_PreservesRestPoseOfShiftedBones()
-    {
-        var skeleton = TestSkeletons.CreateChain3();
-        var prepended = skeleton.WithRootPrepended("SimulationBone");
-
-        for (var i = 0; i < skeleton.BoneCount; i++)
-        {
-            var original = skeleton.GetBone(i);
-            var shifted = prepended.GetBone(i + 1);
-            Assert.AreEqual(original.restLocalPosition, shifted.restLocalPosition);
-            Assert.AreEqual(original.restLocalRotation.value, shifted.restLocalRotation.value);
+            Assert.Less(skeleton.GetParentIndex(i), i, $"bone {i} violates the depth-first invariant");
         }
     }
 
     [Test]
-    public void ContentHash_IdenticalStructures_AreEqual()
+    public void ParentIndices_MatchTheHierarchy()
+    {
+        var skeleton = TestSkeletons.CreateBranch4();
+
+        Assert.AreEqual(0, skeleton.GetParentIndex(1)); // spine  -> root
+        Assert.AreEqual(1, skeleton.GetParentIndex(2)); // leftHand  -> spine
+        Assert.AreEqual(1, skeleton.GetParentIndex(3)); // rightHand -> spine
+        Assert.AreEqual("spine", skeleton.GetParent(2).Name);
+    }
+
+    [Test]
+    public void RestPose_ReadsTheTransformOffsets()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+
+        Assert.AreEqual(0f, skeleton.GetBone(0).RestLocalPosition.y, Tolerance);
+        Assert.AreEqual(1f, skeleton.GetBone(1).RestLocalPosition.y, Tolerance);
+        Assert.AreEqual(1f, skeleton.GetBone(2).RestLocalPosition.y, Tolerance);
+    }
+
+    // --- Lookup ------------------------------------------------------------------------------
+
+    [Test]
+    public void TryFindByName_FindsAnExistingBone()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+
+        Assert.IsTrue(skeleton.TryFindByName("spine", out var index));
+        Assert.AreEqual(1, index);
+        Assert.AreEqual(1, skeleton.IndexOfName("spine"));
+    }
+
+    [Test]
+    public void TryFindByName_MissesAnAbsentBone()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+
+        Assert.IsFalse(skeleton.TryFindByName("tail", out var index));
+        Assert.AreEqual(-1, index);
+        Assert.AreEqual(-1, skeleton.IndexOfName("tail"));
+    }
+
+    [Test]
+    public void IndexOfTransform_ResolvesBonesAndRejectsOutsiders()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+        var outsider = new GameObject("outsider").transform;
+
+        try
+        {
+            Assert.AreEqual(2, skeleton.IndexOf(skeleton.GetBone(2).Transform));
+            Assert.AreEqual(-1, skeleton.IndexOf(outsider));
+        }
+        finally
+        {
+            Object.DestroyImmediate(outsider.gameObject);
+        }
+    }
+
+    // --- Bone ids ----------------------------------------------------------------------------
+
+    [Test]
+    public void IndexOfId_TreatsZeroAsUnset()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+
+        Assert.AreEqual(-1, skeleton.IndexOfId(0));
+    }
+
+    [Test]
+    public void IndexOfId_RejectsAnIdPastTheEnd()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+
+        Assert.AreEqual(-1, skeleton.IndexOfId(skeleton.BoneCount + 1));
+    }
+
+    [Test]
+    public void IndexOfId_RoundTripsWithGetBoneId()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+
+        for (var i = 0; i < skeleton.BoneCount; i++)
+        {
+            Assert.AreEqual(i, skeleton.IndexOfId(skeleton.GetBoneId(i)));
+        }
+
+        Assert.AreEqual(0, skeleton.IndexOfId(1));
+    }
+
+    // --- SkeletonData ------------------------------------------------------------------------
+
+    [Test]
+    public void GetSkeletonData_MirrorsTheHierarchyAndRestPose()
+    {
+        var skeleton = TestSkeletons.CreateBranch4();
+        var data = skeleton.GetSkeletonData();
+
+        Assert.AreEqual(skeleton.BoneCount, data.BoneCount);
+        for (var i = 0; i < skeleton.BoneCount; i++)
+        {
+            Assert.AreEqual(skeleton.GetParentIndex(i), data.ParentIndices[i]);
+            Assert.AreEqual(skeleton.GetBone(i).RestLocalPosition.y, data.RestLocalPositions[i].y, Tolerance);
+        }
+    }
+
+    [Test]
+    public void GetSkeletonData_IsSharedAcrossInstancesOverTheSameRoot()
+    {
+        var skeleton = TestSkeletons.CreateBranch4();
+        var alias = new Skeleton(skeleton.Root);
+
+        var data = skeleton.GetSkeletonData();
+        var aliasData = alias.GetSkeletonData();
+
+        Assert.AreEqual(data.BoneCount, aliasData.BoneCount);
+        Assert.IsTrue(data.ParentIndices.Equals(aliasData.ParentIndices),
+            "instances over the same root must share one Domain-allocated SkeletonData");
+    }
+
+    // --- Structural comparison ----------------------------------------------------------------
+
+    [Test]
+    public void ContentHash_AgreesForIdenticalStructures()
     {
         var a = TestSkeletons.CreateChain3();
         var b = TestSkeletons.CreateChain3();
+
         Assert.AreEqual(a.ContentHash, b.ContentHash);
     }
 
     [Test]
-    public void ContentHash_DifferentNames_AreLikelyDifferent()
+    public void ContentHash_DiffersForDifferentStructures()
     {
         var chain = TestSkeletons.CreateChain3();
         var branch = TestSkeletons.CreateBranch4();
+
         Assert.AreNotEqual(chain.ContentHash, branch.ContentHash);
     }
 
     [Test]
     public void StructurallyEqual_IgnoresRestPose()
     {
-        var bonesA = new List<SkeletonBoneData>
-        {
-            MakeBone("root", -1),
-            new() { name = "spine", parentIndex = 0, restLocalPosition = new float3(0f, 1f, 0f), restLocalRotation = quaternion.identity }
-        };
-        var bonesB = new List<SkeletonBoneData>
-        {
-            MakeBone("root", -1),
-            new() { name = "spine", parentIndex = 0, restLocalPosition = new float3(5f, -2f, 3f), restLocalRotation = quaternion.RotateY(1f) }
-        };
+        var a = TestSkeletons.CreateChain3();
+        var b = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("root", -1, float3.zero),
+            new TestSkeletons.BoneSpec("spine", 0, new float3(0f, 7f, 0f)),
+            new TestSkeletons.BoneSpec("head", 1, new float3(0f, 9f, 0f)));
 
-        Assert.IsTrue(Skeleton.StructurallyEqual(new Skeleton(bonesA), new Skeleton(bonesB)));
+        Assert.IsTrue(Skeleton.StructurallyEqual(a, b));
     }
 
     [Test]
-    public void StructurallyEqual_DifferentNames_ReturnsFalse()
+    public void StructurallyEqual_IsFalseOnDifferentNames()
+    {
+        var a = TestSkeletons.CreateChain3();
+        var b = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("root", -1, float3.zero),
+            new TestSkeletons.BoneSpec("neck", 0, new float3(0f, 1f, 0f)),
+            new TestSkeletons.BoneSpec("head", 1, new float3(0f, 1f, 0f)));
+
+        Assert.IsFalse(Skeleton.StructurallyEqual(a, b));
+    }
+
+    [Test]
+    public void StructurallyEqual_IsFalseOnDifferentParents()
     {
         var chain = TestSkeletons.CreateChain3();
-        var branch = TestSkeletons.CreateBranch4();
-        Assert.IsFalse(Skeleton.StructurallyEqual(chain, branch));
+        var flat = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("root", -1, float3.zero),
+            new TestSkeletons.BoneSpec("spine", 0, new float3(0f, 1f, 0f)),
+            new TestSkeletons.BoneSpec("head", 0, new float3(0f, 1f, 0f)));
+
+        Assert.IsFalse(Skeleton.StructurallyEqual(chain, flat));
     }
 
     [Test]
-    public void StructurallyEqual_DifferentParents_ReturnsFalse()
-    {
-        var bonesA = new List<SkeletonBoneData> { MakeBone("root", -1), MakeBone("a", 0), MakeBone("b", 1) };
-        var bonesB = new List<SkeletonBoneData> { MakeBone("root", -1), MakeBone("a", 0), MakeBone("b", 0) };
-
-        Assert.IsFalse(Skeleton.StructurallyEqual(new Skeleton(bonesA), new Skeleton(bonesB)));
-    }
-
-    [Test]
-    public void StructurallyEqual_NullSafety()
+    public void StructurallyEqual_IsNullSafe()
     {
         var skeleton = TestSkeletons.CreateChain3();
 
         Assert.IsTrue(Skeleton.StructurallyEqual(null, null));
+        Assert.IsTrue(Skeleton.StructurallyEqual(skeleton, skeleton));
         Assert.IsFalse(Skeleton.StructurallyEqual(skeleton, null));
         Assert.IsFalse(Skeleton.StructurallyEqual(null, skeleton));
-        Assert.IsTrue(Skeleton.StructurallyEqual(skeleton, skeleton));
+    }
+
+    // --- MatchesFrom: a pose skeleton against an animation's -----------------------------------
+
+    [Test]
+    public void MatchesFrom_AcceptsAnAnimationSkeletonUnderASimulationBone()
+    {
+        // The pose skeleton carries a SimulationBone above the bones an animation describes.
+        var pose = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("SimulationBone", -1, float3.zero),
+            new TestSkeletons.BoneSpec("root", 0, float3.zero),
+            new TestSkeletons.BoneSpec("spine", 1, new float3(0f, 1f, 0f)),
+            new TestSkeletons.BoneSpec("head", 2, new float3(0f, 1f, 0f)));
+        var animation = TestSkeletons.CreateChain3();
+
+        Assert.IsTrue(pose.MatchesFrom(1, animation));
+    }
+
+    [Test]
+    public void MatchesFrom_RejectsAMismatchedBoneCount()
+    {
+        var pose = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("SimulationBone", -1, float3.zero),
+            new TestSkeletons.BoneSpec("root", 0, float3.zero),
+            new TestSkeletons.BoneSpec("spine", 1, new float3(0f, 1f, 0f)));
+        var animation = TestSkeletons.CreateChain3();
+
+        Assert.IsFalse(pose.MatchesFrom(1, animation));
+    }
+
+    [Test]
+    public void MatchesFrom_RejectsADifferentlyNamedBone()
+    {
+        var pose = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("SimulationBone", -1, float3.zero),
+            new TestSkeletons.BoneSpec("root", 0, float3.zero),
+            new TestSkeletons.BoneSpec("neck", 1, new float3(0f, 1f, 0f)),
+            new TestSkeletons.BoneSpec("head", 2, new float3(0f, 1f, 0f)));
+        var animation = TestSkeletons.CreateChain3();
+
+        Assert.IsFalse(pose.MatchesFrom(1, animation));
+    }
+
+    [Test]
+    public void MatchesFrom_RejectsAReparentedBone()
+    {
+        var pose = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("SimulationBone", -1, float3.zero),
+            new TestSkeletons.BoneSpec("root", 0, float3.zero),
+            new TestSkeletons.BoneSpec("spine", 1, new float3(0f, 1f, 0f)),
+            new TestSkeletons.BoneSpec("head", 1, new float3(0f, 1f, 0f)));
+        var animation = TestSkeletons.CreateChain3();
+
+        Assert.IsFalse(pose.MatchesFrom(1, animation));
+    }
+
+    [Test]
+    public void MatchesFrom_ZeroIsPlainStructuralEquality()
+    {
+        var a = TestSkeletons.CreateChain3();
+        var b = TestSkeletons.CreateChain3();
+
+        Assert.IsTrue(a.MatchesFrom(0, b));
+        Assert.IsFalse(a.MatchesFrom(0, TestSkeletons.CreateBranch4()));
+    }
+
+    // --- SkeletonBone as a standalone reference ------------------------------------------------
+
+    [Test]
+    public void SkeletonBone_ResolvesItsOwnIndexAndParent()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+        var reference = new SkeletonBone(skeleton, skeleton.GetBone(2).Transform);
+
+        Assert.AreEqual(2, reference.Index);
+        Assert.AreEqual(1, reference.ParentIndex);
+        Assert.AreEqual("spine", reference.Parent.Name);
+        Assert.AreEqual("head", reference.Name);
+        Assert.IsTrue(reference.IsSet);
+    }
+
+    [Test]
+    public void SkeletonBone_Unset_ResolvesToNothing()
+    {
+        var reference = new SkeletonBone();
+
+        Assert.IsFalse(reference.IsSet);
+        Assert.AreEqual(-1, reference.Index);
+        Assert.AreEqual(-1, reference.ParentIndex);
+        Assert.IsNull(reference.Parent);
+        Assert.IsNull(reference.Name);
+    }
+
+    [Test]
+    public void SkeletonBone_ResolveIndex_FallsBackToNameAcrossRigs()
+    {
+        var picked = TestSkeletons.CreateChain3();
+        var otherRig = TestSkeletons.CreateChain3();
+        var reference = new SkeletonBone(picked, picked.GetBone(1).Transform);
+
+        // A different rig shares no Transforms, so only the name match can resolve it.
+        Assert.AreEqual(-1, otherRig.IndexOf(reference.Transform));
+        Assert.AreEqual(1, reference.ResolveIndex(otherRig));
+    }
+
+    [Test]
+    public void SkeletonBone_ResolveIndex_ReturnsMinusOneWhenNoBoneMatches()
+    {
+        var picked = TestSkeletons.CreateChain3();
+        var branch = TestSkeletons.CreateBranch4();
+        var reference = new SkeletonBone(picked, picked.GetBone(2).Transform); // "head"
+
+        Assert.AreEqual(-1, reference.ResolveIndex(branch));
+        Assert.AreEqual(-1, reference.ResolveIndex(null));
     }
 }
 }

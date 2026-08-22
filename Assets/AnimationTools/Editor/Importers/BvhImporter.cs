@@ -19,21 +19,42 @@ namespace MotionMatching.Editor
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var fileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
-            var (skeleton, rootPositions, boneRotations, frameTime) = Import(ctx, unitScale, onlyFirstFrame);
-
-            // A .bvh imports like a small FBX: the rig is the main object and the AnimationClip a
-            // sub-asset. The bone hierarchy sits under a container because Unity renames the main
-            // object to the file name, which would clobber the root bone's name and break
-            // name-based binding. Descendant bone GameObjects get Unity's deterministic
-            // path-derived local ids off the container, which is the stability mechanism -- bone
-            // renames break references, but names are the rig's identity anyway.
-            var container = new GameObject(fileName);
-            SkeletonRigBuilder.CreateHierarchy(skeleton, container.transform);
-            ctx.AddObjectToAsset("rig", container);
-            ctx.SetMainObject(container);
+            var (skeleton, rootPositions, boneRotations, frameTime) = Import(ctx, fileName, unitScale, onlyFirstFrame);
 
             var clip = BuildAnimationClip(fileName, skeleton, rootPositions, boneRotations, frameTime);
             ctx.AddObjectToAsset("clip", clip);
+        }
+
+        /// <summary>One parsed BVH joint: name, parent, and rest pose, before any GameObject exists.</summary>
+        private struct BvhJoint
+        {
+            public string Name;
+            public int ParentIndex;
+            public float3 RestLocalPosition;
+            public quaternion RestLocalRotation;
+        }
+
+        /// <summary>
+        /// Creates one GameObject per <paramref name="joints"/> entry, parented to match the BVH
+        /// joint tree (bone 0 parented under <paramref name="rigRoot"/>), with local
+        /// position/rotation set from the parsed rest offsets. Returns the created Transform per
+        /// joint index.
+        /// </summary>
+        private static Transform[] BuildJointHierarchy(List<BvhJoint> joints, Transform rigRoot)
+        {
+            var transforms = new Transform[joints.Count];
+
+            for (var i = 0; i < joints.Count; i++)
+            {
+                var joint = joints[i];
+                var boneTransform = new GameObject(joint.Name).transform;
+                boneTransform.SetParent(i == 0 ? rigRoot : transforms[joint.ParentIndex], false);
+                boneTransform.localPosition = joint.RestLocalPosition;
+                boneTransform.localRotation = joint.RestLocalRotation;
+                transforms[i] = boneTransform;
+            }
+
+            return transforms;
         }
 
         private static AnimationClip BuildAnimationClip(string clipName, Skeleton skeleton, Vector3[] rootPositions, Quaternion[][] boneRotations, float frameTime)
@@ -45,7 +66,7 @@ namespace MotionMatching.Editor
             for (var i = 0; i < boneCount; i++)
             {
                 var bone = skeleton.GetBone(i);
-                paths[i] = i == 0 ? bone.name : paths[bone.parentIndex] + "/" + bone.name;
+                paths[i] = i == 0 ? bone.Name : paths[skeleton.GetParentIndex(i)] + "/" + bone.Name;
             }
 
             var frameCount = rootPositions.Length;
@@ -94,7 +115,7 @@ namespace MotionMatching.Editor
         }
 
         private static (Skeleton skeleton, Vector3[] rootPositions, Quaternion[][] boneRotations, float frameTime) Import(
-            AssetImportContext ctx, float scale = 0.01f, bool onlyFirstFrame = false)
+            AssetImportContext ctx, string fileName, float scale = 0.01f, bool onlyFirstFrame = false)
         {
             var channelAxisOrders = new List<AxisOrder>();
 
@@ -111,14 +132,14 @@ namespace MotionMatching.Editor
             ReadLeftBracket(words, ref w);
             ReadOffset(words, ref w); // consumed but discarded: root position always comes from motion channel 0, never HIERARCHY
             ReadChannels(channelAxisOrders, words, ref w, true);
-            var bones = new List<SkeletonBoneData>
+            var bones = new List<BvhJoint>
             {
                 new()
                 {
-                    name = rootName,
-                    parentIndex = -1,
-                    restLocalPosition = float3.zero,
-                    restLocalRotation = quaternion.identity
+                    Name = rootName,
+                    ParentIndex = -1,
+                    RestLocalPosition = float3.zero,
+                    RestLocalRotation = quaternion.identity
                 }
             };
             // JOINTS
@@ -139,12 +160,12 @@ namespace MotionMatching.Editor
                 brackets += 1;
                 var offset = ReadOffset(words, ref w) * scale;
                 ReadChannels(channelAxisOrders, words, ref w);
-                bones.Add(new SkeletonBoneData
+                bones.Add(new BvhJoint
                 {
-                    name = jointName,
-                    parentIndex = boneParentIndex,
-                    restLocalPosition = (float3)offset,
-                    restLocalRotation = quaternion.identity
+                    Name = jointName,
+                    ParentIndex = boneParentIndex,
+                    RestLocalPosition = (float3)offset,
+                    RestLocalRotation = quaternion.identity
                 });
                 if (words[w] == "End")
                 {
@@ -191,7 +212,18 @@ namespace MotionMatching.Editor
             if (words[w++] != "Time:") Debug.LogError("[BVHImporter] Time: not found");
             var frameTime = float.Parse(words[w++], CultureInfo.InvariantCulture);
 
-            var skeleton = new Skeleton(bones, Path.GetFileNameWithoutExtension(ctx.assetPath) + "_Skeleton");
+            // A .bvh imports like a small FBX: the rig is the main object and the AnimationClip a
+            // sub-asset. The bone hierarchy sits under a container because Unity renames the main
+            // object to the file name, which would clobber the root bone's name and break
+            // name-based binding.
+            var container = new GameObject(fileName);
+            var boneTransforms = BuildJointHierarchy(bones, container.transform);
+            var skeleton = new Skeleton(boneTransforms[0]);
+
+            // The bone GameObjects come along as children of the container; adding one separately
+            // would register it as a second root of the same asset.
+            ctx.AddObjectToAsset("rig", container);
+            ctx.SetMainObject(container);
 
             var numberChannels = channelAxisOrders.Count;
             var framesStored = onlyFirstFrame ? Mathf.Min(1, numberFrames) : numberFrames;

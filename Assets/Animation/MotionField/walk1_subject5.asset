@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: walk1_subject5
   m_EditorClassIdentifier: MotionMatching::MotionMatching.AnimationData
   clip: {fileID: 2929084023613851485, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-  rig: {fileID: 919132149155446097, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-  rootBone:
+  rig: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  skeleton:
+    root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  rootMotionBone:
+    skeleton:
+      root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
     bone: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-    boneName: Model:Hips
-  tags: []
   startFrame: 100
   endFrame: 2800

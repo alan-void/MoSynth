@@ -14,6 +14,8 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     private bool _generateButtonError;
 
     private SerializedProperty _animationClipsProperty;
+    private SerializedProperty _skeletonProperty;
+    private SerializedProperty _rootMotionBoneProperty;
     private SerializedProperty _contactVelocityThresholdProperty;
     private SerializedProperty _leftContactBoneProperty;
     private SerializedProperty _rightContactBoneProperty;
@@ -48,6 +50,8 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     private void OnEnable()
     {
         _animationClipsProperty = serializedObject.FindProperty("animationClips");
+        _skeletonProperty = serializedObject.FindProperty("skeleton");
+        _rootMotionBoneProperty = serializedObject.FindProperty("rootMotionBone");
         _contactVelocityThresholdProperty = serializedObject.FindProperty("contactVelocityThreshold");
         _leftContactBoneProperty = serializedObject.FindProperty("leftContactBone");
         _rightContactBoneProperty = serializedObject.FindProperty("rightContactBone");
@@ -63,7 +67,10 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         _generateButtonError = false;
         var rigRoot = GetRigRoot(data);
 
+        EditorGUILayout.PropertyField(_skeletonProperty);
+
         DrawAnimations();
+        DrawSkeletonValidation(data);
 
         // SmoothSimulationBone
         //data.SmoothSimulationBone = EditorGUILayout.Toggle(new GUIContent("Smooth Simulation Bone", "Smooth the simulation bone (articial root added during pose extraction) using Savitzky-Golay filter"),
@@ -83,14 +90,69 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         EditorGUILayout.PropertyField(_animationClipsProperty);
     }
 
+    private void DrawSkeleton()
+    {
+        EditorGUILayout.Separator();
+        EditorGUILayout.LabelField("Skeleton", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(_skeletonProperty);
+    }
+
     /// <summary>
-    /// The rig a bone picker draws its dropdown from: the imported rig of the first animation clip.
-    /// Null when there is no clip, or the clip does not resolve to a rig.
+    /// One HelpBox per problem the skeleton or an animation clip has, so <see cref="GenerateDatabases"/>
+    /// cannot run against a database that would silently mis-extract.
+    /// </summary>
+    private void DrawSkeletonValidation(MotionMatchingData data)
+    {
+        if (data.Skeleton == null || !data.Skeleton.IsSet)
+        {
+            EditorGUILayout.HelpBox(
+                "No skeleton assigned. Assign the rig's identity armature node as the skeleton root.",
+                MessageType.Error);
+            _generateButtonError = true;
+            return;
+        }
+
+        for (var i = 0; i < data.animationClips.Count; i++)
+        {
+            var clip = data.animationClips[i];
+            if (clip == null)
+            {
+                EditorGUILayout.HelpBox($"Animation clip {i} is not assigned.", MessageType.Error);
+                _generateButtonError = true;
+                continue;
+            }
+
+            if (clip.Skeleton == null)
+            {
+                EditorGUILayout.HelpBox($"Clip \"{clip.name}\" has no resolvable skeleton.", MessageType.Error);
+                _generateButtonError = true;
+                continue;
+            }
+
+            if (!clip.TryValidate(out var error))
+            {
+                EditorGUILayout.HelpBox($"Clip \"{clip.name}\": {error}", MessageType.Error);
+                _generateButtonError = true;
+                continue;
+            }
+
+            if (!data.Skeleton.MatchesFrom(1, clip.Skeleton))
+            {
+                EditorGUILayout.HelpBox(
+                    $"Clip \"{clip.name}\"'s skeleton does not match this asset's skeleton from bone 1 (Hips) onward.",
+                    MessageType.Error);
+                _generateButtonError = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The rig a bone picker draws its dropdown from: this asset's skeleton root. Null when the
+    /// skeleton is not assigned.
     /// </summary>
     private static Transform GetRigRoot(MotionMatchingData data)
     {
-        var clip = data.animationClips.Count > 0 ? data.animationClips[0] : null;
-        return clip != null && clip.Rig != null ? clip.Rig.transform : null;
+        return data.Skeleton != null && data.Skeleton.IsSet ? data.Skeleton.Root : null;
     }
 
     // ContactVelocityThreshold + Contact Bones
@@ -102,10 +164,10 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
             new GUIContent("Contact Velocity Threshold",
                 "Minimum velocity of the foot to be considered in movement and not in contact with the ground"));
 
-        BoneTransformDrawer.DrawLayout(
+        SkeletonBoneDrawer.DrawLayout(
             new GUIContent("Left Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
             _leftContactBoneProperty, rigRoot);
-        BoneTransformDrawer.DrawLayout(
+        SkeletonBoneDrawer.DrawLayout(
             new GUIContent("Right Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
             _rightContactBoneProperty, rigRoot);
     }
@@ -214,7 +276,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
                 featureTypeProp.intValue = (int)(PoseFeatureChannel.Type)EditorGUILayout.EnumPopup("Type",
                     (PoseFeatureChannel.Type)featureTypeProp.intValue);
                 var boneProp = poseFeature.FindPropertyRelative("bone");
-                BoneTransformDrawer.DrawLayout(new GUIContent("Bone"), boneProp, rigRoot);
+                SkeletonBoneDrawer.DrawLayout(new GUIContent("Bone"), boneProp, rigRoot);
 
                 EditorGUILayout.EndVertical();
             }
@@ -286,10 +348,10 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         ClearBone(element.FindPropertyRelative("bone"));
     }
 
-    private static void ClearBone(SerializedProperty boneTransformProperty)
+    private static void ClearBone(SerializedProperty skeletonBoneProperty)
     {
-        boneTransformProperty.FindPropertyRelative("bone").objectReferenceValue = null;
-        boneTransformProperty.FindPropertyRelative("boneName").stringValue = "";
+        skeletonBoneProperty.FindPropertyRelative("bone").objectReferenceValue = null;
+        skeletonBoneProperty.FindPropertyRelative("skeleton.root").objectReferenceValue = null;
     }
 
     private bool TrajectoryFramesLayout(SerializedProperty trajectoryFeature)
@@ -338,7 +400,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
             simulationBoneProp.boolValue = EditorGUILayout.Toggle("Simulation Bone", simulationBoneProp.boolValue);
             if (!simulationBoneProp.boolValue)
             {
-                BoneTransformDrawer.DrawLayout(new GUIContent("Bone"), boneProp, rigRoot);
+                SkeletonBoneDrawer.DrawLayout(new GUIContent("Bone"), boneProp, rigRoot);
                 GUI.enabled = !zeroYProp.boolValue || !zeroZProp.boolValue;
                 zeroXProp.boolValue = EditorGUILayout.Toggle("Zero X", zeroXProp.boolValue);
                 GUI.enabled = !zeroXProp.boolValue || !zeroZProp.boolValue;

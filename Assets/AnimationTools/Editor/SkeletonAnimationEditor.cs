@@ -76,7 +76,7 @@ namespace AnimationTools.Editor
         private void RefreshSkeletonCache()
         {
             var skeleton = _skeletonAnimation != null ? _skeletonAnimation.Skeleton : null;
-            if (skeleton == _skeleton) return;
+            if (skeleton?.Root == _skeleton?.Root) return;
 
             if (_fkPositions.IsCreated) _fkPositions.Dispose();
             if (_fkRotations.IsCreated) _fkRotations.Dispose();
@@ -165,8 +165,18 @@ namespace AnimationTools.Editor
         }
 
         private bool CanPreview =>
-            _skeletonAnimation != null && _skeletonAnimation.Skeleton != null &&
+            _skeletonAnimation != null && _skeletonAnimation.TryValidate(out _) &&
             _skeletonAnimation.PoseSequence != null && _skeletonAnimation.FrameCount > 0;
+
+        public override void OnInspectorGUI()
+        {
+            DrawDefaultInspector();
+
+            if (_skeletonAnimation != null && !_skeletonAnimation.TryValidate(out var error))
+            {
+                EditorGUILayout.HelpBox(error, MessageType.Warning);
+            }
+        }
 
         private void UpdateSimulation()
         {

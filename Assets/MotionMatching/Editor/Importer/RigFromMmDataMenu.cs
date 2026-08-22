@@ -1,14 +1,15 @@
 using AnimationTools;
 using UnityEditor;
 using UnityEngine;
+using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionMatching.Editor
 {
 /// <summary>
-/// Migration tool: builds a scene rig matching a <see cref="MotionMatchingData"/>'s generated
-/// database, including the SimulationBone root the database extraction prepends. Use it to get a
-/// rig to assign to feature/contact <see cref="BoneTransform"/> fields when no imported rig asset
-/// already provides one.
+/// Migration tool: builds a scene rig matching a <see cref="MotionMatchingData"/>'s skeleton,
+/// including the SimulationBone root the database extraction prepends. Use it to get a rig to
+/// assign to feature/contact <see cref="SkeletonBone"/> fields when no imported rig asset already
+/// provides one.
 /// </summary>
 public static class RigFromMmDataMenu
 {
@@ -16,12 +17,11 @@ public static class RigFromMmDataMenu
     private static void CreateRigFromMotionMatchingData()
     {
         var data = (MotionMatchingData)Selection.activeObject;
+        var skeleton = data.Skeleton;
 
-        if (!PoseSerializer.TryDeserializeSkeleton(data.GetAssetPath(), data.name, out var skeleton))
+        if (skeleton == null || !skeleton.IsSet)
         {
-            Debug.LogError(
-                $"[RigFromMmDataMenu] No .mmskeleton found for \"{data.name}\" at {data.GetAssetPath()}. " +
-                "Generate Databases on the MotionMatchingData first.");
+            Debug.LogError($"[RigFromMmDataMenu] \"{data.name}\" has no skeleton assigned.");
             return;
         }
 

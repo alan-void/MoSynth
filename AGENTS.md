@@ -43,9 +43,9 @@ MotionSynthesisComponent
 - `MoSynthStage` (abstract base): interface for all stages with `Init()`, `Apply(PoseBuffer, deltaTime)`, `GetSkeleton()`, `OnDestroy()`
 - `MotionSynthesisComponent`: main orchestrator that runs stages each frame; manages skeleton transforms and pose updates
 - `PoseBuffer`: the mutable pose data structure carrying joint positions, rotations, velocities, contact states
-- `Skeleton`: immutable plain C# class with `SkeletonBoneData[]` (name-based bone identity; index+1 convention for bone IDs; index 0 = SimulationBone)
-- `SkeletonRoot`: serializable wrapper marking a Transform as a rig root; provides DFS ordering and name-based bone lookup (`BuildSkeleton()`, `FindBone()`, `BindByName()`)
-- `BoneTransform`: typed reference to a rig bone (Transform + boneName); used by components and ScriptableObjects (features, contact bones)
+- `Skeleton`: a bone hierarchy defined by a Transform tree — serializes as a single root Transform, and the bone list is the preorder depth-first walk from that root (bone 0 = root); index+1 convention for bone IDs, index 0 = SimulationBone in a pose skeleton
+- `SkeletonBone`: one bone of a `Skeleton` — a `Skeleton` + `Transform` pair; also the serializable type used for a standalone bone-reference field (contact bones, root motion bone)
+- `SkeletonBoneOverrides`: binds a `Skeleton` (an asset rig at rest) to a different, live rig by name, with per-bone overrides; `MotionSynthesisComponent.characterRig` is one of these
 
 ### Data Flow: Pose Representation
 
@@ -87,20 +87,20 @@ Assets/
 ├── AnimationTools/
 │   ├── Runtime/Core/
 │   │   ├── MoSynthStage.cs          [abstract base for all stages]
-│   │   └── MotionSynthesisComponent.cs [main orchestrator; binds rig by name via SkeletonRoot]
+│   │   └── MotionSynthesisComponent.cs [main orchestrator; binds an asset-backed Skeleton to the scene rig via SkeletonBoneOverrides]
 │   ├── Runtime/Skeleton/
-│   │   ├── Skeleton.cs              [immutable skeleton: SkeletonBoneData[] + hierarchy]
-│   │   ├── SkeletonRoot.cs          [scene rig root marker; DFS ordering & bone lookup]
-│   │   ├── BoneTransform.cs         [typed bone reference for Inspector serialization]
+│   │   ├── Skeleton.cs              [Transform-tree skeleton: single root reference; bone list is the DFS walk from it]
+│   │   ├── SkeletonBone.cs          [Skeleton + Transform pair; also the standalone bone-reference field type]
+│   │   ├── SkeletonBoneOverrides.cs [binds a Skeleton (asset rig) to a different live rig, by name with overrides]
 │   │   ├── BoneNameConventions.cs   [name heuristics for contact bones]
 │   │   ├── SkeletonRigBuilder.cs    [materializes Skeleton as GameObject hierarchy]
-│   │   ├── SkeletonData.cs          [cached per-bone transforms]
+│   │   ├── SkeletonData.cs          [unmanaged, Burst-compatible mirror of a Skeleton's hierarchy]
 │   │   └── ISkeletonProvider.cs     [interface for skeleton access]
 │   ├── Runtime/Pose/
 │   │   ├── PoseBuffer.cs            [mutable pose in motion synthesis]
 │   │   └── PoseFK.cs                [forward kinematics]
 │   ├── Editor/
-│   │   └── BoneTransformDrawer.cs   [Inspector dropdown for bone selection]
+│   │   └── SkeletonBoneDrawer.cs    [Inspector dropdown for bone selection]
 │   └── (other runtime & editor features)
 ├── MotionField/
 │   ├── MotionFieldStage.cs          [stage implementing neural field]
@@ -195,10 +195,28 @@ When adding a new `MoSynthStage`:
 - For module hot-reloading during development, use `importlib.reload()` (see `MotionFieldStage:63-65`)
 
 ### Skeleton & Bone Binding
-- Bones bind rig Transforms by **name**, resolved at startup via `SkeletonRoot.BuildSkeleton(characterRig)`
-- Bone identity is name-based; bone indices follow the index+1 convention (bone ID = index + 1; index 0 = SimulationBone)
-- `SkeletonRoot`: marks a Transform as a rig root; provides preorder depth-first bone ordering, lookup by name, and optional overrides for mismatched names
-- `BoneTransform`: typed reference to a rig bone (Transform + cached boneName); serializable and drawn by `BoneTransformDrawer` with rig-aware dropdown
+- A `Skeleton` is a Transform tree: bone identity is a Transform reference, not a name string. The bone list is the preorder depth-first walk from the skeleton's root Transform, built lazily and cached per root. A name fallback exists only for cross-rig resolution (`SkeletonBone.ResolveIndex`), e.g. matching a contact bone picked on one rig against another that's structurally the same
+- Bone indices follow the index+1 convention (bone ID = index + 1); index 0 is the SimulationBone in a pose skeleton
+- `SkeletonBoneOverrides` binds a `Skeleton` (an asset rig at rest) to a different, live rig by name, with per-bone overrides for mismatched names; `SkeletonBone` is drawn by `SkeletonBoneDrawer` with a rig-aware dropdown
+- **Two invariants nothing enforces at compile time:**
+  1. A `Skeleton`'s rest pose is read live off its Transforms, so it must point at an ASSET rig (imported FBX or prefab), never a live scene rig — a skeleton over an animated scene rig reports the current pose as the rest pose and silently corrupts FK. `MotionSynthesisComponent` deliberately takes its `Skeleton` from the stages (asset-backed) and binds it to the scene rig via `SkeletonBoneOverrides`
+  2. Everything under a skeleton's root Transform becomes a bone, so a rig must have nothing but bones beneath its skeleton root — a mesh node, IK helper, or attachment point there would shift every index after it
+
+### `SkeletonAnimation` has one source of truth
+- A `SkeletonAnimation` (and its `AnnotatedAnimationClip` subclass) stores a clip and a `Skeleton`, and nothing else about where the bones are. There is no separate rig field: a second reference could disagree with the skeleton, and did — an earlier `GameObject` → `Transform` change orphaned every asset's rig
+- `AnimationClipBaker` still needs the asset's main object, because `clip.SampleAnimation` matches curve paths against the hierarchy it is handed and importers write those paths relative to the main object (the FBX root, or the container `BvhImporter` puts its bones under). It derives that as `skeleton.Root.root` — the root bone's topmost ancestor — so the bake target cannot drift from the skeleton
+- The root-bone guess (single child, else a `*Hips` descendant) now happens once, in `CreateAnnotatedClipMenu`, and is written into the asset. Nothing re-derives it at access time
+- A `Skeleton` field is drawn by `SkeletonDrawer` as a rig object field plus a root-bone dropdown, because a bone *inside* an imported rig is not reachable from the Project window or the object picker — only the asset's main object is. Drop the rig in to seed the field, then pick the actual root from the dropdown. It deliberately does not guess: a clip's skeleton starts at the root bone, a config's at the armature node. `SkeletonDrawer` and `SkeletonBoneDrawer` share their listing code via `BonePopup`
+- `TryValidate` rejects a skeleton root that is not `EditorUtility.IsPersistent`, which is the only automatic check on invariant 1 above
+
+### `SkeletonBone` naming collision
+`AnimationTools.SkeletonBone` collides with the built-in `UnityEngine.SkeletonBone`. Any file outside the `AnimationTools*` namespaces that names the type needs `using SkeletonBone = AnimationTools.SkeletonBone;`.
+
+### Config assets and their skeletons
+- `MotionMatchingData` and `MotionFieldConfig` each carry an explicit T-pose `Skeleton` field whose root is the rig's identity armature node. That node **is** the SimulationBone at index 0, so index 1 is the first real bone (Hips) and nothing is prepended at load
+- A clip's own `Skeleton` starts at its root bone, so it is one bone shorter. The compatibility check is therefore `skeleton.MatchesFrom(1, clip.Skeleton)`, not `StructurallyEqual`
+- Both assets expose `TryValidate(out string error)`. `GetOrImportPoseSet()`/`GetOrImportFeatureSet()` return null silently when it fails, because `OnValidate` reaches them every Inspector repaint; the custom Inspector shows the reason in a HelpBox and disables Generate. `SkeletonAnimation` follows the same pattern
+- The `.mmskeleton` format is gone — the skeleton comes from the config's field. `.mmpose` carries an `MMPS` v2 magic + version header, so databases written before this must be regenerated from the MotionMatchingData editor
 
 ### Pose Data Handling
 - `PoseBuffer` is mutable and used during synthesis; holds positions, rotations, velocities, and contact states
@@ -233,7 +251,7 @@ Implementer agents need a spec that names the files, the intended design, and th
 3. **Unused code** in `MotionField.py` (see dead branches in `get_pose()` method lines 169-171)
 4. **PoseBuffer vs Pose confusion**: dual representation exists; unify or document the split
 5. **MotionSynthesisComponent TODO** at line 11: should decouple from `MotionMatchingData` dependency
-6. **Foot-contact detection bones** are configurable on `MotionMatchingData`/`MotionFieldConfig` via `leftContactBone`/`rightContactBone` (`BoneTransform`); empty fields fall back to name heuristics in `BoneNameConventions`
+6. **Foot-contact detection bones** are configurable on `MotionMatchingData`/`MotionFieldConfig` via `leftContactBone`/`rightContactBone` (`SkeletonBone`); empty fields fall back to name heuristics in `BoneNameConventions`
 
 ## Testing & Debugging
 

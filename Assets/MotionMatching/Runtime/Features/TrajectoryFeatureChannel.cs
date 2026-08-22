@@ -3,6 +3,7 @@ using AnimationTools;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
+using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionMatching
 {
@@ -36,7 +37,7 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
         simulationBone; // Use the simulation bone (articial root added during pose extraction) instead of a bone
 
     [FormerlySerializedAs("Bone")]
-    public BoneTransform bone = new(); // Bone used to compute the trajectory in the feature set
+    public SkeletonBone bone = new(); // Bone used to compute the trajectory in the feature set
 
     [FormerlySerializedAs("ZeroX")] public bool zeroX; // Zero the X, Y and/or Z component of the trajectory feature
     [FormerlySerializedAs("ZeroY")] public bool zeroY; // Zero the X, Y and/or Z component of the trajectory feature
@@ -158,7 +159,7 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
         return other is TrajectoryFeatureChannel channel
                && channel.featureType == featureType
                && channel.simulationBone == simulationBone
-               && channel.bone?.BoneName == bone?.BoneName
+               && channel.bone?.Name == bone?.Name
                && channel.zeroX == zeroX
                && channel.zeroY == zeroY
                && channel.zeroZ == zeroZ
@@ -172,7 +173,7 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
             var hash = typeof(TrajectoryFeatureChannel).GetHashCode();
             hash = hash * 31 + (int)featureType;
             hash = hash * 31 + (simulationBone ? 1 : 0);
-            hash = hash * 31 + (bone?.BoneName != null ? bone.BoneName.GetHashCode() : 0);
+            hash = hash * 31 + (bone?.Name != null ? bone.Name.GetHashCode() : 0);
             hash = hash * 31 + (zeroX ? 1 : 0);
             hash = hash * 31 + (zeroY ? 1 : 0);
             hash = hash * 31 + (zeroZ ? 1 : 0);

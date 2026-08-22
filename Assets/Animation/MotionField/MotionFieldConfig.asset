@@ -14,13 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MotionField.MotionFieldConfig
   animationClips:
   - {fileID: 11400000, guid: 83f13ab2065eeee41b3cbf97abcf0914, type: 2}
+  skeleton:
+    root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   contactVelocityThreshold: 0.15
   leftContactBone:
+    skeleton:
+      root: {fileID: 0}
     bone: {fileID: 0}
-    boneName: 
   rightContactBone:
+    skeleton:
+      root: {fileID: 0}
     bone: {fileID: 0}
-    boneName: 
   pythonDllPath: C:\Users\amana\AppData\Local\Python\pythoncore-3.13-64\python313.dll
   pythonVenvPath: D:\iitbpg\MoSynth\AnimationTech\.anim_env
   kNeighbors: 15
@@ -42,4 +46,4 @@ MonoBehaviour:
   umapComponents: 3
   umapSeed: 42
   hasPoseDatabase: 1
-  hasTrained: 1
+  hasTrained: 0

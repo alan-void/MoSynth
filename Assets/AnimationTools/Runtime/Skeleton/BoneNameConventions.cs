@@ -6,7 +6,7 @@ namespace AnimationTools
 /// Name heuristics for the shipped BVH naming convention (Hips, LeftUpLeg, LeftFoot, LeftToe,
 /// LeftShoulder, LeftArm, LeftForeArm, LeftHand, ...). These are best-effort fallbacks for rigs
 /// that follow this convention; they are not a substitute for an explicit
-/// <see cref="BoneTransform"/> reference where one is available.
+/// <see cref="SkeletonBone"/> reference where one is available.
 /// </summary>
 public static class BoneNameConventions
 {
@@ -22,7 +22,7 @@ public static class BoneNameConventions
 
         for (var i = 0; i < skeleton.BoneCount; i++)
         {
-            if (skeleton.GetBone(i).name.IndexOf(toeToken, StringComparison.OrdinalIgnoreCase) >= 0)
+            if (skeleton.GetBone(i).Name.IndexOf(toeToken, StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 index = i;
                 return true;
@@ -31,7 +31,7 @@ public static class BoneNameConventions
 
         for (var i = 0; i < skeleton.BoneCount; i++)
         {
-            if (skeleton.GetBone(i).name.IndexOf(footToken, StringComparison.OrdinalIgnoreCase) >= 0)
+            if (skeleton.GetBone(i).Name.IndexOf(footToken, StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 index = i;
                 return true;

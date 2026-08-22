@@ -3,6 +3,7 @@ using AnimationTools;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
+using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionMatching
 {
@@ -25,7 +26,7 @@ public sealed class PoseFeatureChannel : ChannelDescriptor, IMatchingFeature
 
     [FormerlySerializedAs("Name")] public string name;
     [FormerlySerializedAs("FeatureType")] public Type featureType;
-    [FormerlySerializedAs("Bone")] public BoneTransform bone = new();
+    [FormerlySerializedAs("Bone")] public SkeletonBone bone = new();
 
     public string Name => name;
 
@@ -78,7 +79,7 @@ public sealed class PoseFeatureChannel : ChannelDescriptor, IMatchingFeature
     {
         return other is PoseFeatureChannel channel
                && channel.featureType == featureType
-               && channel.bone?.BoneName == bone?.BoneName;
+               && channel.bone?.Name == bone?.Name;
     }
 
     public override int GetHashCode()
@@ -87,7 +88,7 @@ public sealed class PoseFeatureChannel : ChannelDescriptor, IMatchingFeature
         {
             var hash = typeof(PoseFeatureChannel).GetHashCode();
             hash = hash * 31 + (int)featureType;
-            hash = hash * 31 + (bone?.BoneName != null ? bone.BoneName.GetHashCode() : 0);
+            hash = hash * 31 + (bone?.Name != null ? bone.Name.GetHashCode() : 0);
             return hash;
         }
     }

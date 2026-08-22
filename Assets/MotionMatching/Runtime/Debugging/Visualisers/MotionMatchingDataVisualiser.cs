@@ -3,6 +3,7 @@ using AnimationTools;
 using MotionMatching;
 using Unity.Mathematics;
 using UnityEngine;
+using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionMatching.Editor
 {
@@ -223,7 +224,7 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
         }
     }
 
-    private static int ResolveBoneOrZero(BoneTransform bone, Skeleton skeleton, string featureName)
+    private static int ResolveBoneOrZero(SkeletonBone bone, Skeleton skeleton, string featureName)
     {
         var index = bone?.ResolveIndex(skeleton) ?? -1;
         if (index >= 0) return index;

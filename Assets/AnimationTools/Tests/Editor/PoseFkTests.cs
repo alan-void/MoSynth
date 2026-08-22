@@ -29,7 +29,7 @@ public class PoseFkTests
         {
             var bone = skeleton.GetBone(i);
             var boneId = skeleton.GetBoneId(i);
-            buffer.SetFloat3(layout.BindChannel(new PositionChannel(boneId)), bone.restLocalPosition);
+            buffer.SetFloat3(layout.BindChannel(new PositionChannel(boneId)), bone.RestLocalPosition);
             buffer.SetQuaternion(layout.BindChannel(new RotationChannel(boneId)), quaternion.identity);
         }
     }
@@ -38,6 +38,7 @@ public class PoseFkTests
     public void TearDown()
     {
         buffer.Dispose();
+        TestSkeletons.DestroyAll();
     }
 
     private int BoneId(int index) => skeleton.GetBoneId(index);

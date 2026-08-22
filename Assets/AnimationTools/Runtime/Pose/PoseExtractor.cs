@@ -18,6 +18,23 @@ public static class PoseExtractor
     /// </summary>
     public static bool Extract(AnnotatedAnimationClip animationClip, PoseSet poseSet, IPoseSetSource source)
     {
+        var clipSkeleton = animationClip.Skeleton;
+        if (clipSkeleton == null)
+        {
+            Debug.LogError($"Clip \"{animationClip.name}\" has no resolvable skeleton; check its rig and root bone.");
+            return false;
+        }
+
+        // The pose skeleton carries a SimulationBone at index 0 that the clip's own skeleton
+        // does not; everything from index 1 on must still line up bone-for-bone with the clip.
+        var poseSkeleton = poseSet.Skeleton;
+        if (poseSkeleton == null || !poseSkeleton.MatchesFrom(1, clipSkeleton))
+        {
+            Debug.LogError($"Skeleton of clip \"{animationClip.name}\" ({clipSkeleton.BoneCount} bones) " +
+                $"does not match the pose set's skeleton from index 1 ({poseSkeleton?.BoneCount ?? 0} bones).");
+            return false;
+        }
+
         // Set Poses
         var nFrames = animationClip.FrameCount;
         var nBvhJoints = animationClip.Skeleton.BoneCount;
@@ -34,16 +51,20 @@ public static class PoseExtractor
         // The animation skeleton's own unshifted parent hierarchy, followed verbatim by the
         // contact-velocity walk (see GetContactVelocity).
         var localParentIndex = new int[nBvhJoints];
+        // Rest local positions, hoisted once so the per-frame loop below never touches a
+        // managed Transform property.
+        var restLocalPositions = new float3[nBvhJoints];
         for (var i = 0; i < nBvhJoints; i++)
         {
-            localParentIndex[i] = animationClip.Skeleton.GetBone(i).parentIndex;
+            localParentIndex[i] = animationClip.Skeleton.GetParentIndex(i);
+            restLocalPositions[i] = animationClip.Skeleton.GetBone(i).RestLocalPosition;
         }
 
         var frames = poseSet.BeginClip(nFrames - 1, animationClip.FrameTime);
 
         for (var i = 0; i < nFrames - 1; i++)
         {
-            ExtractPose(frames[i], animationClip, i, hipsForwardLocal);
+            ExtractPose(frames[i], animationClip, i, hipsForwardLocal, restLocalPositions);
         }
 
         for (var i = 0; i < nFrames - 2; i++)
@@ -54,7 +75,7 @@ public static class PoseExtractor
         var lastPose = PoseBuffer.Allocate(poseSet.PoseLayout, Allocator.Temp);
         try
         {
-            ExtractPose(lastPose, animationClip, nFrames - 1, hipsForwardLocal);
+            ExtractPose(lastPose, animationClip, nFrames - 1, hipsForwardLocal, restLocalPositions);
             ExtractPoseVelocities(frames[frames.Count - 1], lastPose, animationClip);
         }
         finally
@@ -174,11 +195,10 @@ public static class PoseExtractor
     }
 
     private static void ExtractPose(PoseBuffer pose, AnnotatedAnimationClip animationClip, int frameIndex,
-        float3 hipsForwardLocal)
+        float3 hipsForwardLocal, float3[] restLocalPositions)
     {
         var frame = animationClip.GetFrame(frameIndex);
         var rotations = frame.Rotations;
-        var skeleton = animationClip.Skeleton;
         var posePositions = pose.Positions;
         var poseRotations = pose.Rotations;
 
@@ -186,7 +206,7 @@ public static class PoseExtractor
         for (var i = 1; i < posePositions.Length; i++)
         {
             // rest offsets come from the skeleton, not the frame's positions section (slot 0 there is root motion)
-            posePositions[i] = skeleton.GetBone(i - 1).restLocalPosition;
+            posePositions[i] = restLocalPositions[i - 1];
             poseRotations[i] = rotations[i - 1];
         }
 

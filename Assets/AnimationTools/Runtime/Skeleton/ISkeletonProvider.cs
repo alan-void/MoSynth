@@ -6,6 +6,6 @@ namespace AnimationTools
 /// </summary>
 public interface ISkeletonProvider
 {
-    SkeletonRoot CharacterRig { get; }
+    SkeletonBoneOverrides CharacterRig { get; }
 }
 }

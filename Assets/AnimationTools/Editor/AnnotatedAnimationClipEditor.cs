@@ -11,8 +11,8 @@ namespace AnimationTools.Editor
         private bool _tagsFoldout;
 
         private SerializedProperty _clipProp;
-        private SerializedProperty _rigProp;
-        private SerializedProperty _rootBoneProp;
+        private SerializedProperty _skeletonProp;
+        private SerializedProperty _rootMotionBoneProp;
         private SerializedProperty _startFrameProp;
         private SerializedProperty _endFrameProp;
 
@@ -21,8 +21,8 @@ namespace AnimationTools.Editor
             base.OnEnable();
 
             _clipProp = serializedObject.FindProperty("clip");
-            _rigProp = serializedObject.FindProperty("rig");
-            _rootBoneProp = serializedObject.FindProperty("rootBone");
+            _skeletonProp = serializedObject.FindProperty("skeleton");
+            _rootMotionBoneProp = serializedObject.FindProperty("rootMotionBone");
             _startFrameProp = serializedObject.FindProperty("startFrame");
             _endFrameProp = serializedObject.FindProperty("endFrame");
         }
@@ -34,32 +34,30 @@ namespace AnimationTools.Editor
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(_clipProp);
-            EditorGUILayout.PropertyField(_rigProp);
-            EditorGUILayout.PropertyField(_rootBoneProp);
+            EditorGUILayout.PropertyField(_skeletonProp);
+            EditorGUILayout.PropertyField(_rootMotionBoneProp);
             EditorGUILayout.PropertyField(_startFrameProp);
             EditorGUILayout.PropertyField(_endFrameProp);
 
             serializedObject.ApplyModifiedProperties();
 
             var raw = (SkeletonAnimation)target;
-            var resolvedRootBone = raw.RootBone;
-            if (resolvedRootBone == null)
+
+            if (!raw.TryValidate(out var error))
             {
-                EditorGUILayout.HelpBox(
-                    "No root bone. Pick one above, or leave it empty to auto-resolve to the rig's " +
-                    "single child or a bone whose name ends with 'Hips'.",
-                    MessageType.Warning);
+                EditorGUILayout.HelpBox(error, MessageType.Warning);
             }
 
             using (new EditorGUI.DisabledScope(true))
             {
                 EditorGUILayout.LabelField($"Raw frames: {raw.FrameCount}   Frame time: {raw.FrameTime:F4}s");
                 var skeleton = raw.Skeleton;
+                var resolvedRootBone = raw.RootBone;
                 EditorGUILayout.LabelField(
                     $"Root bone: {(resolvedRootBone != null ? resolvedRootBone.name : "<unresolved>")}" +
                     $"   Bones: {(skeleton != null ? skeleton.BoneCount.ToString() : "-")}");
             }
-            
+
             // Save
             if (GUI.changed)
             {

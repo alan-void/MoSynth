@@ -4,6 +4,7 @@ using AnimationTools;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionMatching
 {
@@ -14,7 +15,7 @@ namespace MotionMatching
 [Serializable]
 public class ContactVisualizerStage : MoSynthStage
 {
-    [SerializeField] private List<BoneTransform> contactBones = new();
+    [SerializeField] private List<SkeletonBone> contactBones = new();
     [SerializeField] private float contactVelocityThreshold = 0.15f;
     [SerializeField] private float markerSize = 0.08f;
 
@@ -67,7 +68,7 @@ public class ContactVisualizerStage : MoSynthStage
             var boneIndex = boneRef.ResolveIndex(_skeleton);
             if (boneIndex < 0)
             {
-                Debug.LogWarning($"[ContactVisualizerStage] \"{motionSynthesisComponent.name}\": contact bone \"{boneRef.BoneName}\" not found in the pipeline skeleton; skipping.");
+                Debug.LogWarning($"[ContactVisualizerStage] \"{motionSynthesisComponent.name}\": contact bone \"{boneRef.Name}\" not found in the pipeline skeleton; skipping.");
                 continue;
             }
 

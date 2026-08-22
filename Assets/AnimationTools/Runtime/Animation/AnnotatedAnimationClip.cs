@@ -27,13 +27,6 @@ public class AnnotatedAnimationClip : SkeletonAnimation
     /// endFrame can exceed the animation's frame count until OnValidate re-runs.
     public new int FrameCount => !HasClip ? 0 : Math.Max(0, Math.Min(endFrame, base.FrameCount) - startFrame);
 
-    /// <summary>Base-typed view of this asset — the raw, unsliced frame API.</summary>
-    [Pure]
-    public SkeletonAnimation GetRawAnimationClip()
-    {
-        return this;
-    }
-
     /// Frame view offset by startFrame. Never Dispose the returned buffer.
     public new PoseBuffer GetFrame(int frameIndex) => PoseSequence.GetFrame(startFrame + frameIndex);
 
@@ -53,9 +46,15 @@ public class AnnotatedAnimationClip : SkeletonAnimation
 
     /// <summary>
     /// Character-space (accumulated parent-chain) rotation of a bone at a sliced frame index.
+    /// Identity when the asset has no resolvable skeleton.
     /// </summary>
     public quaternion GetWorldRotation(int boneIndex, int frameIndex)
-        => PoseFK.CharacterRotation(GetFrame(frameIndex), Skeleton.GetSkeletonData(), boneIndex);
+    {
+        var skeleton = Skeleton;
+        if (skeleton == null) return quaternion.identity;
+
+        return PoseFK.CharacterRotation(GetFrame(frameIndex), skeleton.GetSkeletonData(), boneIndex);
+    }
 
     [Serializable]
     public struct Tag

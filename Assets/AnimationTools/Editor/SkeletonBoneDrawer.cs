@@ -7,17 +7,14 @@ using UnityEngine;
 namespace AnimationTools.Editor
 {
 /// <summary>
-/// Draws a <see cref="BoneTransform"/> as a bone-name dropdown over the transforms of a resolved
-/// rig, instead of raw Transform/string fields. Resolves the rig root to populate the dropdown
+/// Draws a <see cref="SkeletonBone"/> as a bone-name dropdown over the transforms of a resolved
+/// rig, instead of raw Transform/skeleton fields. Resolves the rig root to populate the dropdown
 /// from, in order, a sibling field named by a <see cref="BoneFromAttribute"/> on the reference
 /// field, then an <see cref="ISkeletonProvider"/> on the owning object.
 /// </summary>
-[CustomPropertyDrawer(typeof(BoneTransform))]
-public class BoneTransformDrawer : PropertyDrawer
+[CustomPropertyDrawer(typeof(SkeletonBone))]
+public class SkeletonBoneDrawer : PropertyDrawer
 {
-    private const string NoneOption = "(none)";
-    private const int IndentSpacesPerDepth = 4;
-
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
         return EditorGUIUtility.singleLineHeight;
@@ -33,7 +30,7 @@ public class BoneTransformDrawer : PropertyDrawer
     }
 
     /// <summary>
-    /// Draws a <see cref="BoneTransform"/> popup for a caller that already knows the rig root
+    /// Draws a <see cref="SkeletonBone"/> popup for a caller that already knows the rig root
     /// (e.g. a custom editor whose asset resolves the rig from its own clips), bypassing
     /// [BoneFrom]/<see cref="ISkeletonProvider"/> resolution. <paramref name="rigRoot"/> may be
     /// null, which draws the same disabled fallback as an unresolved rig in <see cref="OnGUI"/>.
@@ -68,7 +65,8 @@ public class BoneTransformDrawer : PropertyDrawer
     {
         var siblingPath = GetSiblingPath(property.propertyPath, siblingName);
 
-        // Sibling is a SkeletonRoot: its own "root" field holds the rig Transform directly.
+        // Sibling is a Skeleton or a SkeletonBoneOverrides: both hold the rig Transform directly
+        // in a field named "root".
         var rootProp = property.serializedObject.FindProperty(siblingPath + ".root");
         if (rootProp != null && rootProp.objectReferenceValue is Transform skeletonRootTransform)
             return skeletonRootTransform;
@@ -80,10 +78,14 @@ public class BoneTransformDrawer : PropertyDrawer
 
     private static Transform RigRootFromAsset(UnityEngine.Object obj)
     {
-        if (obj is SkeletonAnimation animation) return animation.Rig != null ? animation.Rig.transform : null;
+        // The animation's skeleton root, not its rig: a rig's root also carries mesh and helper
+        // nodes, which are not bones and must not appear in a bone dropdown.
+        if (obj is SkeletonAnimation animation) return animation.RootBone;
 
-        // The sibling may be the rig GameObject itself rather than an asset that references one.
-        return obj is GameObject rig ? rig.transform : null;
+        // The sibling may be the rig itself rather than an asset that references one.
+        if (obj is GameObject rig) return rig.transform;
+
+        return obj as Transform;
     }
 
     /// <summary>
@@ -109,35 +111,24 @@ public class BoneTransformDrawer : PropertyDrawer
     private static void DrawCore(Rect position, GUIContent label, SerializedProperty property, Transform rigRoot)
     {
         var boneProp = property.FindPropertyRelative("bone");
-        var boneNameProp = property.FindPropertyRelative("boneName");
+        var skeletonRootProp = property.FindPropertyRelative("skeleton.root");
 
         if (rigRoot == null)
         {
-            DrawUnresolved(position, label, boneNameProp);
+            DrawUnresolved(position, label);
             return;
         }
 
         var transforms = new List<Transform>();
         var depths = new List<int>();
-        CollectTransformsDfs(rigRoot, 0, transforms, depths);
+        BonePopup.Collect(rigRoot, transforms, depths);
 
-        DrawPopup(position, label, transforms, depths, boneProp, boneNameProp);
+        DrawPopup(position, label, transforms, depths, boneProp, skeletonRootProp, rigRoot);
     }
 
-    private static void CollectTransformsDfs(Transform transform, int depth, List<Transform> transforms, List<int> depths)
+    private static void DrawUnresolved(Rect position, GUIContent label)
     {
-        transforms.Add(transform);
-        depths.Add(depth);
-        for (var i = 0; i < transform.childCount; i++)
-        {
-            CollectTransformsDfs(transform.GetChild(i), depth + 1, transforms, depths);
-        }
-    }
-
-    private static void DrawUnresolved(Rect position, GUIContent label, SerializedProperty boneNameProp)
-    {
-        var display = !string.IsNullOrEmpty(boneNameProp.stringValue) ? boneNameProp.stringValue : NoneOption;
-        var content = new GUIContent(display,
+        var content = new GUIContent(BonePopup.NoneOption,
             "No rig found — add [BoneFrom] or implement ISkeletonProvider.");
 
         using (new EditorGUI.DisabledScope(true))
@@ -148,107 +139,32 @@ public class BoneTransformDrawer : PropertyDrawer
 
     private static void DrawPopup(
         Rect position, GUIContent label, List<Transform> transforms, List<int> depths,
-        SerializedProperty boneProp, SerializedProperty boneNameProp)
+        SerializedProperty boneProp, SerializedProperty skeletonRootProp, Transform rigRoot)
     {
-        var options = BuildOptions(transforms, depths);
+        var options = BonePopup.BuildOptions(transforms, depths);
 
         var boneTransform = boneProp.objectReferenceValue as Transform;
-        var boneName = boneNameProp.stringValue;
-
         var resolvedIndex = boneTransform != null ? transforms.IndexOf(boneTransform) : -1;
-        var missing = boneTransform == null && !string.IsNullOrEmpty(boneName) && !ContainsName(transforms, boneName);
-
-        string[] displayOptions;
-        int optionOffset;
-        int currentIndex;
-
-        if (missing)
-        {
-            displayOptions = new string[options.Length + 1];
-            displayOptions[0] = $"(missing: {boneName})";
-            Array.Copy(options, 0, displayOptions, 1, options.Length);
-            optionOffset = 1;
-            currentIndex = 0;
-        }
-        else
-        {
-            displayOptions = options;
-            optionOffset = 0;
-            currentIndex = resolvedIndex >= 0 ? resolvedIndex + 1 : 0;
-        }
-
-        var priorColor = GUI.color;
-        if (missing) GUI.color = Color.red;
+        var currentIndex = resolvedIndex >= 0 ? resolvedIndex + 1 : 0;
 
         EditorGUI.BeginChangeCheck();
-        var newIndex = EditorGUI.Popup(position, label.text, currentIndex, displayOptions);
+        var newIndex = EditorGUI.Popup(position, label.text, currentIndex, options);
         var changed = EditorGUI.EndChangeCheck();
-
-        GUI.color = priorColor;
 
         if (!changed) return;
 
-        var optionIndex = newIndex - optionOffset;
-        if (optionIndex < 0) return; // the "(missing: <name>)" sentinel was re-selected; leave untouched
-
-        if (optionIndex == 0)
+        if (newIndex == 0)
         {
             boneProp.objectReferenceValue = null;
-            boneNameProp.stringValue = "";
+            if (skeletonRootProp != null) skeletonRootProp.objectReferenceValue = null;
         }
         else
         {
-            var transform = transforms[optionIndex - 1];
+            var transform = transforms[newIndex - 1];
             boneProp.objectReferenceValue = transform;
-            boneNameProp.stringValue = transform.name;
+            if (skeletonRootProp != null) skeletonRootProp.objectReferenceValue = rigRoot;
         }
     }
 
-    private static bool ContainsName(List<Transform> transforms, string name)
-    {
-        foreach (var t in transforms)
-        {
-            if (t.name == name) return true;
-        }
-
-        return false;
-    }
-
-    private static string[] BuildOptions(List<Transform> transforms, List<int> depths)
-    {
-        var nameCounts = new Dictionary<string, int>();
-        foreach (var t in transforms)
-        {
-            nameCounts.TryGetValue(t.name, out var count);
-            nameCounts[t.name] = count + 1;
-        }
-
-        var seenCounts = new Dictionary<string, int>();
-        var options = new string[transforms.Count + 1];
-        options[0] = NoneOption;
-
-        for (var i = 0; i < transforms.Count; i++)
-        {
-            var t = transforms[i];
-            var indent = new string(' ', depths[i] * IndentSpacesPerDepth);
-
-            string displayName;
-            if (nameCounts[t.name] > 1)
-            {
-                seenCounts.TryGetValue(t.name, out var seen);
-                seen += 1;
-                seenCounts[t.name] = seen;
-                displayName = $"{t.name} ({seen})";
-            }
-            else
-            {
-                displayName = t.name;
-            }
-
-            options[i + 1] = indent + displayName;
-        }
-
-        return options;
-    }
 }
 }

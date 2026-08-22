@@ -21,6 +21,13 @@ public class PoseSequenceTests
         layout = PoseLayout.CreateFullPose(skeleton, false, false);
     }
 
+    [TearDown]
+    public void TearDown()
+    {
+        TestSkeletons.DestroyAll();
+    }
+
+
     [Test]
     public void Allocate_HasExpectedLengthAndIsZeroInitialized()
     {
@@ -95,7 +102,7 @@ public class PoseSequenceTests
             {
                 var bone = skeleton.GetBone(i);
                 var boneId = skeleton.GetBoneId(i);
-                frame0.SetFloat3(layout.BindChannel(new PositionChannel(boneId)), bone.restLocalPosition);
+                frame0.SetFloat3(layout.BindChannel(new PositionChannel(boneId)), bone.RestLocalPosition);
                 frame0.SetQuaternion(layout.BindChannel(new RotationChannel(boneId)), quaternion.identity);
             }
 

@@ -21,10 +21,10 @@ public static class SkeletonRigBuilder
         for (var i = 0; i < skeleton.BoneCount; i++)
         {
             var bone = skeleton.GetBone(i);
-            var boneTransform = new GameObject(bone.name).transform;
-            boneTransform.SetParent(i == 0 ? parent : transforms[bone.parentIndex], false);
-            boneTransform.localPosition = bone.restLocalPosition;
-            boneTransform.localRotation = bone.restLocalRotation;
+            var boneTransform = new GameObject(bone.Name).transform;
+            boneTransform.SetParent(i == 0 ? parent : transforms[skeleton.GetParentIndex(i)], false);
+            boneTransform.localPosition = bone.RestLocalPosition;
+            boneTransform.localRotation = bone.RestLocalRotation;
             transforms[i] = boneTransform;
         }
 

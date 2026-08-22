@@ -5,63 +5,58 @@ using UnityEngine;
 namespace AnimationTools
 {
 /// <summary>
-/// A clip-backed skeletal animation: wraps a <see cref="UnityEngine.AnimationClip"/> together
-/// with a reference rig, whose Transform hierarchy IS the skeleton the clip is sampled against.
-/// Frames are lazily baked (see <see cref="AnimationClipBaker"/>) into the AnimationTools pose
-/// format on first access to <see cref="PoseSequence"/> or <see cref="Skeleton"/>.
+/// A clip-backed skeletal animation: wraps a <see cref="UnityEngine.AnimationClip"/> together with
+/// the <see cref="AnimationTools.Skeleton"/> it is sampled against, whose root Transform is the
+/// single source of truth for where the bones are. Frames are lazily baked (see
+/// <see cref="AnimationClipBaker"/>) into the AnimationTools pose format on first access to
+/// <see cref="PoseSequence"/>.
 /// </summary>
 public class SkeletonAnimation : ScriptableObject
 {
     [SerializeField] private AnimationClip clip;
-    [SerializeField] private GameObject rig;
-    [BoneFrom(nameof(rig))] [SerializeField] private BoneTransform rootBone = new();
+
+    [Tooltip("The rig's root bone; the skeleton is that Transform and everything beneath it. It " +
+             "must come from an imported rig asset, since rest pose is read live off the " +
+             "Transforms and a scene rig reports whatever pose it is currently animated to.")]
+    [SerializeField]
+    private Skeleton skeleton = new();
+
+    [Tooltip(
+        "The bone from which root motion is derived. Currently the x and z motion of this bone is transferred to the root of the animated character.")]
+    [BoneFrom(nameof(skeleton))]
+    [SerializeField]
+    private SkeletonBone rootMotionBone = new();
 
     public AnimationClip Clip => clip;
-    public GameObject Rig => rig;
     public bool HasClip => clip != null;
 
+    /// <summary>The skeleton's bone 0; null when no resolvable skeleton root is assigned.</summary>
+    public Transform RootBone => skeleton != null && IsResolvable(skeleton.Root) ? skeleton.Root : null;
+
     /// <summary>
-    /// Resolves the skeleton's bone 0. Resolution order: the explicitly assigned
-    /// <see cref="rootBone"/> — its Transform, else its cached bone name looked up under
-    /// <see cref="rig"/>, so the reference survives a build that strips the rig objects; else, when
-    /// <see cref="rig"/> has exactly one child, that child; else the first descendant of
-    /// <see cref="rig"/> (rig root excluded) whose name ends with "Hips", found by depth-first
-    /// search; else null.
+    /// A serialized reference whose target no longer resolves is <em>missing</em>, not null: Unity
+    /// reports it as non-null on purpose, so touching it throws a diagnostic rather than silently
+    /// behaving as null. Inspectors reach <see cref="RootBone"/> and <see cref="TryValidate"/> every
+    /// repaint, so neither may be the thing that throws.
     /// </summary>
-    public Transform RootBone
+    private static bool IsResolvable(Transform transform)
     {
-        get
+        if (transform == null) return false;
+
+        try
         {
-            if (rootBone != null && rootBone.Transform != null) return rootBone.Transform;
-            if (rig == null) return null;
-
-            if (rootBone != null && !string.IsNullOrEmpty(rootBone.BoneName))
-            {
-                var named = FindRecursive(rig.transform, child => child.name == rootBone.BoneName);
-                if (named != null) return named;
-            }
-
-            if (rig.transform.childCount == 1) return rig.transform.GetChild(0);
-
-            // Suffix, not equality: rigs exported with a namespace prefix name the bone "Model:Hips".
-            return FindRecursive(rig.transform,
-                child => child.name.EndsWith("Hips", StringComparison.OrdinalIgnoreCase));
+            _ = transform.childCount;
+            return true;
+        }
+        catch (MissingReferenceException)
+        {
+            return false;
         }
     }
 
-    private static Transform FindRecursive(Transform transform, Func<Transform, bool> predicate)
-    {
-        for (var i = 0; i < transform.childCount; i++)
-        {
-            var child = transform.GetChild(i);
-            if (predicate(child)) return child;
-
-            var found = FindRecursive(child, predicate);
-            if (found != null) return found;
-        }
-
-        return null;
-    }
+    /// <summary>The bone whose motion drives the character root; the skeleton root when unset.</summary>
+    public Transform RootMotionBone =>
+        rootMotionBone != null && rootMotionBone.IsSet ? rootMotionBone.Transform : RootBone;
 
     public float FrameTime => clip != null ? 1f / clip.frameRate : 0f;
 
@@ -69,22 +64,48 @@ public class SkeletonAnimation : ScriptableObject
     // this every repaint.
     public int FrameCount => clip == null ? 0 : Mathf.Max(1, Mathf.RoundToInt(clip.length * clip.frameRate) + 1);
 
-    [NonSerialized] private Skeleton _skeleton;
+    /// <summary>
+    /// Null when the asset is not configured well enough to produce one — see
+    /// <see cref="TryValidate"/> for why. Called every Inspector repaint, so it never logs.
+    /// </summary>
+    public Skeleton Skeleton => RootBone != null ? skeleton : null;
 
-    public Skeleton Skeleton
+    /// <summary>
+    /// Checks that this asset can actually be baked: a clip, and a skeleton root that both resolves
+    /// and belongs to an imported asset. Returns false with a message suitable for an Inspector
+    /// HelpBox. Never logs — inspectors call it every repaint.
+    /// </summary>
+    public bool TryValidate(out string error)
     {
-        get
+        if (clip == null)
         {
-            if (_skeleton != null) return _skeleton;
-
-            var resolvedRootBone = RootBone;
-            if (resolvedRootBone == null) return null;
-
-            var skeletonRoot = new SkeletonRoot();
-            skeletonRoot.SetRoot(resolvedRootBone);
-            _skeleton = skeletonRoot.BuildSkeleton(name);
-            return _skeleton;
+            error = "No animation clip assigned.";
+            return false;
         }
+
+        var rootBone = RootBone;
+        if (rootBone == null)
+        {
+            error = skeleton == null || skeleton.Root == null
+                ? "No skeleton assigned. Drop the rig's root bone here; the skeleton is that " +
+                  "Transform and everything beneath it."
+                : "The assigned skeleton root no longer resolves; reassign it.";
+            return false;
+        }
+
+#if UNITY_EDITOR
+        // Rest pose is read live off these Transforms, so a scene rig hands back whatever pose it
+        // happens to be animated to. Nothing downstream can detect that, hence the check here.
+        if (!UnityEditor.EditorUtility.IsPersistent(rootBone))
+        {
+            error = $"Skeleton root \"{rootBone.name}\" is a scene object, so its rest pose is " +
+                    "whatever it is currently posed to. Assign the bone from the imported rig asset.";
+            return false;
+        }
+#endif
+
+        error = null;
+        return true;
     }
 
     [NonSerialized] private PoseSequence _poseSequence;
@@ -93,17 +114,13 @@ public class SkeletonAnimation : ScriptableObject
     {
         get
         {
-            if (clip == null) return null;
-
-            var skeleton = Skeleton;
-            if (skeleton == null) return null;
-
+            if (!TryValidate(out _)) return null;
             if (_poseSequence != null) return _poseSequence;
 
-            var layout = PoseLayout.CreateFullPose(skeleton, false, false);
-            var baked = AnimationClipBaker.Bake(clip, rig, RootBone, skeleton, FrameCount, FrameTime);
-            Debug.Assert(baked.Length == FrameCount * layout.FloatCount,
-                $"SkeletonAnimation \"{name}\": baked.Length ({baked.Length}) does not match frameCount * layout.FloatCount ({FrameCount * layout.FloatCount}).");
+            var skeletonToBake = Skeleton;
+            var layout = PoseLayout.CreateFullPose(skeletonToBake, false, false);
+            var baked = AnimationClipBaker.Bake(clip, skeletonToBake, FrameCount, FrameTime);
+            if (baked == null) return null;
 
             var nativeFrameData = new NativeArray<float>(baked, Allocator.Domain);
 
@@ -116,17 +133,17 @@ public class SkeletonAnimation : ScriptableObject
 
     /// <summary>Editor-helper setup for creation menus and tests: assigns the source fields
     /// directly and invalidates any cached bake.</summary>
-    public void SetSource(AnimationClip inClip, GameObject inRig, Transform inRootBone)
+    public void SetSource(AnimationClip inClip, Transform inRootBone)
     {
         clip = inClip;
-        rig = inRig;
-        rootBone = new BoneTransform(inRootBone);
+        skeleton = new Skeleton(inRootBone);
+        rootMotionBone = new SkeletonBone(skeleton, inRootBone);
         ClearRuntimeCaches();
     }
 
     protected void ClearRuntimeCaches()
     {
-        _skeleton = null;
+        skeleton?.Invalidate();
         _poseSequence = null;
     }
 

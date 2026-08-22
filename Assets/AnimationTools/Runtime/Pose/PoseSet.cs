@@ -46,17 +46,9 @@ public class PoseSet
     private ChannelHandle _rightFootContactHandle;
 
     /// <summary>
-    /// Set skeleton from BVH. Adds simulation bone as root joint
-    /// </summary>
-    public void SetSkeletonFromBvh(Skeleton bvhSkeleton)
-    {
-        SetSkeleton(bvhSkeleton.WithRootPrepended("SimulationBone"));
-    }
-
-    /// <summary>
-    /// Adopts an already-complete skeleton (SimulationBone expected at index 0) and rebuilds
-    /// the layout over it. Pose storage starts empty: every real caller sets the
-    /// skeleton exactly once, before adding any pose.
+    /// Adopts an already-complete skeleton and rebuilds the layout over it. Bone 0 is the
+    /// SimulationBone, supplied by the caller as part of its configured rig. Pose storage
+    /// starts empty: every real caller sets the skeleton exactly once, before adding any pose.
     /// </summary>
     public void SetSkeleton(Skeleton skeleton)
     {

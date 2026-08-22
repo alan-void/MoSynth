@@ -124,7 +124,21 @@ public sealed class PoseLayout : StateBufferLayout
         }
 
         var hash = ComputeHash(skeleton, channels);
-        if (Cache.TryGetValue(hash, out var cached) && AnimationTools.Skeleton.StructurallyEqual(cached.Skeleton, skeleton)) return cached;
+        if (Cache.TryGetValue(hash, out var cached))
+        {
+            // A skeleton is a Transform tree, so a cached entry's rig can be destroyed out from
+            // under it by a reimport or a scene unload. Such an entry reports zero bones and can
+            // never match again, so evict it rather than let it block the slot forever.
+            if (cached.Skeleton == null || !cached.Skeleton.IsSet)
+            {
+                Cache.Remove(hash);
+                cached = null;
+            }
+            else if (AnimationTools.Skeleton.StructurallyEqual(cached.Skeleton, skeleton))
+            {
+                return cached;
+            }
+        }
 
         var layout = new PoseLayout(skeleton, channels, hash,
             rotationFormat ?? RotationRepresentation.Quaternion);

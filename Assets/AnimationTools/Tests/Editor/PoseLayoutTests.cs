@@ -42,6 +42,13 @@ public class PoseLayoutTests
         skeleton = TestSkeletons.CreateChain3();
     }
 
+    [TearDown]
+    public void TearDown()
+    {
+        TestSkeletons.DestroyAll();
+    }
+
+
     // Positions: root, head (2). Rotations: root, spine, head, Quaternion (3). Scale: spine (1).
     // Velocities: root, head (2). AngularVelocity: spine, RotationVector (1). Bools: spine
     // Default, head Contact (2).

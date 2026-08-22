@@ -1,5 +1,6 @@
 using AnimationTools;
 using UnityEngine;
+using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionMatching
 {
@@ -42,7 +43,7 @@ public static class MmFeatureLayoutBuilder
         return new MmFeatureLayout(trajectoryChannels, poseChannels, boneIndices);
     }
 
-    private static int FindJointIndexOrZero(Skeleton skeleton, BoneTransform bone, string featureName)
+    private static int FindJointIndexOrZero(Skeleton skeleton, SkeletonBone bone, string featureName)
     {
         var index = bone?.ResolveIndex(skeleton) ?? -1;
         if (index >= 0) return index;
