@@ -241,7 +241,7 @@ def train(data_dir: str,
     """
     Train a motion field value function and write it to `out_path`.
 
-    :param data_dir: directory holding `<db_name>.mmskeleton` / `.mmpose`
+    :param data_dir: directory holding `<db_name>.mmpose`
     :param out_path: destination `.mffield.npz`, normally under StreamingAssets
     :param bone_weights: optional per-joint emphasis on the similarity metric,
         see `MotionField.resolve_bone_weights`. Changing it invalidates any
@@ -302,7 +302,7 @@ def train(data_dir: str,
 def _parse_args(argv=None):
     parser = argparse.ArgumentParser(prog='motion_field_trainer')
     parser.add_argument('--data-dir', required=True,
-                        help='directory containing <db-name>.mmskeleton / .mmpose')
+                        help='directory containing <db-name>.mmpose')
     parser.add_argument('--db-name', default=None,
                         help='database base name (defaults to the data-dir name)')
     parser.add_argument('--out', default=None,

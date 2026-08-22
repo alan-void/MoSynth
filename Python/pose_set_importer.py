@@ -1,14 +1,11 @@
 import os
 import struct
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 from Animation import PoseSet
 from Skeleton import Joint, Skeleton
 
-
-# Assuming Skeleton and PoseSet are imported/defined here
-# from Skeleton import Skeleton
-# from PoseSet import PoseSet
 
 def _read_csharp_string(f) -> str:
     """
@@ -32,38 +29,39 @@ def _read_csharp_string(f) -> str:
     return f.read(count).decode('utf-8')
 
 
-def read_skeleton(filepath: str) -> Skeleton:
+def read_skeleton(f) -> Skeleton:
     """
-    Reads the .mmskeleton file (MMSK v2 format).
-    Note: Adjust the instantiation to match your actual Python Skeleton class definition.
+    Reads the skeleton block at the head of an open .mmpose file, leaving the stream
+    positioned at the clip table.
+
+    Unity writes this block because the Python side has no ScriptableObject to read the bone
+    tree from: names key the per-bone weight table, parent indices drive FK, and the rest
+    offsets give root-space positions. It lives in the same file as the poses so that the two
+    cannot drift apart -- which is what the separate .mmskeleton file used to allow.
     """
-    # Initialize your Skeleton object here
     skeleton_data = []
 
-    with open(filepath, 'rb') as f:
-        magic = f.read(4)
-        version = struct.unpack('<I', f.read(4))[0]
-        if magic != b'MMSK' or version != 2:
-            raise ValueError(
-                "old or unknown .mmskeleton format (expected MMSK v2) — "
-                "regenerate the motion matching databases from the Unity editor"
-            )
+    n_joints = struct.unpack('<I', f.read(4))[0]
 
-        n_joints = struct.unpack('<I', f.read(4))[0]
+    for _ in range(n_joints):
+        name = _read_csharp_string(f)
+        parent_index = struct.unpack('<i', f.read(4))[0]  # the root's -1, written as 0xFFFFFFFF
+        local_offset = struct.unpack('<3f', f.read(12))  # x, y, z
+        rest_rotation = struct.unpack('<4f', f.read(16))  # x, y, z, w
 
-        for _ in range(n_joints):
-            name = _read_csharp_string(f)
-            parent_index = struct.unpack('<i', f.read(4))[0]
-            local_offset = struct.unpack('<3f', f.read(12))  # x, y, z
-            rest_rotation = struct.unpack('<4f', f.read(16))  # x, y, z, w
+        skeleton_data.append({
+            'name': name,
+            'parent_index': parent_index,
+            'local_offset': local_offset,
+            'rest_rotation': rest_rotation
+        })
 
-            skeleton_data.append({
-                'name': name,
-                'parent_index': parent_index,
-                'local_offset': local_offset,
-                'rest_rotation': rest_rotation
-            })
-    joints = [Joint(datum['name'], datum['local_offset']) for datum in skeleton_data]
+    joints = [
+        Joint(datum['name'],
+              np.asarray(datum['local_offset'], dtype=np.float32),
+              Rotation.from_quat(datum['rest_rotation']))
+        for datum in skeleton_data
+    ]
     for joint_idx, joint in enumerate(joints):
         datum = skeleton_data[joint_idx]
         parent_idx = int(datum['parent_index'])
@@ -73,26 +71,23 @@ def read_skeleton(filepath: str) -> Skeleton:
 
     assert joints[0].parent() is None, "root bone should be the first bone"
 
-    skeleton = Skeleton("char", joints[0])
-    # return Skeleton(skeleton_data)
-    return skeleton  # Placeholder: return data directly if Skeleton constructor differs
+    return Skeleton("char", joints[0])
 
 
 def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
     """
-    Reads .mmskeleton and .mmpose files from the given path and constructs a PoseSet object.
+    Reads the .mmpose file from the given path and constructs a PoseSet object.
     """
-    skeleton_path = os.path.join(path, f"{file_name}.mmskeleton")
     pose_path = os.path.join(path, f"{file_name}.mmpose")
 
-    if not os.path.exists(skeleton_path) or not os.path.exists(pose_path):
-        raise FileNotFoundError(f"Could not find .mmskeleton or .mmpose files at {path}")
+    if not os.path.exists(pose_path):
+        raise FileNotFoundError(f"Could not find {file_name}.mmpose at {path}")
 
-    # 1. Deserialize Skeleton
-    skeleton = read_skeleton(skeleton_path)
-
-    # 2. Deserialize Pose Data
     with open(pose_path, 'rb') as f:
+        # 1. Deserialize Skeleton
+        skeleton = read_skeleton(f)
+
+        # 2. Deserialize Pose Data
         # Read Clips
         n_clips = struct.unpack('<I', f.read(4))[0]
         clips = []

@@ -244,7 +244,11 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 "too.");
         }
 
-        using (new EditorGUI.DisabledScope(!hasClips))
+        // Gated on the same check ImportPoseSet runs, so a config with no skeleton -- or one its
+        // clips do not line up with -- cannot be generated into a database that would fail to load.
+        // DrawSkeletonValidation has already put the reason on screen. Matches
+        // MotionMatchingDataEditor, whose button is disabled by _generateButtonError.
+        using (new EditorGUI.DisabledScope(!config.TryValidate(out _)))
         {
             if (GUILayout.Button("Generate Pose Database", GUILayout.Height(24)))
             {
@@ -290,8 +294,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         if (!TryReadSkeleton(config))
         {
             EditorGUILayout.HelpBox(
-                "Generate the pose database first. The bone list is read from the generated " +
-                ".mmskeleton, which is the skeleton the similarity metric is computed over.",
+                "Assign this config's skeleton first — it is the bone list the similarity metric " +
+                "is computed over.",
                 MessageType.Warning);
             return;
         }

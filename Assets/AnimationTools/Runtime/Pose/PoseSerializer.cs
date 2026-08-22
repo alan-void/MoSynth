@@ -15,14 +15,6 @@ using static AnimationTools.BinarySerializerExtensions;
 public class PoseSerializer
 {
     /// <summary>
-    /// Format version written at the start of every .mmpose file. Bumped whenever the binary
-    /// layout changes so an old file is rejected with a clear message instead of misparsed.
-    /// </summary>
-    private const uint MmPoseFormatVersion = 2;
-
-    private static readonly byte[] MmPoseMagic = { (byte)'M', (byte)'M', (byte)'P', (byte)'S' };
-
-    /// <summary>
     /// Stores the full pose representation of all poses for Motion Matching in a binary format
     /// in the specified path with name filename and extension .mmpose
     /// </summary>
@@ -35,9 +27,7 @@ public class PoseSerializer
         {
             using (var writer = new BinaryWriter(stream, Encoding.UTF8))
             {
-                // Magic + format version
-                writer.Write(MmPoseMagic);
-                writer.Write(MmPoseFormatVersion);
+                WriteSkeleton(writer, poseSet.Skeleton);
 
                 // Serialize Number Animation Clips
                 writer.Write((uint)poseSet.NumberClips);
@@ -108,20 +98,7 @@ public class PoseSerializer
         {
             using (var reader = new BinaryReader(ms, Encoding.UTF8))
             {
-                var magic = reader.ReadBytes(4);
-                if (magic.Length != 4 || magic[0] != MmPoseMagic[0] || magic[1] != MmPoseMagic[1] ||
-                    magic[2] != MmPoseMagic[2] || magic[3] != MmPoseMagic[3])
-                {
-                    Debug.LogError($"\"{fileName}.mmpose\" is an old or unknown format (expected MMPS v{MmPoseFormatVersion}) — regenerate the databases from the MotionMatchingData editor.");
-                    return false;
-                }
-
-                uint version = reader.ReadUInt32();
-                if (version != MmPoseFormatVersion)
-                {
-                    Debug.LogError($"\"{fileName}.mmpose\" is an old or unknown format (expected MMPS v{MmPoseFormatVersion}) — regenerate the databases from the MotionMatchingData editor.");
-                    return false;
-                }
+                if (!ReadAndCheckSkeleton(reader, fileName, skeleton)) return false;
 
                 uint nClips = reader.ReadUInt32();
                 poseSet.SetClipCapacity(nClips);
@@ -136,9 +113,13 @@ public class PoseSerializer
                 uint nPoses = reader.ReadUInt32();
                 uint nJoints = reader.ReadUInt32();
                 uint nTags = reader.ReadUInt32();
+                // The skeleton block already agreed with the asset, so this only fires on a file
+                // whose two bone counts disagree with each other — a truncated or corrupt write.
                 if (nJoints != skeleton.BoneCount)
                 {
-                    Debug.LogError($"\"{fileName}.mmpose\" has {nJoints} joints but skeleton \"{skeleton.Name}\" has {skeleton.BoneCount} — regenerate the databases from the MotionMatchingData editor.");
+                    Debug.LogError($"\"{fileName}.mmpose\" says {nJoints} joints in its pose header but " +
+                                   $"{skeleton.BoneCount} in its skeleton block; the file is corrupt. " +
+                                   "Regenerate the databases.");
                     return false;
                 }
 
@@ -234,6 +215,71 @@ public class PoseSerializer
                 }
 
                 poseSet.ConvertTagsToNativeArrays();
+            }
+        }
+
+        return true;
+    }
+
+    // --- Skeleton block ---------------------------------------------------------------------
+    //
+    // The bones this database was extracted over, written ahead of the poses. C# does not need
+    // them — a config carries its own Skeleton and reads rest pose live off the Transforms — but
+    // the Python half has no ScriptableObject to read, and needs joint names for the bone-weight
+    // table, parent indices for FK, and rest offsets for root-space positions. Keeping the block
+    // in the same file as the poses is what stops the two drifting apart, which is exactly what a
+    // separate .mmskeleton did.
+
+    private static void WriteSkeleton(BinaryWriter writer, Skeleton skeleton)
+    {
+        writer.Write((uint)skeleton.BoneCount);
+        for (var i = 0; i < skeleton.BoneCount; ++i)
+        {
+            var bone = skeleton.GetBone(i);
+            writer.Write(bone.Name);
+            writer.Write((uint)skeleton.GetParentIndex(i)); // bone 0's -1 round-trips as 0xFFFFFFFF
+            WriteFloat3(writer, bone.RestLocalPosition);
+            WriteQuaternion(writer, bone.RestLocalRotation);
+        }
+    }
+
+    /// <summary>
+    /// Reads the skeleton block and checks it describes the same bone tree as
+    /// <paramref name="skeleton"/> — matching names and parent indices, the comparison
+    /// <see cref="Skeleton.MatchesFrom"/> makes. Rest transforms are read and discarded, since C#
+    /// takes those live off the Transforms. This is what catches a database extracted over a
+    /// different rig, or over the same rig before its bone list changed.
+    /// </summary>
+    private static bool ReadAndCheckSkeleton(BinaryReader reader, string fileName, Skeleton skeleton)
+    {
+        var boneCount = (int)reader.ReadUInt32();
+        if (boneCount != skeleton.BoneCount)
+        {
+            Debug.LogError($"\"{fileName}.mmpose\" was built over a skeleton of {boneCount} bones but " +
+                           $"\"{skeleton.Name}\" has {skeleton.BoneCount} — regenerate the database.");
+            return false;
+        }
+
+        for (var i = 0; i < boneCount; ++i)
+        {
+            var name = reader.ReadString();
+            var parentIndex = (int)reader.ReadUInt32(); // 0xFFFFFFFF back to -1
+            ReadFloat3(reader);
+            ReadQuaternion(reader);
+
+            if (name != skeleton.GetBone(i).Name)
+            {
+                Debug.LogError($"\"{fileName}.mmpose\" has \"{name}\" at bone {i} but \"{skeleton.Name}\" " +
+                               $"has \"{skeleton.GetBone(i).Name}\" — regenerate the database.");
+                return false;
+            }
+
+            if (parentIndex != skeleton.GetParentIndex(i))
+            {
+                Debug.LogError($"\"{fileName}.mmpose\" parents bone {i} (\"{name}\") to {parentIndex} but " +
+                               $"\"{skeleton.Name}\" parents it to {skeleton.GetParentIndex(i)} — " +
+                               "regenerate the database.");
+                return false;
             }
         }
 

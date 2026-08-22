@@ -201,7 +201,7 @@ public class MotionFieldStage : MoSynthStage, IDisposable
 
                 if (collectDebugData)
                 {
-                    LoadEmbedding(dataPath, stateCount);
+                    LoadEmbedding(stateCount);
                 }
             }
 
@@ -222,7 +222,7 @@ public class MotionFieldStage : MoSynthStage, IDisposable
     /// The embedding is optional debug data, so every failure path here leaves <see cref="Embedding"/>
     /// null and lets synthesis carry on -- the visualizer simply draws nothing.
     /// </summary>
-    private void LoadEmbedding(string dataPath, int stateCount)
+    private void LoadEmbedding(int stateCount)
     {
         string embeddingPath = config.GetEmbeddingPath();
         if (!File.Exists(embeddingPath))
@@ -237,13 +237,10 @@ public class MotionFieldStage : MoSynthStage, IDisposable
         // here would hand this module a second copy of MotionField's classes.
         dynamic embeddingModule = PythonRuntime.Import("motion_field_embedding");
 
-        // The field's already-resolved table goes back across so Python can report a projection
-        // fitted under different bone weights. That only warns -- the cloud still maps state for
-        // state, and blanking it every time a weight is nudged would take the tool away exactly
-        // when it is being used.
-        dynamic arrays = embeddingModule.load_embedding_arrays(
-            embeddingPath, dataPath, config.name, stateCount, PythonLog,
-            bone_weights: _motionField.bone_weights);
+        // The state count is the only thing checked over there. Nothing hashes the database, so an
+        // embedding fitted on a different database of the same length is drawn as if current --
+        // recompute it whenever the pose database is regenerated.
+        dynamic arrays = embeddingModule.load_embedding_arrays(embeddingPath, stateCount, PythonLog);
 
         var flat = (float[])arrays[0];
         int[] edges = (int[])arrays[1];

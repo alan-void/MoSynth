@@ -11,8 +11,8 @@ namespace MotionField
 /// Everything a motion field needs: which animations form the database, and the hyperparameters
 /// used to train and run the value function over it.
 ///
-/// This implements <see cref="IPoseSetSource"/> so it can produce its own .mmskeleton/.mmpose
-/// database without being a <see cref="MotionMatchingData"/>. It deliberately carries none of the
+/// This implements <see cref="IPoseSetSource"/> so it can produce its own .mmpose database
+/// without being a <see cref="MotionMatchingData"/>. It deliberately carries none of the
 /// trajectory/pose feature machinery -- a motion field searches on full-body pose and velocity, so
 /// the feature set a Motion Matching query needs has no meaning here.
 /// </summary>
@@ -99,7 +99,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     [Serializable]
     public struct BoneWeight
     {
-        [Tooltip("Skeleton joint name, as stored in the .mmskeleton.")]
+        [Tooltip("Skeleton joint name, as it appears in this config's skeleton.")]
         public string name;
 
         [Tooltip("Scales this joint's position contribution to the distance.")] [Min(0f)]

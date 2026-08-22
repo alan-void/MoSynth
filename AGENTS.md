@@ -105,7 +105,7 @@ Assets/
 ├── MotionField/
 │   ├── MotionFieldStage.cs          [stage implementing neural field]
 │   ├── MfConnector.cs               [data connector for field]
-│   └── MotionFieldData.cs           [serializable config]
+│   └── MotionFieldConfig.cs         [serializable config: clips, skeleton, hyperparameters]
 ├── MotionMatching/
 │   ├── Runtime/Core/
 │   │   ├── MotionMatchingStage.cs   [database search stage]
@@ -216,7 +216,8 @@ When adding a new `MoSynthStage`:
 - `MotionMatchingData` and `MotionFieldConfig` each carry an explicit T-pose `Skeleton` field whose root is the rig's identity armature node. That node **is** the SimulationBone at index 0, so index 1 is the first real bone (Hips) and nothing is prepended at load
 - A clip's own `Skeleton` starts at its root bone, so it is one bone shorter. The compatibility check is therefore `skeleton.MatchesFrom(1, clip.Skeleton)`, not `StructurallyEqual`
 - Both assets expose `TryValidate(out string error)`. `GetOrImportPoseSet()`/`GetOrImportFeatureSet()` return null silently when it fails, because `OnValidate` reaches them every Inspector repaint; the custom Inspector shows the reason in a HelpBox and disables Generate. `SkeletonAnimation` follows the same pattern
-- The `.mmskeleton` format is gone — the skeleton comes from the config's field. `.mmpose` carries an `MMPS` v2 magic + version header, so databases written before this must be regenerated from the MotionMatchingData editor
+- The `.mmskeleton` format is gone. C# takes the skeleton from the config's own field, but Python has no ScriptableObject to read, so `.mmpose` opens with a skeleton block — per bone: name, parent index, rest local position, rest local rotation — written by `PoseSerializer.WriteSkeleton` and read by `pose_set_importer.read_skeleton`. Keeping it in the same file as the poses is what stops the two drifting apart
+- **Neither `.mmpose` nor `.mmfeatures` is versioned**, by decision: everything is regenerated when a format moves, so a version byte guards nothing. A stale `.mmpose` is caught instead by `ReadAndCheckSkeleton`, which compares the file's bone names and parent indices against the config's skeleton — real data validation, and it catches more than a version number would. The `.mfembed.npz` has no schema version and no database hash either: `load_embedding` checks only that the state count matches, so **recompute the UMAP embedding after every Generate Pose Database** or the visualizer will draw a stale cloud as if it were current
 
 ### Pose Data Handling
 - `PoseBuffer` is mutable and used during synthesis; holds positions, rotations, velocities, and contact states
@@ -264,6 +265,6 @@ Implementer agents need a spec that names the files, the intended design, and th
 
 - Verify hard-coded paths are not leaking (search for `D:\`, `C:\Users\`)
 - Test on a fresh Unity project if adding dependencies
-- Update `Assets/MotionField/MotionFieldData.cs` or config if adding configurable parameters
+- Update `Assets/MotionField/MotionFieldConfig.cs` if adding configurable parameters
 - Run Python linting on any modified `.py` files (PEP8 style preferred)
 

@@ -36,7 +36,6 @@ frame-adjacency edge Unity already draws. The edges become the velocity field.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import os
 import time
 
@@ -45,10 +44,6 @@ import torch
 
 import action_predictor
 from MotionField import MotionField, load_bone_weights_file, resolve_device
-
-# 3: build_motion_states switched the metric FK to the rest-pose hips offset,
-# which moves every embedded point.
-SCHEMA_VERSION = 3
 
 # 'field'     -- k-NN graph under the field's own sum-of-per-joint-L2 metric.
 # 'euclidean' -- flat L2 on the flattened feature, what UMAP assumes by default.
@@ -62,47 +57,6 @@ FEATURE_POSITION = 'position'
 FEATURE_FULL = 'full'
 
 DEFAULT_KNN_CHUNK = 256
-
-# Signature of an all-ones per-bone weight table. Spelled out rather than hashed
-# so an embedding written before per-bone weights existed -- which had uniform
-# weights by definition -- still matches a runtime that has not set any.
-UNIFORM_BONE_WEIGHTS = 'uniform'
-
-
-def bone_weights_signature(bone_weights) -> str:
-    """
-    Stable identifier for a per-bone weight table.
-
-    Bone weights change the similarity metric, so they change which neighbours a
-    state has, so an embedding fitted under the old table draws the wrong
-    neighbourhoods. Hashed rather than compared elementwise because the npz
-    holds one scalar per key and a 23x2 table is not a scalar.
-    """
-    if bone_weights is None:
-        return UNIFORM_BONE_WEIGHTS
-
-    table = np.ascontiguousarray(bone_weights, dtype=np.float32)
-    if table.size == 0 or np.all(np.abs(table - 1.0) <= 1e-6):
-        return UNIFORM_BONE_WEIGHTS
-    return hashlib.sha1(table.tobytes()).hexdigest()
-
-
-def file_sha1(path: str) -> str:
-    h = hashlib.sha1()
-    with open(path, 'rb') as f:
-        for block in iter(lambda: f.read(1 << 20), b''):
-            h.update(block)
-    return h.hexdigest()
-
-
-def database_signature(data_dir: str, db_name: str) -> dict:
-    """Content hashes identifying the pose database the embedding was fitted on."""
-    return {
-        'pose_db_name': db_name,
-        'pose_db_sha1': file_sha1(os.path.join(data_dir, f'{db_name}.mmpose')),
-        'skeleton_sha1': file_sha1(os.path.join(data_dir, f'{db_name}.mmskeleton')),
-    }
-
 
 def _noop_progress(stage: str, fraction: float) -> None:
     pass
@@ -269,10 +223,7 @@ def compute_embedding(data_dir: str, db_name: str, out_path: str,
                        'seed': int(seed),
                        'pos_weight': float(pos_weight),
                        'vel_weight': float(vel_weight),
-                       'bone_weights_sha1':
-                           bone_weights_signature(motion_field.bone_weights),
-                   },
-                   signature=database_signature(data_dir, db_name))
+                   })
 
     summary = {
         'out_path': out_path,
@@ -296,12 +247,11 @@ def compute_embedding(data_dir: str, db_name: str, out_path: str,
 
 def save_embedding(out_path: str, embedding: np.ndarray, edges: np.ndarray,
                    state_clip: np.ndarray, speed: np.ndarray,
-                   params: dict, signature: dict) -> None:
+                   params: dict) -> None:
     """Write `<name>.mfembed.npz`, pickle-free so it loads under allow_pickle=False."""
     os.makedirs(os.path.dirname(out_path) or '.', exist_ok=True)
 
     payload = {
-        'schema_version': np.int64(SCHEMA_VERSION),
         'embedding': np.ascontiguousarray(embedding, dtype=np.float32),
         'edges': np.ascontiguousarray(edges, dtype=np.int32),
         'state_clip': np.ascontiguousarray(state_clip, dtype=np.int32),
@@ -314,37 +264,27 @@ def save_embedding(out_path: str, embedding: np.ndarray, edges: np.ndarray,
         'min_dist': np.float32(params['min_dist']),
         'pos_weight': np.float32(params['pos_weight']),
         'vel_weight': np.float32(params['vel_weight']),
-        'bone_weights_sha1':
-            np.str_(params.get('bone_weights_sha1', UNIFORM_BONE_WEIGHTS)),
         'metric_mode': np.str_(params['metric_mode']),
         'feature_mode': np.str_(params.get('feature_mode', FEATURE_FULL)),
     }
-    for key, value in signature.items():
-        payload[key] = np.str_(value)
 
     np.savez(out_path, **payload)
 
 
-def load_embedding(path: str, data_dir: str = None, db_name: str = None,
-                   states_count: int = None, log=print, bone_weights=None):
+def load_embedding(path: str, states_count: int = None, log=print):
     """
-    Load and validate `<name>.mfembed.npz`.
+    Load `<name>.mfembed.npz`.
 
     Every row of the embedding is a row of the pose database, so an embedding
-    loaded against a re-extracted `.mmpose` would address the wrong states and
-    draw a plausible but wrong picture. Gated here on content hashes of the
-    database rather than on Unity's `hasTrained` flag, since the visualizer is
-    the one place a wrong picture is worse than no picture at all.
+    loaded against a re-extracted `.mmpose` addresses the wrong states. The only
+    check left is the state count: nothing here hashes the database, so an
+    embedding fitted on a *different* database of the same length is loaded and
+    drawn as if it were current. Recompute the embedding after every Generate
+    Pose Database.
 
-    Returns `None` rather than raising on any problem -- a missing or stale
+    Returns `None` rather than raising on any problem -- a missing or unreadable
     embedding must degrade to "draw nothing", never throw inside `Py.GIL()`.
 
-    :param bone_weights: the resolved table the *running* field uses, if any.
-        A mismatch only warns: the projection was fitted under different metric
-        weights, so neighbourhoods on screen are drawn slightly wide of the ones
-        the field now sees, but every point still maps to the right state. That
-        is worth a note and not worth blanking the visualizer while somebody is
-        iterating on weights -- refitting costs ~20 s per change.
     :return: dict with embedding/edges/state_clip/speed, or None.
     """
     if not path or not os.path.isfile(path):
@@ -353,12 +293,6 @@ def load_embedding(path: str, data_dir: str = None, db_name: str = None,
 
     try:
         with np.load(path, allow_pickle=False) as data:
-            version = int(data['schema_version'])
-            if version != SCHEMA_VERSION:
-                log(f'[MotionField] embedding schema {version} != {SCHEMA_VERSION}, ignoring '
-                    f'{path}. Press Compute UMAP Embedding on the config to rebuild it.')
-                return None
-
             loaded = {
                 'embedding': np.asarray(data['embedding'], dtype=np.float32),
                 'edges': np.asarray(data['edges'], dtype=np.int32),
@@ -369,12 +303,7 @@ def load_embedding(path: str, data_dir: str = None, db_name: str = None,
                 'n_neighbors': int(data['n_neighbors']),
                 'metric_mode': str(data['metric_mode']),
                 'feature_mode': str(data['feature_mode']),
-                'bone_weights_sha1': str(data['bone_weights_sha1'])
-                    if 'bone_weights_sha1' in data.files else UNIFORM_BONE_WEIGHTS,
             }
-            signature = {key: str(data[key]) for key in
-                         ('pose_db_name', 'pose_db_sha1', 'skeleton_sha1')
-                         if key in data.files}
     except (OSError, ValueError, KeyError) as error:
         log(f'[MotionField] could not read embedding {path}: {error}')
         return None
@@ -384,28 +313,6 @@ def load_embedding(path: str, data_dir: str = None, db_name: str = None,
             f'field has {states_count}, ignoring {path}')
         return None
 
-    if data_dir and db_name:
-        try:
-            expected = database_signature(data_dir, db_name)
-        except OSError as error:
-            # Asked to verify and cannot: fail closed. Treating an unhashable
-            # database as "no objection" would accept an embedding whose rows
-            # address a database that is not even there.
-            log(f'[MotionField] could not hash the pose database, ignoring {path}: {error}')
-            return None
-        for key, value in expected.items():
-            if key in signature and signature[key] != str(value):
-                log(f'[MotionField] embedding {key} mismatch, ignoring {path}')
-                return None
-
-    running = bone_weights_signature(bone_weights)
-    if running != loaded['bone_weights_sha1']:
-        log(f'[MotionField] embedding {path} was fitted with bone weights '
-            f"{loaded['bone_weights_sha1']} but the field is running "
-            f'{running}. The cloud still maps state for state, but the '
-            f'neighbourhoods it draws are the old metric\'s. Recompute the '
-            f'UMAP embedding once the weights settle.')
-
     log(f"[MotionField] loaded embedding {path} "
         f"({loaded['states_count']} states, {loaded['edges'].shape[0]} edges, "
         f"{loaded['n_components']}D, features={loaded['feature_mode']}, "
@@ -413,8 +320,7 @@ def load_embedding(path: str, data_dir: str = None, db_name: str = None,
     return loaded
 
 
-def load_embedding_arrays(path: str, data_dir: str = None, db_name: str = None,
-                          states_count: int = None, log=None, bone_weights=None):
+def load_embedding_arrays(path: str, states_count: int = None, log=None):
     """
     `load_embedding` flattened for PythonNET, following the same convention as
     `action_predictor.get_pose_arrays`.
@@ -423,14 +329,10 @@ def load_embedding_arrays(path: str, data_dir: str = None, db_name: str = None,
         reasons reach the Editor console -- the default `print` goes to stdout,
         which PythonNET does not forward, making a stale embedding look like a
         silent no-op.
-    :param bone_weights: the running field's resolved weight table, so a stale
-        projection can be reported. Unity passes `MotionField.bone_weights`
-        straight through rather than recomputing the signature in C#.
     :return: (embedding_xyz, edges_pairs, speed, states_count) as flat Python
         lists, or ([], [], [], 0) when there is no usable embedding.
     """
-    loaded = load_embedding(path, data_dir, db_name, states_count,
-                            log=log or print, bone_weights=bone_weights)
+    loaded = load_embedding(path, states_count, log=log or print)
     if loaded is None:
         return [], [], [], 0
 
@@ -447,7 +349,7 @@ def load_embedding_arrays(path: str, data_dir: str = None, db_name: str = None,
 def _parse_args(argv=None):
     parser = argparse.ArgumentParser(prog='motion_field_embedding')
     parser.add_argument('--data-dir', required=True,
-                        help='directory containing <db-name>.mmskeleton / .mmpose')
+                        help='directory containing <db-name>.mmpose')
     parser.add_argument('--db-name', default=None,
                         help='database base name (defaults to the data-dir name)')
     parser.add_argument('--out', default=None,

@@ -16,10 +16,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3242dfa08bb3cf248987ae6021c3666a, type: 2}
   skeleton:
     root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-  rootMotionBone:
-    skeleton:
-      root: {fileID: 0}
-    bone: {fileID: 0}
   contactVelocityThreshold: 0.15
   leftContactBone:
     skeleton:

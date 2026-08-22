@@ -46,4 +46,4 @@ MonoBehaviour:
   umapComponents: 3
   umapSeed: 42
   hasPoseDatabase: 1
-  hasTrained: 0
+  hasTrained: 1
