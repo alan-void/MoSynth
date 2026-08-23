@@ -86,11 +86,12 @@ public static class PoseFK
     /// accumulated from the target bone up to the root.
     /// </summary>
     /// <remarks>
-    /// Legacy quirk, deliberately preserved: bone-0 (root) velocity is added WITHOUT rotating
-    /// by the root rotation, exactly matching <c>Skeleton.GetWorldSpaceVelocity</c> (Skeleton.cs:170)
-    /// even though the motion-matching pipeline stores that value in root-local space
-    /// (<c>PoseExtractor.cs:254-259</c> rotates it). Fidelity to the legacy contact extraction
-    /// takes precedence; revisit if the legacy convention is ever fixed.
+    /// Known space inconsistency, deliberately preserved: bone-0 (root) velocity is stored in
+    /// root-local space by extraction (<see cref="PoseExtractor"/>.ExtractPoseVelocities rotates
+    /// it by the inverse root rotation) yet is added here WITHOUT rotating it back, matching the
+    /// legacy <c>Skeleton.GetWorldSpaceVelocity</c> convention. Correcting it would shift the
+    /// result for every consumer, foot-contact extraction included, so it is left as a TODO
+    /// rather than a silent behaviour change.
     /// </remarks>
     public static float3 CharacterVelocity(in PoseBuffer pose, in SkeletonData skeleton, int boneIndex)
     {

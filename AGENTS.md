@@ -116,8 +116,7 @@ Assets/
 │   ├── Runtime/Core/
 │   │   ├── MotionMatchingStage.cs   [database search stage]
 │   │   └── RootMotionCorrectionStage.cs
-│   ├── Runtime/Pose/
-│   │   └── PoseBufferFK.cs          [motion matching pose FK extension]
+│   ├── Runtime/Pose/                [pose set visualization]
 │   ├── Runtime/Features/            [matching feature channels]
 │   └── Editor/                      [tools and visualization]
 ├── Scenes/

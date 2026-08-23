@@ -123,7 +123,7 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
         }
         else
         {
-            worldRotation = PoseBufferFK.WorldRotation(skeleton, pose, boneIndex);
+            worldRotation = PoseFK.CharacterRotation(pose, skeleton, boneIndex);
             // Forward vector of the joint in its own local space, taken from the rig's rest pose.
             localForward = mmData.GetLocalForward(boneIndex);
         }

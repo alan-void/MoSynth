@@ -508,7 +508,7 @@ public class FeatureSet
         PoseBuffer jointPose, int boneIndex)
     {
         GetWorldOriginCharacter(characterPose, out var origin, out var forward);
-        return GetLocalPositionFromCharacter(PoseBufferFK.WorldPosition(skeleton, jointPose, boneIndex), origin,
+        return GetLocalPositionFromCharacter(PoseFK.CharacterPosition(jointPose, skeleton, boneIndex), origin,
             forward);
     }
 
