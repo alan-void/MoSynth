@@ -26,6 +26,28 @@ public class PathFollowingMetricsCalculatorTests
         return spline;
     }
 
+    /// <summary>A lemniscate, matching the FigureEight benchmark path: it crosses itself at the origin.</summary>
+    private static Spline BuildFigureEightSpline()
+    {
+        var spline = new Spline();
+        const int knots = 12;
+        const float scale = 6f;
+        for (var i = 0; i < knots; i++)
+        {
+            var t = 2f * math.PI * i / knots;
+            var denominator = 1f + math.sin(t) * math.sin(t);
+            spline.Add(
+                new BezierKnot(new float3(
+                    scale * math.cos(t) / denominator,
+                    0f,
+                    scale * math.sin(t) * math.cos(t) / denominator)),
+                TangentMode.AutoSmooth);
+        }
+
+        spline.Closed = true;
+        return spline;
+    }
+
     private static (float[] times, float3[] positions, float3[] forwards) BuildFrames(
         int fps, float duration, Func<float, float3> position, Func<float, float3> forward)
     {
@@ -159,6 +181,35 @@ public class PathFollowingMetricsCalculatorTests
             targetSpeed, 0f, 0.2f);
 
         Assert.AreEqual(0f, result.meanTrajectoryError, 0.05f);
+    }
+
+    [Test]
+    public void SelfIntersectingSpline_PerfectFollowingScoresNearZero()
+    {
+        // A run tracing the path exactly should score ~0 on both error terms. Projecting each frame
+        // globally instead would match the far branch near the crossing and manufacture a large
+        // heading error out of a run that never left the path.
+        var spline = BuildFigureEightSpline();
+        var frameCount = 361;
+        var times = new float[frameCount];
+        var positions = new float3[frameCount];
+        var forwards = new float3[frameCount];
+
+        for (var i = 0; i < frameCount; i++)
+        {
+            var u = i / (float)(frameCount - 1);
+            times[i] = i / 30f;
+            positions[i] = spline.EvaluatePosition(u);
+            forwards[i] = math.normalize(spline.EvaluateTangent(u));
+        }
+
+        var result = PathFollowingMetricsCalculator.Evaluate(
+            spline, float4x4.identity, positions, forwards, times,
+            float.NaN, 0f, 0.2f);
+
+        Assert.AreEqual(0f, result.meanTrajectoryError, 0.05f);
+        Assert.AreEqual(0f, result.meanHeadingErrorDeg, 2f);
+        Assert.Less(result.maxHeadingErrorDeg, 15f);
     }
 
     [Test]

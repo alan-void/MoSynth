@@ -23,12 +23,39 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
     [Min(0.1f)]
     private float lookaheadDistance = 1.5f;
 
-    public SplineContainer SplineContainer { get => splineContainer; set => splineContainer = value; }
+    public SplineContainer SplineContainer
+    {
+        get => splineContainer;
+        set
+        {
+            splineContainer = value;
+            // A new path makes the tracked position meaningless, and a benchmark sweep hands this
+            // component a different spline for every run.
+            _projector.Reset();
+        }
+    }
+
     public float TargetSpeed => float.NaN;
+
+    /// <summary>Arc length ahead of the nearest spline point to steer toward, in meters. The only tuning knob this policy has.</summary>
+    public float LookaheadDistance { get => lookaheadDistance; set => lookaheadDistance = value; }
+
+    /// <summary>
+    /// Tracks where on the path the character is. Continuity matters here rather than raw proximity:
+    /// on a path that crosses itself, the globally nearest point flips branches at the crossing and
+    /// takes the steering target with it.
+    /// </summary>
+    private readonly SplineProjector _projector = new();
 
     private Vector3 _nearestWorld;
     private Vector3 _targetWorld;
     private bool _hasTarget;
+
+    private void OnEnable()
+    {
+        // Nothing carries over from a previous activation, so the first frame back re-seeds.
+        _projector.Reset();
+    }
 
     protected override Vector3 GetDesiredWorldDirection()
     {
@@ -41,13 +68,14 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
         var length = spline.GetLength();
         if (length < 1e-3f) return Vector3.zero;
 
-        // GetNearestPoint works in the spline's local space; the container transform maps it
+        // The projection works in the spline's local space; the container transform maps it
         // to the world. Lookahead is measured on the local curve, so a scaled container would
         // skew it -- containers are assumed unscaled.
         var splineTransform = splineContainer.transform;
         var localRoot = (float3)splineTransform.InverseTransformPoint(RootPosition);
 
-        SplineUtility.GetNearestPoint(spline, localRoot, out var nearestLocal, out var nearestT);
+        var nearestT = _projector.Project(spline, localRoot);
+        var nearestLocal = (Vector3)spline.EvaluatePosition(nearestT);
 
         var nearestDistance = spline.ConvertIndexUnit(
             nearestT, PathIndexUnit.Normalized, PathIndexUnit.Distance);

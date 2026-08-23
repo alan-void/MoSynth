@@ -108,6 +108,11 @@ public static class PathFollowingMetricsCalculator
 
         var worldToLocal = math.inverse(splineLocalToWorld);
 
+        // Walked forward across the analysis frames rather than re-derived per frame: on a path that
+        // crosses itself the globally nearest point flips branches at the crossing, which would score
+        // the character against the wrong tangent and manufacture a ~180 degree heading error.
+        var projector = new SplineProjector();
+
         var errorSum = 0.0;
 
         var headingSum = 0.0;
@@ -118,10 +123,8 @@ public static class PathFollowingMetricsCalculator
         {
             var t = analysisFrames[i];
             var localRoot = math.transform(worldToLocal, rootPositions[t]);
-            // The default pick resolution (4 samples/curve) biases the nearest point several
-            // centimeters along the curve, which shows up directly in the trajectory error.
-            SplineUtility.GetNearestPoint(spline, localRoot, out float3 nearestLocal, out var nearestT,
-                SplineUtility.PickResolutionMax, 4);
+            var nearestT = projector.Project(spline, localRoot);
+            var nearestLocal = spline.EvaluatePosition(nearestT);
 
             var nearestWorld = math.transform(splineLocalToWorld, nearestLocal);
             var rootWorld = rootPositions[t];
