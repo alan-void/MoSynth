@@ -99,6 +99,10 @@ Assets/
 │   ├── Runtime/Pose/
 │   │   ├── PoseBuffer.cs            [mutable pose in motion synthesis]
 │   │   └── PoseFK.cs                [forward kinematics]
+│   ├── Runtime/Benchmark/           [sweep config, lap tracking, motion-quality & cost metrics]
+│   ├── Runtime/Evaluation/          [PathFollowingMetric(sCalculator): in-scene A/B tool + pure metrics]
+│   ├── Runtime/Recording/           [MotionRecorder, channels, manifest, reader]
+│   ├── Editor/Benchmark/            [sweep driver, CLI entry point, menu, report writer]
 │   ├── Editor/
 │   │   └── SkeletonBoneDrawer.cs    [Inspector dropdown for bone selection]
 │   └── (other runtime & editor features)
@@ -172,6 +176,35 @@ The project uses standard Unity build pipeline:
 2. Select target platform and scenes
 3. Configure player settings (scripts-only for development)
 
+### Benchmarking the synthesis methods
+
+A sweep runs every configured method against every path, one character at a time, and writes
+`results.csv` / `results.json` plus the raw per-tick recordings.
+
+- **Configure**: a `SynthesisBenchmarkConfig` asset (`Assets/Create/MoSynth/Synthesis Benchmark
+  Config`). A "method" is a character prefab plus an optional list of `BenchmarkOverride`s, so the
+  four MotionField policies are four config entries over one prefab rather than four prefabs. Paths
+  are prefabs with a `SplineContainer` in a folder the config points at
+  (`Assets/Benchmarks/Paths` by default) — drop a prefab in and it joins the sweep
+- **First-time setup**: `MoSynth/Benchmark/Create Starter Assets` extracts the characters and
+  splines already wired up in `Assets/Scenes/ExampleSplines 1.unity` into those folders and writes a
+  config pointing at them; `MoSynth/Benchmark/Create Standard Paths` adds the parametric suite
+  (Circle, Oval, FigureEight, SharpCorners). Both replace the open scene and are re-runnable
+- **Run, visible**: `MoSynth/Benchmark/Run Sweep`, or the button on the config's inspector. It
+  replaces the open scene with an empty one and owns the play session
+- **Run, headless**: `Tools/run-benchmark.ps1` (`-Visible` to watch it). It must not pass `-quit`:
+  the sweep runs across play-mode frames, so `SynthesisBenchmarkDriver` sets the exit code itself
+- Each run spawns the character **on** the path's first point facing the tangent, waits out
+  `settleTime`, then measures at least `lapsRequired` laps of the character's own progress round the
+  spline — not a fixed duration, because `MotionFieldSplineControlInput` has no speed model to
+  predict a lap time from. A run that cannot finish is reported with `timedOut` set
+
+Three metric families, all computed from the recording after the fact so the calculators stay pure
+and unit-tested: path following (`PathFollowingMetricsCalculator`, reused unchanged), motion quality
+(`MotionQualityMetricsCalculator` — footskate, root jerk, discontinuity rate), and cost
+(`SynthesisCostMetrics` — per-stage `Apply()` ms and GC bytes per tick). Cost is measured wall-clock
+inside the Editor: valid for comparing methods within one sweep on one machine, and nothing more.
+
 ### Testing & Validation
 - **Editor play mode**: test motion synthesis visually
 - **Python validation**: `Python/test_server.py` (if it exists) or manual import tests
@@ -237,7 +270,7 @@ Project subagents live in `.claude/agents/`. Design, review, and integration sta
 | Agent | Model | Use it for |
 |---|---|---|
 | `code-locator` | haiku | "Where is X / who calls Y / what files touch Z" — returns file:line, not analysis |
-| `compile-checker` | haiku | Verifying C# edits build; reading Unity/Rider errors. Never enters play mode |
+| `compile-checker` | haiku | Verifying C# edits build; reading Unity/Rider errors |
 | `python-runner` | haiku | Running a module, test, or probe in the venv and reporting real output |
 | `docs-updater` | haiku | Mechanical doc/comment upkeep against already-established facts |
 | `csharp-implementer` | sonnet | Writing a C#/Unity change from a spec that already names files and design |

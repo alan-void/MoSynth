@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 034896ec3a22b4945a0e43b968fe84f4, type: 3}
+  m_Name: DefaultBenchmark
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.SynthesisBenchmarkConfig
+  methods:
+  - name: MotionMatching
+    characterPrefab: {fileID: 3845155860255659551, guid: f9a9a8a440e2fad4882a14dc0f6bb0ba, type: 3}
+    overrides: []
+  - name: MotionField
+    characterPrefab: {fileID: 5069406635295175760, guid: 6687126675c29064b8a28a522c61f6f9, type: 3}
+    overrides: []
+  pathPrefabFolder: Assets/Benchmarks/Paths
+  pathPrefabs: []
+  lapsRequired: 1
+  settleTime: 3
+  maxRunSeconds: 180
+  synthesisFrameRate: 30
+  fixedTimestep: 1
+  speedSmoothingWindow: 0.2
+  recordFullPose: 0
+  outputDirectory: Benchmarks
+  references:
+    version: 2
+    RefIds: []

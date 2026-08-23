@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace AnimationTools
 {
@@ -90,6 +91,21 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     public bool PoseDiscontinuity { get; set; }
 
     /// <summary>
+    /// When set, every tick times each stage's <see cref="MoSynthStage.Apply"/> into
+    /// <see cref="StageApplyTicks"/>. Off by default: it costs a timestamp pair per stage and
+    /// nothing in normal play reads the result.
+    /// </summary>
+    [NonSerialized] public bool MeasureStageCost;
+
+    /// <summary>
+    /// How long each stage's <see cref="MoSynthStage.Apply"/> took on the last tick, in
+    /// <see cref="Stopwatch"/> ticks, indexed like <see cref="stages"/>. Written only while
+    /// <see cref="MeasureStageCost"/> is set; a stage that was disabled, or that the pipeline never
+    /// reached because an earlier stage returned false, holds 0 for that tick.
+    /// </summary>
+    [NonSerialized] public long[] StageApplyTicks;
+
+    /// <summary>
     /// Fired at the end of every synthesis tick, after the post-stage pose has been applied to the
     /// skeleton transforms. The <see cref="PoseBuffer"/> is a view over the component's scratch pose:
     /// read it synchronously, do not hold the reference past the next tick, do not write to it.
@@ -117,6 +133,7 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         }
 
         stages.RemoveAll(stage => stage == null);
+        StageApplyTicks = new long[stages.Count];
         foreach (var stage in stages)
         {
             _skeleton = stage.GetSkeleton(_skeleton);
@@ -171,12 +188,17 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         PoseDiscontinuity = false;
         _scratchPose.CopyFrom(CurrentPose);
         var pose = _scratchPose;
-        foreach (var stage in stages)
+        if (MeasureStageCost) Array.Clear(StageApplyTicks, 0, StageApplyTicks.Length);
+        for (var i = 0; i < stages.Count; i++)
         {
+            var stage = stages[i];
             if (!stage.isEnabled) continue;
 
+            var startTimestamp = MeasureStageCost ? Stopwatch.GetTimestamp() : 0L;
             // A stage returning false means "this pose is final", so the result is still applied.
-            if (!stage.Apply(pose, _animationDeltaTime)) break;
+            var advance = stage.Apply(pose, _animationDeltaTime);
+            if (MeasureStageCost) StageApplyTicks[i] = Stopwatch.GetTimestamp() - startTimestamp;
+            if (!advance) break;
         }
 
         ApplyPoseToSkeletonTransforms(pose);
