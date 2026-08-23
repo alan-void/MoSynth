@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Mathematics;
 
 namespace AnimationTools
@@ -19,6 +20,15 @@ public interface IPoseSetSource
 {
     /// <summary>Asset name. Doubles as the database folder and file base name.</summary>
     string name { get; }
+
+    /// <summary>
+    /// The pose skeleton. Index 0 is the SimulationBone, so index 1 is the first real bone and a
+    /// clip's own skeleton lines up from there.
+    /// </summary>
+    Skeleton Skeleton { get; }
+
+    /// <summary>Clips the database is extracted from, in the order they are stored.</summary>
+    List<AnnotatedAnimationClip> AnimationClips { get; }
 
     /// <summary>Foot speed below which a toe counts as planted.</summary>
     float ContactVelocityThreshold { get; }

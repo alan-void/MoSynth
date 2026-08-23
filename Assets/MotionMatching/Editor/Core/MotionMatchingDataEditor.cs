@@ -83,12 +83,12 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
 
         var data = (MotionMatchingData)target;
         _generateButtonError = false;
-        var rigRoot = GetRigRoot(data);
+        var rigRoot = PoseSetSourceGUI.GetRigRoot(data.Skeleton);
 
         EditorGUILayout.PropertyField(_skeletonProperty);
 
         DrawAnimations();
-        DrawSkeletonValidation(data);
+        _generateButtonError |= PoseSetSourceGUI.DrawSkeletonValidation(data);
 
         // SmoothSimulationBone
         //data.SmoothSimulationBone = EditorGUILayout.Toggle(new GUIContent("Smooth Simulation Bone", "Smooth the simulation bone (articial root added during pose extraction) using Savitzky-Golay filter"),
@@ -113,64 +113,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         EditorGUILayout.Separator();
         EditorGUILayout.LabelField("Skeleton", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(_skeletonProperty);
-    }
-
-    /// <summary>
-    /// One HelpBox per problem the skeleton or an animation clip has, so <see cref="GenerateDatabases"/>
-    /// cannot run against a database that would silently mis-extract.
-    /// </summary>
-    private void DrawSkeletonValidation(MotionMatchingData data)
-    {
-        if (data.Skeleton == null || !data.Skeleton.IsSet)
-        {
-            EditorGUILayout.HelpBox(
-                "No skeleton assigned. Assign the rig's identity armature node as the skeleton root.",
-                MessageType.Error);
-            _generateButtonError = true;
-            return;
-        }
-
-        for (var i = 0; i < data.animationClips.Count; i++)
-        {
-            var clip = data.animationClips[i];
-            if (clip == null)
-            {
-                EditorGUILayout.HelpBox($"Animation clip {i} is not assigned.", MessageType.Error);
-                _generateButtonError = true;
-                continue;
-            }
-
-            if (clip.Skeleton == null)
-            {
-                EditorGUILayout.HelpBox($"Clip \"{clip.name}\" has no resolvable skeleton.", MessageType.Error);
-                _generateButtonError = true;
-                continue;
-            }
-
-            if (!clip.TryValidate(out var error))
-            {
-                EditorGUILayout.HelpBox($"Clip \"{clip.name}\": {error}", MessageType.Error);
-                _generateButtonError = true;
-                continue;
-            }
-
-            if (!data.Skeleton.MatchesFrom(1, clip.Skeleton))
-            {
-                EditorGUILayout.HelpBox(
-                    $"Clip \"{clip.name}\"'s skeleton does not match this asset's skeleton from bone 1 (Hips) onward.",
-                    MessageType.Error);
-                _generateButtonError = true;
-            }
-        }
-    }
-
-    /// <summary>
-    /// The rig a bone picker draws its dropdown from: this asset's skeleton root. Null when the
-    /// skeleton is not assigned.
-    /// </summary>
-    private static Transform GetRigRoot(MotionMatchingData data)
-    {
-        return data.Skeleton != null && data.Skeleton.IsSet ? data.Skeleton.Root : null;
     }
 
     // ContactVelocityThreshold + Contact Bones

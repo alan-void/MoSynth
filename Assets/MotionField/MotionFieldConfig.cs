@@ -230,17 +230,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// Where the database and the trained value function live. A folder of its own rather than
     /// MMDatabases, which the Motion Matching inspector owns and regenerates.
     /// </summary>
-    public string GetAssetPath()
-    {
-        string path = Path.Combine(Application.streamingAssetsPath, "MotionFields", name);
-#if UNITY_EDITOR
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
-#endif
-        return path;
-    }
+    public string GetAssetPath() => PoseSetImporter.GetDatabasePath("MotionFields", name);
 
     // --- Motion field artefacts -------------------------------------------------------------
 
@@ -302,98 +292,13 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// SimulationBone, which no clip has). Returns false with a message suitable for an Inspector
     /// HelpBox. Never logs — inspectors call it every repaint.
     /// </summary>
-    public bool TryValidate(out string error)
-    {
-        if (skeleton == null || !skeleton.IsSet)
-        {
-            error = "No skeleton assigned. Drop the rig's armature node here — it becomes the " +
-                    "SimulationBone at index 0, with the first real bone at index 1.";
-            return false;
-        }
-
-        if (animationClips == null || animationClips.Count == 0)
-        {
-            error = "Assign at least one animation clip.";
-            return false;
-        }
-
-        for (var i = 0; i < animationClips.Count; i++)
-        {
-            var clip = animationClips[i];
-            if (clip == null)
-            {
-                error = $"Clip {i} is empty.";
-                return false;
-            }
-
-            if (!clip.TryValidate(out var clipError))
-            {
-                error = $"Clip \"{clip.name}\": {clipError}";
-                return false;
-            }
-
-            if (!skeleton.MatchesFrom(1, clip.Skeleton))
-            {
-                error = $"Clip \"{clip.name}\" has {clip.Skeleton.BoneCount} bones, which do not match this " +
-                        $"config's skeleton from bone 1 onward ({skeleton.BoneCount - 1} bones).";
-                return false;
-            }
-        }
-
-        error = null;
-        return true;
-    }
+    public bool TryValidate(out string error) => PoseSetImporter.TryValidate(this, out error);
 
     /// <summary>Null when <see cref="TryValidate"/> fails; the config's inspector reports why.</summary>
-    public PoseSet GetOrImportPoseSet()
-    {
-        if (_poseSet != null) return _poseSet;
-        if (!TryValidate(out _)) return null;
-
-        var serializer = new PoseSerializer();
-        if (serializer.Deserialize(GetAssetPath(), name, skeleton, out PoseSet poseSet))
-        {
-            _poseSet = poseSet;
-            return _poseSet;
-        }
-
-        Debug.LogWarning($"[MotionField] No serialized pose set for '{name}'. Extracting at runtime. " +
-                         "Press Generate Pose Database on the config to avoid this.");
-        ImportPoseSet();
-        return _poseSet;
-    }
+    public PoseSet GetOrImportPoseSet() => _poseSet ??= PoseSetImporter.GetOrImport(this);
 
     /// <summary>Extract the pose database from the animation clips, in memory.</summary>
-    public void ImportPoseSet()
-    {
-        if (!TryValidate(out var error))
-        {
-            Debug.LogError($"[MotionField] '{name}': {error}");
-            _poseSet = null;
-            return;
-        }
-
-        _poseSet = new PoseSet();
-        _poseSet.SetSkeleton(skeleton);
-
-        for (int i = 0; i < animationClips.Count; i++)
-        {
-            var clip = animationClips[i];
-            if (clip == null || clip.Skeleton == null || !skeleton.MatchesFrom(1, clip.Skeleton))
-            {
-                Debug.LogError($"[MotionField] Clip {i} (\"{(clip != null ? clip.name : "null")}\")'s skeleton " +
-                               "does not match this config's skeleton from bone 1 (Hips) onward; skipping.");
-                continue;
-            }
-
-            if (!PoseExtractor.Extract(clip, _poseSet, this))
-            {
-                Debug.LogWarning($"[MotionField] Failed to extract poses from clip {i} of '{name}'.");
-            }
-        }
-
-        _poseSet.ConvertTagsToNativeArrays();
-    }
+    public void ImportPoseSet() => _poseSet = PoseSetImporter.Import(this);
 
     /// <summary>Drop the cached pose set so the next access re-reads it from disk.</summary>
     public void InvalidatePoseSet()

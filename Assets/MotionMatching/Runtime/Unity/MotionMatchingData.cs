@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using AnimationTools;
 using UnityEngine;
 using Unity.Mathematics;
-using System.IO;
 using SkeletonBone = AnimationTools.SkeletonBone;
 
 namespace MotionMatching
@@ -93,47 +92,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     /// SimulationBone, which no clip has). Returns false with a message suitable for an Inspector
     /// HelpBox. Never logs — inspectors call it every repaint.
     /// </summary>
-    public bool TryValidate(out string error)
-    {
-        if (skeleton == null || !skeleton.IsSet)
-        {
-            error = "No skeleton assigned. Drop the rig's armature node here — it becomes the " +
-                    "SimulationBone at index 0, with the first real bone at index 1.";
-            return false;
-        }
-
-        if (animationClips == null || animationClips.Count == 0)
-        {
-            error = "Assign at least one animation clip.";
-            return false;
-        }
-
-        for (var i = 0; i < animationClips.Count; i++)
-        {
-            var clip = animationClips[i];
-            if (clip == null)
-            {
-                error = $"Clip {i} is empty.";
-                return false;
-            }
-
-            if (!clip.TryValidate(out var clipError))
-            {
-                error = $"Clip \"{clip.name}\": {clipError}";
-                return false;
-            }
-
-            if (!skeleton.MatchesFrom(1, clip.Skeleton))
-            {
-                error = $"Clip \"{clip.name}\" has {clip.Skeleton.BoneCount} bones, which do not match this " +
-                        $"asset's skeleton from bone 1 onward ({skeleton.BoneCount - 1} bones).";
-                return false;
-            }
-        }
-
-        error = null;
-        return true;
-    }
+    public bool TryValidate(out string error) => PoseSetImporter.TryValidate(this, out error);
 
     /// <summary>
     /// Null when <see cref="TryValidate"/> fails. Reached from OnValidate every repaint, so it
@@ -143,66 +102,15 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     {
         if (_poseSet == null)
         {
-            if (!TryValidate(out _)) return null;
-
             PROFILE.BEGIN_SAMPLE_PROFILING("Pose Import");
-            PoseSerializer serializer = new PoseSerializer();
-            if (!serializer.Deserialize(GetAssetPath(), name, skeleton, out PoseSet poseSet))
-            {
-                Debug.LogWarning("Failed to read pose set. Creating it in runtime instead.");
-                ImportPoseSet();
-#if UNITY_EDITOR
-                if (_poseSet != null)
-                {
-                    PROFILE.BEGIN_SAMPLE_PROFILING("Pose Serialize");
-                    PoseSerializer poseSerializer = new PoseSerializer();
-                    poseSerializer.Serialize(_poseSet, GetAssetPath(), this.name);
-                    PROFILE.END_AND_PRINT_SAMPLE_PROFILING("Pose Serialize");
-                }
-#endif
-            }
-            else
-            {
-                _poseSet = poseSet;
-            }
-
+            _poseSet = PoseSetImporter.GetOrImport(this);
             PROFILE.END_AND_PRINT_SAMPLE_PROFILING("Pose Import");
         }
 
         return _poseSet;
     }
 
-    public void ImportPoseSet()
-    {
-        if (!TryValidate(out var error))
-        {
-            Debug.LogError($"MotionMatchingData \"{name}\": {error}");
-            _poseSet = null;
-            return;
-        }
-
-        _poseSet = new PoseSet();
-        _poseSet.SetSkeleton(skeleton);
-        for (int i = 0; i < animationClips.Count; i++)
-        {
-            var clip = animationClips[i];
-            if (clip == null || clip.Skeleton == null || !skeleton.MatchesFrom(1, clip.Skeleton))
-            {
-                Debug.LogError($"[MotionMatchingData] Clip {i} (\"{(clip != null ? clip.name : "null")}\")'s " +
-                                "skeleton does not match this asset's skeleton from bone 1 (Hips) onward; skipping.");
-                continue;
-            }
-
-            // Extract poses
-            if (!PoseExtractor.Extract(clip, _poseSet, this))
-            {
-                Debug.LogWarning("[FeatureDebug] Failed to extract poseSet from AnimationDat. Animation Index: " + i);
-            }
-        }
-
-        _poseSet.ConvertTagsToNativeArrays();
-        Debug.Log("Number of poses: " + _poseSet.NumberPoses);
-    }
+    public void ImportPoseSet() => _poseSet = PoseSetImporter.Import(this);
 
     /// <summary>
     /// Null when <see cref="TryValidate"/> fails, for the same reason as
@@ -293,16 +201,6 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
         return jointsLocalForward[jointIndex];
     }
 
-    public string GetAssetPath()
-    {
-        string path = Path.Combine(Application.streamingAssetsPath, "MMDatabases", name);
-#if UNITY_EDITOR
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
-#endif
-        return path;
-    }
+    public string GetAssetPath() => PoseSetImporter.GetDatabasePath("MMDatabases", name);
 }
 }

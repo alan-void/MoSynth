@@ -50,7 +50,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     public override void OnInspectorGUI()
     {
         var config = (MotionFieldConfig)target;
-        var rigRoot = GetRigRoot(config);
+        var rigRoot = PoseSetSourceGUI.GetRigRoot(config.Skeleton);
 
         serializedObject.Update();
 
@@ -72,7 +72,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
             MarkStale(config, database: true);
         }
 
-        DrawSkeletonValidation(config);
+        PoseSetSourceGUI.DrawSkeletonValidation(config);
 
         EditorGUILayout.Space();
         DrawImportSection(config);
@@ -107,58 +107,6 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         if (database) config.hasPoseDatabase = false;
         config.hasTrained = false;
         EditorUtility.SetDirty(config);
-    }
-
-    /// <summary>Rig a bone picker draws its dropdown from: this config's skeleton root.</summary>
-    private static Transform GetRigRoot(MotionFieldConfig config)
-    {
-        return config.Skeleton != null && config.Skeleton.IsSet ? config.Skeleton.Root : null;
-    }
-
-    /// <summary>
-    /// One HelpBox per problem the skeleton or an animation clip has, mirroring
-    /// <c>MotionMatchingDataEditor</c>'s per-clip validation.
-    /// </summary>
-    private static void DrawSkeletonValidation(MotionFieldConfig config)
-    {
-        if (config.Skeleton == null || !config.Skeleton.IsSet)
-        {
-            EditorGUILayout.HelpBox(
-                "No skeleton assigned. Drop the imported model on the Skeleton field, then pick " +
-                "the rig's identity armature node from the dropdown.",
-                MessageType.Error);
-            return;
-        }
-
-        var clips = config.animationClips;
-        for (var i = 0; i < clips.Count; i++)
-        {
-            var clip = clips[i];
-            if (clip == null)
-            {
-                EditorGUILayout.HelpBox($"Animation clip {i} is not assigned.", MessageType.Error);
-                continue;
-            }
-
-            if (clip.Skeleton == null)
-            {
-                EditorGUILayout.HelpBox($"Clip \"{clip.name}\" has no resolvable skeleton.", MessageType.Error);
-                continue;
-            }
-
-            if (!clip.TryValidate(out var error))
-            {
-                EditorGUILayout.HelpBox($"Clip \"{clip.name}\": {error}", MessageType.Error);
-                continue;
-            }
-
-            if (!config.Skeleton.MatchesFrom(1, clip.Skeleton))
-            {
-                EditorGUILayout.HelpBox(
-                    $"Clip \"{clip.name}\"'s skeleton does not match this config's skeleton from bone 1 (Hips) onward.",
-                    MessageType.Error);
-            }
-        }
     }
 
     private void DrawContactBones(Transform rigRoot)
@@ -197,7 +145,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         {
             if (GUILayout.Button("Copy Settings"))
             {
-                var rigRoot = GetRigRoot(config);
+                var rigRoot = PoseSetSourceGUI.GetRigRoot(config.Skeleton);
                 Undo.RecordObject(config, "Import MotionField settings");
                 config.contactVelocityThreshold = source.ContactVelocityThreshold;
                 config.leftContactBone = ResolveContactBone(source.LeftContactBoneName, rigRoot);
