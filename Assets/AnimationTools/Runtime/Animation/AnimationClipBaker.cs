@@ -19,6 +19,91 @@ namespace AnimationTools
 public static class AnimationClipBaker
 {
     /// <summary>
+    /// Whether <paramref name="clip"/> will actually drive <paramref name="skeleton"/>'s bones, with
+    /// a message suitable for an Inspector HelpBox when it will not. Never logs — inspectors call
+    /// this every repaint (through <see cref="SkeletonAnimation.TryValidate"/>, which memoizes it).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="Bake"/> hands the clip to an instantiated rig and lets
+    /// <see cref="AnimationClip.SampleAnimation"/> match curve paths against it. Paths that do not
+    /// resolve are silently ignored, so a clip authored for a different rig produces no error at
+    /// all — just a frozen figure holding its rest pose. That silence is what this exists to break.
+    /// </para>
+    /// <para>
+    /// A clip is accepted as soon as it animates <em>one</em> bone, not all of them. Rigs routinely
+    /// leave leaf bones uncurved: the project's own clips animate 72 of 85 bones, the other 13 being
+    /// the FBX "_end" markers. Demanding full coverage would reject every asset here.
+    /// </para>
+    /// <para>
+    /// Curve bindings are only readable in the Editor, so in a player build this always returns
+    /// true — same shape as the scene-object check in <see cref="SkeletonAnimation.TryValidate"/>.
+    /// </para>
+    /// </remarks>
+    public static bool TryValidateClip(AnimationClip clip, Skeleton skeleton, out string error)
+    {
+        error = null;
+
+        // Earlier checks in SkeletonAnimation.TryValidate own the unset cases; reporting them again
+        // here would just double the message.
+        if (clip == null || skeleton == null || !skeleton.IsSet) return true;
+
+        var skeletonRoot = skeleton.Root;
+
+        // Bake indexes the instantiated hierarchy by bone index, so a skeleton whose cached bone
+        // list no longer matches the rig makes it bail with a bare null. Its clone is a copy of this
+        // hierarchy, so the same count is available here without instantiating anything.
+        var liveBoneCount = Skeleton.CollectTransformsDfs(skeletonRoot).Count;
+        if (liveBoneCount != skeleton.BoneCount)
+        {
+            error = $"The hierarchy under \"{skeleton.Name}\" now has {liveBoneCount} bones but the " +
+                    $"skeleton was built over {skeleton.BoneCount}; the rig changed since it was " +
+                    "assigned. Reassign the skeleton root.";
+            return false;
+        }
+
+#if UNITY_EDITOR
+        var rig = skeletonRoot.root;
+
+        var animatedPaths = new HashSet<string>();
+        foreach (var binding in UnityEditor.AnimationUtility.GetCurveBindings(clip))
+        {
+            animatedPaths.Add(binding.path);
+        }
+
+        for (var i = 0; i < skeleton.BoneCount; i++)
+        {
+            if (animatedPaths.Contains(GetPathRelativeTo(skeleton.GetBone(i).Transform, rig))) return true;
+        }
+
+        error = $"Clip \"{clip.name}\" animates none of the {skeleton.BoneCount} bones under " +
+                $"\"{skeleton.Name}\"; it was authored for a different rig. Assign a clip from " +
+                $"\"{rig.name}\", or point the skeleton at the rig this clip belongs to.";
+        return false;
+#else
+        return true;
+#endif
+    }
+
+    /// <summary>
+    /// A bone's path in the form an importer writes curve paths: names from
+    /// <paramref name="rig"/>'s first child down to the bone, slash-separated, with the rig itself
+    /// contributing nothing (a bone that <em>is</em> the rig gets the empty string, which is how
+    /// Unity spells "the object itself").
+    /// </summary>
+    private static string GetPathRelativeTo(Transform bone, Transform rig)
+    {
+        var segments = new List<string>();
+        for (var walker = bone; walker != null && walker != rig; walker = walker.parent)
+        {
+            segments.Add(walker.name);
+        }
+
+        segments.Reverse();
+        return string.Join("/", segments);
+    }
+
+    /// <summary>
     /// Returns null when the hierarchy under <paramref name="skeleton"/>'s root has a different
     /// bone count than the skeleton itself; use <see cref="SkeletonAnimation.TryValidate"/> to
     /// report why.

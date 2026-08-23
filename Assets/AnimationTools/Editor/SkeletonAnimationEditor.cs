@@ -31,6 +31,7 @@ namespace AnimationTools.Editor
         private Mesh _gridMesh;
 
         private Skeleton _skeleton;
+        private int _skeletonContentHash;
         private SkeletonData _skeletonData;
         private NativeArray<float3> _fkPositions;
         private NativeArray<quaternion> _fkRotations;
@@ -73,15 +74,23 @@ namespace AnimationTools.Editor
         /// changes (including to/from null, e.g. an unconfigured rig/clip or one edited in the
         /// Inspector). Cheap no-op otherwise.
         /// </summary>
+        /// <remarks>
+        /// Keyed on the bone tree's content as well as the root's identity. Root identity alone
+        /// misses a rig whose bones changed underneath it, which used to leave this cache and the
+        /// asset's own baked <c>PoseSequence</c> describing two different skeletons — and the FK
+        /// pass indexing one by the other's bone count.
+        /// </remarks>
         private void RefreshSkeletonCache()
         {
             var skeleton = _skeletonAnimation != null ? _skeletonAnimation.Skeleton : null;
-            if (skeleton?.Root == _skeleton?.Root) return;
+            var contentHash = skeleton?.ContentHash ?? 0;
+            if (skeleton?.Root == _skeleton?.Root && contentHash == _skeletonContentHash) return;
 
             if (_fkPositions.IsCreated) _fkPositions.Dispose();
             if (_fkRotations.IsCreated) _fkRotations.Dispose();
 
             _skeleton = skeleton;
+            _skeletonContentHash = contentHash;
             _skeletonData = default;
 
             if (_skeleton == null) return;
@@ -172,9 +181,10 @@ namespace AnimationTools.Editor
         {
             DrawDefaultInspector();
 
+            // Error, not Warning: a TryValidate failure means the asset cannot be baked at all.
             if (_skeletonAnimation != null && !_skeletonAnimation.TryValidate(out var error))
             {
-                EditorGUILayout.HelpBox(error, MessageType.Warning);
+                EditorGUILayout.HelpBox(error, MessageType.Error);
             }
         }
 
@@ -246,15 +256,26 @@ namespace AnimationTools.Editor
 
             _previewRenderUtility.BeginPreview(r, background);
 
-            if (_gridMaterial != null && _gridMesh != null)
+            Texture resultRender;
+            // Anything thrown between Begin and End leaves the preview unbalanced, and every later
+            // repaint then reports "Previous BeginPreview() was not closed" instead of the actual
+            // problem — one real error turning into an unreadable stream of two.
+            try
             {
-                _previewRenderUtility.DrawMesh(_gridMesh, Matrix4x4.identity, _gridMaterial, 0);
+                if (_gridMaterial != null && _gridMesh != null)
+                {
+                    _previewRenderUtility.DrawMesh(_gridMesh, Matrix4x4.identity, _gridMaterial, 0);
+                }
+
+                DrawSkeleton();
+
+                _previewRenderUtility.camera.Render();
+            }
+            finally
+            {
+                resultRender = _previewRenderUtility.EndPreview();
             }
 
-            DrawSkeleton();
-
-            _previewRenderUtility.camera.Render();
-            Texture resultRender = _previewRenderUtility.EndPreview();
             GUI.DrawTexture(r, resultRender, ScaleMode.StretchToFill, false);
         }
 
@@ -303,6 +324,11 @@ namespace AnimationTools.Editor
 
             // First preview access triggers the one-time clip bake.
             var pose = _skeletonAnimation.GetFrame(frameIndex);
+
+            // The bake and this cache are invalidated by different things, so draw nothing rather
+            // than let PoseFK throw on a repaint if they ever disagree again.
+            if (pose.Layout.RotationCount != boneCount) return;
+
             PoseFK.LocalToCharacter(pose, _skeletonData, _fkPositions, _fkRotations);
 
             _lineVertices.Clear();

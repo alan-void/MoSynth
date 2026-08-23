@@ -43,9 +43,10 @@ namespace AnimationTools.Editor
 
             var raw = (SkeletonAnimation)target;
 
+            // Error, not Warning: a TryValidate failure means the asset cannot be baked at all.
             if (!raw.TryValidate(out var error))
             {
-                EditorGUILayout.HelpBox(error, MessageType.Warning);
+                EditorGUILayout.HelpBox(error, MessageType.Error);
             }
 
             using (new EditorGUI.DisabledScope(true))

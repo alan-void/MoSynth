@@ -1,3 +1,4 @@
+using System;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -24,7 +25,7 @@ public static class PoseFK
     public static void LocalToCharacter(in PoseBuffer pose, in SkeletonData skeleton,
         NativeArray<float3> outPositions, NativeArray<quaternion> outRotations)
     {
-        AssertFullPoseLayout(pose.Layout, skeleton.BoneCount);
+        CheckFullPoseLayout(pose.Layout, skeleton.BoneCount);
         Debug.Assert(outPositions.Length == skeleton.BoneCount && outRotations.Length == skeleton.BoneCount,
             "Output arrays must have one element per bone.");
 
@@ -45,7 +46,7 @@ public static class PoseFK
     /// <summary>Character-space position of one bone, found by walking up its parent chain.</summary>
     public static float3 CharacterPosition(in PoseBuffer pose, in SkeletonData skeleton, int boneIndex)
     {
-        AssertFullPoseLayout(pose.Layout, skeleton.BoneCount);
+        CheckFullPoseLayout(pose.Layout, skeleton.BoneCount);
 
         var localPositions = pose.Positions;
         var localRotations = pose.Rotations;
@@ -64,7 +65,7 @@ public static class PoseFK
     /// <summary>Character-space rotation of one bone, found by walking up its parent chain.</summary>
     public static quaternion CharacterRotation(in PoseBuffer pose, in SkeletonData skeleton, int boneIndex)
     {
-        AssertFullPoseLayout(pose.Layout, skeleton.BoneCount);
+        CheckFullPoseLayout(pose.Layout, skeleton.BoneCount);
 
         var localRotations = pose.Rotations;
         var rotation = quaternion.identity;
@@ -93,7 +94,7 @@ public static class PoseFK
     /// </remarks>
     public static float3 CharacterVelocity(in PoseBuffer pose, in SkeletonData skeleton, int boneIndex)
     {
-        AssertFullPoseLayout(pose.Layout, skeleton.BoneCount);
+        CheckFullPoseLayout(pose.Layout, skeleton.BoneCount);
         Debug.Assert(pose.Layout.VelocityCount == skeleton.BoneCount && pose.Layout.AngularVelocityCount == skeleton.BoneCount,
             "CharacterVelocity requires one Velocity and one AngularVelocity channel per bone.");
 
@@ -130,10 +131,29 @@ public static class PoseFK
         return linVelAcc;
     }
 
-    private static void AssertFullPoseLayout(in PoseLayoutData layout, int boneCount)
+    /// <summary>
+    /// A pose and a skeleton that disagree on bone count is a caller bug, not bad data: every loop
+    /// in this class is bounded by the skeleton but indexes the pose, so the mismatch surfaces as an
+    /// <see cref="IndexOutOfRangeException"/> from deep inside <see cref="NativeSlice{T}"/> with
+    /// nothing in it to say which two things disagreed. Hence a throw rather than an assert, which
+    /// would log and then run off the end anyway.
+    /// </summary>
+    /// <remarks>
+    /// The interpolated message costs the Burst-compatibility claimed above: Burst cannot compile
+    /// string formatting. Nothing Burst-compiles PoseFK today — the project's [BurstCompile] code
+    /// all lives under Assets/MotionMatching/Runtime/Core/Burst/ and none of it calls in here — so
+    /// this is a real but unexercised tradeoff. Revisit if these ever move into a job.
+    /// </remarks>
+    private static void CheckFullPoseLayout(in PoseLayoutData layout, int boneCount)
     {
-        Debug.Assert(layout.PositionCount == boneCount, "PoseFK requires one Position channel per bone.");
-        Debug.Assert(layout.RotationCount == boneCount, "PoseFK requires one Rotation channel per bone.");
+        if (layout.PositionCount != boneCount || layout.RotationCount != boneCount)
+        {
+            throw new ArgumentException(
+                $"Pose has {layout.PositionCount} Position and {layout.RotationCount} Rotation " +
+                $"channels but the skeleton has {boneCount} bones; they describe different rigs.",
+                "pose");
+        }
+
         Debug.Assert(layout.RotationStride == 4, "PoseFK requires Quaternion rotations.");
         Debug.Assert(layout.ScaleCount == 0, "PoseFK v1 assumes unit scale — Scale channels are not supported.");
     }

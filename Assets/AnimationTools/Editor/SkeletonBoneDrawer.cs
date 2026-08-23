@@ -72,8 +72,16 @@ public class SkeletonBoneDrawer : PropertyDrawer
             return skeletonRootTransform;
 
         // Sibling is an object reference to an AnnotatedAnimationClip or SkeletonAnimation asset.
+        //
+        // The type check is what keeps this from firing on the case above: a nested Skeleton is a
+        // Generic property, and reading a PPtr off one does not throw -- Unity logs
+        // "type is not a supported pptr value" from native code, once per GUI event, forever. An
+        // empty ".root" there means the rig is unresolved, not that another strategy should be tried.
         var siblingProp = property.serializedObject.FindProperty(siblingPath);
-        return siblingProp != null ? RigRootFromAsset(siblingProp.objectReferenceValue) : null;
+        if (siblingProp == null || siblingProp.propertyType != SerializedPropertyType.ObjectReference)
+            return null;
+
+        return RigRootFromAsset(siblingProp.objectReferenceValue);
     }
 
     private static Transform RigRootFromAsset(UnityEngine.Object obj)

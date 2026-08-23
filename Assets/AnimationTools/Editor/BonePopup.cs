@@ -30,10 +30,17 @@ internal static class BonePopup
     }
 
     /// <summary>
-    /// Options for a popup whose index 0 is <see cref="NoneOption"/>, so option <c>i + 1</c>
-    /// corresponds to <c>transforms[i]</c>.
+    /// Options for a bone popup. With <paramref name="includeNone"/> (the default) index 0 is
+    /// <see cref="NoneOption"/> and option <c>i + 1</c> corresponds to <c>transforms[i]</c>;
+    /// without it the array maps one-to-one onto <paramref name="transforms"/>.
     /// </summary>
-    public static string[] BuildOptions(List<Transform> transforms, List<int> depths)
+    /// <remarks>
+    /// "(none)" is only worth offering where being unset means something. It does for a
+    /// <see cref="SkeletonBone"/> — an unset root-motion bone falls back to the skeleton root, and
+    /// unset contact bones fall back to <see cref="BoneNameConventions"/> — but a skeleton with no
+    /// root is simply unusable, so <see cref="SkeletonDrawer"/> leaves the entry out.
+    /// </remarks>
+    public static string[] BuildOptions(List<Transform> transforms, List<int> depths, bool includeNone = true)
     {
         var nameCounts = new Dictionary<string, int>();
         foreach (var transform in transforms)
@@ -42,9 +49,10 @@ internal static class BonePopup
             nameCounts[transform.name] = count + 1;
         }
 
+        var offset = includeNone ? 1 : 0;
         var seenCounts = new Dictionary<string, int>();
-        var options = new string[transforms.Count + 1];
-        options[0] = NoneOption;
+        var options = new string[transforms.Count + offset];
+        if (includeNone) options[0] = NoneOption;
 
         for (var i = 0; i < transforms.Count; i++)
         {
@@ -64,7 +72,7 @@ internal static class BonePopup
                 displayName = transform.name;
             }
 
-            options[i + 1] = indent + displayName;
+            options[i + offset] = indent + displayName;
         }
 
         return options;

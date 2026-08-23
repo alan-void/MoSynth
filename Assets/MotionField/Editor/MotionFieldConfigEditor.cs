@@ -124,7 +124,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         if (config.Skeleton == null || !config.Skeleton.IsSet)
         {
             EditorGUILayout.HelpBox(
-                "No skeleton assigned. Assign the rig's identity armature node as the skeleton root.",
+                "No skeleton assigned. Drop the imported model on the Skeleton field, then pick " +
+                "the rig's identity armature node from the dropdown.",
                 MessageType.Error);
             return;
         }

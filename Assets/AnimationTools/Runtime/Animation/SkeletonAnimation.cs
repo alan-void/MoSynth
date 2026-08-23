@@ -15,9 +15,11 @@ public class SkeletonAnimation : ScriptableObject
 {
     [SerializeField] private AnimationClip clip;
 
-    [Tooltip("The rig's root bone; the skeleton is that Transform and everything beneath it. It " +
-             "must come from an imported rig asset, since rest pose is read live off the " +
-             "Transforms and a scene rig reports whatever pose it is currently animated to.")]
+    [Tooltip("The rig's root bone; the skeleton is that Transform and everything beneath it. Drop " +
+             "the imported model here, then use the dropdown to reach a bone deeper in it — a " +
+             "model exposes only its topmost bone to the Project window. It must come from an " +
+             "imported rig asset, since rest pose is read live off the Transforms and a scene rig " +
+             "reports whatever pose it is currently animated to.")]
     [SerializeField]
     private Skeleton skeleton = new();
 
@@ -87,8 +89,8 @@ public class SkeletonAnimation : ScriptableObject
         if (rootBone == null)
         {
             error = skeleton == null || skeleton.Root == null
-                ? "No skeleton assigned. Drop the rig's root bone here; the skeleton is that " +
-                  "Transform and everything beneath it."
+                ? "No skeleton assigned. Drop the imported model on the Skeleton field, then pick " +
+                  "the root bone; the skeleton is that Transform and everything beneath it."
                 : "The assigned skeleton root no longer resolves; reassign it.";
             return false;
         }
@@ -104,8 +106,41 @@ public class SkeletonAnimation : ScriptableObject
         }
 #endif
 
-        error = null;
-        return true;
+        // Last, because it is the only check that has to read the clip's curves.
+        return TryValidateClipCached(out error);
+    }
+
+    [NonSerialized] private int _validatedClipKey;
+    [NonSerialized] private bool _hasValidatedClip;
+    [NonSerialized] private string _clipValidationError;
+
+    /// <summary>
+    /// <see cref="AnimationClipBaker.TryValidateClip"/>, memoized. Reading curve bindings walks
+    /// every curve in the clip — 730 of them for a walk cycle — and inspectors reach
+    /// <see cref="TryValidate"/> every repaint, once per clip in a MotionFieldConfig's list. The
+    /// answer only moves when the clip or the bone tree does, so key on both rather than relying on
+    /// <see cref="ClearRuntimeCaches"/>, which a rig reimport does not trigger.
+    /// </summary>
+    /// <remarks>
+    /// The live bone count is part of the key because <see cref="Skeleton.ContentHash"/> is derived
+    /// from the skeleton's own cached bone list, and so cannot move in the one case the check most
+    /// needs to catch: a rig whose bones changed underneath a skeleton that has not noticed yet.
+    /// </remarks>
+    private bool TryValidateClipCached(out string error)
+    {
+        // Hashing the clip reference rather than its instance id: Object.GetHashCode is the same
+        // identity without the deprecation that GetInstanceID now carries.
+        var key = HashCode.Combine(clip, skeleton.ContentHash,
+            Skeleton.CollectTransformsDfs(skeleton.Root).Count);
+        if (!_hasValidatedClip || key != _validatedClipKey)
+        {
+            AnimationClipBaker.TryValidateClip(clip, skeleton, out _clipValidationError);
+            _validatedClipKey = key;
+            _hasValidatedClip = true;
+        }
+
+        error = _clipValidationError;
+        return error == null;
     }
 
     [NonSerialized] private PoseSequence _poseSequence;
@@ -145,6 +180,7 @@ public class SkeletonAnimation : ScriptableObject
     {
         skeleton?.Invalidate();
         _poseSequence = null;
+        _hasValidatedClip = false;
     }
 
     protected virtual void OnValidate() => ClearRuntimeCaches();

@@ -1,3 +1,4 @@
+using System;
 using AnimationTools;
 using NUnit.Framework;
 using Unity.Collections;
@@ -109,6 +110,35 @@ public class PoseFkTests
                 AssertApprox(outPositions[i], PoseFK.CharacterPosition(buffer, skeletonData, i));
                 AssertApprox(outRotations[i], PoseFK.CharacterRotation(buffer, skeletonData, i));
             }
+        }
+        finally
+        {
+            outPositions.Dispose();
+            outRotations.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Every loop in PoseFK is bounded by the skeleton but indexes the pose, so a bone-count
+    /// disagreement used to surface as an IndexOutOfRangeException from inside NativeSlice with
+    /// nothing in it to say which two things disagreed — once per repaint, from the asset preview.
+    /// </summary>
+    [Test]
+    public void LocalToCharacter_PoseAndSkeletonDescribeDifferentRigs_ThrowsWithBothCounts()
+    {
+        // buffer is laid out over the 3-bone chain built in SetUp.
+        var otherSkeleton = TestSkeletons.CreateBranch4();
+        var otherSkeletonData = otherSkeleton.GetSkeletonData();
+
+        var outPositions = new NativeArray<float3>(otherSkeleton.BoneCount, Allocator.Temp);
+        var outRotations = new NativeArray<quaternion>(otherSkeleton.BoneCount, Allocator.Temp);
+        try
+        {
+            var exception = Assert.Throws<ArgumentException>(
+                () => PoseFK.LocalToCharacter(buffer, otherSkeletonData, outPositions, outRotations));
+
+            StringAssert.Contains("3", exception.Message);
+            StringAssert.Contains("4", exception.Message);
         }
         finally
         {
