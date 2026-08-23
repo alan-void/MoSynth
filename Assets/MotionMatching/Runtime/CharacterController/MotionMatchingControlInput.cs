@@ -97,8 +97,8 @@ public abstract class MotionMatchingControlInput : MonoBehaviour
     /// </summary>
     /// <param name="index">Which prediction horizon, indexing the feature's predictionFrames.</param>
     /// <param name="character">
-    /// The simulation bone. Predictions must be relative to it, since the database features were
-    /// baked that way.
+    /// The character's simulation frame. Predictions must be relative to it, since the database
+    /// features were baked that way.
     /// </param>
     /// <param name="span">Exactly the feature's float count; fill all of it.</param>
     public abstract void GetTrajectoryFeature(TrajectoryFeatureChannel feature, int index, Transform character,

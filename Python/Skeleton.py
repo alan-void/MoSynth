@@ -20,6 +20,12 @@ class Skeleton:
     def fk_root_space(self, pose: Pose) -> tuple[np.ndarray, np.ndarray]:
         """
         Performs forward kinematics while ignoring the root.
+
+        Joint 0 is the character frame, which is pinned to the origin with identity
+        rotation: that is what makes the result independent of where the character
+        stands and which way it faces. Joint 1 is the rig's own root bone, and its
+        translation is the one the pose carries, in that frame.
+
         Returns a tuple of:
             - Root space positions: np.ndarray of shape (..., num_joints, 3)
             - World space rotations: scipy.spatial.transform.Rotation of shape (..., num_joints)
@@ -40,13 +46,13 @@ class Skeleton:
 
             parent = joint.parent()
             if parent is None:
-                # root
+                # the character frame
                 global_rotations[..., i, :] = Rotation.identity().as_quat()
                 continue
 
             local_rot = Rotation.from_quat(pose.quats[..., i, :])
             local_pos = joint.default_local_position
-            if i == 1:  # hips
+            if i == 1:  # the rig's root bone, offset from the character frame
                 local_pos = pose.hipPos
 
             parent_idx = joint_to_idx[parent]
@@ -73,10 +79,10 @@ class Skeleton:
         for i, joint in enumerate(joints):
             parent = joint.parent()
             if parent is None:
-                # root
+                # the character frame
                 local_positions[..., i, :] = pose.rootPos
                 continue
-            if i == 1:  # hips
+            if i == 1:  # the rig's root bone, offset from the character frame
                 local_positions[..., i, :] = pose.hipPos
             else:
                 local_positions[..., i, :] = joint.default_local_position

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using AnimationTools;
 using Unity.Collections;
@@ -10,9 +9,10 @@ namespace AnimationTools
 /// <summary>
 /// Stores the full pose representation of all poses for Motion Matching.
 /// Poses are stored as flat <see cref="PoseBuffer"/> frames in a single
-/// <see cref="PoseSequence"/> over a <see cref="AnimationTools.Skeleton"/> whose bone
-/// index 0 is the SimulationBone. Read frames with <see cref="GetPoseBuffer"/>; write new
-/// ones through <see cref="BeginClip"/>/<see cref="EndClip"/> or <see cref="AppendRawFrames"/>.
+/// <see cref="PoseSequence"/> over a <see cref="AnimationTools.Skeleton"/> that is exactly the
+/// clips' own skeleton: bone 0 is the rig's root, carrying clip world position and rotation.
+/// Read frames with <see cref="GetPoseBuffer"/>; write new ones through
+/// <see cref="BeginClip"/>/<see cref="EndClip"/> or <see cref="AppendRawFrames"/>.
 /// </summary>
 public class PoseSet
 {
@@ -22,8 +22,15 @@ public class PoseSet
     public int NumberClips => _clips.Count;
     public int NumberTags => _tags.Count;
 
-    /// <summary>The pose skeleton: SimulationBone at index 0, bone ids = index + 1.</summary>
+    /// <summary>The pose skeleton: bone 0 is the rig's root, bone ids = index + 1.</summary>
     public Skeleton Skeleton => _skeleton;
+
+    /// <summary>
+    /// Which bone the character frame of a stored pose is derived from, and along which of its
+    /// local axes the character faces. Structural rather than stored: the skeleton root and its
+    /// rest forward axis.
+    /// </summary>
+    public SimulationFrameDef SimulationFrame => SimulationFrameDef.Default(Skeleton);
 
     /// <summary>Layout of the buffers returned by <see cref="GetPoseBuffer"/>.</summary>
     public PoseLayout PoseLayout => _layout;
@@ -46,9 +53,8 @@ public class PoseSet
     private ChannelHandle _rightFootContactHandle;
 
     /// <summary>
-    /// Adopts an already-complete skeleton and rebuilds the layout over it. Bone 0 is the
-    /// SimulationBone, supplied by the caller as part of its configured rig. Pose storage
-    /// starts empty: every real caller sets the skeleton exactly once, before adding any pose.
+    /// Adopts an already-complete skeleton and rebuilds the layout over it. Pose storage starts
+    /// empty: every real caller sets the skeleton exactly once, before adding any pose.
     /// </summary>
     public void SetSkeleton(Skeleton skeleton)
     {
@@ -253,55 +259,6 @@ public class PoseSet
     {
         Debug.Assert(poseIndex >= 0 && poseIndex < _poseCount, "Pose index out of range");
         return _poseStorage.GetFrame(poseIndex);
-    }
-
-    /// <summary>
-    /// Returns the position of each joint in world space after applying FK using the pose.
-    /// worldJoints has size Skeleton.BoneCount
-    /// </summary>
-    public NativeArray<float3> GetWorldPositions(PoseBuffer pose, quaternion inverseRotAnimationSpace,
-        float3 posAnimationSpace, quaternion rotWorld, float3 posWorld)
-    {
-        var positions = pose.Positions;
-        var rotations = pose.Rotations;
-
-        // animation space to local space
-        float3 localSpacePos = math.mul(inverseRotAnimationSpace, positions[0] - posAnimationSpace);
-        quaternion localSpaceRot = math.mul(inverseRotAnimationSpace, rotations[0]);
-        // local space to world space
-        float3 simulationBonePos = math.mul(rotWorld, localSpacePos) + posWorld;
-        quaternion simulationBoneRot = math.mul(rotWorld, localSpaceRot);
-
-        var simulationBoneTransform = Matrix4x4.TRS(simulationBonePos, simulationBoneRot, Vector3.one);
-        return GetWorldPositions(pose, simulationBoneTransform);
-    }
-
-    public NativeArray<float3> GetWorldPositions(PoseBuffer pose, Matrix4x4 simulationBoneTransform)
-    {
-        var positions = pose.Positions;
-        var rotations = pose.Rotations;
-        var boneCount = _skeleton.BoneCount;
-        var skeletonData = _skeleton.GetSkeletonData();
-        Span<Matrix4x4> localToWorldRes = stackalloc Matrix4x4[boneCount];
-        localToWorldRes[0] = simulationBoneTransform;
-        for (int i = 1; i < boneCount; i++)
-        {
-            localToWorldRes[i] = Matrix4x4.identity;
-        }
-
-        for (int i = 1; i < boneCount; i++)
-        {
-            Matrix4x4 current = Matrix4x4.TRS(positions[i], rotations[i], Vector3.one);
-            localToWorldRes[i] = localToWorldRes[skeletonData.ParentIndices[i]] * current;
-        }
-
-        var worldJoints = new NativeArray<float3>(boneCount, Allocator.Temp);
-        for (int i = 0; i < worldJoints.Length; i++)
-        {
-            worldJoints[i] = localToWorldRes[i].MultiplyPoint3x4(Vector3.zero);
-        }
-
-        return worldJoints;
     }
 
     /// <summary>

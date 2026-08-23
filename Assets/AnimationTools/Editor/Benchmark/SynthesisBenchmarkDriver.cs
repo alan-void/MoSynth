@@ -254,8 +254,8 @@ public static class SynthesisBenchmarkDriver
         {
             // Instantiated under an inactive holder so Awake does not run until the character has
             // been placed and its overrides applied. MotionSynthesisComponent seeds its pose from
-            // the transforms in Awake and the simulation bone IS the root transform, so a character
-            // that wakes at the origin and is moved afterwards starts with a bogus root velocity.
+            // the transforms in Awake, so a character that wakes at the origin and is moved
+            // afterwards starts with a bogus root velocity.
             _character = Object.Instantiate(method.characterPrefab, _spawnHolder.transform);
             _character.name = method.name;
 
@@ -496,12 +496,12 @@ public static class SynthesisBenchmarkDriver
     /// approach rather than of the following.
     /// </summary>
     /// <param name="character">The spawned prefab root, which is what actually gets moved.</param>
-    /// <param name="simulationBone">
+    /// <param name="characterFrame">
     /// The transform that has to end up on the path. This is the synthesis component's own
     /// transform, not the prefab root — it is what root motion drives and what every measurement
     /// reads, and in these character prefabs it sits about two metres off the root.
     /// </param>
-    public static void PlaceAtPathStart(Transform character, Transform simulationBone, SplineContainer container)
+    public static void PlaceAtPathStart(Transform character, Transform characterFrame, SplineContainer container)
     {
         var spline = container.Spline;
         var splineTransform = container.transform;
@@ -524,14 +524,14 @@ public static class SynthesisBenchmarkDriver
 
         var rotation = forward.sqrMagnitude > 1e-8f
             ? Quaternion.LookRotation(forward.normalized, Vector3.up)
-            : simulationBone.rotation;
+            : characterFrame.rotation;
 
-        // Move the root by whatever delta lands the simulation bone on the path, so the character's
+        // Move the root by whatever delta lands the character frame on the path, so the character's
         // internal offsets survive. Rotation first: the translation is measured after it, against
-        // where the bone has ended up.
-        var deltaRotation = rotation * Quaternion.Inverse(simulationBone.rotation);
+        // where the frame has ended up.
+        var deltaRotation = rotation * Quaternion.Inverse(characterFrame.rotation);
         character.rotation = deltaRotation * character.rotation;
-        character.position += worldPosition - simulationBone.position;
+        character.position += worldPosition - characterFrame.position;
     }
 
     private static IMotionSynthesisSplineControlInput FindSplineControlInput(GameObject root)

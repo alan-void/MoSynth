@@ -53,7 +53,7 @@ public class AnnotatedAnimationClip : SkeletonAnimation
         var skeleton = Skeleton;
         if (skeleton == null) return quaternion.identity;
 
-        return PoseFK.CharacterRotation(GetFrame(frameIndex), skeleton.GetSkeletonData(), boneIndex);
+        return skeleton.GetSkeletonData().CharacterSpaceRotation(GetFrame(frameIndex), boneIndex);
     }
 
     [Serializable]

@@ -2845,6 +2845,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2d9c7c526154d5088a5945bf9e64418, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MotionMatching::MotionMatching.MotionSynthesisComponent
+  skeleton:
+    root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   characterRig:
     root: {fileID: 8760933258399339534}
     overrides: []

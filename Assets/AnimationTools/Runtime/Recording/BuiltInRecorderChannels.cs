@@ -36,7 +36,8 @@ public sealed class TimeChannel : RecorderChannel
     public override int GetContentHash() => GetHashCode();
 }
 
-/// <summary>The world-space position of one bone (or the simulation bone) at sample time.</summary>
+/// <summary>The world-space position of one bone, or of the character's simulation frame, at
+/// sample time.</summary>
 [Serializable]
 public sealed class BoneWorldPositionChannel : RecorderChannel
 {
@@ -52,8 +53,7 @@ public sealed class BoneWorldPositionChannel : RecorderChannel
     {
         if (simulationBone)
         {
-            _boneIndex = 0;
-            _resolvedBoneName = "SimulationBone";
+            _resolvedBoneName = "SimulationFrame";
         }
         else
         {
@@ -74,7 +74,10 @@ public sealed class BoneWorldPositionChannel : RecorderChannel
     {
         // Sampling always happens after the pose has been applied to SkeletonTransforms, so the
         // transform's world position is this tick's answer, not last tick's.
-        frame.SetFloat3(handle, (float3)context.Synthesizer.SkeletonTransforms[_boneIndex].position);
+        var transform = simulationBone
+            ? context.Synthesizer.transform
+            : context.Synthesizer.SkeletonTransforms[_boneIndex];
+        frame.SetFloat3(handle, (float3)transform.position);
     }
 
     public override void PopulateManifest(RecordingManifestChannel entry)
@@ -103,7 +106,8 @@ public sealed class BoneWorldPositionChannel : RecorderChannel
     public override int GetContentHash() => GetHashCode();
 }
 
-/// <summary>The world-space forward direction of one bone (or the simulation bone) at sample time.</summary>
+/// <summary>The world-space forward direction of one bone, or of the character's simulation
+/// frame, at sample time.</summary>
 [Serializable]
 public sealed class BoneWorldForwardChannel : RecorderChannel
 {
@@ -119,8 +123,7 @@ public sealed class BoneWorldForwardChannel : RecorderChannel
     {
         if (simulationBone)
         {
-            _boneIndex = 0;
-            _resolvedBoneName = "SimulationBone";
+            _resolvedBoneName = "SimulationFrame";
         }
         else
         {
@@ -141,7 +144,10 @@ public sealed class BoneWorldForwardChannel : RecorderChannel
     {
         // Sampling always happens after the pose has been applied to SkeletonTransforms, so the
         // transform's world forward is this tick's answer, not last tick's.
-        frame.SetFloat3(handle, (float3)context.Synthesizer.SkeletonTransforms[_boneIndex].forward);
+        var transform = simulationBone
+            ? context.Synthesizer.transform
+            : context.Synthesizer.SkeletonTransforms[_boneIndex];
+        frame.SetFloat3(handle, (float3)transform.forward);
     }
 
     public override void PopulateManifest(RecordingManifestChannel entry)

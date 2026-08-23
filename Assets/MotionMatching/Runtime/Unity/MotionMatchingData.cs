@@ -17,12 +17,10 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     [SerializeField]
     public List<AnnotatedAnimationClip> animationClips = new();
 
-    [Tooltip("The pose skeleton: root must be the rig's identity armature node. Index 0 of this " +
-             "skeleton IS the SimulationBone; index 1 is the first real bone (Hips).")]
+    [Tooltip("The pose skeleton: root must be the rig's root bone, identical to each clip's " +
+             "skeleton. Index 0 is that root bone.")]
     [SerializeField] private Skeleton skeleton = new();
 
-    // TODO: Implement Savitzky-Golay filter or similar low-pass filter in Unity (before I was using Python implementation)
-    //public bool SmoothSimulationBone; // Smooth the simulation bone (articial root added during pose extraction) using Savitzky-Golay filter
     public float
         contactVelocityThreshold =
             0.15f; // Minimum velocity of the foot to be considered in movement and not in contact with the ground
@@ -54,7 +52,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     private FeatureSet _featureSet;
     public bool JointsLocalForwardError => jointsLocalForward == null;
 
-    /// <summary>The pose skeleton. Index 0 is the SimulationBone; index 1 is the first real bone.</summary>
+    /// <summary>The pose skeleton: the rig's root bone, identical to each clip's skeleton.</summary>
     public Skeleton Skeleton => skeleton;
 
     // IPoseSetSource --- the subset of this asset the pose-database pipeline actually reads.
@@ -88,9 +86,8 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
 
     /// <summary>
     /// Checks that this asset can produce a pose database: a skeleton, at least one clip, and every
-    /// clip's skeleton lining up with this one from bone 1 onward (bone 0 here is the
-    /// SimulationBone, which no clip has). Returns false with a message suitable for an Inspector
-    /// HelpBox. Never logs — inspectors call it every repaint.
+    /// clip's skeleton being structurally identical to this one. Returns false with a message
+    /// suitable for an Inspector HelpBox. Never logs — inspectors call it every repaint.
     /// </summary>
     public bool TryValidate(out string error) => PoseSetImporter.TryValidate(this, out error);
 
@@ -169,9 +166,8 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     public void ComputeJointsLocalForward()
     {
         jointsLocalForward = new float3[skeleton.BoneCount];
-        jointsLocalForward[0] = math.forward();
 
-        for (var i = 1; i < jointsLocalForward.Length; i++)
+        for (var i = 0; i < jointsLocalForward.Length; i++)
         {
             var boneName = skeleton.GetBone(i).Name;
 
@@ -192,8 +188,8 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     }
 
     /// <summary>
-    /// Returns the local forward vector of the given joint index (after adding simulation bone).
-    /// Vector computed from the rig's rest pose by <see cref="ComputeJointsLocalForward"/>.
+    /// The local forward vector of one joint, indexed like <see cref="Skeleton"/>. Computed from
+    /// the rig's rest pose by <see cref="ComputeJointsLocalForward"/>.
     /// </summary>
     public float3 GetLocalForward(int jointIndex)
     {

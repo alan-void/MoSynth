@@ -25,42 +25,27 @@ public static class PoseExtractor
             return false;
         }
 
-        // The pose skeleton carries a SimulationBone at index 0 that the clip's own skeleton
-        // does not; everything from index 1 on must still line up bone-for-bone with the clip.
+        // The pose skeleton and the clip's own skeleton are the same bone tree; nothing is
+        // prepended, so a mismatch means the clip belongs to a different rig.
         var poseSkeleton = poseSet.Skeleton;
-        if (poseSkeleton == null || !poseSkeleton.MatchesFrom(1, clipSkeleton))
+        if (!Skeleton.StructurallyEqual(poseSkeleton, clipSkeleton))
         {
             Debug.LogError($"Skeleton of clip \"{animationClip.name}\" ({clipSkeleton.BoneCount} bones) " +
-                $"does not match the pose set's skeleton from index 1 ({poseSkeleton?.BoneCount ?? 0} bones).");
+                $"is not structurally equal to the pose set's skeleton ({poseSkeleton?.BoneCount ?? 0} bones).");
             return false;
         }
 
         // Set Poses
         var nFrames = animationClip.FrameCount;
-        var nBvhJoints = animationClip.Skeleton.BoneCount;
 
-        var leftToesBoneIndex = ResolveContactBoneIndex(animationClip.Skeleton, source.LeftContactBoneName, true);
-        var leftToesIndex = leftToesBoneIndex + 1; // +1 for SimulationBone
-        var rightToesBoneIndex = ResolveContactBoneIndex(animationClip.Skeleton, source.RightContactBoneName, false);
-        var rightToesIndex = rightToesBoneIndex + 1; // +1 for SimulationBone
-
-        // Skeleton bone 0 is the hips. Which of its local axes points along the character's facing is
-        // a property of the rig's bone roll, so read it from the rest pose instead of assuming an axis.
-        var hipsForwardLocal = animationClip.Skeleton.RestLocalAxis(0, math.forward());
-
-        // Rest local positions, hoisted once so the per-frame loop below never touches a
-        // managed Transform property.
-        var restLocalPositions = new float3[nBvhJoints];
-        for (var i = 0; i < nBvhJoints; i++)
-        {
-            restLocalPositions[i] = animationClip.Skeleton.GetBone(i).RestLocalPosition;
-        }
+        var leftToesIndex = ResolveContactBoneIndex(animationClip.Skeleton, source.LeftContactBoneName, true);
+        var rightToesIndex = ResolveContactBoneIndex(animationClip.Skeleton, source.RightContactBoneName, false);
 
         var frames = poseSet.BeginClip(nFrames - 1, animationClip.FrameTime);
 
         for (var i = 0; i < nFrames - 1; i++)
         {
-            ExtractPose(frames[i], animationClip, i, hipsForwardLocal, restLocalPositions);
+            ExtractPose(frames[i], animationClip, i);
         }
 
         for (var i = 0; i < nFrames - 2; i++)
@@ -71,7 +56,7 @@ public static class PoseExtractor
         var lastPose = PoseBuffer.Allocate(poseSet.PoseLayout, Allocator.Temp);
         try
         {
-            ExtractPose(lastPose, animationClip, nFrames - 1, hipsForwardLocal, restLocalPositions);
+            ExtractPose(lastPose, animationClip, nFrames - 1);
             ExtractPoseVelocities(frames[frames.Count - 1], lastPose, animationClip);
         }
         finally
@@ -191,37 +176,24 @@ public static class PoseExtractor
         }
     }
 
-    private static void ExtractPose(PoseBuffer pose, AnnotatedAnimationClip animationClip, int frameIndex,
-        float3 hipsForwardLocal, float3[] restLocalPositions)
+    /// <summary>
+    /// A pose is stored exactly as the clip bakes it: bone 0's world position and rotation, rest
+    /// offsets and parent-local rotations below it. The character frame is derived from the stored
+    /// pose on demand — see <see cref="SimulationFrame"/> — so nothing is reparented here.
+    /// </summary>
+    private static void ExtractPose(PoseBuffer pose, AnnotatedAnimationClip animationClip, int frameIndex)
     {
         var frame = animationClip.GetFrame(frameIndex);
-        var rotations = frame.Rotations;
+        var framePositions = frame.Positions;
+        var frameRotations = frame.Rotations;
         var posePositions = pose.Positions;
         var poseRotations = pose.Rotations;
 
-        // Joints
-        for (var i = 1; i < posePositions.Length; i++)
+        for (var i = 0; i < posePositions.Length; i++)
         {
-            // rest offsets come from the skeleton, not the frame's positions section (slot 0 there is root motion)
-            posePositions[i] = restLocalPositions[i - 1];
-            poseRotations[i] = rotations[i - 1];
+            posePositions[i] = framePositions[i];
+            poseRotations[i] = frameRotations[i];
         }
-
-        // SimulationBone
-        // position and direction are hips projected on the ground
-        Vector3 frameRootMotion = frame.Positions[0];
-        var sbPos = new Vector3(frameRootMotion.x, 0.0f, frameRootMotion.z);
-        var hipsForwardDir = (Quaternion)rotations[0] * (Vector3)hipsForwardLocal;
-        hipsForwardDir.y = 0;
-        hipsForwardDir = hipsForwardDir.normalized;
-        var sbRot = Quaternion.LookRotation(hipsForwardDir, Vector3.up);
-        posePositions[0] = sbPos;
-        poseRotations[0] = sbRot;
-
-        // make first joint (hips) position and direction relative to the simulation bone
-        var inverseSbRot = math.inverse(sbRot);
-        posePositions[1] = math.mul(inverseSbRot, (float3)(frameRootMotion - sbPos));
-        poseRotations[1] = math.mul(inverseSbRot, (quaternion)rotations[0]);
     }
 
     private static void ExtractPoseVelocities(PoseBuffer pose, PoseBuffer nextPose, AnnotatedAnimationClip animationClip)
@@ -244,14 +216,6 @@ public static class PoseExtractor
             angularVelocities[jointIdx] =
                 MathExtensions.AngularVelocity(rot, nextRot, animationClip.FrameTime);
         }
-
-        // root motion
-        var vel = (nextPositions[0] - positions[0]) / animationClip.FrameTime;
-
-        // transform the root velocity so that it is
-        // with respect to the root space of the current pose
-        vel = math.mul(math.inverse(rotations[0]), vel);
-        velocities[0] = vel;
     }
 
     private static void ExtractPoseContacts(PoseBuffer pose, in SkeletonData skeleton, int leftToesIndex,
@@ -259,8 +223,8 @@ public static class PoseExtractor
     {
         // Contact with the ground when the joint is below a velocity threshold
         // TODO: Consider distance from the ground/contact when the joint is below a velocity threshold
-        var leftToeVel = PoseFK.CharacterVelocity(pose, skeleton, leftToesIndex);
-        var rightToeVel = PoseFK.CharacterVelocity(pose, skeleton, rightToesIndex);
+        var leftToeVel = skeleton.CharacterSpaceVelocity(pose, leftToesIndex);
+        var rightToeVel = skeleton.CharacterSpaceVelocity(pose, rightToesIndex);
 
         pose.SetBool(leftHandle, math.length(leftToeVel) < contactVelocityThreshold);
         pose.SetBool(rightHandle, math.length(rightToeVel) < contactVelocityThreshold);

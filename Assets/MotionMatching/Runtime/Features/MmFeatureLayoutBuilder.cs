@@ -31,7 +31,9 @@ public static class MmFeatureLayoutBuilder
         for (var i = 0; i < trajectoryChannels.Length; i++)
         {
             var feature = trajectoryChannels[i];
-            boneIndices[i] = feature.simulationBone ? 0 : FindJointIndexOrZero(skeleton, feature.bone, feature.name);
+            // -1 rather than a bone: a simulation-frame feature is derived from the whole pose,
+            // so anything that indexes a bone with it is wrong and should fail loudly.
+            boneIndices[i] = feature.simulationBone ? -1 : FindJointIndexOrZero(skeleton, feature.bone, feature.name);
         }
 
         for (var i = 0; i < poseChannels.Length; i++)
@@ -48,7 +50,7 @@ public static class MmFeatureLayoutBuilder
         var index = bone?.ResolveIndex(skeleton) ?? -1;
         if (index >= 0) return index;
 
-        Debug.LogWarning($"MmFeatureLayoutBuilder: feature \"{featureName}\" has no resolvable bone; falling back to bone index 0.");
+        Debug.LogWarning($"MmFeatureLayoutBuilder: feature \"{featureName}\" has no resolvable bone; falling back to the skeleton root.");
         return 0;
     }
 }

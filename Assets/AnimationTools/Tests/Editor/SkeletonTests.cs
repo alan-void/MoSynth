@@ -249,58 +249,58 @@ public class SkeletonTests
         Assert.IsFalse(Skeleton.StructurallyEqual(null, skeleton));
     }
 
-    // --- MatchesFrom: a pose skeleton against an animation's -----------------------------------
+    // --- MatchesFrom: a skeleton embedded under an extra ancestor -------------------------------
 
     [Test]
-    public void MatchesFrom_AcceptsAnAnimationSkeletonUnderASimulationBone()
+    public void MatchesFrom_AcceptsASkeletonNestedUnderAnExtraRoot()
     {
-        // The pose skeleton carries a SimulationBone above the bones an animation describes.
-        var pose = TestSkeletons.Build(
-            new TestSkeletons.BoneSpec("SimulationBone", -1, float3.zero),
+        // The same three bones, carrying one extra ancestor above them.
+        var nested = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("armature", -1, float3.zero),
             new TestSkeletons.BoneSpec("root", 0, float3.zero),
             new TestSkeletons.BoneSpec("spine", 1, new float3(0f, 1f, 0f)),
             new TestSkeletons.BoneSpec("head", 2, new float3(0f, 1f, 0f)));
-        var animation = TestSkeletons.CreateChain3();
+        var bare = TestSkeletons.CreateChain3();
 
-        Assert.IsTrue(pose.MatchesFrom(1, animation));
+        Assert.IsTrue(nested.MatchesFrom(1, bare));
     }
 
     [Test]
     public void MatchesFrom_RejectsAMismatchedBoneCount()
     {
-        var pose = TestSkeletons.Build(
-            new TestSkeletons.BoneSpec("SimulationBone", -1, float3.zero),
+        var nested = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("armature", -1, float3.zero),
             new TestSkeletons.BoneSpec("root", 0, float3.zero),
             new TestSkeletons.BoneSpec("spine", 1, new float3(0f, 1f, 0f)));
-        var animation = TestSkeletons.CreateChain3();
+        var bare = TestSkeletons.CreateChain3();
 
-        Assert.IsFalse(pose.MatchesFrom(1, animation));
+        Assert.IsFalse(nested.MatchesFrom(1, bare));
     }
 
     [Test]
     public void MatchesFrom_RejectsADifferentlyNamedBone()
     {
-        var pose = TestSkeletons.Build(
-            new TestSkeletons.BoneSpec("SimulationBone", -1, float3.zero),
+        var nested = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("armature", -1, float3.zero),
             new TestSkeletons.BoneSpec("root", 0, float3.zero),
             new TestSkeletons.BoneSpec("neck", 1, new float3(0f, 1f, 0f)),
             new TestSkeletons.BoneSpec("head", 2, new float3(0f, 1f, 0f)));
-        var animation = TestSkeletons.CreateChain3();
+        var bare = TestSkeletons.CreateChain3();
 
-        Assert.IsFalse(pose.MatchesFrom(1, animation));
+        Assert.IsFalse(nested.MatchesFrom(1, bare));
     }
 
     [Test]
     public void MatchesFrom_RejectsAReparentedBone()
     {
-        var pose = TestSkeletons.Build(
-            new TestSkeletons.BoneSpec("SimulationBone", -1, float3.zero),
+        var nested = TestSkeletons.Build(
+            new TestSkeletons.BoneSpec("armature", -1, float3.zero),
             new TestSkeletons.BoneSpec("root", 0, float3.zero),
             new TestSkeletons.BoneSpec("spine", 1, new float3(0f, 1f, 0f)),
             new TestSkeletons.BoneSpec("head", 1, new float3(0f, 1f, 0f)));
-        var animation = TestSkeletons.CreateChain3();
+        var bare = TestSkeletons.CreateChain3();
 
-        Assert.IsFalse(pose.MatchesFrom(1, animation));
+        Assert.IsFalse(nested.MatchesFrom(1, bare));
     }
 
     [Test]

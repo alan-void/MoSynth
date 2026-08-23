@@ -124,7 +124,7 @@ public class BenchmarkLapProbe : MonoBehaviour
     /// </remarks>
     private float NearestT()
     {
-        var root = synthesizer.SkeletonTransforms[MotionSynthesisComponent.SimulationBoneIndex].position;
+        var root = synthesizer.transform.position;
         var localRoot = (float3)spline.transform.InverseTransformPoint(root);
         return _projector.Project(spline.Spline, localRoot);
     }

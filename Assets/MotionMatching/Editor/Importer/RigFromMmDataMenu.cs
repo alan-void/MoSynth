@@ -7,9 +7,8 @@ namespace MotionMatching.Editor
 {
 /// <summary>
 /// Migration tool: builds a scene rig matching a <see cref="MotionMatchingData"/>'s skeleton,
-/// including the SimulationBone root the database extraction prepends. Use it to get a rig to
-/// assign to feature/contact <see cref="SkeletonBone"/> fields when no imported rig asset already
-/// provides one.
+/// bone for bone. Use it to get a rig to assign to feature/contact <see cref="SkeletonBone"/>
+/// fields when no imported rig asset already provides one.
 /// </summary>
 public static class RigFromMmDataMenu
 {

@@ -496,7 +496,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     public override void GetTrajectoryFeature(TrajectoryFeatureChannel feature, int index, Transform character,
         Span<float> span)
     {
-        if (!feature.simulationBone) Debug.Assert(false, "Trajectory should be computed using the SimulationBone");
+        if (!feature.simulationBone) Debug.Assert(false, "Trajectory should be computed using the simulation frame");
         switch (feature.featureType)
         {
             case TrajectoryFeatureChannel.Type.Position:

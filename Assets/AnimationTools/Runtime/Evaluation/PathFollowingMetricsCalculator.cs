@@ -60,7 +60,7 @@ public static class PathFollowingMetricsCalculator
     /// <param name="spline">The path being followed, in its own local space.</param>
     /// <param name="splineLocalToWorld">The spline container's localToWorldMatrix. Must be unscaled;
     /// the recorded world-space positions are pulled into spline-local space through its inverse.</param>
-    /// <param name="rootPositions">World-space root (simulation bone) position per recorded frame.</param>
+    /// <param name="rootPositions">World-space simulation-frame position per recorded frame.</param>
     /// <param name="rootForwards">World-space root forward direction per recorded frame.</param>
     /// <param name="times">Seconds since recording start per frame, strictly increasing.</param>
     /// <param name="targetSpeed">Desired pace in m/s, used only for velocity error; pass

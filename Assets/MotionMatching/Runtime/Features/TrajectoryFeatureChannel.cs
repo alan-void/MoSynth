@@ -8,9 +8,9 @@ using SkeletonBone = AnimationTools.SkeletonBone;
 namespace MotionMatching
 {
 /// <summary>
-/// A bone (or the simulation bone) sampled a number of frames into the future, stored once per
-/// entry of <see cref="predictionFrames"/>. Axes can be masked out, so one prediction is one to
-/// three floats wide.
+/// A bone, or the character's derived simulation frame, sampled a number of frames into the future
+/// and stored once per entry of <see cref="predictionFrames"/>. Axes can be masked out, so one
+/// prediction is one to three floats wide.
 /// </summary>
 /// <remarks>
 /// This is both the authored definition and the layout channel. <see cref="PoseLayout"/> keys its
@@ -34,7 +34,7 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
 
     [FormerlySerializedAs("SimulationBone")]
     public bool
-        simulationBone; // Use the simulation bone (articial root added during pose extraction) instead of a bone
+        simulationBone; // Sample the derived simulation frame instead of a bone of the rig
 
     [FormerlySerializedAs("Bone")]
     public SkeletonBone bone = new(); // Bone used to compute the trajectory in the feature set
@@ -62,6 +62,7 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
         StateBuffer frame)
     {
         var skeleton = poseSet.Skeleton.GetSkeletonData();
+        var simulationFrame = poseSet.SimulationFrame;
         var characterPose = poseSet.GetPoseBuffer(poseIndex);
 
         for (var p = 0; p < predictionFrames.Length; ++p)
@@ -72,13 +73,12 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
             {
                 case Type.Position:
                 {
-                    value = FeatureSet.GetLocalJointPositionFromCharacter(skeleton, characterPose, futurePose,
-                        boneIndex);
+                    value = GetPosition(skeleton, simulationFrame, characterPose, futurePose, boneIndex);
                 }
                     break;
                 case Type.Direction:
                 {
-                    value = GetDirection(skeleton, characterPose, futurePose, boneIndex, mmData);
+                    value = GetDirection(skeleton, simulationFrame, characterPose, futurePose, boneIndex, mmData);
                     if (zeroX) value.x = 0;
                     if (zeroY) value.y = 0;
                     if (zeroZ) value.z = 0;
@@ -111,24 +111,44 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
         return value;
     }
 
-    private float3 GetDirection(in SkeletonData skeleton, PoseBuffer characterPose, PoseBuffer pose, int boneIndex,
-        MotionMatchingData mmData)
+    /// <summary>
+    /// Where <paramref name="pose"/> is, in the character frame of <paramref name="characterPose"/>:
+    /// the simulation frame's own origin, or the world position of one bone.
+    /// </summary>
+    private float3 GetPosition(in SkeletonData skeleton, in SimulationFrameDef def, PoseBuffer characterPose,
+        PoseBuffer pose, int boneIndex)
     {
-        quaternion worldRotation;
-        float3 localForward;
+        if (!simulationBone)
+        {
+            return FeatureSet.GetLocalJointPositionFromCharacter(skeleton, def, characterPose, pose, boneIndex);
+        }
+
+        SimulationFrame.Compute(pose, skeleton, def, out var framePosition, out _);
+        FeatureSet.GetWorldOriginCharacter(characterPose, skeleton, def, out var origin, out var forward);
+        return FeatureSet.GetLocalPositionFromCharacter(framePosition, origin, forward);
+    }
+
+    /// <summary>
+    /// Which way <paramref name="pose"/> faces, in the character frame of
+    /// <paramref name="characterPose"/>: the simulation frame's own forward, or one bone's.
+    /// </summary>
+    private float3 GetDirection(in SkeletonData skeleton, in SimulationFrameDef def, PoseBuffer characterPose,
+        PoseBuffer pose, int boneIndex, MotionMatchingData mmData)
+    {
+        float3 worldDirection;
         if (simulationBone)
         {
-            worldRotation = pose.Rotations[0];
-            localForward = math.forward();
+            SimulationFrame.Compute(pose, skeleton, def, out _, out var frameRotation);
+            worldDirection = math.mul(frameRotation, math.forward());
         }
         else
         {
-            worldRotation = PoseFK.CharacterRotation(pose, skeleton, boneIndex);
+            var worldRotation = skeleton.CharacterSpaceRotation(pose, boneIndex);
             // Forward vector of the joint in its own local space, taken from the rig's rest pose.
-            localForward = mmData.GetLocalForward(boneIndex);
+            worldDirection = math.mul(worldRotation, mmData.GetLocalForward(boneIndex));
         }
 
-        return FeatureSet.GetLocalDirectionFromCharacter(characterPose, math.mul(worldRotation, localForward));
+        return FeatureSet.GetLocalDirectionFromCharacter(skeleton, def, characterPose, worldDirection);
     }
 
     private void Pack(float3 value, StateBuffer frame, ChannelHandle handle, int predictionIndex)

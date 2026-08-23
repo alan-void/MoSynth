@@ -10,9 +10,8 @@ namespace AnimationTools
 public static class PoseSetImporter
 {
     /// <summary>
-    /// Checks that the source can produce a pose database: a skeleton, at least one clip, and every
-    /// clip's skeleton lining up with the source's from bone 1 onward (bone 0 there is the
-    /// SimulationBone, which no clip has). Returns false with a message suitable for an Inspector
+    /// Checks that the source can produce a pose database: a skeleton, and at least one clip whose
+    /// skeleton is structurally equal to it. Returns false with a message suitable for an Inspector
     /// HelpBox. Never logs — inspectors call it every repaint.
     /// </summary>
     public static bool TryValidate(IPoseSetSource source, out string error)
@@ -20,8 +19,8 @@ public static class PoseSetImporter
         var skeleton = source.Skeleton;
         if (skeleton == null || !skeleton.IsSet)
         {
-            error = "No skeleton assigned. Drop the rig's armature node here — it becomes the " +
-                    "SimulationBone at index 0, with the first real bone at index 1.";
+            error = "No skeleton assigned. Drop the rig's root bone here; the pose skeleton is " +
+                    "identical to each clip's skeleton.";
             return false;
         }
 
@@ -47,10 +46,10 @@ public static class PoseSetImporter
                 return false;
             }
 
-            if (!skeleton.MatchesFrom(1, clip.Skeleton))
+            if (!Skeleton.StructurallyEqual(skeleton, clip.Skeleton))
             {
-                error = $"Clip \"{clip.name}\" has {clip.Skeleton.BoneCount} bones, which do not match this " +
-                        $"asset's skeleton from bone 1 onward ({skeleton.BoneCount - 1} bones).";
+                error = $"Clip \"{clip.name}\" ({clip.Skeleton.BoneCount} bones) is not structurally equal to " +
+                        $"this asset's skeleton ({skeleton.BoneCount} bones).";
                 return false;
             }
         }
@@ -81,10 +80,10 @@ public static class PoseSetImporter
         for (var i = 0; i < clips.Count; i++)
         {
             var clip = clips[i];
-            if (clip == null || clip.Skeleton == null || !skeleton.MatchesFrom(1, clip.Skeleton))
+            if (clip == null || clip.Skeleton == null || !Skeleton.StructurallyEqual(skeleton, clip.Skeleton))
             {
                 Debug.LogError($"[PoseSet] '{source.name}': clip {i} (\"{(clip != null ? clip.name : "null")}\")'s " +
-                               "skeleton does not match this asset's skeleton from bone 1 (Hips) onward; skipping.");
+                               "skeleton is not structurally equal to this asset's skeleton; skipping.");
                 continue;
             }
 
@@ -118,6 +117,7 @@ public static class PoseSetImporter
 
         Debug.LogWarning($"[PoseSet] No serialized pose set for '{source.name}'. Extracting at runtime. " +
                          "Press Generate Pose Database on the asset to avoid this.");
+
         poseSet = Import(source);
 
 #if UNITY_EDITOR

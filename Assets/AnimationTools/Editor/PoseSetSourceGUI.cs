@@ -20,7 +20,7 @@ public static class PoseSetSourceGUI
         {
             EditorGUILayout.HelpBox(
                 "No skeleton assigned. Drop the imported model on the Skeleton field, then pick " +
-                "the rig's identity armature node from the dropdown.",
+                "the rig's root bone from the dropdown.",
                 MessageType.Error);
             return true;
         }
@@ -51,10 +51,10 @@ public static class PoseSetSourceGUI
                 continue;
             }
 
-            if (!skeleton.MatchesFrom(1, clip.Skeleton))
+            if (!Skeleton.StructurallyEqual(skeleton, clip.Skeleton))
             {
                 EditorGUILayout.HelpBox(
-                    $"Clip \"{clip.name}\"'s skeleton does not match this asset's skeleton from bone 1 (Hips) onward.",
+                    $"Clip \"{clip.name}\"'s skeleton is not structurally equal to this asset's skeleton.",
                     MessageType.Error);
                 anyError = true;
             }

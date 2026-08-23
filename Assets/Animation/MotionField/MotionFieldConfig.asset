@@ -15,13 +15,17 @@ MonoBehaviour:
   animationClips:
   - {fileID: 11400000, guid: 83f13ab2065eeee41b3cbf97abcf0914, type: 2}
   skeleton:
-    root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   contactVelocityThreshold: 0.15
   leftContactBone:
     skeleton:
-      root: {fileID: 0}
-    bone: {fileID: 0}
+      root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    bone: {fileID: 1322346492617891832, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   rightContactBone:
+    skeleton:
+      root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    bone: {fileID: -4253216979514265273, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  simulationFrameBone:
     skeleton:
       root: {fileID: 0}
     bone: {fileID: 0}

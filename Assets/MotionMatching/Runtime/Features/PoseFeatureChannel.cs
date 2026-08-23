@@ -38,22 +38,25 @@ public sealed class PoseFeatureChannel : ChannelDescriptor, IMatchingFeature
         StateBuffer frame)
     {
         var skeleton = poseSet.Skeleton.GetSkeletonData();
+        var simulationFrame = poseSet.SimulationFrame;
         var characterPose = poseSet.GetPoseBuffer(poseIndex);
 
         var value = float3.zero;
         switch (featureType)
         {
             case Type.Position:
-                value = FeatureSet.GetLocalJointPositionFromCharacter(skeleton, characterPose, characterPose,
-                    boneIndex);
+                value = FeatureSet.GetLocalJointPositionFromCharacter(skeleton, simulationFrame, characterPose,
+                    characterPose, boneIndex);
                 break;
             case Type.Velocity:
             {
                 var nextPose = poseSet.GetPoseBuffer(NextPoseIndex(poseSet, mmData, poseIndex));
                 var position =
-                    FeatureSet.GetLocalJointPositionFromCharacter(skeleton, characterPose, characterPose, boneIndex);
+                    FeatureSet.GetLocalJointPositionFromCharacter(skeleton, simulationFrame, characterPose,
+                        characterPose, boneIndex);
                 var nextPosition =
-                    FeatureSet.GetLocalJointPositionFromCharacter(skeleton, characterPose, nextPose, boneIndex);
+                    FeatureSet.GetLocalJointPositionFromCharacter(skeleton, simulationFrame, characterPose,
+                        nextPose, boneIndex);
                 value = (nextPosition - position) / poseSet.FrameTime;
                 break;
             }

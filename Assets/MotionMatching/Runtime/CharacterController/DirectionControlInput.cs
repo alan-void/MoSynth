@@ -374,7 +374,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         }
         else
         {
-            if (!feature.simulationBone) Debug.Assert(false, "Trajectory should be computed using the SimulationBone");
+            if (!feature.simulationBone) Debug.Assert(false, "Trajectory should be computed using the simulation frame");
             switch (feature.featureType)
             {
                 case TrajectoryFeatureChannel.Type.Position:

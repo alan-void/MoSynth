@@ -335,7 +335,7 @@ namespace AnimationTools.Editor
             // than let PoseFK throw on a repaint if they ever disagree again.
             if (pose.Layout.RotationCount != boneCount) return;
 
-            PoseFK.LocalToCharacter(pose, _skeletonData, _fkPositions, _fkRotations);
+            _skeletonData.LocalSpaceToCharacterSpace(pose, _fkPositions, _fkRotations);
 
             _lineVertices.Clear();
             _lineIndices.Clear();

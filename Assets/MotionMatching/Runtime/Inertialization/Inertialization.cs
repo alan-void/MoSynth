@@ -28,8 +28,11 @@ namespace MotionMatching
 /// that flag will not be smoothed.
 /// </para>
 /// <para>
-/// Loops start at index 1 and hips state is index 1 — see
-/// <see cref="MotionSynthesisComponent.SimulationBoneIndex"/>.
+/// Bone 0 carries the root's world position and rotation, so blending it directly would smear the
+/// character across the world whenever the target pose comes from a different part of a clip. It is
+/// instead blended in the space of the simulation frame each pose derives (see
+/// <see cref="SimulationFrame"/>): frame-local position, rotation and rates, written back through
+/// the target pose's own frame. Bones 1.. are parent-local already and blend as they are.
 /// </para>
 /// </remarks>
 [Serializable]
@@ -43,14 +46,15 @@ public class Inertialization : MoSynthStage
 
     [NonSerialized] public quaternion[] InertializedRotations;
     private float3[] _inertializedAngularVelocities;
-    [NonSerialized] public float3 InertializedHips;
-    [NonSerialized] public float3 InertializedHipsVelocity;
+    [NonSerialized] public float3 InertializedRootPosition;
+    [NonSerialized] public float3 InertializedRootVelocity;
 
+    // Index 0 holds bone 0's frame-local offset; every other entry is parent-local.
     private quaternion[] _offsetRotations;
     private float3[] _offsetAngularVelocities;
-    private float3 _offsetHips;
+    private float3 _offsetRootPosition;
 
-    private float3 _offsetHipsVelocity;
+    private float3 _offsetRootVelocity;
 
     // Contacts
     private float3 _offsetLeftContact;
@@ -62,6 +66,8 @@ public class Inertialization : MoSynthStage
     #endregion
 
     MotionSynthesisComponent _owner;
+    private SkeletonData _skeletonData;
+    private SimulationFrameDef _simulationFrame;
 
     public Inertialization()
     {
@@ -94,14 +100,16 @@ public class Inertialization : MoSynthStage
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
         _owner = motionSynthesisComponent;
+        _skeletonData = motionSynthesisComponent.SkeletonData;
+        _simulationFrame = motionSynthesisComponent.SimulationFrame;
         _currentPose = PoseBuffer.Allocate(motionSynthesisComponent.PoseLayout, Allocator.Persistent);
 
         var jointCount = _currentPose.Rotations.Length;
         _offsetRotations = new quaternion[jointCount];
         for (int i = 0; i < jointCount; i++) _offsetRotations[i] = quaternion.identity;
         _offsetAngularVelocities = new float3[jointCount];
-        _offsetHips = float3.zero;
-        _offsetHipsVelocity = float3.zero;
+        _offsetRootPosition = float3.zero;
+        _offsetRootVelocity = float3.zero;
     }
 
     public override void OnDestroy()
@@ -123,6 +131,8 @@ public class Inertialization : MoSynthStage
         var positions = pose.Positions;
         var velocities = pose.Velocities;
 
+        ReadRootFrameLocalState(pose, deltaTime, out var targetFrame, out var targetRoot);
+
         // Re-anchor the offsets only when the target pose stream jumped; between jumps the
         // offsets just decay so continuous animation passes through unfiltered (no lag).
         if (_owner.PoseDiscontinuity)
@@ -138,8 +148,15 @@ public class Inertialization : MoSynthStage
                 _offsetAngularVelocities[i] = lastOutputAngularVelocities[i] - angularVelocities[i];
             }
 
-            _offsetHips = _currentPose.Positions[1] - positions[1];
-            _offsetHipsVelocity = _currentPose.Velocities[1] - velocities[1];
+            // Each side of the jump is read against the frame it derives for itself, so the two
+            // are compared as two characters each standing at their own origin.
+            ReadRootFrameLocalState(_currentPose, deltaTime, out _, out var lastOutputRoot);
+
+            _offsetRotations[0] = math.normalizesafe(MathExtensions.Abs(
+                math.mul(math.inverse(targetRoot.Rotation), lastOutputRoot.Rotation)));
+            _offsetAngularVelocities[0] = lastOutputRoot.AngularVelocity - targetRoot.AngularVelocity;
+            _offsetRootPosition = lastOutputRoot.Position - targetRoot.Position;
+            _offsetRootVelocity = lastOutputRoot.Velocity - targetRoot.Velocity;
         }
 
         // Decay the offsets and apply them on top of the target pose
@@ -153,15 +170,78 @@ public class Inertialization : MoSynthStage
             angularVelocities[i] = newAngularVel;
         }
 
-        InertializeJointUpdate(positions[1], velocities[1],
+        InertializeJointUpdate(targetRoot.Rotation, targetRoot.AngularVelocity,
             halfLife, deltaTime,
-            ref _offsetHips, ref _offsetHipsVelocity,
-            out var newHipPos, out var newHipVel);
-        positions[1] = newHipPos;
-        velocities[1] = newHipVel;
+            ref _offsetRotations[0], ref _offsetAngularVelocities[0],
+            out var newRootRotation, out var newRootAngularVelocity);
+        InertializeJointUpdate(targetRoot.Position, targetRoot.Velocity,
+            halfLife, deltaTime,
+            ref _offsetRootPosition, ref _offsetRootVelocity,
+            out var newRootPosition, out var newRootVelocity);
+
+        // Back to world space through the target's frame, which is where the rest of the pose
+        // already is. The velocity channels have to follow, because the component re-derives the
+        // frame's own motion from them when it advances the character.
+        positions[0] = SimulationFrame.FromFrameLocal(newRootPosition, targetFrame.Position,
+            targetFrame.Rotation);
+        rotations[0] = SimulationFrame.FromFrameLocal(newRootRotation, targetFrame.Rotation);
+        SimulationFrame.RecomposeRootVelocity(targetFrame.Position, targetFrame.Rotation,
+            targetFrame.LinearVelocity, targetFrame.YawRate, positions[0],
+            newRootVelocity, newRootAngularVelocity,
+            out var worldRootVelocity, out var worldRootAngularVelocity);
+        velocities[0] = worldRootVelocity;
+        angularVelocities[0] = worldRootAngularVelocity;
 
         _currentPose.CopyFrom(pose);
         return true;
+    }
+
+    /// <summary>The simulation frame a pose derives, and how fast that frame is moving.</summary>
+    private struct FrameState
+    {
+        public float3 Position;
+        public quaternion Rotation;
+        public float3 LinearVelocity;
+        public float YawRate;
+    }
+
+    /// <summary>Bone 0 relative to that frame, with the rates left over once the frame's own
+    /// motion is taken out.</summary>
+    private struct RootState
+    {
+        public float3 Position;
+        public quaternion Rotation;
+        public float3 Velocity;
+        public float3 AngularVelocity;
+    }
+
+    private void ReadRootFrameLocalState(PoseBuffer pose, float deltaTime, out FrameState frame,
+        out RootState root)
+    {
+        SimulationFrame.Compute(pose, _skeletonData, _simulationFrame,
+            out var framePosition, out var frameRotation);
+        SimulationFrame.ComputeVelocity(pose, _skeletonData, _simulationFrame, deltaTime,
+            out var frameLinearVelocity, out var frameYawRate);
+
+        var worldPosition = pose.Positions[0];
+        SimulationFrame.DecomposeRootVelocity(framePosition, frameRotation, frameLinearVelocity,
+            frameYawRate, worldPosition, pose.Velocities[0], pose.AngularVelocities[0],
+            out var localVelocity, out var localAngularVelocity);
+
+        frame = new FrameState
+        {
+            Position = framePosition,
+            Rotation = frameRotation,
+            LinearVelocity = frameLinearVelocity,
+            YawRate = frameYawRate
+        };
+        root = new RootState
+        {
+            Position = SimulationFrame.ToFrameLocal(worldPosition, framePosition, frameRotation),
+            Rotation = SimulationFrame.ToFrameLocal(pose.Rotations[0], frameRotation),
+            Velocity = localVelocity,
+            AngularVelocity = localAngularVelocity
+        };
     }
 
     #region OLD_IMPL
@@ -180,7 +260,7 @@ public class Inertialization : MoSynthStage
         var sourceAngularVelocities = sourcePose.AngularVelocities;
         var targetAngularVelocities = targetPose.AngularVelocities;
 
-        // Set up the inertialization for joint local rotations (no simulation bone)
+        // Set up the inertialization for joint local rotations
         for (int i = 1; i < sourceRotations.Length; i++)
         {
             quaternion sourceJointRotation = sourceRotations[i];
@@ -192,18 +272,18 @@ public class Inertialization : MoSynthStage
                 ref _offsetRotations[i], ref _offsetAngularVelocities[i]);
         }
 
-        // Set up the inertialization for hips
+        // Set up the inertialization for the root. World space, unlike Apply's frame-local blend.
         var sourcePositions = sourcePose.Positions;
         var targetPositions = targetPose.Positions;
         var sourceVelocities = sourcePose.Velocities;
         var targetVelocities = targetPose.Velocities;
-        float3 sourceHips = sourcePositions[1];
-        float3 targetHips = targetPositions[1];
-        float3 sourceHipsVelocity = sourceVelocities[1];
-        float3 targetHipsVelocity = targetVelocities[1];
-        InertializeJointTransition(sourceHips, sourceHipsVelocity,
-            targetHips, targetHipsVelocity,
-            ref _offsetHips, ref _offsetHipsVelocity);
+        float3 sourceRootPosition = sourcePositions[0];
+        float3 targetRootPosition = targetPositions[0];
+        float3 sourceRootVelocity = sourceVelocities[0];
+        float3 targetRootVelocity = targetVelocities[0];
+        InertializeJointTransition(sourceRootPosition, sourceRootVelocity,
+            targetRootPosition, targetRootVelocity,
+            ref _offsetRootPosition, ref _offsetRootVelocity);
     }
 
     /// <summary>
@@ -268,15 +348,15 @@ public class Inertialization : MoSynthStage
                 out InertializedRotations[i], out _inertializedAngularVelocities[i]);
         }
 
-        // Update the inertialization for hips
+        // Update the inertialization for the root
         var targetPositions = targetPose.Positions;
         var targetVelocities = targetPose.Velocities;
-        float3 targetHips = targetPositions[1];
-        float3 targetRootVelocity = targetVelocities[1];
-        InertializeJointUpdate(targetHips, targetRootVelocity,
+        float3 targetRootPosition = targetPositions[0];
+        float3 targetRootVelocity = targetVelocities[0];
+        InertializeJointUpdate(targetRootPosition, targetRootVelocity,
             halfLife, deltaTime,
-            ref _offsetHips, ref _offsetHipsVelocity,
-            out InertializedHips, out InertializedHipsVelocity);
+            ref _offsetRootPosition, ref _offsetRootVelocity,
+            out InertializedRootPosition, out InertializedRootVelocity);
     }
 
     // /// <summary>

@@ -22,8 +22,8 @@ public interface IPoseSetSource
     string name { get; }
 
     /// <summary>
-    /// The pose skeleton. Index 0 is the SimulationBone, so index 1 is the first real bone and a
-    /// clip's own skeleton lines up from there.
+    /// The pose skeleton, identical to every clip's skeleton: bone 0 is the rig's root and carries
+    /// the clip's world position and rotation.
     /// </summary>
     Skeleton Skeleton { get; }
 

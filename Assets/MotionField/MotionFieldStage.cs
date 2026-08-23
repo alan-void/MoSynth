@@ -29,7 +29,8 @@ public class MotionFieldStage : MoSynthStage, IDisposable
     private dynamic _currentV;
     private dynamic _currentContacts;
 
-    private Transform _rootTransform;
+    // The character frame this stage steers against: the component's own Transform.
+    private Transform _characterTransform;
     private MotionSynthesisComponent _owner;
 
     /// <summary>
@@ -128,9 +129,7 @@ public class MotionFieldStage : MoSynthStage, IDisposable
             return;
         }
 
-        _rootTransform = motionSynthesisComponent.SkeletonTransforms is { Length: > 0 }
-            ? motionSynthesisComponent.SkeletonTransforms[0]
-            : motionSynthesisComponent.transform;
+        _characterTransform = motionSynthesisComponent.transform;
 
         try
         {
@@ -384,9 +383,9 @@ public class MotionFieldStage : MoSynthStage, IDisposable
             DesiredWorldDirection = desired.normalized;
         }
 
-        // Root-local +Z is the character's facing: PoseExtractor builds the simulation bone as
-        // LookRotation(hips forward projected on the ground).
-        Vector3 forward = _rootTransform != null ? _rootTransform.forward : Vector3.forward;
+        // The character Transform's +Z is the facing: MotionSynthesisComponent keeps it aligned
+        // with the yaw-only simulation frame the pose derives.
+        Vector3 forward = _characterTransform != null ? _characterTransform.forward : Vector3.forward;
         forward.y = 0f;
         if (forward.sqrMagnitude < 1e-6f) forward = Vector3.forward;
 

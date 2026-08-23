@@ -6,6 +6,9 @@ from scipy.spatial.transform import Rotation
 from Animation import PoseSet
 from Skeleton import Joint, Skeleton
 
+# Unity is y-up and left-handed, so a character faces +z.
+_CHARACTER_FORWARD = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+
 
 def _read_csharp_string(f) -> str:
     """
@@ -29,7 +32,7 @@ def _read_csharp_string(f) -> str:
     return f.read(count).decode('utf-8')
 
 
-def read_skeleton(f) -> Skeleton:
+def read_skeleton(f) -> tuple[Skeleton, int, np.ndarray]:
     """
     Reads the skeleton block at the head of an open .mmpose file, leaving the stream
     positioned at the clip table.
@@ -38,6 +41,12 @@ def read_skeleton(f) -> Skeleton:
     tree from: names key the per-bone weight table, parent indices drive FK, and the rest
     offsets give root-space positions. It lives in the same file as the poses so that the two
     cannot drift apart -- which is what the separate .mmskeleton file used to allow.
+
+    The character frame the poses are matched in is structural rather than stored: it is read
+    off joint 0, along the bone-local axis that points forward in the rest pose. Both fall out
+    of the bone entries above, so nothing about the frame is written to the file.
+
+    :return: ``(skeleton, simulation_frame_bone_index, simulation_frame_forward)``
     """
     skeleton_data = []
 
@@ -71,12 +80,24 @@ def read_skeleton(f) -> Skeleton:
 
     assert joints[0].parent() is None, "root bone should be the first bone"
 
-    return Skeleton("char", joints[0])
+    # The C# side's Skeleton.RestLocalAxis(0, forward): joint 0 has no parent, so its rest
+    # character rotation is its own rest local rotation.
+    sim_frame_bone_index = 0
+    sim_frame_forward = np.asarray(
+        joints[sim_frame_bone_index].default_local_rotation.inv().apply(_CHARACTER_FORWARD),
+        dtype=np.float32)
+
+    return Skeleton("char", joints[0]), sim_frame_bone_index, sim_frame_forward
 
 
 def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
     """
     Reads the .mmpose file from the given path and constructs a PoseSet object.
+
+    The simulation frame definition rides along on the returned object as
+    ``sim_frame_bone_index`` and ``sim_frame_forward``, which is everything
+    :mod:`simulation_frame` needs to derive the character frame of every pose. Both are
+    read off the skeleton rather than the file -- see :func:`read_skeleton`.
     """
     pose_path = os.path.join(path, f"{file_name}.mmpose")
 
@@ -85,7 +106,7 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
 
     with open(pose_path, 'rb') as f:
         # 1. Deserialize Skeleton
-        skeleton = read_skeleton(f)
+        skeleton, sim_frame_bone_index, sim_frame_forward = read_skeleton(f)
 
         # 2. Deserialize Pose Data
         # Read Clips
@@ -160,6 +181,8 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
 
     # Optionally attach data not directly in the __init__ definition to the python object
     pose_set.tags = tags
+    pose_set.sim_frame_bone_index = sim_frame_bone_index
+    pose_set.sim_frame_forward = sim_frame_forward
 
     return pose_set
 

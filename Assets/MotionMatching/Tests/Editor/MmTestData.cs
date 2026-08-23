@@ -15,20 +15,20 @@ static class MmTestData
 {
     private static readonly List<GameObject> _created = new();
 
-    /// <summary>SimulationBone(0) -&gt; Hips(1) -&gt; {Spine(2), LeftFoot(3) -&gt; LeftToe(4)}.</summary>
+    /// <summary>Hips(0) -&gt; {Spine(1), LeftFoot(2) -&gt; LeftToe(3)}.</summary>
     /// <remarks>A skeleton is a Transform tree, so this creates real GameObjects; suites that
     /// call it must call <see cref="DestroyAll"/> from their <c>[TearDown]</c>.</remarks>
     public static Skeleton BuildSkeleton()
     {
-        var simulationBone = new GameObject("SimulationBone").transform;
+        var hips = new GameObject("Hips").transform;
+        hips.localPosition = new float3(0f, 1f, 0f);
 
-        var hips = NewBone("Hips", simulationBone, new float3(0f, 1f, 0f));
         NewBone("Spine", hips, new float3(0f, 0.2f, 0f));
         var leftFoot = NewBone("LeftFoot", hips, new float3(0.2f, -0.9f, 0f));
         NewBone("LeftToe", leftFoot, new float3(0f, -0.1f, 0.15f));
 
-        _created.Add(simulationBone.gameObject);
-        return new Skeleton(simulationBone);
+        _created.Add(hips.gameObject);
+        return new Skeleton(hips);
     }
 
     private static Transform NewBone(string name, Transform parent, float3 localPosition)
@@ -55,9 +55,9 @@ static class MmTestData
 
     /// <summary>
     /// Fills <paramref name="pose"/> with a deterministic pseudo-random pose over
-    /// <paramref name="skeleton"/>. Positions are only meaningful for the root (0) and hips (1),
-    /// matching <see cref="PoseExtractor"/>'s convention -- every other joint holds its rest
-    /// offset. Rotations are uniformly distributed normalized quaternions; velocities/angular
+    /// <paramref name="skeleton"/>. Only the root (0) carries a position, matching
+    /// <see cref="PoseExtractor"/>'s convention -- every other joint holds its rest offset.
+    /// Rotations are uniformly distributed normalized quaternions; velocities/angular
     /// velocities are uniform in [-2, 2]. Contacts are left untouched (Allocate zero-initializes
     /// them, i.e. false).
     /// </summary>
@@ -72,7 +72,7 @@ static class MmTestData
 
         for (var i = 0; i < boneCount; i++)
         {
-            positions[i] = i <= 1 ? random.NextFloat3(-2f, 2f) : skeleton.GetBone(i).RestLocalPosition;
+            positions[i] = i == 0 ? random.NextFloat3(-2f, 2f) : skeleton.GetBone(i).RestLocalPosition;
             rotations[i] = random.NextQuaternionRotation();
             velocities[i] = random.NextFloat3(-2f, 2f);
             angularVelocities[i] = random.NextFloat3(-2f, 2f);

@@ -29,7 +29,7 @@ public class MotionQualityMetricsResult
     /// <summary>Fraction of evaluated frames with at least one foot flagged in contact. A sanity check on the metric above.</summary>
     public float contactFraction;
 
-    /// <summary>Mean magnitude of the simulation bone's third positional derivative, m/s^3.</summary>
+    /// <summary>Mean magnitude of the simulation frame's third positional derivative, m/s^3.</summary>
     public float rootJerkMean;
 
     /// <summary>95th percentile root jerk, m/s^3 — where the single-frame pops show up rather than the average sway.</summary>

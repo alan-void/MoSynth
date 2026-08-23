@@ -13,7 +13,7 @@ public static class MotionQualityMetricsCalculator
     /// Evaluates motion-quality metrics for one recorded run. Frames before
     /// <paramref name="settleTime"/> are dropped, same as <see cref="PathFollowingMetricsCalculator"/>.
     /// </summary>
-    /// <param name="rootPositions">World-space root (simulation bone) position per recorded frame.</param>
+    /// <param name="rootPositions">World-space simulation-frame position per recorded frame.</param>
     /// <param name="leftFootPositions">World-space left foot position per recorded frame, or null if the
     /// foot channel wasn't recorded.</param>
     /// <param name="rightFootPositions">World-space right foot position per recorded frame, or null.</param>

@@ -4,15 +4,16 @@ namespace AnimationTools
 {
 /// <summary>
 /// One step of a <see cref="MotionSynthesisComponent"/>'s pipeline, and the seam every synthesis
-/// method plugs into: motion matching, a neural motion field, root-motion correction, a visualizer.
+/// method plugs into: motion matching, a neural motion field, inertialized blending, a visualizer.
 /// A stage rewrites the pipeline pose in place; the component owns the pose, the skeleton and the
 /// frame loop.
 /// </summary>
 /// <remarks>
 /// Stages are inspector-authored as a <c>[SerializeReference]</c> list, so a concrete stage must be
 /// <c>[Serializable]</c> with a parameterless constructor. It is a plain class, not a MonoBehaviour:
-/// the callbacks below are all it gets. They run in declaration order — GetSkeleton on every stage,
-/// then Init on every stage, then Apply each tick, then OnDestroy.
+/// the callbacks below are all it gets. They run in declaration order — Init on every stage, then
+/// Apply each tick, then OnDestroy. The skeleton is the component's, settled before any of them, so
+/// a stage reads it rather than supplying it.
 /// </remarks>
 [Serializable]
 public abstract class MoSynthStage
@@ -22,17 +23,6 @@ public abstract class MoSynthStage
     /// So disabling a stage cannot change the skeleton or the pose layout mid-run.
     /// </summary>
     public bool isEnabled = true;
-
-    /// <summary>
-    /// Contributes to the skeleton the whole pipeline runs on, before any <see cref="Init"/>.
-    /// Return <paramref name="inSkeleton"/> unchanged unless this stage is the one that
-    /// <em>sources</em> the skeleton, as a motion matching stage does from its database.
-    /// </summary>
-    /// <param name="inSkeleton">What the previous stage returned; null if no earlier stage supplied one.</param>
-    public virtual Skeleton GetSkeleton(Skeleton inSkeleton)
-    {
-        return inSkeleton;
-    }
 
     /// <summary>
     /// One-time setup. By now the skeleton, the pose layout and the scene rig binding are all

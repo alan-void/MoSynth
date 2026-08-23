@@ -13,29 +13,23 @@ namespace AnimationTools
 /// skeleton, the pose layout and the frame loop; the stages own the synthesis.
 /// </summary>
 /// <remarks>
-/// Awake settles things in order, each step depending on the last: ask the stages for a skeleton,
-/// bind it to the scene rig, build the pose layout, then Init the stages.
+/// Awake settles things in order, each step depending on the last: bind the serialized skeleton to
+/// the scene rig, derive the simulation frame definition from it, build the pose layout, then Init
+/// the stages.
 /// <para>
 /// Each tick: read the rig into <see cref="CurrentPose"/>, copy to a scratch buffer, run the
 /// enabled stages over it until one returns false, apply the result, raise
 /// <see cref="OnPoseApplied"/>.
 /// </para>
+/// <para>
+/// A pose is stored in its own clip space: bone 0 is the rig's real root carrying world position
+/// and rotation, bones 1.. carry rest offsets and parent-local rotations. This component's own
+/// Transform is the character frame — the pose is written under it frame-locally, and it is the
+/// Transform that root motion advances, so it is also the capsule anchor a controller would drive.
+/// </para>
 /// </remarks>
 public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
 {
-    /// <summary>
-    /// Bone 0: the character's ground-plane proxy, not a bone of the art rig. Bound to this
-    /// component's own Transform, and the frame that root motion and character-space features are
-    /// relative to.
-    /// </summary>
-    public const int SimulationBoneIndex = 0;
-
-    /// <summary>
-    /// Bone 1: the rig's root joint. Besides the simulation bone, the only bone whose
-    /// <em>position</em> is animated — the rest contribute rotation only, keeping bone lengths fixed.
-    /// </summary>
-    public const int HipsBoneIndex = 1;
-
     /// <summary>
     /// The pose as read off the character's Transforms at the start of the current tick, i.e. the
     /// input to the pipeline before any stage has run.
@@ -52,14 +46,29 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     // Reused every LateUpdate as the mutable pose the stage chain runs on.
     private PoseBuffer _scratchPose;
 
-    // Built from the stages (an asset rig at its rest pose), deliberately not from characterRig:
-    // a skeleton over a live scene rig would report whatever pose it's currently animated to as
-    // its rest pose, which silently corrupts FK.
-    private Skeleton _skeleton;
-    public Skeleton Skeleton => _skeleton;
+    // An asset rig at its rest pose, deliberately not characterRig: a skeleton over a live scene
+    // rig would report whatever pose it's currently animated to as its rest pose, which silently
+    // corrupts FK. The drawer refuses scene objects for exactly that reason.
+    [SerializeField]
+    [Tooltip("The rig the pipeline runs on. Assign the root bone from the FBX *asset*, not from a " +
+             "rig in the scene.")]
+    private Skeleton skeleton = new();
+
+    public Skeleton Skeleton => skeleton;
+
+    /// <summary>Burst-compatible mirror of <see cref="Skeleton"/>, valid from Awake onwards.</summary>
+    public SkeletonData SkeletonData => skeleton.GetSkeletonData();
+
+    /// <summary>
+    /// Which bone the character frame is read from, and that bone's forward axis. Derived from
+    /// <see cref="Skeleton"/>: the root bone and its rest forward axis.
+    /// </summary>
+    public SimulationFrameDef SimulationFrame { get; private set; }
 
     [SerializeField]
-    [Tooltip("The rig this component drives; bones are bound to the pipeline skeleton by name.")]
+    [Tooltip("The rig this component drives; bones are bound to the pipeline skeleton by name, " +
+             "starting at the skeleton root. Every Transform between the root bone and this " +
+             "component must be identity, since the pose is written under this Transform.")]
     private SkeletonBoneOverrides characterRig = new();
 
     public SkeletonBoneOverrides CharacterRig => characterRig;
@@ -125,8 +134,6 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
 
     private void Awake()
     {
-        _skeleton = null;
-
         if (IsFrameRateRestricted)
         {
             _animationDeltaTime = 1.0f / synthesisFrameRate;
@@ -134,15 +141,12 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
 
         stages.RemoveAll(stage => stage == null);
         StageApplyTicks = new long[stages.Count];
-        foreach (var stage in stages)
-        {
-            _skeleton = stage.GetSkeleton(_skeleton);
-        }
 
-        if (_skeleton == null)
+        if (skeleton?.Root == null)
         {
-            Debug.LogError($"MotionSynthesisComponent \"{name}\": no stage provided a skeleton " +
-                           "(e.g. a MotionMatchingStage). Disabling the component.");
+            Debug.LogError($"MotionSynthesisComponent \"{name}\": no skeleton assigned. Assign the " +
+                           "rig's root bone (from the FBX asset) to the Skeleton field. Disabling " +
+                           "the component.");
             enabled = false;
             return;
         }
@@ -154,12 +158,10 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
             characterRig.SetRoot(transform);
         }
 
-        // The simulation bone is this component's own Transform rather than anything in the art
-        // rig, so it is supplied directly instead of being resolved by name against the rig.
-        SkeletonTransforms = characterRig.Bind(_skeleton, indexZeroOverride: transform);
+        SkeletonTransforms = characterRig.Bind(skeleton);
 
         var missingBoneCount = 0;
-        for (var i = SimulationBoneIndex + 1; i < SkeletonTransforms.Length; i++)
+        for (var i = 0; i < SkeletonTransforms.Length; i++)
         {
             if (SkeletonTransforms[i] == null) missingBoneCount++;
         }
@@ -170,6 +172,8 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
             enabled = false;
             return;
         }
+
+        SimulationFrame = SimulationFrameDef.Default(skeleton);
 
         InitCurrentPose();
 
@@ -229,7 +233,7 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     /// <summary>Builds the pose layout, allocates the buffers, and seeds them from the rig.</summary>
     void InitCurrentPose()
     {
-        PoseLayout = PoseLayoutBuilder.Build(_skeleton, out var contacts);
+        PoseLayout = PoseLayoutBuilder.Build(skeleton, out var contacts);
         LeftFootContactHandle = contacts.Left;
         RightFootContactHandle = contacts.Right;
 
@@ -238,7 +242,11 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
 
         var positions = CurrentPose.Positions;
         var rotations = CurrentPose.Rotations;
-        for (var i = 0; i < SkeletonTransforms.Length; i++)
+
+        positions[0] = SkeletonTransforms[0].position;
+        rotations[0] = SkeletonTransforms[0].rotation;
+
+        for (var i = 1; i < SkeletonTransforms.Length; i++)
         {
             rotations[i] = SkeletonTransforms[i].localRotation;
             positions[i] = SkeletonTransforms[i].localPosition;
@@ -255,6 +263,12 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     /// held in the buffer, so it has to read them before the pose pass overwrites them. Note it
     /// writes per-tick deltas, not the per-second rates the velocity channels normally carry —
     /// tolerable only because any stage that replaces the pose overwrites them first.
+    /// <para>
+    /// Bone 0 is read in world space and every other bone rotation-only, matching how a pose is
+    /// stored. Since <see cref="ApplyPoseToSkeletonTransforms"/> writes bone 0 frame-locally under
+    /// this component's Transform, the frame derived from the pose built here is that Transform —
+    /// which holds only while everything between bone 0's Transform and this one is identity.
+    /// </para>
     /// </remarks>
     void ConstructCurrentPoseFromSkeletonTransforms()
     {
@@ -263,7 +277,12 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         var velocities = CurrentPose.Velocities;
         var angularVelocities = CurrentPose.AngularVelocities;
 
-        for (var i = 0; i < angularVelocities.Length; i++)
+        var rootPosition = (float3)SkeletonTransforms[0].position;
+        var rootRotation = SkeletonTransforms[0].rotation;
+        angularVelocities[0] = (rootRotation * Quaternion.Inverse(rotations[0])).eulerAngles;
+        velocities[0] = rootPosition - positions[0];
+
+        for (var i = 1; i < SkeletonTransforms.Length; i++)
         {
             var inverseLocalRotation = Quaternion.Inverse(rotations[i]);
             angularVelocities[i] =
@@ -272,11 +291,12 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
                 (float3)SkeletonTransforms[i].localPosition - positions[i];
         }
 
-        // Only the simulation bone and the hips carry position; every other bone is rotation only.
-        positions[SimulationBoneIndex] = SkeletonTransforms[SimulationBoneIndex].localPosition;
-        positions[HipsBoneIndex] = SkeletonTransforms[HipsBoneIndex].localPosition;
+        positions[0] = rootPosition;
+        rotations[0] = rootRotation;
 
-        for (var i = 0; i < SkeletonTransforms.Length; i++)
+        // Every other bone contributes rotation only; their positions stay at the rest offsets
+        // seeded by InitCurrentPose, which is what keeps bone lengths fixed.
+        for (var i = 1; i < SkeletonTransforms.Length; i++)
         {
             rotations[i] = SkeletonTransforms[i].localRotation;
         }
@@ -286,30 +306,39 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     }
 
     /// <summary>
-    /// Writes the finished pose onto the Transforms. Rotations and the hips position are absolute;
-    /// the simulation bone is instead <em>advanced</em> by the root-motion velocities, so the
-    /// character accumulates movement rather than being teleported each tick.
+    /// Writes the finished pose onto the Transforms, re-anchored under this component's Transform:
+    /// bone 0 is placed relative to the frame the pose itself implies, so a pose from anywhere in a
+    /// database lands on the character. The Transform is then <em>advanced</em> by the frame's own
+    /// velocity, so the character accumulates movement rather than being teleported each tick.
     /// </summary>
     private void ApplyPoseToSkeletonTransforms(PoseBuffer pose)
     {
         var positions = pose.Positions;
         var rotations = pose.Rotations;
 
-        for (var i = SimulationBoneIndex + 1; i < _skeleton.BoneCount; i++)
+        // Qualified because the SimulationFrame property below shadows the type of the same name.
+        AnimationTools.SimulationFrame.Compute(pose, SkeletonData, SimulationFrame,
+            out var framePos, out var frameRot);
+
+        SkeletonTransforms[0].localPosition =
+            AnimationTools.SimulationFrame.ToFrameLocal(positions[0], framePos, frameRot);
+        SkeletonTransforms[0].localRotation =
+            AnimationTools.SimulationFrame.ToFrameLocal(rotations[0], frameRot);
+
+        for (var i = 1; i < skeleton.BoneCount; i++)
         {
             SkeletonTransforms[i].localRotation = rotations[i];
         }
 
-        SkeletonTransforms[HipsBoneIndex].localPosition = positions[HipsBoneIndex];
-
         if (rootPositionsMask)
         {
-            var simulationBone = SkeletonTransforms[SimulationBoneIndex];
-            simulationBone.localPosition +=
-                simulationBone.localRotation * pose.Velocities[SimulationBoneIndex] * _animationDeltaTime;
-            var angularVelocity = pose.AngularVelocities[SimulationBoneIndex];
-            var deltaRotation = MathExtensions.QuaternionFromScaledAngleAxis(angularVelocity * _animationDeltaTime);
-            simulationBone.localRotation = deltaRotation * simulationBone.localRotation;
+            AnimationTools.SimulationFrame.ComputeVelocity(pose, SkeletonData, SimulationFrame,
+                _animationDeltaTime, out var linearVelocity, out var yawRate);
+
+            transform.position += transform.rotation * (Vector3)linearVelocity * _animationDeltaTime;
+            var deltaRotation = MathExtensions.QuaternionFromScaledAngleAxis(
+                new float3(0f, yawRate * _animationDeltaTime, 0f));
+            transform.rotation = deltaRotation * transform.rotation;
         }
 
         // TODO: inertialized hips blending across a rootPositionsMask change, and toes-floor
@@ -348,7 +377,7 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     //                             response and crowd steering, blended in rather than jumped.
     //  * Get*Feature           -- read back the trajectory being predicted, to steer against it.
     //
-    // Root motion now lives in RootMotionCorrectionStage and the trajectory in the motion matching
+    // Root motion is this component's own Transform and the trajectory lives in the motion matching
     // stage's query vector, so finishing this means routing to those, not adding state here.
 
     public float3 RootVelocity { get; protected set; }

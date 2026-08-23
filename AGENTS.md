@@ -39,26 +39,27 @@ MotionSynthesisComponent
   └── Stages[] (pipeline that transforms pose data each frame)
       ├── MotionMatchingStage (searches animation database for best pose)
       ├── MotionFieldStage (applies neural motion field transformations)
-      └── Other stages (RootMotionCorrection, PoseSetVisualizer, etc.)
+      └── Other stages (Inertialization, PoseSetVisualizer, etc.)
 ```
 
 **Key classes:**
-- `MoSynthStage` (abstract base): interface for all stages with `Init()`, `Apply(PoseBuffer, deltaTime)`, `GetSkeleton()`, `OnDestroy()`
+- `MoSynthStage` (abstract base): interface for all stages with `Init()`, `Apply(PoseBuffer, deltaTime)`, `OnDestroy()`
 - `MotionSynthesisComponent`: main orchestrator that runs stages each frame; manages skeleton transforms and pose updates
 - `PoseBuffer`: the mutable pose data structure carrying joint positions, rotations, velocities, contact states
-- `Skeleton`: a bone hierarchy defined by a Transform tree — serializes as a single root Transform, and the bone list is the preorder depth-first walk from that root (bone 0 = root); index+1 convention for bone IDs, index 0 = SimulationBone in a pose skeleton
+- `Skeleton`: a bone hierarchy defined by a Transform tree — serializes as a single root Transform, and the bone list is the preorder depth-first walk from that root (bone 0 = root); index+1 convention for bone IDs (0 = unset), so id 1 is the root bone
 - `SkeletonBone`: one bone of a `Skeleton` — a `Skeleton` + `Transform` pair; also the serializable type used for a standalone bone-reference field (contact bones, root motion bone)
 - `SkeletonBoneOverrides`: binds a `Skeleton` (an asset rig at rest) to a different, live rig by name, with per-bone overrides; `MotionSynthesisComponent.characterRig` is one of these
 
 ### Data Flow: Pose Representation
 
 Poses are packed into flat arrays for efficiency with Python interop:
-- **Format**: `(..., num_bones + 2, 4)` array
-  - Index 0: root position (xyz) + padding (1 float)
-  - Index 1: hips position (xyz) + padding (1 float)
-  - Indices 2+: joint rotations as quaternions (xyzw per joint)
+- **Format**: `(..., num_bones + 2, 4)` array, `num_bones` counting the virtual character-frame joint `action_predictor.with_virtual_root` adds ahead of the pose set's own (single, real) skeleton
+  - Index 0: character-frame position (xyz) + padding (1 float) — zero, since the pose is already expressed in its own frame
+  - Index 1: root bone position (xyz) + padding (1 float) — `Pose.py` still calls this `hips`, but it is the skeleton's real bone 0, not a separate Hips joint
+  - Indices 2+: joint rotations as quaternions (xyzw per joint) — index 2 is the frame's own (identity) rotation, index 3 the root bone's
 - **Velocities**: parallel arrays using same format but represent per-second rates (scaled by `frame_time` to get one-frame deltas)
 - **Python classes**: `Pose` (immutable), `PoseDelta` (velocity), `Skeleton` (FK/IK)
+- `action_predictor.get_pose_arrays` unpacks a synthesized pose back down to plain per-bone arrays (no frame slots — C# derives its own frame from bone 0) for the PythonNET boundary
 
 ### MotionFieldStage (Current Feature Branch)
 
@@ -115,7 +116,7 @@ Assets/
 ├── MotionMatching/
 │   ├── Runtime/Core/
 │   │   ├── MotionMatchingStage.cs   [database search stage]
-│   │   └── RootMotionCorrectionStage.cs
+│   │   └── ContactVisualizerStage.cs
 │   ├── Runtime/Pose/                [pose set visualization]
 │   ├── Runtime/Features/            [matching feature channels]
 │   └── Editor/                      [tools and visualization]
@@ -217,11 +218,10 @@ inside the Editor: valid for comparing methods within one sweep on one machine, 
 ### Stage Development
 When adding a new `MoSynthStage`:
 1. Inherit from `MoSynthStage` abstract class
-2. Override `Init(MotionSynthesisComponent)` for setup (called once at startup)
+2. Override `Init(MotionSynthesisComponent)` for setup (called once at startup); read `motionSynthesisComponent.Skeleton` here if the stage needs one. A stage backed by its own database (`MotionMatchingStage`, `PoseSetVisualizerStage`) validates that skeleton against the database's skeleton with `Skeleton.StructurallyEqual` and errors out on mismatch
 3. Override `Apply(PoseBuffer pose, float deltaTime)` to transform pose (called every frame); return `false` to halt the pipeline
-4. Override `GetSkeleton(Skeleton inSkeleton)` if the stage modifies skeleton structure (e.g., adding simulation bones)
-5. Implement `IDisposable.Dispose()` if holding unmanaged resources (e.g., Python state)
-6. `OnDestroy()` is called automatically when the scene unloads
+4. Implement `IDisposable.Dispose()` if holding unmanaged resources (e.g., Python state)
+5. `OnDestroy()` is called automatically when the scene unloads
 
 ### Python Interop with PythonNET
 - Always wrap Python calls in `using (Py.GIL()) { ... }` to acquire the Global Interpreter Lock
@@ -231,34 +231,34 @@ When adding a new `MoSynthStage`:
 
 ### Skeleton & Bone Binding
 - A `Skeleton` is a Transform tree: bone identity is a Transform reference, not a name string. The bone list is the preorder depth-first walk from the skeleton's root Transform, built lazily and cached per root. A name fallback exists only for cross-rig resolution (`SkeletonBone.ResolveIndex`), e.g. matching a contact bone picked on one rig against another that's structurally the same
-- Bone indices follow the index+1 convention (bone ID = index + 1); index 0 is the SimulationBone in a pose skeleton
+- Bone indices follow the index+1 convention (bone ID = index + 1, 0 = unset); index 0 is the skeleton's real root bone, and the pose skeleton is the same tree as the clip skeleton — nothing is prepended
 - `SkeletonBoneOverrides` binds a `Skeleton` (an asset rig at rest) to a different, live rig by name, with per-bone overrides for mismatched names; `SkeletonBone` is drawn by `SkeletonBoneDrawer` with a rig-aware dropdown
 - **Two invariants nothing enforces at compile time:**
-  1. A `Skeleton`'s rest pose is read live off its Transforms, so it must point at an ASSET rig (imported FBX or prefab), never a live scene rig — a skeleton over an animated scene rig reports the current pose as the rest pose and silently corrupts FK. `MotionSynthesisComponent` deliberately takes its `Skeleton` from the stages (asset-backed) and binds it to the scene rig via `SkeletonBoneOverrides`
+  1. A `Skeleton`'s rest pose is read live off its Transforms, so it must point at an ASSET rig (imported FBX or prefab), never a live scene rig — a skeleton over an animated scene rig reports the current pose as the rest pose and silently corrupts FK. `MotionSynthesisComponent` serializes its own `Skeleton` field — assigned to the rig's root bone from the FBX asset, since the field's drawer refuses scene objects — and binds it to the scene rig via `SkeletonBoneOverrides`
   2. Everything under a skeleton's root Transform becomes a bone, so a rig must have nothing but bones beneath its skeleton root — a mesh node, IK helper, or attachment point there would shift every index after it
 
 ### `SkeletonAnimation` has one source of truth
 - A `SkeletonAnimation` (and its `AnnotatedAnimationClip` subclass) stores a clip and a `Skeleton`, and nothing else about where the bones are. There is no separate rig field: a second reference could disagree with the skeleton, and did — an earlier `GameObject` → `Transform` change orphaned every asset's rig
 - `AnimationClipBaker` still needs the asset's main object, because `clip.SampleAnimation` matches curve paths against the hierarchy it is handed and importers write those paths relative to the main object (the FBX root, or the container `BvhImporter` puts its bones under). It derives that as `skeleton.Root.root` — the root bone's topmost ancestor — so the bake target cannot drift from the skeleton
 - The root-bone guess (single child, else a `*Hips` descendant) now happens once, in `CreateAnnotatedClipMenu`, and is written into the asset. Nothing re-derives it at access time
-- A `Skeleton` field is drawn by `SkeletonDrawer` as a rig object field plus a root-bone dropdown, because a bone *inside* an imported rig is not reachable from the Project window or the object picker — only the asset's main object is. Drop the rig in to seed the field, then pick the actual root from the dropdown. It deliberately does not guess: a clip's skeleton starts at the root bone, a config's at the armature node. `SkeletonDrawer` and `SkeletonBoneDrawer` share their listing code via `BonePopup`
+- A `Skeleton` field is drawn by `SkeletonDrawer` as a rig object field plus a root-bone dropdown, because a bone *inside* an imported rig is not reachable from the Project window or the object picker — only the asset's main object is. Drop the rig in to seed the field, then pick the actual root from the dropdown. It deliberately does not guess: every `Skeleton` — a clip's or a config's — starts at the rig's root bone. `SkeletonDrawer` and `SkeletonBoneDrawer` share their listing code via `BonePopup`
 - `TryValidate` rejects a skeleton root that is not `EditorUtility.IsPersistent`, which is the only automatic check on invariant 1 above
 
 ### `SkeletonBone` naming collision
 `AnimationTools.SkeletonBone` collides with the built-in `UnityEngine.SkeletonBone`. Any file outside the `AnimationTools*` namespaces that names the type needs `using SkeletonBone = AnimationTools.SkeletonBone;`.
 
 ### Config assets and their skeletons
-- `MotionMatchingData` and `MotionFieldConfig` each carry an explicit T-pose `Skeleton` field whose root is the rig's identity armature node. That node **is** the SimulationBone at index 0, so index 1 is the first real bone (Hips) and nothing is prepended at load
-- A clip's own `Skeleton` starts at its root bone, so it is one bone shorter. The compatibility check is therefore `skeleton.MatchesFrom(1, clip.Skeleton)`, not `StructurallyEqual`
+- `MotionMatchingData` and `MotionFieldConfig` each carry an explicit T-pose `Skeleton` field whose root is the rig's real root bone — the pose skeleton is identical to each clip's skeleton, so nothing is prepended at load. The compatibility check is therefore `Skeleton.StructurallyEqual`, not a shifted comparison
+- Neither config has a configurable simulation-frame bone anymore: `SimulationFrameDef.Default(skeleton)` always sets the reference bone to the skeleton root (bone 0) and the forward axis to that bone's rest forward (`Skeleton.RestLocalAxis(0, math.forward())`); `PoseSet.SimulationFrame` is a computed property returning this default. That reference bone is what `SimulationFrame.Compute`/`ComputeVelocity` (`Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs`) derives the ground-projected, yaw-only character frame from — that frame is never stored on the pose, only computed on demand from a `SimulationFrameDef { ReferenceBoneIndex, ForwardAxisLocal }`
 - Both assets expose `TryValidate(out string error)`. `GetOrImportPoseSet()`/`GetOrImportFeatureSet()` return null silently when it fails, because `OnValidate` reaches them every Inspector repaint; the custom Inspector shows the reason in a HelpBox and disables Generate. `SkeletonAnimation` follows the same pattern
-- The `.mmskeleton` format is gone. C# takes the skeleton from the config's own field, but Python has no ScriptableObject to read, so `.mmpose` opens with a skeleton block — per bone: name, parent index, rest local position, rest local rotation — written by `PoseSerializer.WriteSkeleton` and read by `pose_set_importer.read_skeleton`. Keeping it in the same file as the poses is what stops the two drifting apart
+- The `.mmskeleton` format is gone. C# takes the skeleton from the config's own field, but Python has no ScriptableObject to read, so `.mmpose` opens with a skeleton block — per bone: name, parent index, rest local position, rest local rotation — written by `PoseSerializer.WriteSkeleton` and read by `pose_set_importer.read_skeleton`, which derives the same structural simulation frame (reference bone 0, forward axis from that bone's rest rotation) rather than reading it as separate fields. Keeping it in the same file as the poses is what stops the two drifting apart
 - **Neither `.mmpose` nor `.mmfeatures` is versioned**, by decision: everything is regenerated when a format moves, so a version byte guards nothing. A stale `.mmpose` is caught instead by `ReadAndCheckSkeleton`, which compares the file's bone names and parent indices against the config's skeleton — real data validation, and it catches more than a version number would. The `.mfembed.npz` has no schema version and no database hash either: `load_embedding` checks only that the state count matches, so **recompute the UMAP embedding after every Generate Pose Database** or the visualizer will draw a stale cloud as if it were current
 
 ### Pose Data Handling
 - `PoseBuffer` is mutable and used during synthesis; holds positions, rotations, velocities, and contact states
 - `Pose` (Python class) is immutable; unpack with `.from_array()`, pack with `.pack()`
 - Always use consistent `frame_time` when scaling velocities (stored in metadata)
-- Root velocity is in local space (rotated by root bone before applying); hips use world space
+- In `Pose.add()`, the character-frame velocity (`PoseDelta.rootVel`) is rotated by the frame's own rotation before applying; the root bone's velocity (`PoseDelta.hipVel`) is added directly, since it is already expressed within that frame
 
 ### File Paths
 - Use `Application.dataPath` for Assets folder (e.g., `Path.Combine(Application.dataPath, "../Python")`)

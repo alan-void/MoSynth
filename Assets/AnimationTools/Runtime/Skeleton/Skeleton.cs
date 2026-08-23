@@ -108,7 +108,7 @@ public sealed class Skeleton
 
     /// <summary>
     /// Character-space rotation of one bone in the rest pose, found by walking up its parent chain.
-    /// "Character space" matches <see cref="PoseFK.CharacterRotation"/>: the frame of bone 0's parent.
+    /// "Character space" matches <see cref="SkeletonData.CharacterSpaceRotation"/>: the frame of bone 0's parent.
     /// </summary>
     public quaternion RestCharacterRotation(int boneIndex)
     {
@@ -185,8 +185,9 @@ public sealed class Skeleton
     /// <summary>
     /// True when this skeleton's bones from <paramref name="startIndex"/> onward match every bone
     /// of <paramref name="other"/> by name and by parent, with parent indices shifted by
-    /// <paramref name="startIndex"/>. Checks an animation's skeleton (which starts at the root
-    /// motion bone) against a pose skeleton whose index 0 is the SimulationBone above it.
+    /// <paramref name="startIndex"/>. That is: whether <paramref name="other"/> is embedded in this
+    /// skeleton starting at that bone, so a rig nested under extra ancestors can be compared
+    /// against the bare hierarchy. <paramref name="startIndex"/> 0 is plain structural equality.
     /// </summary>
     public bool MatchesFrom(int startIndex, Skeleton other)
     {

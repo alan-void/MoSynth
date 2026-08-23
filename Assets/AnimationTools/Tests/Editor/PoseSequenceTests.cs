@@ -107,7 +107,7 @@ public class PoseSequenceTests
             }
 
             var skeletonData = skeleton.GetSkeletonData();
-            Assert.DoesNotThrow(() => PoseFK.LocalToCharacter(sequence.GetFrame(0), skeletonData, outPositions, outRotations));
+            Assert.DoesNotThrow(() => skeletonData.LocalSpaceToCharacterSpace(sequence.GetFrame(0), outPositions, outRotations));
 
             var copyDestination = PoseBuffer.Allocate(layout, Allocator.Temp);
             try

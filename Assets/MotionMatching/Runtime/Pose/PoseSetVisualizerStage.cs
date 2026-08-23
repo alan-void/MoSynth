@@ -11,8 +11,9 @@ namespace MotionMatching
 /// extraction or a retarget — with the rest of the pipeline out of the way.
 /// </summary>
 /// <remarks>
-/// Like <see cref="MotionMatchingStage"/> this sources the pipeline skeleton from its database, so
-/// it can stand in as the only stage on a component.
+/// Like <see cref="MotionMatchingStage"/> it plays poses stored over the database's own rig, so the
+/// component's skeleton has to be that rig. Nothing else is needed: it can stand in as the only
+/// stage on a component.
 /// </remarks>
 [Serializable]
 public class PoseSetVisualizerStage : MoSynthStage
@@ -35,21 +36,41 @@ public class PoseSetVisualizerStage : MoSynthStage
     private int startFrame;
 
 
-    public override Skeleton GetSkeleton(Skeleton inSkeleton)
-    {
-        _poseSet = mmData.GetOrImportPoseSet();
-        return _poseSet.Skeleton;
-    }
-    
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
         _owner = motionSynthesisComponent;
+
+        if (mmData == null)
+        {
+            Debug.LogError($"PoseSetVisualizerStage on \"{motionSynthesisComponent.name}\": no " +
+                           "MotionMatchingData assigned.");
+            return;
+        }
+
         _poseSet = mmData.GetOrImportPoseSet();
+        if (_poseSet == null)
+        {
+            mmData.TryValidate(out var error);
+            Debug.LogError($"PoseSetVisualizerStage: MotionMatchingData \"{mmData.name}\" is not usable — {error}");
+            return;
+        }
+
+        if (!Skeleton.StructurallyEqual(motionSynthesisComponent.Skeleton, _poseSet.Skeleton))
+        {
+            Debug.LogError($"PoseSetVisualizerStage on \"{motionSynthesisComponent.name}\": the component's " +
+                           $"Skeleton is not the rig MotionMatchingData \"{mmData.name}\" was built over. " +
+                           "Assign that rig's root bone, or regenerate the database.");
+            _poseSet = null;
+            return;
+        }
+
         CurrentFrame = startFrame;
     }
 
     public override bool Apply(PoseBuffer pose, float deltaTime)
     {
+        if (_poseSet == null) return true;
+
         // Advance frames with time
         _currentFrameTime = CurrentFrame + math.frac(_currentFrameTime);
         _currentFrameTime += deltaTime / _poseSet.FrameTime;

@@ -21,8 +21,8 @@ namespace MotionMatching
 /// the character is being asked to do) and <see cref="mmSearch"/> (how the database is searched).
 /// <para>
 /// Playback and search run on separate clocks — playback advances every tick, search at most once
-/// per <see cref="searchInterval"/>. This stage also sources the pipeline skeleton, since the
-/// skeleton comes from the database rather than the scene.
+/// per <see cref="searchInterval"/>. The database's poses are stored over its own rig, so
+/// <see cref="Init"/> refuses to run unless the component's skeleton is that same rig.
 /// </para>
 /// </remarks>
 [Serializable]
@@ -129,10 +129,13 @@ public class MotionMatchingStage : MoSynthStage
         // Force search on significant input change
         controlInput.OnHighInputChange += () => { _searchTimeLeft = 0; };
 
-        Assert.IsTrue(
-            motionSynthesisComponent.SkeletonTransforms.Length == _poseSet.Skeleton.BoneCount,
-            "Number of Skeleton transforms does not match skeleton bones " +
-            "in MotionMatchingData.");
+        if (!Skeleton.StructurallyEqual(motionSynthesisComponent.Skeleton, _poseSet.Skeleton))
+        {
+            Debug.LogError($"MotionMatchingStage on \"{motionSynthesisComponent.name}\": the component's " +
+                           $"Skeleton is not the rig MotionMatchingData \"{mmData.name}\" was built over. " +
+                           "Assign that rig's root bone, or regenerate the database.");
+            return;
+        }
 
         _databaseFrameRate = 1f / _poseSet.FrameTime;
 
@@ -159,14 +162,6 @@ public class MotionMatchingStage : MoSynthStage
         }
 
         mmSearch.Initialize(featureSet, _tagMask, _featureWeights);
-    }
-
-    public override Skeleton GetSkeleton(Skeleton inSkeleton)
-    {
-        _poseSet = mmData.GetOrImportPoseSet();
-        // Null when mmData is misconfigured; MotionSynthesisComponent reports "no stage provided
-        // a skeleton" and disables itself, and the asset's own inspector says what is wrong.
-        return _poseSet?.Skeleton;
     }
 
     public override bool Apply(PoseBuffer pose, float deltaTime)
@@ -257,7 +252,7 @@ public class MotionMatchingStage : MoSynthStage
     /// </summary>
     public void FillQueryVector()
     {
-        var simulationBone = _owner.SkeletonTransforms[MotionSynthesisComponent.SimulationBoneIndex];
+        var character = _owner.transform;
         var queryFeatureSpan = _queryFeatureVector.AsSpan();
         var featureSet = mmData.GetOrImportFeatureSet();
 
@@ -269,7 +264,7 @@ public class MotionMatchingStage : MoSynthStage
             for (var p = 0; p < featureSet.GetPredictionCount(i); ++p)
             {
                 var feature = queryFeatureSpan.Slice(featureSet.GetTrajectoryFeatureOffset(i, p), featureSize);
-                controlInput.GetTrajectoryFeature(featureDef, p, simulationBone, feature);
+                controlInput.GetTrajectoryFeature(featureDef, p, character, feature);
             }
         }
 

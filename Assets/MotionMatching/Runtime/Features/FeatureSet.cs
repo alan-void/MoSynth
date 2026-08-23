@@ -481,12 +481,15 @@ public class FeatureSet
     }
 
     /// <summary>
-    /// Returns the position and forward vector of the character in world space using the pose vector simulation bone
+    /// The character frame a pose implies, in world space: the origin and facing of the simulation
+    /// frame <paramref name="def"/> derives from it.
     /// </summary>
-    public static void GetWorldOriginCharacter(PoseBuffer pose, out float3 center, out float3 forward)
+    public static void GetWorldOriginCharacter(PoseBuffer pose, in SkeletonData skeleton,
+        in SimulationFrameDef def, out float3 center, out float3 forward)
     {
-        center = pose.Positions[0]; // Simulation Bone World Position
-        forward = math.mul(pose.Rotations[0], math.forward()); // Simulation Bone World Rotation
+        SimulationFrame.Compute(pose, skeleton, def, out var framePosition, out var frameRotation);
+        center = framePosition;
+        forward = math.mul(frameRotation, math.forward());
     }
 
     public static float3 GetLocalPositionFromCharacter(float3 worldPos, float3 characterOrigin, float3 characterForward)
@@ -504,18 +507,19 @@ public class FeatureSet
     /// Position of a joint of <paramref name="jointPose"/> in the character frame of
     /// <paramref name="characterPose"/>.
     /// </summary>
-    public static float3 GetLocalJointPositionFromCharacter(in SkeletonData skeleton, PoseBuffer characterPose,
-        PoseBuffer jointPose, int boneIndex)
+    public static float3 GetLocalJointPositionFromCharacter(in SkeletonData skeleton,
+        in SimulationFrameDef def, PoseBuffer characterPose, PoseBuffer jointPose, int boneIndex)
     {
-        GetWorldOriginCharacter(characterPose, out var origin, out var forward);
-        return GetLocalPositionFromCharacter(PoseFK.CharacterPosition(jointPose, skeleton, boneIndex), origin,
+        GetWorldOriginCharacter(characterPose, skeleton, def, out var origin, out var forward);
+        return GetLocalPositionFromCharacter(skeleton.CharacterSpacePosition(jointPose, boneIndex), origin,
             forward);
     }
 
-    /// <summary>Takes the character frame from the simulation bone of <paramref name="characterPose"/>.</summary>
-    public static float3 GetLocalDirectionFromCharacter(PoseBuffer characterPose, float3 worldDir)
+    /// <summary>Takes the character frame from <paramref name="characterPose"/>'s own simulation frame.</summary>
+    public static float3 GetLocalDirectionFromCharacter(in SkeletonData skeleton,
+        in SimulationFrameDef def, PoseBuffer characterPose, float3 worldDir)
     {
-        GetWorldOriginCharacter(characterPose, out _, out var forward);
+        GetWorldOriginCharacter(characterPose, skeleton, def, out _, out var forward);
         return GetLocalDirectionFromCharacter(worldDir, forward);
     }
 

@@ -14,8 +14,8 @@ public interface IMatchingFeature
 
     /// <summary>
     /// Writes this feature's floats for the pose at <paramref name="poseIndex"/> into
-    /// <paramref name="frame"/>. Values are relative to that pose's simulation bone, so hips and feet
-    /// are local to a stable position with respect to the character.
+    /// <paramref name="frame"/>. Values are relative to that pose's simulation frame, so hips and
+    /// feet are local to a stable position with respect to the character.
     /// </summary>
     void Extract(PoseSet poseSet, MotionMatchingData mmData, int poseIndex, int boneIndex, ChannelHandle handle,
         StateBuffer frame);

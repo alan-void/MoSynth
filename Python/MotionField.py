@@ -9,8 +9,9 @@ from Pose import Pose, PoseDelta
 from Skeleton import Skeleton
 from motion_field_io import ValueFunctionData, load_value_function
 
-# Packed pose layout: row 0 root position, row 1 hip position, row 2 the root
-# bone quaternion, rows 3+ the remaining joint quaternions.
+# Packed pose layout: row 0 the character frame's position, row 1 the rig root
+# bone's position within that frame, row 2 the frame's rotation, row 3 the root
+# bone's rotation within it, rows 4+ the remaining joint quaternions.
 
 def wrap_angle(angle):
     """Wrap radians into [-pi, pi)."""
@@ -19,13 +20,13 @@ def wrap_angle(angle):
 
 def root_yaw(packed_x: np.ndarray) -> np.ndarray:
     """
-    Yaw carried by the root quaternion of a packed pose, in radians.
+    Yaw carried by the character frame's quaternion of a packed pose, in radians.
 
-    Exact rather than approximate: PoseExtractor builds the SimulationBone
-    rotation as LookRotation(hipsForward_projected, up), so every root rotation
-    in this system is a pure yaw and reduces to 2*atan2(q.y, q.w). Note the
-    xyzw component order -- the wxyz formula the reference implementation uses
-    would read x and z here and return nonsense.
+    Exact rather than approximate: `simulation_frame.derive_frames` builds every
+    frame rotation as [0, sin(psi/2), 0, cos(psi/2)], so it is a pure yaw by
+    construction and reduces to 2*atan2(q.y, q.w). Note the xyzw component order
+    -- the wxyz formula the reference implementation uses would read x and z here
+    and return nonsense.
     """
     root_quat_row = 2
     q = np.asarray(packed_x)[..., root_quat_row, :]
@@ -109,13 +110,13 @@ def pack_bone_weights(skeleton: Skeleton, bone_weights, log=print) -> np.ndarray
                              f'got {table.shape}')
         table = np.ascontiguousarray(table, dtype=np.float32)
 
-    # Row 0 is the root, which `fk_root_space` pins to the origin with identity
-    # rotation -- its position and velocity are structurally zero, so its weight
-    # cannot change the feature. Normalising it to 1 lets a table that differs
-    # only there collapse to `None` below instead of reading as a metric change.
-    # Row 1 is the hips, whose translation `build_motion_states` replaces with
-    # the rest-pose offset -- constant across states, so equally unable to move
-    # a distance.
+    # Row 0 is the character frame, which `fk_root_space` pins to the origin with
+    # identity rotation -- its position and velocity are structurally zero, so its
+    # weight cannot change the feature. Normalising it to 1 lets a table that
+    # differs only there collapse to `None` below instead of reading as a metric
+    # change. Row 1 is the rig's root bone, whose translation `build_motion_states`
+    # replaces with the rest-pose offset -- constant across states, so equally
+    # unable to move a distance.
     table[0] = 1.0
     table[1] = 1.0
 
@@ -341,15 +342,15 @@ class MotionField:
 
         current = Pose.from_array(x0)  # from_array copies, so this is writable
 
-        # The root slot is a PER-FRAME INCREMENT, not a world pose. Database
-        # states are stored root-relative (rootPos == 0, root quat == identity,
-        # see action_predictor.load_animations) and the tug below blends against
-        # one of them. So 'tug_ratio' would drag an accumulated world root
-        # toward the origin every frame -- a 0.9^n collapse that reaches the
-        # origin in about 30 frames. Unity owns the world root anyway and
-        # integrates it from the returned velocities
+        # The frame slot is a PER-FRAME INCREMENT, not a world pose. Database
+        # states are stored in their own character frame (framePos == 0, frame
+        # quat == identity, see action_predictor.load_animations) and the tug
+        # below blends against one of them. So 'tug_ratio' would drag an
+        # accumulated world position toward the origin every frame -- a 0.9^n
+        # collapse that reaches the origin in about 30 frames. Unity owns the
+        # world placement anyway and integrates it from the returned velocities
         # (MotionSynthesisComponent.ApplyPoseToSkeletonTransforms), so zeroing
-        # here also makes training and runtime structurally identical: the root
+        # here also makes training and runtime structurally identical: the frame
         # of the returned pose is exactly the increment this step produced.
         current.rootPos[...] = 0.0
         current.quats[..., 0, :] = (0.0, 0.0, 0.0, 1.0)
@@ -552,13 +553,13 @@ class MotionField:
         """
         Build motion states from packed pose and velocity. Used to construct the motion field.
 
-        Root-invariant by construction: `fk_root_space` forces joint 0 to the
-        origin with identity rotation, so where the character is in the world
-        never influences which states it matches.
+        Frame-invariant by construction: `fk_root_space` forces joint 0, the
+        character frame, to the origin with identity rotation, so where the
+        character is in the world never influences which states it matches.
 
-        Hips-translation-invariant too: both FK passes use the hips' rest-pose
-        offset instead of the pose's own, following the reference metric. A
-        live hips offset is a rigid translation of every joint downstream, so
+        Root-translation-invariant too: both FK passes use the root bone's
+        rest-pose offset instead of the pose's own, following the reference
+        metric. A live root offset is a rigid translation of every joint, so
         it would enter all rows at once and drown the per-joint shape signal
         this metric exists to compare. Changing the metric here means retraining
         every field by hand: Unity's staleness check watches config fields, and
@@ -571,8 +572,10 @@ class MotionField:
 
         current_pose = Pose.from_array(x)  # from_array copies, so this is writable
 
-        # The exact rest offset is irrelevant -- any constant cancels when two
-        # states are subtracted -- it only has to be the SAME for every state.
+        # Joint 1 is the rig's root bone; joint 0 is the character frame, which
+        # carries no rest offset of its own. The exact offset is irrelevant --
+        # any constant cancels when two states are subtracted -- it only has to
+        # be the SAME for every state.
         rest_hips = list(self.skeleton)[1].default_local_position
         current_pose.hipPos[...] = rest_hips
 

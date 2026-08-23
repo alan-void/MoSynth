@@ -84,8 +84,6 @@ public class PoseSerializer
         poseSet = new PoseSet();
         if (skeleton == null || !skeleton.IsSet) return false;
 
-        poseSet.SetSkeleton(skeleton);
-
         // --------------------
         // Read Pose File
         // --------------------
@@ -99,6 +97,8 @@ public class PoseSerializer
             using (var reader = new BinaryReader(ms, Encoding.UTF8))
             {
                 if (!ReadAndCheckSkeleton(reader, fileName, skeleton)) return false;
+
+                poseSet.SetSkeleton(skeleton);
 
                 uint nClips = reader.ReadUInt32();
                 poseSet.SetClipCapacity(nClips);
@@ -228,7 +228,8 @@ public class PoseSerializer
     // the Python half has no ScriptableObject to read, and needs joint names for the bone-weight
     // table, parent indices for FK, and rest offsets for root-space positions. Keeping the block
     // in the same file as the poses is what stops the two drifting apart, which is exactly what a
-    // separate .mmskeleton did.
+    // separate .mmskeleton did. The simulation frame is not written: both halves derive it from
+    // bone 0's rest rotation, which the bone entries already carry.
 
     private static void WriteSkeleton(BinaryWriter writer, Skeleton skeleton)
     {

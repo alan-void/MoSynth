@@ -62,7 +62,6 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
             var positions = pose.Positions;
             var rotations = pose.Rotations;
             _skeletonTransforms[0].localPosition = positions[0];
-            _skeletonTransforms[1].localPosition = positions[1];
             for (int i = 0; i < rotations.Length; i++)
             {
                 _skeletonTransforms[i].localRotation = rotations[i];
@@ -71,6 +70,7 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
         }
         else
         {
+            // Parked at the origin in its rest pose, so the rig is readable while playback is off.
             currentFrame = 0;
             _skeletonTransforms[0].localPosition = float3.zero;
             for (int i = 0; i < _skeletonTransforms.Length; i++)
@@ -100,7 +100,7 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
         if (_skeletonTransforms == null || _poseSet == null) return;
 
         Gizmos.color = Color.red;
-        for (int i = 2; i < _skeletonTransforms.Length; i++) // skip Simulation Bone
+        for (int i = 1; i < _skeletonTransforms.Length; i++) // bone 0 has no parent bone to draw to
         {
             Transform t = _skeletonTransforms[i];
             GizmosExtensions.DrawLine(t.parent.position, t.position, 3);
@@ -110,7 +110,8 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
         // Character
         int currentFrame = math.max(0, this.currentFrame - 1); // FeatureDebug increments CurrentFrame after update... OnDrawGizmos is called after update
         var pose = _poseSet.GetPoseBuffer(currentFrame);
-        FeatureSet.GetWorldOriginCharacter(pose, out float3 characterOrigin, out float3 characterForward);
+        FeatureSet.GetWorldOriginCharacter(pose, _poseSet.Skeleton.GetSkeletonData(), _poseSet.SimulationFrame,
+            out float3 characterOrigin, out float3 characterForward);
         Gizmos.color = new Color(1.0f, 0.0f, 0.5f, 1.0f);
         Gizmos.DrawSphere(characterOrigin, spheresRadius);
         GizmosExtensions.DrawArrow(characterOrigin, characterOrigin + characterForward, thickness: 3);
@@ -135,12 +136,12 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
         {
             if (!BoneNameConventions.TryFindContactBone(_poseSet.Skeleton, left: true, out var leftToesIndex))
             {
-                Debug.LogWarning("[MotionMatchingDataVisualiser] Could not find a left contact bone; falling back to bone index 0.");
+                Debug.LogWarning("[MotionMatchingDataVisualiser] Could not find a left contact bone; falling back to the skeleton root.");
                 leftToesIndex = 0;
             }
             if (!BoneNameConventions.TryFindContactBone(_poseSet.Skeleton, left: false, out var rightToesIndex))
             {
-                Debug.LogWarning("[MotionMatchingDataVisualiser] Could not find a right contact bone; falling back to bone index 0.");
+                Debug.LogWarning("[MotionMatchingDataVisualiser] Could not find a right contact bone; falling back to the skeleton root.");
                 rightToesIndex = 0;
             }
             Gizmos.color = Color.green;
@@ -235,7 +236,7 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
         var index = bone?.ResolveIndex(skeleton) ?? -1;
         if (index >= 0) return index;
 
-        Debug.LogWarning($"[MotionMatchingDataVisualiser] Feature \"{featureName}\" has no resolvable bone; falling back to bone index 0.");
+        Debug.LogWarning($"[MotionMatchingDataVisualiser] Feature \"{featureName}\" has no resolvable bone; falling back to the skeleton root.");
         return 0;
     }
 

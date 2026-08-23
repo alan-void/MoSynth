@@ -24,7 +24,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
 
     private SerializedProperty _animationClipsProperty;
     private SerializedProperty _skeletonProperty;
-    private SerializedProperty _rootMotionBoneProperty;
     private SerializedProperty _contactVelocityThresholdProperty;
     private SerializedProperty _leftContactBoneProperty;
     private SerializedProperty _rightContactBoneProperty;
@@ -69,7 +68,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     {
         _animationClipsProperty = serializedObject.FindProperty("animationClips");
         _skeletonProperty = serializedObject.FindProperty("skeleton");
-        _rootMotionBoneProperty = serializedObject.FindProperty("rootMotionBone");
         _contactVelocityThresholdProperty = serializedObject.FindProperty("contactVelocityThreshold");
         _leftContactBoneProperty = serializedObject.FindProperty("leftContactBone");
         _rightContactBoneProperty = serializedObject.FindProperty("rightContactBone");
@@ -89,10 +87,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
 
         DrawAnimations();
         _generateButtonError |= PoseSetSourceGUI.DrawSkeletonValidation(data);
-
-        // SmoothSimulationBone
-        //data.SmoothSimulationBone = EditorGUILayout.Toggle(new GUIContent("Smooth Simulation Bone", "Smooth the simulation bone (articial root added during pose extraction) using Savitzky-Golay filter"),
-        //                                                   data.SmoothSimulationBone);
 
         DrawContactThreshold(rigRoot);
         DrawTrajectoryFeatures(rigRoot);
@@ -357,7 +351,10 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
             var zeroYProp = trajectoryFeature.FindPropertyRelative("zeroY");
             var zeroZProp = trajectoryFeature.FindPropertyRelative("zeroZ");
 
-            simulationBoneProp.boolValue = EditorGUILayout.Toggle("Simulation Bone", simulationBoneProp.boolValue);
+            simulationBoneProp.boolValue = EditorGUILayout.Toggle(
+                new GUIContent("Simulation Frame",
+                    "Sample the derived simulation frame rather than a bone of the rig."),
+                simulationBoneProp.boolValue);
             if (!simulationBoneProp.boolValue)
             {
                 SkeletonBoneDrawer.DrawLayout(new GUIContent("Bone"), boneProp, rigRoot);
@@ -372,7 +369,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
             else
             {
                 zeroXProp.boolValue = false;
-                zeroYProp.boolValue = true; // project simulation bone to the ground
+                zeroYProp.boolValue = true; // the simulation frame is a ground-plane frame
                 zeroZProp.boolValue = false;
             }
         }

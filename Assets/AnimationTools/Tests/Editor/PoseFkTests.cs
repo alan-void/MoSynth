@@ -71,7 +71,7 @@ public class PoseFkTests
         var outRotations = new NativeArray<quaternion>(skeleton.BoneCount, Allocator.Temp);
         try
         {
-            PoseFK.LocalToCharacter(buffer, skeletonData, outPositions, outRotations);
+            skeletonData.LocalSpaceToCharacterSpace(buffer, outPositions, outRotations);
 
             AssertApprox(new float3(0f, 0f, 0f), outPositions[0]);
             AssertApprox(new float3(0f, 1f, 0f), outPositions[1]);
@@ -98,7 +98,7 @@ public class PoseFkTests
         var outRotations = new NativeArray<quaternion>(skeleton.BoneCount, Allocator.Temp);
         try
         {
-            PoseFK.LocalToCharacter(buffer, skeletonData, outPositions, outRotations);
+            skeletonData.LocalSpaceToCharacterSpace(buffer, outPositions, outRotations);
 
             // Rotating (0,1,0) by 90 degrees about Z gives (-1,0,0); the chain accumulates it twice.
             AssertApprox(new float3(0f, 0f, 0f), outPositions[0]);
@@ -107,8 +107,8 @@ public class PoseFkTests
 
             for (var i = 0; i < skeleton.BoneCount; i++)
             {
-                AssertApprox(outPositions[i], PoseFK.CharacterPosition(buffer, skeletonData, i));
-                AssertApprox(outRotations[i], PoseFK.CharacterRotation(buffer, skeletonData, i));
+                AssertApprox(outPositions[i], skeletonData.CharacterSpacePosition(buffer, i));
+                AssertApprox(outRotations[i], skeletonData.CharacterSpaceRotation(buffer, i));
             }
         }
         finally
@@ -135,7 +135,7 @@ public class PoseFkTests
         try
         {
             var exception = Assert.Throws<ArgumentException>(
-                () => PoseFK.LocalToCharacter(buffer, otherSkeletonData, outPositions, outRotations));
+                () => otherSkeletonData.LocalSpaceToCharacterSpace(buffer, outPositions, outRotations));
 
             StringAssert.Contains("3", exception.Message);
             StringAssert.Contains("4", exception.Message);
@@ -155,7 +155,7 @@ public class PoseFkTests
 
         // Rotating the head's (0,1,0) offset by the spine's 90-degree X rotation gives (0,0,1).
         var expectedHeadPosition = new float3(0f, 1f, 1f);
-        AssertApprox(expectedHeadPosition, PoseFK.CharacterPosition(buffer, skeletonData, 2));
+        AssertApprox(expectedHeadPosition, skeletonData.CharacterSpacePosition(buffer, 2));
     }
 
     [Test]
@@ -165,7 +165,7 @@ public class PoseFkTests
         buffer.SetFloat3(rootVelocityHandle, new float3(1f, 0f, 0f));
 
         for (var i = 0; i < skeleton.BoneCount; i++)
-            AssertApprox(new float3(1f, 0f, 0f), PoseFK.CharacterVelocity(buffer, skeletonData, i));
+            AssertApprox(new float3(1f, 0f, 0f), skeletonData.CharacterSpaceVelocity(buffer, i));
     }
 
     [Test]
@@ -177,7 +177,7 @@ public class PoseFkTests
         // Head sits at character-space (0,2,0) with all-identity rotations (see the straight-chain
         // position test); velocity of a point rigidly spun about the root is cross(w, r).
         var expected = math.cross(new float3(0f, 0f, 1f), new float3(0f, 2f, 0f));
-        AssertApprox(expected, PoseFK.CharacterVelocity(buffer, skeletonData, 2));
+        AssertApprox(expected, skeletonData.CharacterSpaceVelocity(buffer, 2));
     }
 
     [Test]
@@ -191,7 +191,7 @@ public class PoseFkTests
 
         // The head's local (1,0,0) velocity is carried into character space by the spine's
         // 90-degree Z rotation, which maps (1,0,0) -> (0,1,0).
-        AssertApprox(new float3(0f, 1f, 0f), PoseFK.CharacterVelocity(buffer, skeletonData, 2));
+        AssertApprox(new float3(0f, 1f, 0f), skeletonData.CharacterSpaceVelocity(buffer, 2));
     }
 }
 }

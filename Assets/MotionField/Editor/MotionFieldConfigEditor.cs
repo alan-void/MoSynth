@@ -277,39 +277,26 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
             var bone = _skeleton.GetBone(i);
             MotionFieldConfig.BoneWeight weight = config.GetBoneWeight(bone.Name);
 
-            // Row 0 is the simulation bone. Forward kinematics pins it to the origin with identity
-            // rotation before the feature is built, so its position and velocity are structurally
-            // zero and no weight can change them. Shown for orientation, not editable.
-            bool isRoot = i == 0;
-
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Space(_jointDepths[i] * 12f);
 
-                var label = new GUIContent(bone.Name, isRoot
-                    ? "The root is pinned to the origin when the metric is built, so its rows are " +
-                      "always zero and its weight has no effect."
-                    : $"joint {i}");
-                EditorGUILayout.LabelField(label,
+                EditorGUILayout.LabelField(new GUIContent(bone.Name, $"joint {i}"),
                     weight.IsNeutral ? EditorStyles.label : EditorStyles.boldLabel);
 
-                using (new EditorGUI.DisabledScope(isRoot))
-                {
-                    float position = EditorGUILayout.FloatField(
-                        weight.position, GUILayout.Width(fieldWidth));
-                    float velocity = EditorGUILayout.FloatField(
-                        weight.velocity, GUILayout.Width(fieldWidth));
+                float position = EditorGUILayout.FloatField(
+                    weight.position, GUILayout.Width(fieldWidth));
+                float velocity = EditorGUILayout.FloatField(
+                    weight.velocity, GUILayout.Width(fieldWidth));
 
-                    if (isRoot) continue;
-                    if (Mathf.Approximately(position, weight.position) &&
-                        Mathf.Approximately(velocity, weight.velocity)) continue;
+                if (Mathf.Approximately(position, weight.position) &&
+                    Mathf.Approximately(velocity, weight.velocity)) continue;
 
-                    Undo.RecordObject(config, "Edit bone weight");
-                    config.SetBoneWeight(new MotionFieldConfig.BoneWeight(
-                        bone.Name, Mathf.Max(0f, position), Mathf.Max(0f, velocity)));
-                    // The metric changes, the extraction does not, so only the training is stale.
-                    MarkStale(config, database: false);
-                }
+                Undo.RecordObject(config, "Edit bone weight");
+                config.SetBoneWeight(new MotionFieldConfig.BoneWeight(
+                    bone.Name, Mathf.Max(0f, position), Mathf.Max(0f, velocity)));
+                // The metric changes, the extraction does not, so only the training is stale.
+                MarkStale(config, database: false);
             }
         }
     }

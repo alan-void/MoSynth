@@ -66,18 +66,15 @@ public sealed class SkeletonBoneOverrides
     }
 
     /// <summary>
-    /// Resolves every bone of <paramref name="skeleton"/> to a Transform in this rig. Slot 0 is
-    /// <paramref name="indexZeroOverride"/> when given, else <see cref="Root"/>. Missing bones log
-    /// an error and leave their slot null; the caller decides how severe that is. Duplicate bone
-    /// names in the hierarchy that the skeleton references also log a warning, since the first DFS
-    /// match silently wins.
+    /// Resolves every bone of <paramref name="skeleton"/> to a Transform in this rig, by name and
+    /// by override, starting at the skeleton root. Missing bones log an error and leave their slot
+    /// null; the caller decides how severe that is. Duplicate bone names in the hierarchy that the
+    /// skeleton references also log a warning, since the first DFS match silently wins.
     /// </summary>
-    public Transform[] Bind(Skeleton skeleton, Transform indexZeroOverride = null)
+    public Transform[] Bind(Skeleton skeleton)
     {
         var result = new Transform[skeleton.BoneCount];
         if (skeleton.BoneCount == 0) return result;
-
-        result[0] = indexZeroOverride != null ? indexZeroOverride : root;
 
         var transforms = Skeleton.CollectTransformsDfs(root);
         var nameCounts = new Dictionary<string, int>();
@@ -87,7 +84,7 @@ public sealed class SkeletonBoneOverrides
             nameCounts[transform.name] = count + 1;
         }
 
-        for (var i = 1; i < skeleton.BoneCount; i++)
+        for (var i = 0; i < skeleton.BoneCount; i++)
         {
             var sourceBone = skeleton.GetBone(i);
 

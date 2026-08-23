@@ -6,8 +6,7 @@ namespace AnimationTools
 /// <summary>
 /// Builds the single pose layout the motion-matching runtime shares: a full pose
 /// (parent-local position + rotation per bone, element index == bone index), per-bone
-/// velocities/angular velocities with bone 0 carrying root motion in root-local space,
-/// and two foot-contact Bool channels. <see cref="PoseSet"/> and
+/// velocities/angular velocities, and two foot-contact Bool channels. <see cref="PoseSet"/> and
 /// MotionSynthesisComponent both build through here over the same
 /// <see cref="AnimationTools.Skeleton"/>, so <see cref="PoseLayout.Build"/>'s cache hands them the
 /// same instance and frames can be copied between them (<see cref="PoseBuffer.CopyFrom"/>
@@ -47,20 +46,12 @@ namespace AnimationTools
 
         for (var i = 0; i < boneCount; i++)
         {
-            var boneId = skeleton.GetBoneId(i);
-            var isRoot = i == 0;
-            channels.Add(new VelocityChannel(boneId,
-                isRoot ? ChannelSpace.RootLocal : ChannelSpace.ParentLocal,
-                isRoot ? ChannelUsage.RootMotion : ChannelUsage.Default));
+            channels.Add(new VelocityChannel(skeleton.GetBoneId(i)));
         }
 
         for (var i = 0; i < boneCount; i++)
         {
-            var boneId = skeleton.GetBoneId(i);
-            var isRoot = i == 0;
-            channels.Add(new AngularVelocityChannel(boneId,
-                isRoot ? ChannelSpace.RootLocal : ChannelSpace.ParentLocal,
-                isRoot ? ChannelUsage.RootMotion : ChannelUsage.Default));
+            channels.Add(new AngularVelocityChannel(skeleton.GetBoneId(i)));
         }
 
         return channels;

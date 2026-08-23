@@ -23,8 +23,8 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     [Tooltip("Clips forming the motion field.")]
     public List<AnnotatedAnimationClip> animationClips = new();
 
-    [Tooltip("The pose skeleton: root must be the rig's identity armature node. Index 0 of this " +
-             "skeleton IS the SimulationBone; index 1 is the first real bone (Hips).")]
+    [Tooltip("The pose skeleton: root must be the rig's root bone, identical to each clip's " +
+             "skeleton. Index 0 is that root bone.")]
     [SerializeField] private Skeleton skeleton = new();
 
     [Tooltip("Foot speed below which a toe counts as planted.")]
@@ -220,7 +220,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     public string LeftContactBoneName => leftContactBone?.Name;
     public string RightContactBoneName => rightContactBone?.Name;
 
-    /// <summary>The pose skeleton. Index 0 is the SimulationBone; index 1 is the first real bone.</summary>
+    /// <summary>The pose skeleton: the rig's root bone, identical to each clip's skeleton.</summary>
     public Skeleton Skeleton => skeleton;
 
     /// <summary>No trajectory features, so every pose is usable.</summary>
@@ -288,9 +288,8 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
 
     /// <summary>
     /// Checks that this config can produce a pose database: a skeleton, at least one clip, and
-    /// every clip's skeleton lining up with this one from bone 1 onward (bone 0 here is the
-    /// SimulationBone, which no clip has). Returns false with a message suitable for an Inspector
-    /// HelpBox. Never logs — inspectors call it every repaint.
+    /// every clip's skeleton being structurally identical to this one. Returns false with a message
+    /// suitable for an Inspector HelpBox. Never logs — inspectors call it every repaint.
     /// </summary>
     public bool TryValidate(out string error) => PoseSetImporter.TryValidate(this, out error);
 
@@ -309,7 +308,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// <summary>
     /// This config's own pose skeleton -- the skeleton the similarity metric is actually computed
     /// over, which is why the bone weight editor reads it here rather than from the source
-    /// animation clips: the clips carry a BVH hierarchy with no simulation bone, so its joint list
+    /// animation clips: a clip can be authored against a differently shaped rig, so its joint list
     /// would not line up. False when no skeleton has been assigned.
     /// </summary>
     public bool TryGetDatabaseSkeleton(out Skeleton result)

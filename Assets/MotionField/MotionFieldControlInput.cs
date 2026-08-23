@@ -20,7 +20,7 @@ public abstract class MotionFieldControlInput : MonoBehaviour
     private MotionFieldStage _stage;
     private bool _warnedNoStage;
 
-    /// <summary>World position of the character's simulation bone.</summary>
+    /// <summary>World position of the character's simulation frame.</summary>
     protected Vector3 RootPosition => synthesisComponent.transform.position;
 
     protected virtual void Awake()

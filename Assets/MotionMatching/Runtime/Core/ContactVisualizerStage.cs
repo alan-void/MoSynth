@@ -13,10 +13,10 @@ namespace MotionMatching
 /// pipeline skeleton and draws it as a gizmo-free debug marker. Never mutates the pose.
 /// </summary>
 /// <remarks>
-/// Same threshold test as <see cref="AnimationTools.PoseExtractor"/> uses when baking contacts, but
-/// not the same velocity — extraction deliberately walks a frozen, slightly wrong parent chain that
-/// the shipped databases were built with. So this is good for getting a feel for a threshold, and
-/// bad for predicting exactly which frames a bake will mark.
+/// Same test as <see cref="AnimationTools.PoseExtractor"/> uses when baking contacts — character
+/// velocity of the bone against a threshold, over the same skeleton. What it sees is not the same
+/// input, though: this is the pose the whole pipeline produced, after searching and blending, so it
+/// answers "is this foot planted right now" rather than "which frames will the next bake mark".
 /// </remarks>
 [Serializable]
 public class ContactVisualizerStage : MoSynthStage
@@ -46,8 +46,6 @@ public class ContactVisualizerStage : MoSynthStage
     // Parallel arrays: _contactHandles[k] addresses the contact bool for bone _contactBoneIndices[k].
     private ChannelHandle[] _contactHandles;
     private int[] _contactBoneIndices;
-
-    public override Skeleton GetSkeleton(Skeleton inSkeleton) => inSkeleton;
 
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
@@ -122,7 +120,7 @@ public class ContactVisualizerStage : MoSynthStage
 
         for (var k = 0; k < _contactHandles.Length; k++)
         {
-            var velocity = PoseFK.CharacterVelocity(_buffer, _skeletonData, _contactBoneIndices[k]);
+            var velocity = _skeletonData.CharacterSpaceVelocity(_buffer, _contactBoneIndices[k]);
             var contact = math.length(velocity) < contactVelocityThreshold;
             _buffer.SetBool(_contactHandles[k], contact);
 
