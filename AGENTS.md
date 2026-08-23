@@ -7,6 +7,9 @@ This file provides guidance to AI coding agents (Claude Code, and others reading
 **MoSynth** is a motion synthesis system for character animation that combines motion matching with neural motion fields. It's a Unity project (v6000.4.4) that synthesizes realistic character locomotion by blending traditional motion matching with learned motion fields. The system uses a pipeline architecture where pose data flows through multiple "stages" that transform it, with interop to Python via PythonNET for neural network inference.
 
 ### Code Style
+- Readability first: keep code readable, concise, clear, and easy to understand. Prefer the straightforward implementation over a clever or compact one.
+- Do not solve a task with a workaround that makes the code cryptic (hidden coupling, magic values, misusing an existing mechanism because it happens to work). If the clean solution requires touching more code, touch more code.
+- If a broader architectural change would allow meaningfully better code quality than working within the current structure, say so and propose it instead of silently working around the limitation — the user decides whether to take it.
 - Do not write comments in generated code that depend on the context of the conversation that produced them (e.g. referencing the task, a fix, a prior approach, or "why we're changing this now"). Comments should only explain non-obvious WHY that a reader with just the code in front of them would need.
 - Use `var` to declare variables unless an explicit type makes the code clearer (IDEs surface type info well).
 - Naming:
@@ -74,11 +77,10 @@ Integrates a neural motion field into the pipeline via PythonNET:
   `greedy_action()`, and the debug pair `get_next_pose()` / `get_next_pose_from_field()`
 - Supporting: `get_knn()`, `get_batched_knn()`, `build_motion_states()`, `load_value_function()`
 
-**⚠️ Known Issues:**
-- Python paths are hard-coded (`MotionFieldStage:40`, `MotionFieldStage:47`) — should be made configurable
-- Requires specific Python 3.13 DLL location
-- Requires virtual environment setup at a specific path
-- Should use `Application.streamingAssetsPath` pattern like the animation data does
+**Python setup:**
+- The CPython DLL and venv paths are serialized on `MotionFieldConfig` (`pythonDllPath`, `pythonVenvPath`) and consumed by `PythonRuntime.EnsureInitialized`; an empty DLL path falls back to the `PYTHONNET_PYDLL` environment variable
+- Project modules import from `PythonRuntime.ScriptsFolder` — the repository's `Python/` folder, derived from `Application.dataPath`
+- Python 3.13 is required for PythonNET compatibility
 
 ## Key Directories & Files
 
@@ -158,10 +160,9 @@ start MoSynth.sln
 
 ### Python Environment Setup
 ```bash
-# The MotionFieldStage expects a venv at a specific path (currently hard-coded)
-# Python 3.13 is required for PythonNET compatibility
-python -m venv D:\iitbpg\MoSynth\AnimationTech\.anim_env
-D:\iitbpg\MoSynth\AnimationTech\.anim_env\Scripts\activate
+# Create a venv anywhere (Python 3.13 is required for PythonNET compatibility)
+python -m venv .anim_env
+.anim_env\Scripts\activate
 
 # Install dependencies
 pip install numpy scipy torch
@@ -169,6 +170,8 @@ pip install numpy scipy torch
 # Test Python modules
 python Python/MotionField.py
 ```
+
+Then point the `MotionFieldConfig` asset's `pythonDllPath` at the interpreter's `python313.dll` and `pythonVenvPath` at the venv folder.
 
 ### Building for Distribution
 The project uses standard Unity build pipeline:
@@ -225,7 +228,7 @@ When adding a new `MoSynthStage`:
 - Always wrap Python calls in `using (Py.GIL()) { ... }` to acquire the Global Interpreter Lock
 - Use `dynamic` types for Python objects in C#
 - Python modules should be added to `sys.path` or placed in `Assets/../Python/`
-- For module hot-reloading during development, use `importlib.reload()` (see `MotionFieldStage:63-65`)
+- For module hot-reloading during development, enable `reloadPythonModules` on `MotionFieldStage`. It calls `PythonRuntime.InvalidateProjectModules()`, which forgets every cached module under `Python/` so the next import re-reads them all — a per-module `importlib.reload` left dependencies cached and broke on cross-module edits
 
 ### Skeleton & Bone Binding
 - A `Skeleton` is a Transform tree: bone identity is a Transform reference, not a name string. The bone list is the preorder depth-first walk from the skeleton's root Transform, built lazily and cached per root. A name fallback exists only for cross-rig resolution (`SkeletonBone.ResolveIndex`), e.g. matching a contact bone picked on one rig against another that's structurally the same
@@ -265,27 +268,27 @@ When adding a new `MoSynthStage`:
 
 ## Subagent Delegation
 
-Project subagents live in `.claude/agents/`. Design, review, and integration stay in the main agent; the routine subtask goes to the cheapest agent that can do it well.
+Project subagents live in `.claude/agents/`. Design, review, and integration stay in the main agent; the routine subtask goes to the agent whose scope fits it.
+
+Opus is the ceiling. The read-only and mechanical agents run on Sonnet; the two implementers run on Opus and must never be dropped below it — writing code from a spec is not a job for a cheap model. Never use Haiku for any of them.
 
 | Agent | Model | Use it for |
 |---|---|---|
-| `code-locator` | haiku | "Where is X / who calls Y / what files touch Z" — returns file:line, not analysis |
-| `compile-checker` | haiku | Verifying C# edits build; reading Unity/Rider errors |
-| `python-runner` | haiku | Running a module, test, or probe in the venv and reporting real output |
-| `docs-updater` | haiku | Mechanical doc/comment upkeep against already-established facts |
-| `csharp-implementer` | sonnet | Writing a C#/Unity change from a spec that already names files and design |
-| `python-implementer` | sonnet | Writing a Python-side change from a decided approach |
+| `code-locator` | sonnet | "Where is X / who calls Y / what files touch Z" — returns file:line, not analysis |
+| `compile-checker` | sonnet | Verifying C# edits build; reading Unity/Rider errors |
+| `python-runner` | sonnet | Running a module, test, or probe in the venv and reporting real output |
+| `docs-updater` | sonnet | Mechanical doc/comment upkeep against already-established facts |
+| `csharp-implementer` | **opus** | Writing a C#/Unity change from a spec that already names files and design |
+| `python-implementer` | **opus** | Writing a Python-side change from a decided approach |
 
 Implementer agents need a spec that names the files, the intended design, and the acceptance check — they will not make architecture decisions, and vague briefs produce guesswork. Keep concurrent subagents to about 5. Run the C# implementer and `compile-checker` as a pair: the implementer cannot verify its own build.
 
 ## Known Issues & TODOs
 
-1. **Hard-coded Python paths** (`MotionFieldStage:40`, `:47`) — should be configurable via Inspector or config file
-2. **Module reloading** uses `importlib.reload()` for development convenience but should be removed in production
-3. **Unused code** in `MotionField.py` (see dead branches in `get_pose()` method lines 169-171)
-4. **PoseBuffer vs Pose confusion**: dual representation exists; unify or document the split
-5. **MotionSynthesisComponent TODO** at line 11: should decouple from `MotionMatchingData` dependency
-6. **Foot-contact detection bones** are configurable on `MotionMatchingData`/`MotionFieldConfig` via `leftContactBone`/`rightContactBone` (`SkeletonBone`); empty fields fall back to name heuristics in `BoneNameConventions`
+1. **Module reloading**: `MotionFieldStage.reloadPythonModules` defaults to true for development convenience; disable it for builds
+2. **PoseBuffer vs Pose confusion**: dual representation exists; unify or document the split
+3. **Dropped pipeline features**: inertialized hips blending and toes-floor penetration correction were lost when the pipeline moved to stages; the intended home for each is a `MoSynthStage` running after the pose is produced (TODO in `MotionSynthesisComponent`, ~line 315)
+4. **Foot-contact detection bones** are configurable on `MotionMatchingData`/`MotionFieldConfig` via `leftContactBone`/`rightContactBone` (`SkeletonBone`); empty fields fall back to name heuristics in `BoneNameConventions`
 
 ## Testing & Debugging
 
