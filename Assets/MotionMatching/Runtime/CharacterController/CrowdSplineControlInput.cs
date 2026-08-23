@@ -8,15 +8,40 @@ using UnityEngine.Splines;
 
 namespace MotionMatching
 {
+/// <summary>
+/// Follows a spline through a crowd: <see cref="SplineControlInput"/>'s fixed path, plus
+/// <see cref="CrowdControlInput"/>'s avoidance. The path sets where the character is going; steering
+/// offsets it sideways around whoever is in the way, and it settles back onto the path once clear.
+/// </summary>
+/// <remarks>
+/// The workhorse for populating a scene: give each character its own spline and they walk their
+/// routes while negotiating each other at crossings.
+/// <para>
+/// Unlike <see cref="SplineControlInput"/> the point on the spline can wait for the character to
+/// catch up (<see cref="UpdateOnlyWhenCharacterMoving"/>), so avoidance does not let the target run
+/// away. That also makes it a poorer path-following benchmark, since the reference reacts to the
+/// character it is measuring.
+/// </para>
+/// </remarks>
 public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwareCharacterControler, IMotionSynthesisSplineControlInput
 {
     public string TrajectoryPositionFeatureName = "FuturePosition";
     public string TrajectoryDirectionFeatureName = "FutureDirection";
 
-    [Header("Crowds")] public Obstacle IgnoreObstacle;
+    [Header("Crowds")]
+    [Tooltip("This character's own obstacle, excluded so it does not steer around itself.")]
+    public Obstacle IgnoreObstacle;
+
     public SplineContainer SplineContainer;
+
+    [Tooltip("Wrap back to the start of the spline on reaching the end.")]
     public bool Loop = true;
+
+    [Tooltip("Travel speed along the spline, in m/s.")]
     public float Speed = 1.0f;
+
+    [Tooltip("Hold the point on the spline back when the character falls behind it, instead of " +
+             "advancing on its own clock. Keeps the target reachable after avoidance costs time.")]
     public bool UpdateOnlyWhenCharacterMoving = false;
 
     [Tooltip(
@@ -37,9 +62,16 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
     public bool DebugDraw = true;
     public bool DebugSteering = false;
 
+    /// <summary>Position along the spline, normalized to 0..1.</summary>
     private float T;
+
+    /// <summary>Set while the point on the spline is waiting for the character to catch up.</summary>
     private bool IsStopped;
+
+    /// <summary>Current avoidance force. Smoothed toward the raw steering by SteeringChangeFactor.</summary>
     public float2 Steering { get; private set; }
+
+    /// <summary>Accumulated sideways displacement from the spline, worked off once the way is clear.</summary>
     private float2 SteeringOffset;
 
     private float2 CurrentPosition;

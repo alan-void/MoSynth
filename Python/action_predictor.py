@@ -1,13 +1,17 @@
-import json
+"""
+Bridge between the exported pose database and the motion field's state arrays.
+
+:func:`load_animations` reads the database Unity exported and repacks it into the
+(x, v, y) triples the motion field is defined over. :func:`get_pose_arrays` goes the
+other way, flattening a synthesized pose into lists PythonNET can marshal into C#.
+"""
+
 import os
 
 import numpy as np
 
-from MotionField import MotionField
 from Pose import Pose, PoseDelta
 from Skeleton import Skeleton
-
-global pose_count
 
 from Animation import PoseSet
 from pose_set_importer import deserialize_pose_set
@@ -43,6 +47,17 @@ def build_state_indices(clips, n_poses):
 
 def load_animations(data_dir='../Assets/StreamingAssets/MMDatabases/MotionMatchingData',
                     db_name='MotionMatchingData'):
+    """
+    Load a pose database and repack it into motion field states. Each usable frame i
+    becomes a triple: the pose (``pose_x``), how it is moving now (``pose_v``), and how
+    it is moving one frame later (``pose_y``, what the field learns to predict).
+
+    ``pose_x`` is made translation- and yaw-invariant, so "walking north at the origin"
+    and "walking east across the map" are the same state. That motion is not lost -- it
+    lives in ``pose_v`` as a rate in the root's own frame. See the slot notes below.
+
+    :returns: ``(skeleton, pose_x, pose_v, pose_y, pose_contacts, frame_time, pose_set)``
+    """
     pose_set: PoseSet = deserialize_pose_set(data_dir, db_name)
 
     skeleton: Skeleton = pose_set.skeleton
@@ -98,6 +113,13 @@ def get_pose_arrays(skeleton: Skeleton,
                     current_x: np.ndarray,
                     current_v: np.ndarray,
                     pose_contacts: np.ndarray):
+    """
+    Flatten one synthesized pose into the arrays the C# side reads back. Plain lists
+    rather than ndarrays, because PythonNET marshals those directly.
+
+    :returns: ``(positions, quaternions, linear_velocities, angular_velocities,
+        left_foot_contact, right_foot_contact)``
+    """
     p_x = Pose.from_array(current_x)
     p_v = PoseDelta.from_array(current_v)
 

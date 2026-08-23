@@ -6,8 +6,39 @@ using UnityEngine;
 
 namespace AnimationTools
 {
+/// <summary>
+/// Drives one character by running a pipeline of <see cref="MoSynthStage"/>s over a pose buffer
+/// each tick, then writing the result onto the character's Transforms. The component owns the
+/// skeleton, the pose layout and the frame loop; the stages own the synthesis.
+/// </summary>
+/// <remarks>
+/// Awake settles things in order, each step depending on the last: ask the stages for a skeleton,
+/// bind it to the scene rig, build the pose layout, then Init the stages.
+/// <para>
+/// Each tick: read the rig into <see cref="CurrentPose"/>, copy to a scratch buffer, run the
+/// enabled stages over it until one returns false, apply the result, raise
+/// <see cref="OnPoseApplied"/>.
+/// </para>
+/// </remarks>
 public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
 {
+    /// <summary>
+    /// Bone 0: the character's ground-plane proxy, not a bone of the art rig. Bound to this
+    /// component's own Transform, and the frame that root motion and character-space features are
+    /// relative to.
+    /// </summary>
+    public const int SimulationBoneIndex = 0;
+
+    /// <summary>
+    /// Bone 1: the rig's root joint. Besides the simulation bone, the only bone whose
+    /// <em>position</em> is animated — the rest contribute rotation only, keeping bone lengths fixed.
+    /// </summary>
+    public const int HipsBoneIndex = 1;
+
+    /// <summary>
+    /// The pose as read off the character's Transforms at the start of the current tick, i.e. the
+    /// input to the pipeline before any stage has run.
+    /// </summary>
     [NonSerialized] public PoseBuffer CurrentPose;
 
     /// <summary>Layout of <see cref="CurrentPose"/> and the pose passed to every stage's Apply.</summary>
@@ -33,8 +64,8 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     public SkeletonBoneOverrides CharacterRig => characterRig;
 
     /// <summary>
-    /// The transforms of the character controlled by this <see cref="MotionSynthesisComponent"/>.
-    /// These are the transforms that will be used to render the character.
+    /// The scene Transforms this component drives, indexed by skeleton bone index. These are what
+    /// renders the character.
     /// </summary>
     [NonSerialized] public Transform[] SkeletonTransforms;
 
@@ -43,17 +74,13 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         "Set to 0 for uncapped.")]
     public float synthesisFrameRate = 30f;
 
+    /// <summary>The pipeline, run in order every tick. See <see cref="MoSynthStage"/>.</summary>
     [SerializeReference] [SubclassSelector]
     public List<MoSynthStage> stages = new();
 
     [Tooltip("Whether to animate the root position by Motion Matching or not.")]
     // maybe change this to 'root motion'?
     public bool rootPositionsMask = true;
-
-    public float3 RootVelocity { get; protected set; }
-    public float3 RootAngularVelocity { get; protected set; }
-    public float3 RootPosition { get; protected set; }
-    public quaternion RootRotation { get; protected set; }
 
     /// <summary>
     /// True when an upstream stage replaced the pose discontinuously this tick (e.g. a motion
@@ -74,6 +101,9 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     /// Time.DeltaTime if frame rate is not restricted. 1/animationFrameRate if restricted.
     /// </summary>
     private float _animationDeltaTime;
+
+    /// <summary>Countdown to the next synthesis tick while the frame rate is capped.</summary>
+    private float _timeTillNextAnimationUpdate;
 
     bool IsFrameRateRestricted => synthesisFrameRate > 1e-5;
 
@@ -107,10 +137,12 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
             characterRig.SetRoot(transform);
         }
 
+        // The simulation bone is this component's own Transform rather than anything in the art
+        // rig, so it is supplied directly instead of being resolved by name against the rig.
         SkeletonTransforms = characterRig.Bind(_skeleton, indexZeroOverride: transform);
 
         var missingBoneCount = 0;
-        for (var i = 1; i < SkeletonTransforms.Length; i++)
+        for (var i = SimulationBoneIndex + 1; i < SkeletonTransforms.Length; i++)
         {
             if (SkeletonTransforms[i] == null) missingBoneCount++;
         }
@@ -130,27 +162,9 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         }
     }
 
-    private float _timeTillNextAnimationUpdate = 0f;
-
     private void LateUpdate()
     {
-        if (!IsFrameRateRestricted)
-        {
-            _animationDeltaTime = Time.deltaTime;
-        }
-        else
-        {
-            _timeTillNextAnimationUpdate -= Time.deltaTime;
-            if (_timeTillNextAnimationUpdate <= 0f)
-            {
-                _animationDeltaTime = 1f / synthesisFrameRate;
-                _timeTillNextAnimationUpdate += _animationDeltaTime;
-            }
-            else
-            {
-                return;
-            }
-        }
+        if (!TryBeginSynthesisTick()) return;
 
         ConstructCurrentPoseFromSkeletonTransforms();
 
@@ -159,13 +173,10 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         var pose = _scratchPose;
         foreach (var stage in stages)
         {
-            if (stage.isEnabled)
-            {
-                if (!stage.Apply(pose, _animationDeltaTime))
-                {
-                    break;
-                }
-            }
+            if (!stage.isEnabled) continue;
+
+            // A stage returning false means "this pose is final", so the result is still applied.
+            if (!stage.Apply(pose, _animationDeltaTime)) break;
         }
 
         ApplyPoseToSkeletonTransforms(pose);
@@ -173,6 +184,27 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         OnPoseApplied?.Invoke(pose, _animationDeltaTime);
     }
 
+    /// <summary>
+    /// Whether this Unity frame carries a synthesis tick, and if so its timestep. Capped, frames are
+    /// skipped so synthesis advances at <see cref="synthesisFrameRate"/> whatever the render rate.
+    /// </summary>
+    private bool TryBeginSynthesisTick()
+    {
+        if (!IsFrameRateRestricted)
+        {
+            _animationDeltaTime = Time.deltaTime;
+            return true;
+        }
+
+        _timeTillNextAnimationUpdate -= Time.deltaTime;
+        if (_timeTillNextAnimationUpdate > 0f) return false;
+
+        _animationDeltaTime = 1f / synthesisFrameRate;
+        _timeTillNextAnimationUpdate += _animationDeltaTime;
+        return true;
+    }
+
+    /// <summary>Builds the pose layout, allocates the buffers, and seeds them from the rig.</summary>
     void InitCurrentPose()
     {
         PoseLayout = PoseLayoutBuilder.Build(_skeleton, out var contacts);
@@ -192,21 +224,18 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         // Velocities, angular velocities and contacts are already zeroed by Allocate.
     }
 
+    /// <summary>
+    /// Refreshes <see cref="CurrentPose"/> from the Transforms, so each tick starts from where the
+    /// rig actually is rather than from what the pipeline last produced.
+    /// </summary>
+    /// <remarks>
+    /// The velocity pass must run first: it differences against the previous tick's values, still
+    /// held in the buffer, so it has to read them before the pose pass overwrites them. Note it
+    /// writes per-tick deltas, not the per-second rates the velocity channels normally carry —
+    /// tolerable only because any stage that replaces the pose overwrites them first.
+    /// </remarks>
     void ConstructCurrentPoseFromSkeletonTransforms()
     {
-        // // Simulation Bone
-        // float3 pos = skeletonTransforms[0].position;
-        // var rot = skeletonTransforms[0].rotation;
-        //
-        // // world space to local space
-        // var localSpacePos = math.mul(math.inverse(_mmTransformOriginRot), (pos - _mmTransformOriginPos));
-        // var localSpaceRot = math.mul(math.inverse(_mmTransformOriginRot), rot);
-        //
-        // // local space to animation space
-        // pose.JointLocalRotations[0] = math.mul(_animationSpaceOriginRot, localSpaceRot);
-        //
-        // pose.JointLocalPositions[0] = math.mul(_inverseAnimationSpaceOriginRot, localSpacePos) + _animationSpaceOriginPos;
-
         var positions = CurrentPose.Positions;
         var rotations = CurrentPose.Rotations;
         var velocities = CurrentPose.Velocities;
@@ -221,98 +250,50 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
                 (float3)SkeletonTransforms[i].localPosition - positions[i];
         }
 
-        positions[0] = SkeletonTransforms[0].localPosition;
-        rotations[0] = SkeletonTransforms[0].localRotation;
+        // Only the simulation bone and the hips carry position; every other bone is rotation only.
+        positions[SimulationBoneIndex] = SkeletonTransforms[SimulationBoneIndex].localPosition;
+        positions[HipsBoneIndex] = SkeletonTransforms[HipsBoneIndex].localPosition;
 
-        for (var i = 1; i < SkeletonTransforms.Length; i++)
+        for (var i = 0; i < SkeletonTransforms.Length; i++)
         {
             rotations[i] = SkeletonTransforms[i].localRotation;
         }
 
-        // hip
-        positions[1] = SkeletonTransforms[1].localPosition;
-
-
-        // CurrentPose.LeftFootContact = ?;
-        // CurrentPose.RightFootContact = ?;
+        // Foot contacts are not recoverable from the Transforms alone, so whichever stage owns them
+        // writes them into the pipeline pose instead of them being seeded here.
     }
 
+    /// <summary>
+    /// Writes the finished pose onto the Transforms. Rotations and the hips position are absolute;
+    /// the simulation bone is instead <em>advanced</em> by the root-motion velocities, so the
+    /// character accumulates movement rather than being teleported each tick.
+    /// </summary>
     private void ApplyPoseToSkeletonTransforms(PoseBuffer pose)
     {
         var positions = pose.Positions;
         var rotations = pose.Rotations;
 
-        // Motion
-        // if (rootPositionsMask)
-        // {
-        //     // Motion Matching Root Motion + Floor Height
-        //     Vector3 simulationBone = pose.JointLocalPositions[0];
-        //     // simulationBone.y = _floorHeight;
-        //     transform.position = simulationBone;
-        // }
-
-        for (var i = 1; i < _skeleton.BoneCount; i++)
+        for (var i = SimulationBoneIndex + 1; i < _skeleton.BoneCount; i++)
         {
             SkeletonTransforms[i].localRotation = rotations[i];
         }
 
-        // hips
-        SkeletonTransforms[1].localPosition = positions[1];
+        SkeletonTransforms[HipsBoneIndex].localPosition = positions[HipsBoneIndex];
 
-        // root
         if (rootPositionsMask)
         {
-            var rootTransform = SkeletonTransforms[0];
-            rootTransform.localPosition +=
-                rootTransform.localRotation * pose.Velocities[0] * _animationDeltaTime;
-            var angVel = pose.AngularVelocities[0];
-            var rootRotation = MathExtensions.QuaternionFromScaledAngleAxis(angVel * _animationDeltaTime);
-            rootTransform.localRotation = rootRotation * rootTransform.localRotation;
+            var simulationBone = SkeletonTransforms[SimulationBoneIndex];
+            simulationBone.localPosition +=
+                simulationBone.localRotation * pose.Velocities[SimulationBoneIndex] * _animationDeltaTime;
+            var angularVelocity = pose.AngularVelocities[SimulationBoneIndex];
+            var deltaRotation = MathExtensions.QuaternionFromScaledAngleAxis(angularVelocity * _animationDeltaTime);
+            simulationBone.localRotation = deltaRotation * simulationBone.localRotation;
         }
 
-        // if (blendPoses && _previousHipsPositionMask != rootPositionsMask)
-        // {
-        //     // Position Transition
-        //     float3 offsetAngVel = float3.zero;
-        //     Inertialization.InertializeJointTransition(_previousHipsPosition, float3.zero,
-        //         targetHipsPosition, float3.zero,
-        //         ref _offsetHipsPosition, ref offsetAngVel);
-        // }
-        //
-        // if (blendPoses)
-        // {
-        //     float3 offsetAngVel = float3.zero;
-        //     Inertialization.InertializeJointUpdate(targetHipsPosition, float3.zero,
-        //         blendHalfLife, Time.deltaTime,
-        //         ref _offsetHipsPosition, ref offsetAngVel,
-        //         out float3 inertializedHipsPosition, out _);
-        //     _targetBones[0].position = inertializedHipsPosition;
-        // }
-        // else
-        // {
-        //     _targetBones[0].position = targetHipsPosition;
-        // }
-
-        // // Toes-Floor Penetration
-        // if (avoidToesFloorPenetration)
-        // {
-        //     const int leftToesIndex = 17;
-        //     const int rightToesIndex = 21;
-        //     float soleHeightOffset = Mathf.Min(_targetBones[leftToesIndex].TransformPoint(toesSoleOffset).y,
-        //         _targetBones[rightToesIndex].TransformPoint(toesSoleOffset).y);
-        //     soleHeightOffset = soleHeightOffset < _floorHeight ? -soleHeightOffset : 0.0f;
-        //
-        //     const float movingAverageFactor = 0.99f;
-        //     _toesPenetrationMovingCorrection = _toesPenetrationMovingCorrection * movingAverageFactor +
-        //                                        (soleHeightOffset + _floorHeight) * (1.0f - movingAverageFactor);
-        //
-        //     Vector3 hipsPos = _targetBones[0].position;
-        //     hipsPos.y += _toesPenetrationMovingCorrection;
-        //     _targetBones[0].position = hipsPos;
-        // }
-        //
-        // // Update State
-        // UpdatePreviousInertialization();
+        // TODO: inertialized hips blending across a rootPositionsMask change, and toes-floor
+        // penetration correction, both used to happen here. They were dropped when the pipeline
+        // moved to stages; the intended home for each is a MoSynthStage running after the pose is
+        // produced, rather than another special case inside the orchestrator.
     }
 
     private void OnValidate()
@@ -334,6 +315,24 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         if (_scratchPose.IsCreated) _scratchPose.Dispose();
     }
 
+    // --- Unimplemented: pose adjustment and feature read-back ---------------------------------
+    //
+    // These all throw, but the crowd and collision control inputs (and Obstacle) still call them and
+    // will throw the moment those paths run. Kept explicit because it is the contract they were
+    // written against:
+    //
+    //  * Root*                 -- the synthesized root's motion state in world space.
+    //  * Set*Adjustment        -- nudge the root off what the database produced, for collision
+    //                             response and crowd steering, blended in rather than jumped.
+    //  * Get*Feature           -- read back the trajectory being predicted, to steer against it.
+    //
+    // Root motion now lives in RootMotionCorrectionStage and the trajectory in the motion matching
+    // stage's query vector, so finishing this means routing to those, not adding state here.
+
+    public float3 RootVelocity { get; protected set; }
+    public float3 RootAngularVelocity { get; protected set; }
+    public float3 RootPosition { get; protected set; }
+    public quaternion RootRotation { get; protected set; }
 
     public void SetRotAdjustment(quaternion adjustmentRotation)
     {

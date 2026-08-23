@@ -4,10 +4,22 @@ using Unity.Jobs;
 
 namespace MotionMatching
 {
+/// <summary>
+/// The default search. Skips whole runs of the database using a two-level hierarchy of axis-aligned
+/// bounding boxes over the feature vectors: if the closest possible point of a box is already
+/// farther than the best distance so far, no frame inside it can win and the whole box is dropped.
+/// Same result as <see cref="LinearMotionMatchingSearch"/>, reached by touching far fewer frames.
+/// </summary>
+/// <remarks>
+/// Each box covers a run of <em>consecutive</em> frames rather than a spatial cluster — cheap to
+/// build and index, and effective because consecutive frames have similar features. Traversal is in
+/// <see cref="BVHMotionMatchingSearchBurst"/>. The boxes belong to the <see cref="FeatureSet"/>, so
+/// they are not disposed here.
+/// </remarks>
 [Serializable]
 public class BvhMotionMatchingSearch : MotionMatchingSearch
 {
-    // Acceleration Structure
+    // Two nesting levels of bounding box, coarse ("large") over groups of the fine ("small") ones.
     private NativeArray<float> _largeBoundingBoxMin;
     private NativeArray<float> _largeBoundingBoxMax;
     private NativeArray<float> _smallBoundingBoxMin;

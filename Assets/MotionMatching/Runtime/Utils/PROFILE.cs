@@ -11,6 +11,16 @@ using Debug = UnityEngine.Debug;
 
 namespace MotionMatching
 {
+    /// <summary>
+    /// Hand-rolled timing for the motion matching hot path, kept separate from Unity's profiler
+    /// because it accumulates min/max/rolling-average across frames rather than showing one frame at
+    /// a time — which is what matters for a search whose cost swings with the query.
+    /// </summary>
+    /// <remarks>
+    /// Compiled out entirely unless PROFILE_MOTION_MATCHING is defined at the top of this file, so
+    /// instrumentation can be left in permanently at zero cost. SHOUTING_CASE names are intentional:
+    /// they make instrumentation stand out from the code being measured.
+    /// </remarks>
     public static class PROFILE
     {
 #if PROFILE_MOTION_MATCHING

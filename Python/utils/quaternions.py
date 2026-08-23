@@ -1,3 +1,10 @@
+"""
+Quaternion helpers for the motion field's blending.
+
+Everything here uses xyzw component order, matching the packed pose layout the Unity
+side writes -- not the wxyz order much of the quaternion literature assumes.
+"""
+
 import numpy as np
 
 
@@ -9,6 +16,13 @@ def blend_quaternions(quaternions, weights, axis=0):
     :param weights: A numpy array of weights. Can be 1D or match the shape of quaternions (excluding the last dimension).
     :param axis: The axis along which to blend the quaternions when weights are 1D. Ignored otherwise.
     :return: A blended and normalized numpy array of quaternions with the blended axis collapsed.
+
+    NLERP rather than SLERP because SLERP only handles two rotations, while blending a
+    KNN neighbourhood means combining k at once. The cost is a non-constant angular
+    rate, which does not matter when the neighbours are already close together.
+
+    Signs are aligned against the first quaternion first: q and -q are the same
+    rotation, so without that two near-equal neighbours can cancel instead of reinforce.
     """
 
     quats = np.asarray(quaternions, dtype=np.float64)

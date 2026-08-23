@@ -5,6 +5,15 @@ using AnimationTools.Editor;
 
 namespace MotionMatching
 {
+/// <summary>
+/// Inspector for a <see cref="MotionMatchingData"/> asset: authoring the animation clips, the
+/// skeleton and the feature configuration, and the button that bakes it all into the database files
+/// the runtime loads.
+/// </summary>
+/// <remarks>
+/// The asset is a recipe, not the data. Edits take effect only when <see cref="GenerateDatabases"/>
+/// runs, and stale generated files are not detected, so regenerate after any change.
+/// </remarks>
 [CustomEditor(typeof(MotionMatchingData))]
 public class MotionMatchingDataEditor : UnityEditor.Editor
 {
@@ -22,6 +31,15 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     private SerializedProperty _trajectoryFeaturesProperty;
     private SerializedProperty _poseFeaturesProperty;
 
+    /// <summary>
+    /// Bakes the asset's configuration into the two files the runtime loads, and the one the Python
+    /// side reads.
+    /// </summary>
+    /// <remarks>
+    /// The steps depend on each other, so the order is fixed: extract poses, serialize them
+    /// (.mmpose — also what the Python side reads), compute joint forward axes, extract the features
+    /// derived from those poses, serialize those too.
+    /// </remarks>
     public void GenerateDatabases(MotionMatchingData mmData)
     {
         PROFILE.BEGIN_SAMPLE_PROFILING("Pose Extract");

@@ -4,6 +4,15 @@ using UnityEngine;
 
 namespace MotionMatching
 {
+    /// <summary>
+    /// Scene-wide registry of <see cref="Obstacle"/>s, so crowd control inputs can find who to avoid
+    /// without each searching the scene itself.
+    /// </summary>
+    /// <remarks>
+    /// Runs early (order -1000) so obstacles have somewhere to register before control inputs look
+    /// for them. Membership changes are announced once in LateUpdate, so a batch of spawns costs
+    /// subscribers one rebuild instead of one each.
+    /// </remarks>
     [DefaultExecutionOrder(-1000)]
     public class ObstacleManager : MonoBehaviour
     {

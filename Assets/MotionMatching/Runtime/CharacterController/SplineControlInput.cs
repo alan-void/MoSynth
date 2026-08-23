@@ -7,18 +7,34 @@ using UnityEngine.Splines;
 
 namespace MotionMatching
 {
+/// <summary>
+/// Follows a spline at constant speed, looping. The trajectory is read straight off the spline
+/// rather than simulated, which makes this what <see cref="AnimationTools.PathFollowingMetric"/>
+/// drives.
+/// </summary>
+/// <remarks>
+/// Nothing here reacts to where the character actually is — the point on the spline advances on its
+/// own clock, so drift shows up as measurable path-following error instead of being steered out.
+/// That is what makes it a measurement tool. <see cref="CrowdSplineControlInput"/> steers.
+/// </remarks>
 public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSplineControlInput
 {
     [FormerlySerializedAs("TrajectoryPositionFeatureName")] public string trajectoryPositionFeatureName = "FuturePosition";
     [FormerlySerializedAs("TrajectoryDirectionFeatureName")] public string trajectoryDirectionFeatureName = "FutureDirection";
 
     [FormerlySerializedAs("SplineContainer")] public SplineContainer splineContainer;
+
+    [Tooltip("Travel speed along the spline, in m/s.")]
     [FormerlySerializedAs("Speed")] public float speed = 1.0f;
 
     public SplineContainer SplineContainer { get => splineContainer; set => splineContainer = value; }
     public float TargetSpeed => speed;
 
-    private float _;
+    /// <summary>
+    /// Position along the spline, normalized to 0..1 and wrapped. Distances must be divided by the
+    /// spline's length before being added to it.
+    /// </summary>
+    private float _splineT;
 
     private float2 _currentPosition;
     private float2 _currentDirection;
@@ -76,28 +92,35 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         _predictedDirections = new float2[NumberPredictionRot];
     }
 
+    /// <summary>
+    /// Samples the spline now and at each prediction horizon. Directions come from a short step
+    /// further along rather than the analytic tangent, keeping position and direction consistent.
+    /// </summary>
     protected override void OnUpdate()
     {
-        float speed = this.speed / splineContainer.CalculateLength();
+        // Spline parameters are normalized, so metres per second becomes spline-fraction per second.
+        var normalizedSpeed = speed / splineContainer.CalculateLength();
 
-        float delta = speed * DatabaseDeltaTime * 0.1f;
+        // Lookahead used for the finite-difference direction. Small relative to a frame's travel, so
+        // it measures the tangent rather than a chord across curvature.
+        var directionSampleStep = normalizedSpeed * DatabaseDeltaTime * 0.1f;
 
-        float3 pos = splineContainer.EvaluatePosition(_);
+        float3 pos = splineContainer.EvaluatePosition(_splineT);
         _currentPosition = pos.xz;
-        float3 nextPos = splineContainer.EvaluatePosition(math.frac(_ + delta));
+        float3 nextPos = splineContainer.EvaluatePosition(math.frac(_splineT + directionSampleStep));
         _currentDirection = math.normalize(new float2(nextPos.x - pos.x, nextPos.z - pos.z));
 
         for (int i = 0; i < NumberPredictionPos; i++)
         {
-            float t = math.frac(_ + _trajectoryPosPredictionFrames[i] * speed * DatabaseDeltaTime);
+            var t = math.frac(_splineT + _trajectoryPosPredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
             float3 predPos = splineContainer.EvaluatePosition(t);
             _predictedPositions[i] = predPos.xz;
-            float3 predNextPos = splineContainer.EvaluatePosition(math.frac(t + delta));
+            float3 predNextPos = splineContainer.EvaluatePosition(math.frac(t + directionSampleStep));
             _predictedDirections[i] = math.normalize(new float2(predNextPos.x - predPos.x, predNextPos.z - predPos.z));
         }
 
-        _ += speed * Time.deltaTime;
-        _ = math.frac(_);
+        _splineT += normalizedSpeed * Time.deltaTime;
+        _splineT = math.frac(_splineT);
     }
 
     public quaternion GetCurrentRotation()

@@ -5,13 +5,25 @@ using Unity.Mathematics;
 
 namespace MotionMatching
 {
+    /// <summary>
+    /// How many consecutive database frames each level of bounding box covers. Boxes group frames
+    /// by index, not by proximity in feature space, so box <c>k</c> of a level spans frames
+    /// <c>[k * size, (k + 1) * size)</c> and box membership is pure integer division.
+    /// </summary>
     public static class BVHConsts
     {
         public static readonly int LargeBVHSize = 64;
         public static readonly int SmallBVHSize = 16;
     }
 
-    // AABB 2-layer BVH Acceleration Structure
+    /// <summary>
+    /// Builds the acceleration structure: for each run of frames, the per-dimension min and max of
+    /// their feature vectors. Run once when the <see cref="FeatureSet"/> is prepared.
+    /// </summary>
+    /// <remarks>
+    /// Small boxes nest inside large ones only because <see cref="BVHConsts.LargeBVHSize"/> is a
+    /// multiple of <see cref="BVHConsts.SmallBVHSize"/>. The search relies on that; keep it true.
+    /// </remarks>
     [BurstCompile]
     public struct BVHMotionMatchingComputeBounds : IJob
     {
@@ -57,7 +69,20 @@ namespace MotionMatching
         }
     }
 
-    // Burst-based job for linearly search the best feature vector given a query feature vector
+    /// <summary>
+    /// Finds the closest database frame to a query vector, using the bounding boxes to skip runs of
+    /// frames wholesale.
+    /// </summary>
+    /// <remarks>
+    /// Three nested loops, one per level: large box, small box, then frames. Each level applies the
+    /// same test — the distance to the box's nearest point is a lower bound on the distance to
+    /// anything inside it, so once that reaches the best distance so far, the whole box is skipped.
+    /// The dimension loops break early for the same reason: the running sum only grows.
+    /// <para>
+    /// <see cref="CurrentDistance"/> seeds the best, so a query nothing beats leaves
+    /// <see cref="BestIndex"/> at -1: keep playing what is playing.
+    /// </para>
+    /// </remarks>
     [BurstCompile]
     public struct BVHMotionMatchingSearchBurst : IJob
     {

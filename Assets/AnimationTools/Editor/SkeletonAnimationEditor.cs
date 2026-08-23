@@ -9,9 +9,15 @@ using UnityEditor.SceneManagement;
 
 namespace AnimationTools.Editor
 {
+    /// <summary>
+    /// Inspector for a <see cref="SkeletonAnimation"/>, with a scrubbable preview that draws the
+    /// skeleton as lines in an off-screen render, so a baked animation can be checked without
+    /// instantiating a rig in the scene.
+    /// </summary>
     [CustomEditor(typeof(SkeletonAnimation))]
     public class SkeletonAnimationEditor : UnityEditor.Editor
     {
+        // Off-screen scene used to draw the preview: its own camera, lights and render texture.
         private PreviewRenderUtility _previewRenderUtility;
         private SkeletonAnimation _skeletonAnimation;
         private bool _isPlaying = false;

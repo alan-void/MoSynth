@@ -7,6 +7,15 @@ using System.IO;
 
 namespace AnimationTools
 {
+    /// <summary>
+    /// Reads and writes the Unity.Mathematics types <see cref="BinaryWriter"/> has no overloads for.
+    /// </summary>
+    /// <remarks>
+    /// Components in order, little-endian float32, no length prefix or padding — arrays are just
+    /// their elements back to back, which is why the Read*Array methods need a length. That plain
+    /// layout is what lets the Python side read these with one <c>numpy.fromfile</c> and a reshape.
+    /// Quaternions are xyzw throughout.
+    /// </remarks>
     public class BinarySerializerExtensions
     {
         public static void WriteFloat2(BinaryWriter writer, float2 value)

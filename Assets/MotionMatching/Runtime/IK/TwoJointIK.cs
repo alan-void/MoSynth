@@ -5,6 +5,11 @@ using UnityEngine;
 
 namespace MotionMatching
 {
+    /// <summary>
+    /// Analytic two-bone IK: places a three-joint chain so its end lands on a target, in closed form
+    /// rather than by iteration. The classic use is planting a foot on uneven ground after synthesis
+    /// has produced a pose that floats or sinks.
+    /// </summary>
     public static class TwoJointIK
     {
         /// <summary>
@@ -13,6 +18,16 @@ namespace MotionMatching
         /// a can be seen as the root/hips, b as the knee, c as the ankle,
         /// and the forward can be seen as the knee forward.
         /// </summary>
+        /// <remarks>
+        /// Two stages. <em>Extension</em>: the cosine rule gives the interior angles that make the
+        /// chain exactly as long as the distance to the target, and A and B rotate by the difference.
+        /// <em>Aiming</em>: with the length right, A rotates once more to swing onto the target
+        /// direction. An unreachable target is pulled in to the limit rather than failing.
+        /// </remarks>
+        /// <param name="forward">
+        /// Which way the middle joint bends. Otherwise ambiguous — the chain can hinge anywhere on a
+        /// circle around the A-to-target axis — so this is what picks a forward-bending knee.
+        /// </param>
         public static void Solve(float3 targetPos, Transform jointA, Transform jointB, Transform jointC, float3 forward)
         {
             float lengthAB = math.distance(jointA.position, jointB.position);
@@ -68,6 +83,10 @@ namespace MotionMatching
             jointB.rotation = math.mul(jointB.rotation, rotB);
         }
 
+        /// <summary>
+        /// Reachable distance to the target, clamped to the chain's length. Held an epsilon short at
+        /// both ends, since at full extension or full fold the cosine rule above is degenerate.
+        /// </summary>
         private static float GetLengthAT(float3 targetPos, float3 aPos, float lengthAB, float lengthBC)
         {
             const float epsilon = 0.001f;

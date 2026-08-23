@@ -7,18 +7,39 @@ using UnityEngine.Serialization;
 
 namespace MotionMatching
 {
-// Adjustment between Character Controller and Motion Matching Character Entity
-/* https://theorangeduck.com/page/code-vs-data-driven-displacement */
-
+/// <summary>
+/// Stick/WASD control, and the simplest example of the model described on
+/// <see cref="MotionMatchingControlInput"/>.
+/// </summary>
+/// <remarks>
+/// A spring moves this component's Transform toward the velocity the stick asks for, smoothing the
+/// jerky input into something a body could do. Running that same spring further ahead, with no new
+/// input, is what produces the predicted trajectory.
+/// <para>
+/// Maths from <a href="https://theorangeduck.com/page/spring-roll-call#controllers">spring roll
+/// call</a>.
+/// </para>
+/// </remarks>
 public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesisDirectionControlInput
 {
-    [Header("Features")] public string trajectoryPositionFeatureName = "FuturePosition";
+    [Header("Features")]
+    [Tooltip("Name of the database trajectory feature holding future positions.")]
+    public string trajectoryPositionFeatureName = "FuturePosition";
 
+    [Tooltip("Name of the database trajectory feature holding future facing directions.")]
     public string trajectoryDirectionFeatureName = "FutureDirection";
 
-    [Header("General")] public float maxSpeed = 1.0f;
+    [Header("General")]
+    [Tooltip("Speed at full stick deflection, in m/s.")]
+    public float maxSpeed = 1.0f;
+
+    [Tooltip("How hard the position spring pulls toward the desired velocity. 1 = snap, 0 = ignore input.")]
     [Range(0.0f, 1.0f)] public float responsivenessPositions = 0.75f;
+
+    [Tooltip("How hard the facing spring turns toward the input direction. 1 = snap, 0 = never turn.")]
     [Range(0.0f, 1.0f)] public float responsivenessDirections = 0.75f;
+
+    [Tooltip("Speed below which the simulation object stops being moved at all, so it settles cleanly.")]
     public float minimumVelocityClamp = 0.01f;
 
     [Tooltip(
@@ -26,56 +47,65 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     [Range(-1.0f, 1.0f)]
     public float inputBigChangeThreshold = 0.5f;
 
-    [Range(0.0f, 2.0f)] public float
-        positionAdjustmentHalflife =
-            0.1f; // Time needed to move half of the distance between MotionMatching and the CharacterController
+    // Settings for the reconciliation methods further down, which are not currently called.
 
+    [Tooltip("Time to close half the gap between the synthesized character and this simulation object.")]
+    [Range(0.0f, 2.0f)] public float positionAdjustmentHalflife = 0.1f;
+
+    [Tooltip("As positionAdjustmentHalflife, for facing.")]
     [FormerlySerializedAs("rotationAdjustmentHalflife")] [Range(0.0f, 2.0f)]
     public float rotationAdjustmentHalfLife = 0.1f;
 
-    [Range(0.0f, 2.0f)] public float
-        posMaximumAdjustmentRatio =
-            0.1f; // Ratio between the adjustment and the character's velocity to clamp the adjustment
+    [Tooltip("Caps the per-frame correction to this fraction of the character's own travel, so it " +
+             "never outruns the animation and looks like sliding.")]
+    [Range(0.0f, 2.0f)] public float posMaximumAdjustmentRatio = 0.1f;
 
-    [Range(0.0f, 2.0f)] public float
-        rotMaximumAdjustmentRatio =
-            0.1f; // Ratio between the adjustment and the character's velocity to clamp the adjustment
+    [Tooltip("As posMaximumAdjustmentRatio, against angular velocity.")]
+    [Range(0.0f, 2.0f)] public float rotMaximumAdjustmentRatio = 0.1f;
 
     public bool doClamping = true;
 
-    [Range(0.0f, 2.0f)] public float
-        maxDistanceMmAndCharacterController = 0.1f; // Max distance between MotionMatching and the CharacterController
+    [Tooltip("Hard leash: how far the synthesized character may drift from this simulation object, in metres.")]
+    [Range(0.0f, 2.0f)] public float maxDistanceMmAndCharacterController = 0.1f;
 
     [Header("DEBUG")] public bool debugCurrent = true;
     public bool debugPrediction = true;
     public bool debugClamping = true;
-    // --------------------------------------------------------------------------
 
-    // PRIVATE ------------------------------------------------------------------
-    // Input --------------------------------------------------------------------
+    // --- Input ----------------------------------------------------------------------------------
+
+    /// <summary>Latest stick/WASD vector, in the XZ plane. Length scales speed up to <see cref="maxSpeed"/>.</summary>
     private float2 _inputMovement;
 
+    /// <summary>While set, the character keeps its facing and strafes instead of turning to face travel.</summary>
     private bool _orientationFixed;
 
-    // Rotation and Predicted Rotation ------------------------------------------
-    private quaternion _desiredRotation; // Desired Rotation/Direction
+    // --- Facing: current spring state, then one predicted state per horizon ----------------------
+
+    /// <summary>Where the facing spring is being pulled toward, i.e. the input direction.</summary>
+    private quaternion _desiredRotation;
+
     private quaternion[] _predictedRotations;
     private float3 _angularVelocity;
-
     private float3[] _predictedAngularVelocities;
 
-    // Position and Predicted Position ------------------------------------------
+    // --- Position: current spring state, then one predicted state per horizon --------------------
+
     private float2[] _predictedPosition;
     private float2 _velocity;
     private float2[] _predictedVelocity;
     private float2 _acceleration;
-
     private float2[] _predictedAcceleration;
 
-    // Features -----------------------------------------------------------------
+    // --- Resolved database feature layout, cached in Start --------------------------------------
+
     private int _trajectoryPosFeatureIndex;
     private int _trajectoryRotFeatureIndex;
+
+    /// <summary>Horizons, in database frames, that the position feature predicts at.</summary>
     private int[] _trajectoryPosPredictionFrames;
+
+    /// <summary>Horizons, in database frames, that the direction feature predicts at.</summary>
     private int[] _trajectoryRotPredictionFrames;
 
     private int NumberPredictionPos
@@ -88,6 +118,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         get { return _trajectoryRotPredictionFrames.Length; }
     }
 
+    /// <summary>Resolves the named trajectory features and sizes the prediction arrays.</summary>
     private void Start()
     {
         // Get the feature indices
@@ -126,7 +157,10 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         _predictedAngularVelocities = new float3[NumberPredictionRot];
     }
 
-    // Input a change in the movement direction
+    /// <summary>
+    /// Feeds in a new movement direction; nothing here polls the device. A sharp enough reversal
+    /// forces an immediate search, so the character does not keep running the wrong way.
+    /// </summary>
     public void SetMovementDirection(Vector2 movementDirection)
     {
         var prevInputMovement = _inputMovement;
@@ -146,11 +180,13 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         }
     }
 
+    /// <summary>Toggles strafing: facing stops following the movement direction.</summary>
     public void SwapFixOrientation()
     {
         _orientationFixed = !_orientationFixed;
     }
 
+    /// <summary>Advances the simulation object one frame and refreshes the predicted trajectory.</summary>
     protected override void OnUpdate()
     {
         // Rotations
@@ -178,6 +214,10 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         // if (DoClamping) ClampMotionMatching();
     }
 
+    /// <summary>
+    /// Facing at each horizon. The same spring as <see cref="ComputeNewRot"/>, jumped straight to
+    /// each horizon in one step — the implicit form is exact at any step size.
+    /// </summary>
     private void PredictRotations(quaternion currentRotation, float averagedDeltaTime)
     {
         for (var i = 0; i < NumberPredictionRot; i++)
@@ -192,6 +232,10 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         }
     }
 
+    /// <summary>
+    /// Position at each horizon. Unlike facing, these must be chained — each horizon continues from
+    /// the previous one, because this spring carries acceleration and cannot be jumped.
+    /// </summary>
     /* https://theorangeduck.com/page/spring-roll-call#controllers */
     private void PredictPositions(float2 currentPos, float2 desiredSpeed, float averagedDeltaTime)
     {
@@ -235,6 +279,11 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         return newPos;
     }
 
+    // Pulling the synthesized character back to the simulation object, which the search alone does
+    // not keep in sync. None of the three run today: they need the unimplemented adjustment API on
+    // MotionSynthesisComponent -- see the comment there.
+
+    /// <summary>Hard leash, capped at <see cref="maxDistanceMmAndCharacterController"/>.</summary>
     private void ClampMotionMatching()
     {
         // Clamp Position
@@ -249,6 +298,10 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         }
     }
 
+    /// <summary>
+    /// Soft pull toward the simulation object, damped and capped relative to how far the character
+    /// is actually travelling, so the correction hides in the motion instead of looking like sliding.
+    /// </summary>
     private void AdjustCharacterPosition()
     {
         float3 characterController = transform.position;
@@ -269,6 +322,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         motionSynthesizer.SetPosAdjustment(adjustmentPosition);
     }
 
+    /// <summary>As <see cref="AdjustCharacterPosition"/>, for facing.</summary>
     private void AdjustCharacterRotation()
     {
         quaternion characterController = transform.rotation;
@@ -303,9 +357,12 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         return transform.position;
     }
 
+    /// <summary>
+    /// One horizon of one trajectory feature, converted into the simulation bone's frame. Y is
+    /// dropped — the trajectory is a ground-plane path, so each value is two floats.
+    /// </summary>
     // TODO: the trajectory construction should be inside the animation system
     // and not the character controller. Move it
-
     public override void GetTrajectoryFeature(
         TrajectoryFeatureChannel feature, int index,
         Transform character, Span<float> output

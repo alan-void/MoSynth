@@ -5,69 +5,86 @@ using UnityEngine;
 
 namespace MotionMatching
 {
+/// <summary>
+/// Walks a closed polyline of waypoints. The straight-line counterpart to
+/// <see cref="SplineControlInput"/>, with a per-segment speed, which makes it the easy way to script
+/// a route with deliberate speed changes.
+/// </summary>
+/// <remarks>
+/// Waypoints are in local XZ, so moving the GameObject moves the route. The last connects back to
+/// the first.
+/// </remarks>
 public class PathControlInput : MotionMatchingControlInput
 {
-    public string TrajectoryPositionFeatureName = "FuturePosition";
-    public string TrajectoryDirectionFeatureName = "FutureDirection";
-    public KeyPoint[] Path; // The key points of the path
+    public string trajectoryPositionFeatureName = "FuturePosition";
+    public string trajectoryDirectionFeatureName = "FutureDirection";
 
-    private int CurrentKeyPoint; // The current key point index
-    private float CurrentKeyPointT; // [0..1] which part of the current keypoint is the character currently at
+    [Tooltip("Waypoints of the route, in local XZ. Wraps from the last back to the first.")]
+    public KeyPoint[] path;
 
-    private float2 CurrentPosition;
-    private float2 CurrentDirection;
-    private float2[] PredictedPositions;
-    private float2[] PredictedDirections;
-    private float TargetVelocity;
+    // Position along the route, split into "which segment" and "how far along it".
+    private int _currentKeyPoint;
+
+    /// <summary>[0..1] which part of the current keypoint is the character currently at</summary>
+    private float _currentKeyPointT;
+
+    private float2 _currentPosition;
+    private float2 _currentDirection;
+    private float2[] _predictedPositions;
+    private float2[] _predictedDirections;
+
+    /// <summary>Speed of the segment currently being walked. Set as a side effect of
+    /// <see cref="SimulatePath"/>, so it reflects the most recent call.</summary>
+    private float _targetVelocity;
 
     // Features -----------------------------------------------------------------
-    private int TrajectoryPosFeatureIndex;
-    private int TrajectoryRotFeatureIndex;
-    private int[] TrajectoryPosPredictionFrames;
-    private int[] TrajectoryRotPredictionFrames;
+    private int _trajectoryPosFeatureIndex;
+    private int _trajectoryRotFeatureIndex;
+    private int[] _trajectoryPosPredictionFrames;
+    private int[] _trajectoryRotPredictionFrames;
 
     private int NumberPredictionPos
     {
-        get { return TrajectoryPosPredictionFrames.Length; }
+        get { return _trajectoryPosPredictionFrames.Length; }
     }
 
     private int NumberPredictionRot
     {
-        get { return TrajectoryRotPredictionFrames.Length; }
+        get { return _trajectoryRotPredictionFrames.Length; }
     }
     // --------------------------------------------------------------------------
 
     private void Start()
     {
         // Get the feature indices
-        TrajectoryPosFeatureIndex = -1;
-        TrajectoryRotFeatureIndex = -1;
+        _trajectoryPosFeatureIndex = -1;
+        _trajectoryRotFeatureIndex = -1;
         for (int i = 0; i < motionSynthesizer.GetMmData().trajectoryFeatures.Count; ++i)
         {
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
-                TrajectoryPosFeatureIndex = i;
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
-                TrajectoryRotFeatureIndex = i;
+            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == trajectoryPositionFeatureName)
+                _trajectoryPosFeatureIndex = i;
+            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == trajectoryDirectionFeatureName)
+                _trajectoryRotFeatureIndex = i;
         }
 
-        Debug.Assert(TrajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
-        Debug.Assert(TrajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
+        Debug.Assert(_trajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
+        Debug.Assert(_trajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
 
-        TrajectoryPosPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
+        _trajectoryPosPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[_trajectoryPosFeatureIndex]
             .predictionFrames;
-        TrajectoryRotPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
+        _trajectoryRotPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[_trajectoryRotFeatureIndex]
             .predictionFrames;
         // TODO: generalize this, allow for different number of prediction frames
-        Debug.Assert(TrajectoryPosPredictionFrames.Length == TrajectoryRotPredictionFrames.Length,
+        Debug.Assert(_trajectoryPosPredictionFrames.Length == _trajectoryRotPredictionFrames.Length,
             "Trajectory Position and Trajectory Direction Prediction Frames must be the same for PathCharacterController");
-        for (int i = 0; i < TrajectoryPosPredictionFrames.Length; ++i)
+        for (int i = 0; i < _trajectoryPosPredictionFrames.Length; ++i)
         {
-            Debug.Assert(TrajectoryPosPredictionFrames[i] == TrajectoryRotPredictionFrames[i],
+            Debug.Assert(_trajectoryPosPredictionFrames[i] == _trajectoryRotPredictionFrames[i],
                 "Trajectory Position and Trajectory Direction Prediction Frames must be the same for PathCharacterController");
         }
 
-        PredictedPositions = new float2[NumberPredictionPos];
-        PredictedDirections = new float2[NumberPredictionRot];
+        _predictedPositions = new float2[NumberPredictionPos];
+        _predictedDirections = new float2[NumberPredictionRot];
     }
 
     protected override void OnUpdate()
@@ -75,17 +92,26 @@ public class PathControlInput : MotionMatchingControlInput
         // Predict the future positions and directions
         for (int i = 0; i < NumberPredictionPos; i++)
         {
-            SimulatePath(DatabaseDeltaTime * TrajectoryPosPredictionFrames[i], CurrentKeyPoint, CurrentKeyPointT,
+            SimulatePath(DatabaseDeltaTime * _trajectoryPosPredictionFrames[i], _currentKeyPoint, _currentKeyPointT,
                 out _, out _,
-                out PredictedPositions[i], out PredictedDirections[i]);
+                out _predictedPositions[i], out _predictedDirections[i]);
         }
 
         // Update Current Position and Direction
-        SimulatePath(Time.deltaTime, CurrentKeyPoint, CurrentKeyPointT,
-            out CurrentKeyPoint, out CurrentKeyPointT,
-            out CurrentPosition, out CurrentDirection);
+        SimulatePath(Time.deltaTime, _currentKeyPoint, _currentKeyPointT,
+            out _currentKeyPoint, out _currentKeyPointT,
+            out _currentPosition, out _currentDirection);
     }
 
+    /// <summary>
+    /// Walks forward by <paramref name="remainingTime"/> seconds from a given point and reports where
+    /// that lands. Does not mutate route state, so the same call both advances the character and
+    /// looks ahead to a prediction horizon.
+    /// </summary>
+    /// <remarks>
+    /// Time is consumed segment by segment, since each can have its own speed and a long lookahead
+    /// may cross several.
+    /// </remarks>
     private void SimulatePath(float remainingTime, int currentKeypoint, float currentKeyPointT,
         out int nextKeypoint, out float nextKeyPointTime,
         out float2 nextPos, out float2 nextDir)
@@ -95,8 +121,8 @@ public class PathControlInput : MotionMatchingControlInput
         nextDir = float2.zero;
         if (remainingTime <= 0)
         {
-            KeyPoint current = Path[currentKeypoint];
-            KeyPoint next = Path[(currentKeypoint + 1) % Path.Length];
+            KeyPoint current = path[currentKeypoint];
+            KeyPoint next = path[(currentKeypoint + 1) % path.Length];
             float2 dir = next.Position - current.Position;
             nextPos = current.Position + dir * currentKeyPointT;
             nextDir = math.normalize(dir);
@@ -105,20 +131,20 @@ public class PathControlInput : MotionMatchingControlInput
         // Loop until the character has moved enough
         while (remainingTime > 0)
         {
-            KeyPoint current = Path[currentKeypoint];
-            TargetVelocity = current.Velocity;
-            KeyPoint next = Path[(currentKeypoint + 1) % Path.Length];
+            KeyPoint current = path[currentKeypoint];
+            _targetVelocity = current.Velocity;
+            KeyPoint next = path[(currentKeypoint + 1) % path.Length];
             float2 dir = next.Position - current.Position;
             float2 dirNorm = math.normalize(dir);
             float2 currentPos = current.Position + dir * currentKeyPointT;
             float timeToNext =
-                math.distance(currentPos, next.Position) / TargetVelocity; // Time needed to get to the next keypoint
+                math.distance(currentPos, next.Position) / _targetVelocity; // Time needed to get to the next keypoint
             float dt = math.min(remainingTime, timeToNext);
             remainingTime -= dt;
             if (remainingTime <= 0)
             {
                 // Move
-                currentPos += dirNorm * TargetVelocity * dt;
+                currentPos += dirNorm * _targetVelocity * dt;
                 currentKeyPointT = math.distance(current.Position, currentPos) /
                                    math.distance(current.Position, next.Position);
                 nextPos = currentPos;
@@ -127,7 +153,7 @@ public class PathControlInput : MotionMatchingControlInput
             else
             {
                 // Advance to next keypoint
-                currentKeypoint = (currentKeypoint + 1) % Path.Length;
+                currentKeypoint = (currentKeypoint + 1) % path.Length;
                 currentKeyPointT = 0;
             }
         }
@@ -140,7 +166,7 @@ public class PathControlInput : MotionMatchingControlInput
 
     public quaternion GetCurrentRotation()
     {
-        Quaternion rot = Quaternion.LookRotation(new Vector3(CurrentDirection.x, 0, CurrentDirection.y));
+        Quaternion rot = Quaternion.LookRotation(new Vector3(_currentDirection.x, 0, _currentDirection.y));
         return rot * transform.rotation;
     }
 
@@ -170,39 +196,43 @@ public class PathControlInput : MotionMatchingControlInput
 
     private float2 GetWorldPredictedPos(int index)
     {
-        return PredictedPositions[index] + new float2(transform.position.x, transform.position.z);
+        return _predictedPositions[index] + new float2(transform.position.x, transform.position.z);
     }
 
     private float2 GetWorldPredictedDir(int index)
     {
-        return PredictedDirections[index];
+        return _predictedDirections[index];
     }
 
     public override float3 GetWorldInitPosition()
     {
-        return new float3(Path[0].Position.x, 0, Path[0].Position.y) + (float3)transform.position;
+        return new float3(path[0].Position.x, 0, path[0].Position.y) + (float3)transform.position;
     }
 
     public override float3 GetWorldInitDirection()
     {
-        float2 dir = Path.Length > 0 ? Path[1].Position - Path[0].Position : new float2(0, 1);
+        float2 dir = path.Length > 0 ? path[1].Position - path[0].Position : new float2(0, 1);
         return math.normalize(new float3(dir.x, 0, dir.y));
     }
 
     public override float3 GetPosition()
     {
-        return transform.position + new Vector3(CurrentPosition.x, 0, CurrentPosition.y);
+        return transform.position + new Vector3(_currentPosition.x, 0, _currentPosition.y);
     }
 
     public override float GetTargetSpeed()
     {
-        return TargetVelocity;
+        return _targetVelocity;
     }
 
+    /// <summary>One waypoint of the route, and the speed to travel the segment that starts at it.</summary>
     [Serializable]
     public struct KeyPoint
     {
+        /// <summary>Waypoint in the component's local XZ plane.</summary>
         public float2 Position;
+
+        /// <summary>Speed in m/s along the segment from this waypoint to the next. A scalar, not a vector.</summary>
         public float Velocity;
 
         public float3 GetWorldPosition(Transform transform)
@@ -214,51 +244,51 @@ public class PathControlInput : MotionMatchingControlInput
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        if (Path == null) return;
+        if (path == null) return;
 
         const float heightOffset = 0.01f;
 
         // Draw KeyPoints
         Gizmos.color = Color.red;
-        for (int i = 0; i < Path.Length; i++)
+        for (int i = 0; i < path.Length; i++)
         {
-            float3 pos = Path[i].GetWorldPosition(transform);
+            float3 pos = path[i].GetWorldPosition(transform);
             Gizmos.DrawSphere(new Vector3(pos.x, heightOffset, pos.z), 0.1f);
         }
 
-        // Draw Path
+        // Draw path
         Gizmos.color = new Color(0.5f, 0.0f, 0.0f, 1.0f);
-        for (int i = 0; i < Path.Length - 1; i++)
+        for (int i = 0; i < path.Length - 1; i++)
         {
-            float3 pos = Path[i].GetWorldPosition(transform);
-            float3 nextPos = Path[i + 1].GetWorldPosition(transform);
+            float3 pos = path[i].GetWorldPosition(transform);
+            float3 nextPos = path[i + 1].GetWorldPosition(transform);
             GizmosExtensions.DrawLine(new Vector3(pos.x, heightOffset, pos.z),
                 new Vector3(nextPos.x, heightOffset, nextPos.z), 6);
         }
 
         // Last Line
-        float3 lastPos = Path[Path.Length - 1].GetWorldPosition(transform);
-        float3 firstPos = Path[0].GetWorldPosition(transform);
+        float3 lastPos = path[path.Length - 1].GetWorldPosition(transform);
+        float3 firstPos = path[0].GetWorldPosition(transform);
         GizmosExtensions.DrawLine(new Vector3(lastPos.x, heightOffset, lastPos.z),
             new Vector3(firstPos.x, heightOffset, firstPos.z), 6);
         // Draw Velocity
-        for (int i = 0; i < Path.Length - 1; i++)
+        for (int i = 0; i < path.Length - 1; i++)
         {
-            float3 pos = Path[i].GetWorldPosition(transform);
-            float3 nextPos = Path[i + 1].GetWorldPosition(transform);
+            float3 pos = path[i].GetWorldPosition(transform);
+            float3 nextPos = path[i + 1].GetWorldPosition(transform);
             Vector3 start = new Vector3(pos.x, heightOffset, pos.z);
             Vector3 end = new Vector3(nextPos.x, heightOffset, nextPos.z);
             GizmosExtensions.DrawArrow(start,
-                start + (end - start).normalized * math.min(Path[i].Velocity, math.distance(pos, nextPos)),
+                start + (end - start).normalized * math.min(path[i].Velocity, math.distance(pos, nextPos)),
                 thickness: 6);
         }
 
         // Last Line
-        float3 lastPos2 = Path[Path.Length - 1].GetWorldPosition(transform);
-        float3 firstPos2 = Path[0].GetWorldPosition(transform);
+        float3 lastPos2 = path[path.Length - 1].GetWorldPosition(transform);
+        float3 firstPos2 = path[0].GetWorldPosition(transform);
         Vector3 start2 = new Vector3(lastPos2.x, heightOffset, lastPos2.z);
         Vector3 end2 = new Vector3(firstPos2.x, heightOffset, firstPos2.z);
-        GizmosExtensions.DrawArrow(start2, start2 + (end2 - start2).normalized * Path[Path.Length - 1].Velocity,
+        GizmosExtensions.DrawArrow(start2, start2 + (end2 - start2).normalized * path[path.Length - 1].Velocity,
             thickness: 3);
 
         // Draw Current Position And Direction
@@ -268,8 +298,8 @@ public class PathControlInput : MotionMatchingControlInput
         Gizmos.DrawSphere(currentPos, 0.1f);
         GizmosExtensions.DrawLine(currentPos, currentPos + (Quaternion)GetCurrentRotation() * Vector3.forward, 12);
         // Draw Prediction
-        if (PredictedPositions == null || PredictedPositions.Length != NumberPredictionPos ||
-            PredictedDirections == null || PredictedDirections.Length != NumberPredictionRot) return;
+        if (_predictedPositions == null || _predictedPositions.Length != NumberPredictionPos ||
+            _predictedDirections == null || _predictedDirections.Length != NumberPredictionRot) return;
         Gizmos.color = new Color(0.6f, 0.3f, 0.8f, 1.0f);
         for (int i = 0; i < NumberPredictionPos; i++)
         {

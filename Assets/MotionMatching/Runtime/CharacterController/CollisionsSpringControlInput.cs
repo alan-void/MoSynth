@@ -5,9 +5,19 @@ using Unity.Mathematics;
 
 namespace MotionMatching
 {
-// Adjustment between Character Controller and Motion Matching Character Entity
-/* https://theorangeduck.com/page/code-vs-data-driven-displacement */
-
+/// <summary>
+/// <see cref="DirectionControlInput"/> plus the physical world: the simulation object is swept
+/// against colliders so it cannot walk through walls, and dropped onto the floor so it follows terrain.
+/// </summary>
+/// <remarks>
+/// Both raycasts act on the simulation object, never on the synthesized character. That way the
+/// trajectory handed to the search already respects the environment, so it picks an animation that
+/// turns along the wall rather than one that walks into it.
+/// <para>
+/// Also the only control input that wires up the reconciliation calls
+/// (<see cref="AdjustMotionMatching"/>), so it is the one to look at when that API is finished.
+/// </para>
+/// </remarks>
 public class CollisionsSpringControlInput : MotionMatchingControlInput
 {
     // Features ----------------------------------------------------------
@@ -54,8 +64,12 @@ public class CollisionsSpringControlInput : MotionMatchingControlInput
         MaxDistanceMMAndCharacterController = 0.1f; // Max distance between MotionMatching and the CharacterController
 
     // Height & Collisions -----------------------------------------------
-    [Header("Height & Collisions")] public float ApproximatedPlayerHeight = 2.0f; // in meters
-    public float CollisionClearance = 0.75f; // in meters
+    [Header("Height & Collisions")]
+    [Tooltip("Character height in metres. Sets how high the wall probe rides and how far the floor probe reaches.")]
+    public float ApproximatedPlayerHeight = 2.0f;
+
+    [Tooltip("How far in metres the simulation object is held off a wall it hits — roughly the character's radius.")]
+    public float CollisionClearance = 0.75f;
     [Header("DEBUG")] public bool DebugCurrent = true;
     public bool DebugPrediction = true;
     public bool DebugClamping = true;
@@ -195,7 +209,15 @@ public class CollisionsSpringControlInput : MotionMatchingControlInput
         UpdateHeight();
     }
 
-    // Return the adjusted nextPos to the nearest obstacle in the line starting at currentPos and finishing at nextPos
+    /// <summary>
+    /// Pulls <paramref name="nextPos"/> out of any wall in the way, leaving
+    /// <see cref="CollisionClearance"/> of gap.
+    /// </summary>
+    /// <remarks>
+    /// The ray starts a step <em>behind</em> the current position, so an object already slightly
+    /// inside geometry still sees the surface instead of starting past it. Surfaces facing more up
+    /// than sideways are ignored — those are floors, handled by <see cref="UpdateHeight"/>.
+    /// </remarks>
     private float2 CheckCollision(float2 nextPos, float2 currentPos)
     {
         var height = transform.position.y + ApproximatedPlayerHeight * 0.1f;
@@ -213,6 +235,10 @@ public class CollisionsSpringControlInput : MotionMatchingControlInput
         return nextPos;
     }
 
+    /// <summary>
+    /// Snaps the simulation object down onto the floor, so it follows terrain. With nothing beneath
+    /// it, falls back to y = 0.
+    /// </summary>
     private void UpdateHeight()
     {
         var floorY = 0.0f;

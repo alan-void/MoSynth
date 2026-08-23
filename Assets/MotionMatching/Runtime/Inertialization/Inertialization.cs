@@ -18,9 +18,27 @@ namespace MotionMatching
 /// Then, we decay this offset using a polynomial function or springs.
 /// Decaying the offset will progressively take us to the target pose.
 /// </summary>
+/// <remarks>
+/// Working on offsets rather than poses is why this blend is used here: only one pose stream is
+/// needed, so an upstream stage can jump anywhere without keeping the abandoned animation alive, and
+/// when nothing has jumped the offset is zero so continuous animation passes through untouched.
+/// <para>
+/// Place after whatever produces pose jumps. It keys off
+/// <see cref="MotionSynthesisComponent.PoseDiscontinuity"/>, so a stage that jumps without raising
+/// that flag will not be smoothed.
+/// </para>
+/// <para>
+/// Loops start at index 1 and hips state is index 1 — see
+/// <see cref="MotionSynthesisComponent.SimulationBoneIndex"/>.
+/// </para>
+/// </remarks>
 [Serializable]
 public class Inertialization : MoSynthStage
 {
+    // OLD_IMPL: state and helpers from the pre-stage API, where a caller drove transitions
+    // explicitly via PoseTransition/*ContactTransition/Update rather than the stage's Apply doing it
+    // from PoseDiscontinuity. The maths at the bottom (InertializeJointTransition /
+    // InertializeJointUpdate) is shared and live; the entry points are not currently called.
     #region OLD_IMPL
 
     [NonSerialized] public quaternion[] InertializedRotations;

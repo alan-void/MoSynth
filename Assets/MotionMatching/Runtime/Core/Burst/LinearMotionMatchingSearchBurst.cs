@@ -7,6 +7,15 @@ using Unity.Mathematics;
 
 namespace MotionMatching
 {
+    /// <summary>
+    /// Brute-force scan for the closest feature vector: scores every valid, unmasked frame and keeps
+    /// the best. Seeded with <see cref="CurrentDistance"/>, so it reports -1 when nothing beats the
+    /// frame already playing.
+    /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="BVHMotionMatchingSearchBurst"/> the inner dimension loop has no early exit
+    /// once the running distance passes the best so far, so every candidate is scored in full.
+    /// </remarks>
     [BurstCompile]
     public struct LinearMotionMatchingSearchBurst : IJob
     {

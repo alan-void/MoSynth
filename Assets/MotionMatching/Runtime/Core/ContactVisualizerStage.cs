@@ -12,19 +12,38 @@ namespace MotionMatching
 /// Read-only pass-through stage that estimates foot-style contact for a set of bones on the
 /// pipeline skeleton and draws it as a gizmo-free debug marker. Never mutates the pose.
 /// </summary>
+/// <remarks>
+/// Same threshold test as <see cref="AnimationTools.PoseExtractor"/> uses when baking contacts, but
+/// not the same velocity — extraction deliberately walks a frozen, slightly wrong parent chain that
+/// the shipped databases were built with. So this is good for getting a feel for a threshold, and
+/// bad for predicting exactly which frames a bake will mark.
+/// </remarks>
 [Serializable]
 public class ContactVisualizerStage : MoSynthStage
 {
+    [Tooltip("Bones to test for contact. Typically toes or feet; any bone works.")]
     [SerializeField] private List<SkeletonBone> contactBones = new();
+
+    [Tooltip("Character-space speed (m/s) below which a bone counts as planted.")]
     [SerializeField] private float contactVelocityThreshold = 0.15f;
+
+    [Tooltip("Size of the debug cross drawn at each contact bone, in metres.")]
     [SerializeField] private float markerSize = 0.08f;
 
     private MotionSynthesisComponent _component;
     private Skeleton _skeleton;
+
+    // A private copy of the pipeline pose, in a layout that adds one Bool channel per configured
+    // contact bone. The pipeline's own layout only carries the two built-in foot contacts, and a
+    // read-only stage must not change the layout everything else shares.
     private PoseBuffer _buffer;
+
     private SkeletonData _skeletonData;
+
+    /// <summary>Set when Init could not bind, after which Apply does nothing.</summary>
     private bool _inert;
 
+    // Parallel arrays: _contactHandles[k] addresses the contact bool for bone _contactBoneIndices[k].
     private ChannelHandle[] _contactHandles;
     private int[] _contactBoneIndices;
 

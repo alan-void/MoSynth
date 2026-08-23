@@ -7,14 +7,35 @@ using Unity.Collections;
 
 namespace MotionMatching
 {
+/// <summary>
+/// <see cref="DirectionControlInput"/> for a crowd: the same stick-driven spring simulation object,
+/// with a steering force that pushes it around other moving characters before they are walked into.
+/// </summary>
+/// <remarks>
+/// Two separate mechanisms, easily confused. <b>Steering</b> (<see cref="ComputeSteering"/>) deflects
+/// the simulation object, so the character walks around neighbours. <b>Obstacle features</b>
+/// (<see cref="GetNearbyObstacles"/>) put nearby obstacles into the query vector, so the search can
+/// prefer animations recorded while avoiding something. Either works alone; together the character
+/// both moves around a neighbour and looks like it meant to.
+/// </remarks>
 public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareCharacterControler
 {
-    [Header("Crowd")] public Obstacle IgnoreObstacle;
+    [Header("Crowd")]
+    [Tooltip("This character's own obstacle, excluded so it does not steer around itself.")]
+    public Obstacle IgnoreObstacle;
+
     public bool DoSteering = false;
+
+    [Tooltip("How far ahead to look for obstacles to steer around, in metres.")]
     public float SteeringLookAhead = 4.0f;
+
+    [Tooltip("Strength of the sideways avoidance push at closest approach.")]
     public float SteeringForce = 2.0f;
+
+    [Tooltip("Smoothing rate for the steering vector, so avoidance eases in rather than snapping.")]
     public float SteeringChangeFactor = 5.0f;
 
+    [Tooltip("Cap on an obstacle ellipse's semi-axis when packed into the query features, in metres.")]
     public float MaximumEllipseLength = 0.9f;
 
     // Features ----------------------------------------------------------
@@ -362,6 +383,25 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         base.motionSynthesizer.SetRotAdjustment(adjustmentRotation);
     }
 
+    /// <summary>
+    /// Sideways avoidance force for whichever moving obstacle is most immediately in the way.
+    /// Shared by <see cref="CrowdControlInput"/> and <see cref="CrowdSplineControlInput"/>, hence
+    /// static and parameterized rather than reading fields.
+    /// </summary>
+    /// <remarks>
+    /// Casts a fan of rays ahead of the character. Only the <em>closest</em> hit steers — avoiding
+    /// several at once averages into steering nowhere. The force is perpendicular to forward, so it
+    /// sidesteps rather than brakes, and the log10 falloff makes distant obstacles barely matter
+    /// while close ones dominate.
+    /// <para>
+    /// Which side to pass on is a coordination problem: if both dodge the same way they still
+    /// collide. So when the obstacle is itself steering, this takes the opposite side. Static
+    /// obstacles are skipped — walls do not negotiate.
+    /// </para>
+    /// </remarks>
+    /// <param name="lookAhead">How far ahead to look, in metres, and the range beyond which an
+    /// obstacle exerts no force.</param>
+    /// <returns>A world-space XZ steering vector, or zero when nothing is in the way.</returns>
     public static float2 ComputeSteering(float2 currentPos, float3 currentForward, Obstacle[] obstacles,
         float lookAhead, float force, float fovAngle = 30.0f, int numRays = 20,
         bool debug = false)

@@ -2,17 +2,33 @@ using Unity.Burst;
 using Unity.Mathematics;
 using UnityEngine;
 
+/// <summary>
+/// Burst-compatible ellipse geometry, used by crowd avoidance: a moving character's personal space is
+/// an ellipse — longer along its direction of travel than across it — so "how close am I to stepping
+/// into someone" is a point-to-ellipse distance query.
+/// </summary>
+/// <remarks>
+/// An ellipse has no closed-form nearest point, so the exact method here is iterative. All of it
+/// follows
+/// <a href="https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf">Eberly,
+/// Distance from a Point to an Ellipse</a>.
+/// </remarks>
 [BurstCompile]
 public static class UtilitiesBurst
 {
+    // Tolerances for classifying a query point as inside the ellipse rather than on it.
     public static readonly float MIN_INSIDE_ELLIPSE = 1e-6f;
     public static readonly float MAX_INSIDE_ELLIPSE = 1e-9f;
 
-    // Source: https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
+    /// <summary>
+    /// Solves for the nearest point by bisection. The bracket is chosen so a root is guaranteed
+    /// inside it, which is what makes plain bisection safe here.
+    /// </summary>
     [BurstCompile]
     private static float GetRoot(in float r0, in float z0, in float z1, in float g, in int maxIterations = 149)
     {
-        // maxIterations for float (32-bit) ideally should be 149
+        // 149 is the worst case for 32-bit float: past that the bracket cannot halve any further.
+        // The loop normally exits much earlier on the convergence checks below.
         float gi = g;
         float n0 = r0 * z0;
         float s0 = z1 - 1.0f;
@@ -44,10 +60,14 @@ public static class UtilitiesBurst
         return s;
     }
 
+    /// <summary>
+    /// The core solver, for the first quadrant of an axis-aligned ellipse only. An ellipse is
+    /// symmetric about both axes, so callers fold the query into this quadrant and unfold the
+    /// result. The degenerate cases are split out because the general solve divides by zero there.
+    /// </summary>
     // 'ellipse' are the extents of the ellipse axis, 'ellipse.x' >= 'ellipse.y' > 0
     // 'p' is the query point, 'p' >= 0
     // 'closest' is the ellipse point closest to the point 'p'
-    // Source: https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
     [BurstCompile]
     private static float PositiveQuarterDistanceToEllipse(in float2 ellipse, in float2 p, out float2 closest, in int maxIterations = 149)
     {
@@ -103,10 +123,11 @@ public static class UtilitiesBurst
         return distance;
     }
 
-    // 'ellipse' are the extents of the ellipse axis
-    // 'p' is the query point in world space
-    // 'closest' is the ellipse point (in world space) closest to the point 'p'
-    // Returns distance to the circumference of the ellipse, 0 when inside
+    /// <summary>
+    /// Exact distance from a world point to a placed and oriented ellipse, plus the closest point on
+    /// it. 0 when the query is inside. See <see cref="FastDistancePointToEllipse"/> for the cheap
+    /// version.
+    /// </summary>
     [BurstCompile]
     public static float DistancePointToEllipse(in float2 centerEllipse, in float2 primaryAxisUnit, in float2 secondaryAxisUnit,
                                                in float2 ellipse, in float2 query, out float2 closest,
@@ -212,10 +233,15 @@ public static class UtilitiesBurst
         result = pointOnRotatedEllipse;
     }
 
-    // 'ellipse' are the extents of the ellipse axis
-    // 'p' is the query point in world space
-    // 'closest' is the ellipse point (in world space) closest to the point 'p'
-    // Returns distance to the circumference of the ellipse, 0 when inside
+    /// <summary>
+    /// Approximate <see cref="DistancePointToEllipse"/>: samples the circumference every
+    /// <paramref name="angle"/> degrees instead of solving, so it never iterates. Good enough for
+    /// steering, which only needs to rank obstacles.
+    /// </summary>
+    /// <remarks>
+    /// Inside the ellipse it returns a tiny positive value scaled by depth rather than 0, so callers
+    /// can still tell degrees of overlap apart.
+    /// </remarks>
     [BurstCompile]
     public static float FastDistancePointToEllipse(in float2 centerEllipse, in float2 primaryAxisUnit, in float2 secondaryAxisUnit,
                                                    in float2 ellipse, in float2 query, out float2 closest,
@@ -246,6 +272,10 @@ public static class UtilitiesBurst
         return minDistance;
     }
 
+    /// <summary>
+    /// Approximate distance between two ellipses: samples the second's circumference and takes the
+    /// closest of those to the first. Enough to tell whether two personal spaces overlap.
+    /// </summary>
     [BurstCompile]
     public static float DistanceEllipseToEllipse(in float2 centerEllipse1, in float2 primaryAxisUnit1, in float2 secondaryAxisUnit1, in float2 ellipse1,
                                              in float2 centerEllipse2, in float2 primaryAxisUnit2, in float2 secondaryAxisUnit2, in float2 ellipse2,

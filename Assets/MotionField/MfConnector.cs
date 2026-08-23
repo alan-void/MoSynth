@@ -10,9 +10,23 @@ using UnityEngine;
 
 namespace MotionField
 {
+/// <summary>
+/// Drives the pose from a motion field running in a <em>separate Python process</em>, reached over
+/// a ZeroMQ request/reply socket with JSON poses on the wire.
+/// </summary>
+/// <remarks>
+/// The alternative to <see cref="MotionFieldStage"/>, which embeds CPython via PythonNET. The socket
+/// costs latency and a serialization round trip, and buys a Python side that can be restarted and
+/// debugged without taking Unity down — useful while that side is still being written.
+/// <para>
+/// The socket lives entirely on <see cref="ClientWorker"/>'s thread, since NetMQ sockets are not
+/// thread-safe. The two threads meet only at the concurrent queues and the volatile flags.
+/// </para>
+/// </remarks>
 [Serializable]
 public class MfConnector : MoSynthStage, IDisposable
 {
+    /// <summary>Wire format of one pose reply. Field names must match the Python server's JSON keys.</summary>
     [Serializable]
     private class PoseVectorDto
     {
@@ -25,8 +39,14 @@ public class MfConnector : MoSynthStage, IDisposable
     }
 
     private Thread _clientThread;
+
+    /// <summary>Clear to ask the worker to stop; also cleared by the worker when it dies.</summary>
     private volatile bool _isRunning;
+
+    /// <summary>Interlocked 0/1 latch making <see cref="Dispose"/> idempotent.</summary>
     private int _disposeState;
+
+    /// <summary>Set by the worker thread, reported and cleared on the main thread by Apply.</summary>
     private volatile string _workerError;
 
     private MotionSynthesisComponent _owner;
@@ -35,10 +55,13 @@ public class MfConnector : MoSynthStage, IDisposable
     private ConcurrentQueue<float> _deltaTimeRequests = new();
     private ConcurrentQueue<PoseVectorDto> _receivedPoses = new();
 
+    [Tooltip("TCP port of the Python motion field server on localhost.")]
     [SerializeField] private int port = 5555;
 
+    [Tooltip("Budget for draining the reply queue on the main thread, so a backlog cannot stall a frame.")]
     [SerializeField] private float dequeueTimeoutMs = 2f;
 
+    [Tooltip("How often the worker checks for a reply. Also bounds how long shutdown waits for it.")]
     [SerializeField] [Min(1)] private int receivePollIntervalMs = 100;
 
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
@@ -63,6 +86,15 @@ public class MfConnector : MoSynthStage, IDisposable
         _clientThread.Start();
     }
 
+    /// <summary>
+    /// Queues a request for the next pose and applies the latest reply, if one has arrived. Returns
+    /// false when none has, leaving the character in its previous pose rather than a half-updated one.
+    /// </summary>
+    /// <remarks>
+    /// The drain loop returns as soon as it applies a pose, so it runs one iteration and
+    /// <see cref="dequeueTimeoutMs"/> never fires. Both are here for a future version that consumes
+    /// a backlog to catch up.
+    /// </remarks>
     public override bool Apply(PoseBuffer pose, float deltaTime)
     {
         if (_workerError != null)

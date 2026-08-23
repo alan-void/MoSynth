@@ -5,17 +5,38 @@ using UnityEngine;
 
 namespace MotionMatching
 {
+/// <summary>
+/// Turns the animation database's absolute root track into continuous world movement, so the
+/// character keeps going from where it is instead of teleporting to wherever the newly selected
+/// clip happens to start.
+/// </summary>
+/// <remarks>
+/// Upstream stages write the root in the database's own "animation space", which restarts somewhere
+/// arbitrary each time the search jumps clips. This stage remembers the animation-space root and the
+/// world transform at one moment, then rewrites the root as that world transform plus the motion
+/// accumulated since, cancelling the offset between the two spaces.
+/// <para>
+/// Incomplete: <see cref="_hasRootJumped"/> is cleared on the first tick and never set again, so the
+/// anchor is taken once at startup. Re-taking it on
+/// <see cref="MotionSynthesisComponent.PoseDiscontinuity"/> is what would make jumps seamless.
+/// </para>
+/// <para>Place after whatever produces the root track, before anything consuming world root motion.</para>
+/// </remarks>
 [Serializable]
 public class RootMotionCorrectionStage : MoSynthStage
 {
     Transform _root;
-    
+
     MotionSynthesisComponent _owner;
-    
+
     float3 _rootPosition;
     quaternion _rootRotation;
 
+    /// <summary>Anchor is stale and must be re-taken before motion is replayed against it.</summary>
     private bool _hasRootJumped = true;
+
+    // The anchor: the animation-space root pose and the world transform that were current at the
+    // last jump. Everything since is expressed as a delta from the former, applied to the latter.
     private float3 _animSpacePos;
     private quaternion _animSpaceRot;
     private float3 _transformPosAtLastJump;

@@ -8,8 +8,14 @@ using SkeletonBone = AnimationTools.SkeletonBone;
 namespace MotionMatching.Editor
 {
 /// <summary>
-/// Import a BVH, create PoseSet and FeatureSet and visualize it using Gizmos.
+/// Draws a <see cref="MotionMatchingData"/>'s baked contents as gizmos: the poses and the trajectory
+/// features extracted from them, played back frame by frame.
 /// </summary>
+/// <remarks>
+/// Checks that extraction produced what you meant, before any synthesis is involved. It shows the
+/// <em>features</em> as well as the poses, so a trajectory feature pointing the wrong way — the usual
+/// cause of a search picking odd frames — is visible here and nowhere else.
+/// </remarks>
 public class MotionMatchingDataVisualiser : MonoBehaviour
 {
     public MotionMatchingData motionMatchingData;

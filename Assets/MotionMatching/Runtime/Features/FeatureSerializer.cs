@@ -7,6 +7,15 @@ namespace MotionMatching
 {
     using static AnimationTools.BinarySerializerExtensions;
 
+    /// <summary>
+    /// Reads and writes the <c>.mmfeatures</c> file: the per-frame feature vectors the search compares
+    /// against, plus the normalization statistics needed to interpret them.
+    /// </summary>
+    /// <remarks>
+    /// Separate from the <c>.mmpose</c> database on purpose: features are one way of indexing poses
+    /// for search, and changing them should not mean re-extracting the poses. Unversioned like the
+    /// other binary formats — a stale file is misread, not detected — so regenerate after any change.
+    /// </remarks>
     public class FeatureSerializer
     {
         /// <summary>

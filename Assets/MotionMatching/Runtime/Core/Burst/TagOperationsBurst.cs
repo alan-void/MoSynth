@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace MotionMatching
 {
+    /// <summary>Clears any tag filter, making every frame of the database searchable again.</summary>
     [BurstCompile]
     public struct DisableTagBurst : IJob
     {
@@ -21,6 +22,15 @@ namespace MotionMatching
         }
     }
 
+    /// <summary>
+    /// Turns a tag query's frame ranges into the per-frame mask the search consumes: true where a
+    /// frame is inside some range of the query, false everywhere else.
+    /// </summary>
+    /// <remarks>
+    /// Each range is trimmed by <see cref="MaximumFramesPrediction"/> at its end: a feature vector
+    /// encodes the next several frames, so the last frames of a range have no valid trajectory and
+    /// would let the search pick a pose whose future runs off the tagged region.
+    /// </remarks>
     [BurstCompile]
     public struct SetTagBurst : IJob
     {
