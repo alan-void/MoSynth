@@ -79,6 +79,12 @@ public class MotionMatchingStage : MoSynthStage
     /// <summary>Per-float weights handed to the search; length is the feature vector size.</summary>
     NativeArray<float> _featureWeights;
 
+    /// <summary>
+    /// Snapshot of the authored per-float weights. <see cref="FillQueryVector"/> masks inactive bone
+    /// channels to zero in <see cref="_featureWeights"/> and restores active ones from here.
+    /// </summary>
+    NativeArray<float> _authoredFeatureWeights;
+
     public NativeArray<float> FeatureWeights => _featureWeights;
 
     /// <summary>
@@ -145,6 +151,8 @@ public class MotionMatchingStage : MoSynthStage
         {
             _featureWeights[i] = featureWeights[i];
         }
+        _authoredFeatureWeights = new NativeArray<float>(featureSet.FeatureSize, Allocator.Domain);
+        _authoredFeatureWeights.CopyFrom(_featureWeights);
         _queryFeatureVector = new NativeArray<float>(featureSet.FeatureSize, Allocator.Domain);
 
         _tagMask = new NativeArray<bool>(featureSet.NumberFeatureVectors, Allocator.Domain);
@@ -263,8 +271,24 @@ public class MotionMatchingStage : MoSynthStage
             var featureSize = featureSet.GetTrajectoryFeatureFloatCount(i);
             for (var p = 0; p < featureSet.GetPredictionCount(i); ++p)
             {
-                var feature = queryFeatureSpan.Slice(featureSet.GetTrajectoryFeatureOffset(i, p), featureSize);
-                controlInput.GetTrajectoryFeature(featureDef, p, character, feature);
+                var offset = featureSet.GetTrajectoryFeatureOffset(i, p);
+                var feature = queryFeatureSpan.Slice(offset, featureSize);
+                if (featureDef.simulationBone)
+                {
+                    controlInput.GetTrajectoryFeature(featureDef, p, character, feature);
+                }
+                else
+                {
+                    // Bone channels are optional constraints: the control input switches one on by
+                    // supplying a target. Off channels are weight-masked to zero so they cannot
+                    // affect the search.
+                    var active = controlInput.GetBoneTrajectoryFeature(featureDef, p, character, feature);
+                    for (var f = 0; f < featureSize; f++)
+                    {
+                        if (!active) feature[f] = 0f;
+                        _featureWeights[offset + f] = active ? _authoredFeatureWeights[offset + f] : 0f;
+                    }
+                }
             }
         }
 
@@ -353,9 +377,15 @@ public class MotionMatchingStage : MoSynthStage
             _featureWeights = new NativeArray<float>(featureSize, Allocator.Domain);
         }
 
+        if (_authoredFeatureWeights.Length != featureSize)
+        {
+            _authoredFeatureWeights = new NativeArray<float>(featureSize, Allocator.Domain);
+        }
+
         for (int i = 0; i < featureWeights.Count; i++)
         {
             _featureWeights[i] = featureWeights[i];
+            _authoredFeatureWeights[i] = featureWeights[i];
         }
     }
 

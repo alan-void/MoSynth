@@ -175,13 +175,12 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
         _positionFeatures.Clear();
 
         // Trajectory Features ---------------------------------------------------------------------------
-        // Find the Main Position Feature (if exists)
+        // Collect simulation-frame Position predictions; Direction gizmos anchor their arrows to them
         for (int t = 0; t < mmData.trajectoryFeatures.Count; t++)
         {
             var trajectoryFeature = mmData.trajectoryFeatures[t];
-            if (trajectoryFeature.isMainPositionFeature)
+            if (trajectoryFeature.simulationBone && trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Position)
             {
-                Debug.Assert(trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Position, "The main position feature should be of type Position");
                 for (int p = 0; p < trajectoryFeature.predictionFrames.Length; p++)
                 {
                     float3 value = trajectoryFeature.Unpack(set, currentFrame, t, p);

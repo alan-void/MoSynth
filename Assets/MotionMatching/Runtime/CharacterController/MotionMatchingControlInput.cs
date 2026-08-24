@@ -90,7 +90,9 @@ public abstract class MotionMatchingControlInput : MonoBehaviour
     public abstract float GetTargetSpeed();
 
     /// <summary>
-    /// Get the prediction in character space of a trajectory feature.
+    /// Get the prediction in character space of a simulation-frame trajectory feature. Only called
+    /// for channels with <c>simulationBone</c> set; bone channels go through
+    /// <see cref="GetBoneTrajectoryFeature"/>.
     /// e.g., suppose that the feature is the projected position of the character at frames 20, 40 and 60 in the future:
     ///       then, since the projected position is 2D (2 floats), thus, output[0] and output[1] should be filled with the X and Z coordinates.
     ///       e.g., when index==1, it should return the position of the character at frame 40.
@@ -103,6 +105,18 @@ public abstract class MotionMatchingControlInput : MonoBehaviour
     /// <param name="span">Exactly the feature's float count; fill all of it.</param>
     public abstract void GetTrajectoryFeature(TrajectoryFeatureChannel feature, int index, Transform character,
         Span<float> span);
+
+    /// <summary>
+    /// One horizon of a bone (non-simulation-frame) trajectory channel, in character space.
+    /// Return true after filling <paramref name="output"/> to switch the channel on for this search;
+    /// return false (the default) to switch it off — the stage zeroes its weights so it contributes
+    /// nothing to the query until a provider supplies real targets.
+    /// </summary>
+    public virtual bool GetBoneTrajectoryFeature(TrajectoryFeatureChannel feature, int index, Transform character,
+        Span<float> output)
+    {
+        return false;
+    }
 
     /// <summary>Every horizon at once. Unimplemented; the stage calls the overload above.</summary>
     public virtual float[] GetTrajectoryFeature(TrajectoryFeatureChannel feature)

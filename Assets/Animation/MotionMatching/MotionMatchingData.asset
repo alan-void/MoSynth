@@ -25,10 +25,6 @@ MonoBehaviour:
     skeleton:
       root: {fileID: 0}
     bone: {fileID: -4253216979514265273, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-  simulationFrameBone:
-    skeleton:
-      root: {fileID: 0}
-    bone: {fileID: 0}
   trajectoryFeatures:
   - name: FuturePosition
     featureType: 0
@@ -41,7 +37,6 @@ MonoBehaviour:
     zeroX: 0
     zeroY: 1
     zeroZ: 0
-    isMainPositionFeature: 1
   - name: FutureDirection
     featureType: 1
     predictionFrames: 14000000280000003c000000
@@ -53,7 +48,28 @@ MonoBehaviour:
     zeroX: 0
     zeroY: 1
     zeroZ: 0
-    isMainPositionFeature: 0
+  - name: LeftFootKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 1322346492617891832, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightFootKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: -4253216979514265273, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
   poseFeatures:
   - name: LeftFootPosition
     featureType: 0

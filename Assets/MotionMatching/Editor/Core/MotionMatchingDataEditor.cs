@@ -134,7 +134,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         if (TrajectoryFeaturesSelectorFoldout)
         {
             EditorGUI.indentLevel++;
-            var hasAMainPositionFeature = false;
             // Deleting mid-loop would change the control count between the layout and repaint passes
             var removeIndex = -1;
             for (var i = 0; i < _trajectoryFeaturesProperty.arraySize; i++)
@@ -158,22 +157,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
                 var featureTypeProp = trajectoryFeature.FindPropertyRelative("featureType");
                 featureTypeProp.intValue = (int)(TrajectoryFeatureChannel.Type)EditorGUILayout.EnumPopup("Type",
                     (TrajectoryFeatureChannel.Type)featureTypeProp.intValue);
-                if ((TrajectoryFeatureChannel.Type)featureTypeProp.intValue == TrajectoryFeatureChannel.Type.Position)
-                {
-                    var isMainPositionFeatureProp = trajectoryFeature.FindPropertyRelative("isMainPositionFeature");
-                    isMainPositionFeatureProp.boolValue =
-                        EditorGUILayout.Toggle("Main Position Feature", isMainPositionFeatureProp.boolValue);
-                    if (isMainPositionFeatureProp.boolValue)
-                    {
-                        if (hasAMainPositionFeature)
-                        {
-                            EditorGUILayout.HelpBox("Only one main position feature is allowed", MessageType.Error);
-                            _generateButtonError = true;
-                        }
-
-                        hasAMainPositionFeature = true;
-                    }
-                }
 
                 _generateButtonError = _generateButtonError || TrajectoryFramesLayout(trajectoryFeature);
                 _generateButtonError = _generateButtonError || TrajectoryTypeOptionsLayout(trajectoryFeature, rigRoot);
@@ -291,7 +274,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         element.FindPropertyRelative("zeroX").boolValue = false;
         element.FindPropertyRelative("zeroY").boolValue = false;
         element.FindPropertyRelative("zeroZ").boolValue = false;
-        element.FindPropertyRelative("isMainPositionFeature").boolValue = false;
         element.FindPropertyRelative("predictionFrames").arraySize = 0;
     }
 

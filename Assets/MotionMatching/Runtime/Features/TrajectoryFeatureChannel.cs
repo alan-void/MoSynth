@@ -43,10 +43,6 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
     [FormerlySerializedAs("ZeroY")] public bool zeroY; // Zero the X, Y and/or Z component of the trajectory feature
     [FormerlySerializedAs("ZeroZ")] public bool zeroZ; // Zero the X, Y and/or Z component of the trajectory feature
 
-    [FormerlySerializedAs("IsMainPositionFeature")]
-    public bool
-        isMainPositionFeature; // Only for position feature type. Used for visualizing gizmos of other trajectory features colocated with this position feature.
-
     public string Name => name;
 
     /// <summary>Floats one prediction occupies, once the zeroed axes are dropped.</summary>
