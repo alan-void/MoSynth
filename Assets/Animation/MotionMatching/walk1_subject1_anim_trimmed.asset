@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b81a3691c81c50d41858624eac4a6299, type: 3}
-  m_Name: walk1_subject1_anim
+  m_Name: walk1_subject1_anim_trimmed
   m_EditorClassIdentifier: MotionMatching::MotionMatching.AnimationData
   clip: {fileID: 5450784351807604172, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   skeleton:
     root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   rootMotionBone:
     skeleton:
-      root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
     bone: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-  startFrame: 0
-  endFrame: 7840
+  startFrame: 100
+  endFrame: 2800
