@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AnimationTools;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
@@ -49,6 +50,10 @@ public class SplinePoseKeypoint : MonoBehaviour
     [Tooltip("Close the spline into a loop. Leave off for non-looping clips; note the control input " +
              "wraps its parameter, so an open spline snaps back to the start when it ends.")]
     public bool closed;
+
+    [Tooltip("Index of the keypoint whose pose is drawn as a skeleton in the Scene view; -1 draws none. " +
+             "One at a time on purpose: a skeleton at every keypoint is thousands of gizmo lines per repaint.")]
+    public int drawKeypointSkeletonAtIndex = -1;
 
     [SerializeField] private SplineContainer splineContainer;
     [SerializeField] private List<Keypoint> keypoints = new();
@@ -303,21 +308,85 @@ public class SplinePoseKeypoint : MonoBehaviour
     public bool TryGetWorldBonePosition(in Keypoint keypoint, int boneIndex, out float3 world)
     {
         world = float3.zero;
+        if (!TryGetAnchor(keypoint, out var skeletonData, out var pose, out var anchor)) return false;
+        if (boneIndex < 0 || boneIndex >= skeletonData.BoneCount) return false;
+
+        world = anchor.Apply(skeletonData.CharacterSpacePosition(pose, boneIndex));
+        return true;
+    }
+
+    /// <summary>
+    /// World positions of every bone at a keypoint, re-anchored onto the spline exactly as
+    /// <see cref="TryGetWorldBonePosition"/> re-anchors one. Solves the pose in a single forward pass
+    /// rather than walking a parent chain per bone, which is what makes drawing a whole skeleton
+    /// affordable. <paramref name="world"/> must hold at least the skeleton's bone count.
+    /// </summary>
+    public bool TryGetWorldBonePositions(in Keypoint keypoint, NativeArray<float3> world)
+    {
+        if (!TryGetAnchor(keypoint, out var skeletonData, out var pose, out var anchor)) return false;
+        if (world.Length < skeletonData.BoneCount) return false;
+        // The clip's bake and the rig are invalidated by different things, so they can end up
+        // describing two different skeletons. Answer nothing rather than let the FK pass index one
+        // by the other's bone count.
+        if (pose.Layout.RotationCount != skeletonData.BoneCount) return false;
+
+        using var positions = new NativeArray<float3>(skeletonData.BoneCount, Allocator.Temp);
+        using var rotations = new NativeArray<quaternion>(skeletonData.BoneCount, Allocator.Temp);
+        skeletonData.LocalSpaceToCharacterSpace(pose, positions, rotations);
+
+        for (var i = 0; i < skeletonData.BoneCount; i++) world[i] = anchor.Apply(positions[i]);
+        return true;
+    }
+
+    /// <summary>
+    /// A keypoint's pose and the map that carries it onto the path. Shared by the single-bone and
+    /// whole-skeleton lookups so they cannot drift apart on what "re-anchored onto the spline" means.
+    /// </summary>
+    private bool TryGetAnchor(in Keypoint keypoint, out SkeletonData skeletonData, out PoseBuffer pose,
+        out KeypointAnchor anchor)
+    {
+        skeletonData = default;
+        pose = default;
+        anchor = default;
         if (splineContainer == null || skeletonAnimation == null || !skeletonAnimation.TryValidate(out _)) return false;
 
         var skeleton = skeletonAnimation.Skeleton;
-        var skeletonData = skeleton.GetSkeletonData();
-        if (boneIndex < 0 || boneIndex >= skeletonData.BoneCount) return false;
+        skeletonData = skeleton.GetSkeletonData();
+        pose = GetClipFrame(keypoint.frameIndex);
 
-        var pose = GetClipFrame(keypoint.frameIndex);
         SimulationFrame.Compute(pose, skeletonData, SimulationFrameDef.Default(skeleton),
             out var clipFramePos, out var clipFrameRot);
-        var local = SimulationFrame.ToFrameLocal(skeletonData.CharacterSpacePosition(pose, boneIndex),
-            clipFramePos, clipFrameRot);
-
         GetWorldFrame(keypoint.splineT, out var splinePos, out var splineRot);
-        world = SimulationFrame.FromFrameLocal(local, splinePos, splineRot);
+        anchor = new KeypointAnchor(clipFramePos, clipFrameRot, splinePos, splineRot);
         return true;
+    }
+
+    /// <summary>
+    /// The rigid map from a keypoint pose's own simulation frame onto the spline's frame at that
+    /// keypoint. Held as a value so a whole skeleton costs one frame solve rather than one per bone.
+    /// </summary>
+    private readonly struct KeypointAnchor
+    {
+        private readonly float3 _clipPosition;
+        private readonly quaternion _clipRotation;
+        private readonly float3 _splinePosition;
+        private readonly quaternion _splineRotation;
+
+        public KeypointAnchor(float3 clipPosition, quaternion clipRotation,
+            float3 splinePosition, quaternion splineRotation)
+        {
+            _clipPosition = clipPosition;
+            _clipRotation = clipRotation;
+            _splinePosition = splinePosition;
+            _splineRotation = splineRotation;
+        }
+
+        /// <summary>Carries a character-space bone position from the keypoint's clip frame onto the
+        /// path. Y comes through as height above the spline's plane.</summary>
+        public float3 Apply(float3 characterSpacePosition) =>
+            SimulationFrame.FromFrameLocal(
+                SimulationFrame.ToFrameLocal(characterSpacePosition, _clipPosition, _clipRotation),
+                _splinePosition, _splineRotation);
     }
 
     /// <summary>The frame a character following this path should be in at a parameter: the spline's
@@ -414,36 +483,50 @@ public class SplinePoseKeypoint : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         if (splineContainer == null || keypoints.Count == 0) return;
-        if (skeletonAnimation == null || !skeletonAnimation.TryValidate(out _)) return;
 
-        var skeleton = skeletonAnimation.Skeleton;
-        var hasLeft = BoneNameConventions.TryFindContactBone(skeleton, left: true, out var leftIndex);
-        var hasRight = BoneNameConventions.TryFindContactBone(skeleton, left: false, out var rightIndex);
-
-        foreach (var keypoint in keypoints)
+        // Only the skeleton needs the clip, so a path whose animation reference is broken still shows
+        // where its keypoints are and which way they face.
+        for (var i = 0; i < keypoints.Count; i++)
         {
-            var position = (float3)splineContainer.EvaluatePosition(keypoint.splineT);
+            var position = (float3)splineContainer.EvaluatePosition(keypoints[i].splineT);
 
-            // Facing bright, the path's own direction dim: where they diverge is where storing facing
-            // separately earns its keep.
-            Gizmos.color = new Color(0.35f, 0.35f, 0.35f);
-            var tangent = GetWorldTangent(keypoint.splineT);
-            GizmosExtensions.DrawArrow(position, position + tangent * 0.3f, 0.08f, thickness: 2);
+            // The drawn keypoint stands out, so the index field stays findable on a long path even
+            // when its skeleton is off-screen.
+            Gizmos.color = i == drawKeypointSkeletonAtIndex ? Color.white : Color.yellow;
+            Gizmos.DrawSphere(position, 0.05f);
 
             Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(position, 0.05f);
-            var facing = GetWorldFacing(keypoint.splineT);
+            var facing = GetWorldFacing(keypoints[i].splineT);
             GizmosExtensions.DrawArrow(position, position + facing * 0.4f, 0.1f, thickness: 3);
+        }
 
-            Gizmos.color = Color.cyan;
-            if (hasLeft && TryGetWorldBonePosition(keypoint, leftIndex, out var leftPos))
-            {
-                Gizmos.DrawSphere(leftPos, 0.03f);
-            }
-            if (hasRight && TryGetWorldBonePosition(keypoint, rightIndex, out var rightPos))
-            {
-                Gizmos.DrawSphere(rightPos, 0.03f);
-            }
+        DrawKeypointSkeleton();
+    }
+
+    /// <summary>
+    /// The pose at <see cref="drawKeypointSkeletonAtIndex"/>, drawn in place on the path as
+    /// parent-to-child bone segments — the same shape, and the same red, as the
+    /// <c>SkeletonAnimation</c> preview and the other skeleton gizmos in the project.
+    /// </summary>
+    private void DrawKeypointSkeleton()
+    {
+        if (drawKeypointSkeletonAtIndex < 0 || drawKeypointSkeletonAtIndex >= keypoints.Count) return;
+
+        // Sized from the rig, which answers 0 rather than throwing when it is unconfigured; the pose
+        // itself is validated inside TryGetWorldBonePositions.
+        var boneCount = Skeleton?.BoneCount ?? 0;
+        if (boneCount == 0) return;
+
+        // Temp rather than a cached buffer: one skeleton is solved per repaint, and a MonoBehaviour
+        // drawing gizmos in edit mode has no dependable hook to dispose a persistent one from.
+        using var world = new NativeArray<float3>(boneCount, Allocator.Temp);
+        if (!TryGetWorldBonePositions(keypoints[drawKeypointSkeletonAtIndex], world)) return;
+
+        var parentIndices = Skeleton.GetSkeletonData().ParentIndices;
+        Gizmos.color = Color.red;
+        for (var i = 1; i < boneCount; i++)
+        {
+            GizmosExtensions.DrawLine(world[parentIndices[i]], world[i], 3);
         }
     }
 #endif
