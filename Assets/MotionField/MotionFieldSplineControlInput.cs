@@ -37,6 +37,12 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
 
     public float TargetSpeed => float.NaN;
 
+    /// <summary>
+    /// The direction the path sets off in. Pure pursuit steers toward the path and has no notion of
+    /// facing apart from it, so travel direction is the whole answer here.
+    /// </summary>
+    public float3 GetWorldInitDirection() => SplinePathDirection.WorldStartDirection(splineContainer);
+
     /// <summary>Arc length ahead of the nearest spline point to steer toward, in meters. The only tuning knob this policy has.</summary>
     public float LookaheadDistance { get => lookaheadDistance; set => lookaheadDistance = value; }
 

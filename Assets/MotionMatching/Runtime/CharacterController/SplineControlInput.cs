@@ -34,10 +34,15 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     /// Position along the spline, normalized to 0..1 and wrapped. Distances must be divided by the
     /// spline's length before being added to it.
     /// </summary>
-    private float _splineT;
+    protected float _splineT;
 
     private float2 _currentPosition;
     private float2 _currentDirection;
+
+    /// <summary>Lookahead for the finite-difference direction, refreshed once per update so
+    /// <see cref="SampleDirection"/> does not re-measure the spline's length per sample.</summary>
+    private float _directionSampleStep;
+
     private float2[] _predictedPositions;
     private float2[] _predictedDirections;
 
@@ -58,7 +63,7 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     }
     // --------------------------------------------------------------------------
 
-    private void Start()
+    protected virtual void Start()
     {
         // Get the feature indices
         _trajectoryPosFeatureIndex = -1;
@@ -93,34 +98,61 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     }
 
     /// <summary>
-    /// Samples the spline now and at each prediction horizon. Directions come from a short step
-    /// further along rather than the analytic tangent, keeping position and direction consistent.
+    /// Samples the spline now and at each prediction horizon. Every direction comes from
+    /// <see cref="SampleDirection"/>, so the query, the gizmos and <see cref="GetCurrentRotation"/>
+    /// can never end up reporting different things.
     /// </summary>
     protected override void OnUpdate()
     {
         // Spline parameters are normalized, so metres per second becomes spline-fraction per second.
         var normalizedSpeed = speed / splineContainer.CalculateLength();
-
-        // Lookahead used for the finite-difference direction. Small relative to a frame's travel, so
-        // it measures the tangent rather than a chord across curvature.
-        var directionSampleStep = normalizedSpeed * DatabaseDeltaTime * 0.1f;
+        _directionSampleStep = normalizedSpeed * DatabaseDeltaTime * 0.1f;
 
         float3 pos = splineContainer.EvaluatePosition(_splineT);
         _currentPosition = pos.xz;
-        float3 nextPos = splineContainer.EvaluatePosition(math.frac(_splineT + directionSampleStep));
-        _currentDirection = math.normalize(new float2(nextPos.x - pos.x, nextPos.z - pos.z));
+        _currentDirection = SampleDirection(_splineT, pos);
 
         for (int i = 0; i < NumberPredictionPos; i++)
         {
             var t = math.frac(_splineT + _trajectoryPosPredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
             float3 predPos = splineContainer.EvaluatePosition(t);
             _predictedPositions[i] = predPos.xz;
-            float3 predNextPos = splineContainer.EvaluatePosition(math.frac(t + directionSampleStep));
-            _predictedDirections[i] = math.normalize(new float2(predNextPos.x - predPos.x, predNextPos.z - predPos.z));
+            _predictedDirections[i] = SampleDirection(t, predPos);
         }
 
         _splineT += normalizedSpeed * Time.deltaTime;
         _splineT = math.frac(_splineT);
+    }
+
+    /// <summary>
+    /// The direction a character following this path should face at a point on it. This is the only
+    /// place a direction enters the input, so an override reaches the trajectory query, the debug
+    /// gizmos and <see cref="GetCurrentRotation"/> together.
+    /// </summary>
+    /// <remarks>
+    /// A bare path carries no facing of its own, so the direction of travel is the best answer
+    /// available here — measured as a short step further along rather than as the analytic tangent,
+    /// which keeps it consistent with the predicted positions. A path that does carry facing
+    /// overrides this; see <see cref="SplinePoseKeypointControlInput"/>.
+    /// </remarks>
+    /// <param name="t">Normalized spline parameter to sample at.</param>
+    /// <param name="positionAtT">The spline position there, already evaluated by the caller.</param>
+    /// <returns>A normalized XZ direction.</returns>
+    protected virtual float2 SampleDirection(float t, float3 positionAtT)
+    {
+        float3 next = splineContainer.EvaluatePosition(math.frac(t + _directionSampleStep));
+        return math.normalizesafe(new float2(next.x - positionAtT.x, next.z - positionAtT.z), new float2(0f, 1f));
+    }
+
+    /// <summary>
+    /// Normalized spline parameter this input predicts for a horizon of <paramref name="frames"/>
+    /// database frames ahead of the current position. Public because it is the only readable account
+    /// of where on its path this input thinks it is, which tools and diagnostics need.
+    /// </summary>
+    public float GetPredictedSplineT(int frames)
+    {
+        var normalizedSpeed = speed / splineContainer.CalculateLength();
+        return math.frac(_splineT + frames * normalizedSpeed * DatabaseDeltaTime);
     }
 
     public quaternion GetCurrentRotation()
@@ -173,9 +205,17 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         return transform.position;
     }
 
+    /// <summary>
+    /// The direction the path sets off in. A pure path follower has no notion of facing beyond its
+    /// path, so this is the honest answer; the Transform's own forward is arbitrary for a character
+    /// that gets spawned onto a path it was never authored against.
+    /// </summary>
     public override float3 GetWorldInitDirection()
     {
-        return math.normalize(new float3(transform.forward.x, 0, transform.forward.z));
+        var start = SplinePathDirection.WorldStartDirection(splineContainer);
+        return math.lengthsq(start) > 0f
+            ? start
+            : math.normalizesafe(new float3(transform.forward.x, 0, transform.forward.z), math.forward());
     }
 
     public override float GetTargetSpeed()

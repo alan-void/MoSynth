@@ -263,13 +263,16 @@ public static class SynthesisBenchmarkDriver
             if (synthesizer == null)
                 throw new InvalidOperationException($"\"{method.characterPrefab.name}\" has no MotionSynthesisComponent.");
 
-            PlaceAtPathStart(_character.transform, synthesizer.transform, _spline);
-
             var input = FindSplineControlInput(_character);
             if (input == null)
                 throw new InvalidOperationException(
                     $"\"{method.characterPrefab.name}\" has no component implementing IMotionSynthesisSplineControlInput.");
+
+            // The path is assigned before placing: the input cannot say which way to face on a path
+            // it has not been given yet.
             input.SplineContainer = _spline;
+
+            PlaceAtPathStart(_character.transform, synthesizer.transform, _spline, input);
 
             if (method.overrides != null)
             {
@@ -501,26 +504,26 @@ public static class SynthesisBenchmarkDriver
     /// transform, not the prefab root — it is what root motion drives and what every measurement
     /// reads, and in these character prefabs it sits about two metres off the root.
     /// </param>
-    public static void PlaceAtPathStart(Transform character, Transform characterFrame, SplineContainer container)
+    /// <param name="input">
+    /// The control input about to drive the character, already given <paramref name="container"/>.
+    /// It decides the facing, so a path carrying its own facing spawns the character strafing or
+    /// backpedalling when that is what it was authored to do; the path's own start direction is only
+    /// the fallback.
+    /// </param>
+    public static void PlaceAtPathStart(Transform character, Transform characterFrame, SplineContainer container,
+        IMotionSynthesisSplineControlInput input)
     {
         var spline = container.Spline;
         var splineTransform = container.transform;
 
         var worldPosition = splineTransform.TransformPoint((Vector3)spline.EvaluatePosition(0f));
 
-        var forward = splineTransform.TransformDirection((Vector3)spline.EvaluateTangent(0f));
-        forward.y = 0f;
-
+        var forward = input != null ? (Vector3)input.GetWorldInitDirection() : Vector3.zero;
         if (forward.sqrMagnitude <= 1e-8f)
         {
-            // A knot authored with a linear tangent evaluates to a zero tangent, so a path with
-            // square corners has no analytic direction at its start. A short chord along the path
-            // does, and agrees with the tangent everywhere the tangent exists.
-            var length = spline.GetLength();
-            var step = length > 1e-3f ? Mathf.Min(0.1f, length * 0.05f) / length : 0f;
-            forward = splineTransform.TransformPoint((Vector3)spline.EvaluatePosition(step)) - worldPosition;
-            forward.y = 0f;
+            forward = (Vector3)SplinePathDirection.WorldStartDirection(container);
         }
+        forward.y = 0f;
 
         var rotation = forward.sqrMagnitude > 1e-8f
             ? Quaternion.LookRotation(forward.normalized, Vector3.up)
