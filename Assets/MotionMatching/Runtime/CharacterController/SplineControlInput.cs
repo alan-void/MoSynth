@@ -27,8 +27,23 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     [Tooltip("Travel speed along the spline, in m/s.")]
     [FormerlySerializedAs("Speed")] public float speed = 1.0f;
 
-    public SplineContainer SplineContainer { get => splineContainer; set => splineContainer = value; }
+    public virtual SplineContainer SplineContainer { get => splineContainer; set => splineContainer = value; }
     public float TargetSpeed => speed;
+
+    /// <summary>
+    /// Whether there is a usable path to follow. Guards the evaluation seams below: a container whose
+    /// spline list has been emptied throws from <c>EvaluatePosition</c> and <c>CalculateLength</c>
+    /// rather than answering null, so the check has to happen before the call, not inside it.
+    /// </summary>
+    protected virtual bool HasPath => splineContainer != null && splineContainer.Spline != null;
+
+    /// <summary>World position on the path at a normalized parameter. The seam a subclass overrides
+    /// to follow a path that does not live in a <see cref="SplineContainer"/>.</summary>
+    protected virtual float3 SamplePosition(float t) => splineContainer.EvaluatePosition(t);
+
+    /// <summary>The path's world length, or 0 when there is no usable path. Callers must treat 0 as
+    /// "do not divide".</summary>
+    protected virtual float PathLength => HasPath ? splineContainer.CalculateLength() : 0f;
 
     /// <summary>
     /// Position along the spline, normalized to 0..1 and wrapped. Distances must be divided by the
@@ -104,18 +119,23 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     /// </summary>
     protected override void OnUpdate()
     {
+        // A path with no length would make the next line infinite, math.frac of that is NaN, and the
+        // NaN sticks in _splineT and leaves as a non-finite character position. Hold where we are.
+        var pathLength = PathLength;
+        if (pathLength <= 1e-5f) return;
+
         // Spline parameters are normalized, so metres per second becomes spline-fraction per second.
-        var normalizedSpeed = speed / splineContainer.CalculateLength();
+        var normalizedSpeed = speed / pathLength;
         _directionSampleStep = normalizedSpeed * DatabaseDeltaTime * 0.1f;
 
-        float3 pos = splineContainer.EvaluatePosition(_splineT);
+        float3 pos = SamplePosition(_splineT);
         _currentPosition = pos.xz;
         _currentDirection = SampleDirection(_splineT, pos);
 
         for (int i = 0; i < NumberPredictionPos; i++)
         {
             var t = math.frac(_splineT + _trajectoryPosPredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
-            float3 predPos = splineContainer.EvaluatePosition(t);
+            float3 predPos = SamplePosition(t);
             _predictedPositions[i] = predPos.xz;
             _predictedDirections[i] = SampleDirection(t, predPos);
         }
@@ -140,7 +160,7 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     /// <returns>A normalized XZ direction.</returns>
     protected virtual float2 SampleDirection(float t, float3 positionAtT)
     {
-        float3 next = splineContainer.EvaluatePosition(math.frac(t + _directionSampleStep));
+        float3 next = SamplePosition(math.frac(t + _directionSampleStep));
         return math.normalizesafe(new float2(next.x - positionAtT.x, next.z - positionAtT.z), new float2(0f, 1f));
     }
 
@@ -151,7 +171,10 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     /// </summary>
     public float GetPredictedSplineT(int frames)
     {
-        var normalizedSpeed = speed / splineContainer.CalculateLength();
+        var pathLength = PathLength;
+        if (pathLength <= 1e-5f) return _splineT;
+
+        var normalizedSpeed = speed / pathLength;
         return math.frac(_splineT + frames * normalizedSpeed * DatabaseDeltaTime);
     }
 
@@ -226,7 +249,7 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        if (splineContainer == null) return;
+        if (!HasPath) return;
 
         const float heightOffset = 0.01f;
 

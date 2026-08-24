@@ -21,15 +21,22 @@ namespace MotionMatching
 /// same thing: the bone offsets are expressed in the clip's simulation frame, which is facing-aligned,
 /// so re-anchoring a strafing or backpedalling pose against the direction of travel would place the
 /// feet rotated about the character. It is stored as a signed yaw <em>offset</em> from the tangent, so
-/// the generated path reproduces the clip's facing exactly while dragging knots into a new path keeps
-/// the relationship — a 30° strafe stays a 30° strafe relative to the new heading.
+/// a keypoint reads as "30° off the heading here" rather than as a bare world direction.
 /// </para>
 /// <para>
 /// Knot density is independent of keypoint spacing: knots are fitted to
-/// <see cref="simplificationToleranceMeters"/> so the curve stays sparse enough to edit, and each
-/// keypoint is located on it by projection. The GameObject's transform places the path in the world
-/// and must be unscaled and upright — the spline convention across the project, and what makes the
-/// stored yaw offset valid against the world tangent.
+/// <see cref="simplificationToleranceMeters"/>, so they cluster through turns and thin out on
+/// straights. The GameObject's transform places the path in the world and must be unscaled and
+/// upright — the spline convention across the project, and what makes the stored yaw offset valid
+/// against the world tangent.
+/// </para>
+/// <para>
+/// Both the path and the keypoints are generated here and held un-serialized, rather than the path
+/// living in a <c>SplineContainer</c> and the keypoints in the scene. They are built together from the
+/// clip in one pass, so they cannot describe different curves, and there is no editable copy for
+/// anyone to drag out of agreement — an emptied container used to send <c>speed / length</c> to
+/// infinity and a NaN parameter into every evaluation downstream. The path is therefore exactly the
+/// clip's root trajectory; to place it differently, move or rotate the GameObject.
 /// </para>
 /// </remarks>
 public class SplinePoseKeypoint : MonoBehaviour
@@ -55,28 +62,103 @@ public class SplinePoseKeypoint : MonoBehaviour
              "One at a time on purpose: a skeleton at every keypoint is thousands of gizmo lines per repaint.")]
     public int drawKeypointSkeletonAtIndex = -1;
 
-    [SerializeField] private SplineContainer splineContainer;
-    [SerializeField] private List<Keypoint> keypoints = new();
+    [NonSerialized] private Spline _path;
+    [NonSerialized] private List<Keypoint> _keypoints;
 
-    [Serializable]
+    // What the cache was built from. OnValidate does not fire for edits made to the animation *asset*,
+    // so the clip's frame count is part of the fingerprint rather than trusting the callback alone.
+    [NonSerialized] private SkeletonAnimation _builtFrom;
+    [NonSerialized] private int _builtFrameCount;
+    [NonSerialized] private int _builtInterval;
+    [NonSerialized] private float _builtTolerance;
+    [NonSerialized] private bool _builtClosed;
+
     public struct Keypoint
     {
-        [Tooltip("Frame of the source animation this keypoint's pose comes from.")]
+        /// <summary>Frame of the source animation this keypoint's pose comes from.</summary>
         public int frameIndex;
 
-        [Tooltip("Normalized spline parameter where this keypoint sits.")]
+        /// <summary>Normalized spline parameter where this keypoint sits.</summary>
         public float splineT;
 
-        [Tooltip("Signed yaw in radians from the path tangent to the character's facing.")]
+        /// <summary>Signed yaw in radians from the path tangent to the character's facing.</summary>
         public float facingYawOffset;
     }
 
-    public SplineContainer SplineContainer => splineContainer;
     public Skeleton Skeleton => skeletonAnimation != null ? skeletonAnimation.Skeleton : null;
-    public IReadOnlyList<Keypoint> Keypoints => keypoints;
 
-    /// <summary>Number of knots in the fitted curve; 0 before <see cref="Rebuild"/>.</summary>
-    public int KnotCount => splineContainer != null && splineContainer.Spline != null ? splineContainer.Spline.Count : 0;
+    /// <summary>The keypoints, built from the clip on first access. Never null; empty when the clip
+    /// cannot be read.</summary>
+    public IReadOnlyList<Keypoint> Keypoints => Keys;
+
+    /// <summary>The keypoint cache, via the one access point that guarantees it has been built.</summary>
+    private List<Keypoint> Keys
+    {
+        get
+        {
+            EnsureBuilt();
+            return _keypoints;
+        }
+    }
+
+    /// <summary>The generated path, via the same access point, so it and the keypoints are never
+    /// out of step. Null when the clip cannot be read.</summary>
+    private Spline Path
+    {
+        get
+        {
+            EnsureBuilt();
+            return _path;
+        }
+    }
+
+    /// <summary>Whether there is a usable path. Everything that evaluates the curve must check this
+    /// first — a path of fewer than two knots has no length to divide by.</summary>
+    public bool HasPath
+    {
+        get
+        {
+            var path = Path;
+            return path != null && path.Count >= 2;
+        }
+    }
+
+    /// <summary>Number of knots in the fitted curve; 0 when the clip cannot be read.</summary>
+    public int KnotCount => Path?.Count ?? 0;
+
+    /// <summary>The path's length in world units, or 0 when there is no path.</summary>
+    public float WorldLength
+    {
+        get
+        {
+            var path = Path;
+            return path != null ? SplineUtility.CalculateLength(path, transform.localToWorldMatrix) : 0f;
+        }
+    }
+
+    /// <summary>Position on the path at a normalized parameter, in world space.</summary>
+    /// <remarks>
+    /// The spline is fitted in this GameObject's local space, so the transform maps it to the world —
+    /// the same evaluate-then-transform that <c>SplineContainer</c> does for an unscaled transform,
+    /// which this class already requires.
+    /// </remarks>
+    public float3 EvaluateWorldPosition(float t)
+    {
+        var path = Path;
+        return path != null
+            ? math.transform(transform.localToWorldMatrix, path.EvaluatePosition(t))
+            : (float3)transform.position;
+    }
+
+    /// <summary>Path direction at a normalized parameter, in world space. Not normalized, and zero
+    /// where the curve has no analytic tangent.</summary>
+    public float3 EvaluateWorldTangent(float t)
+    {
+        var path = Path;
+        return path != null
+            ? math.mul((float4x4)transform.localToWorldMatrix, new float4(path.EvaluateTangent(t), 0f)).xyz
+            : float3.zero;
+    }
 
     // AnnotatedAnimationClip shadows FrameCount/GetFrame with its startFrame/endFrame window, so a
     // base-typed access here would silently sample outside the slice.
@@ -89,29 +171,50 @@ public class SplinePoseKeypoint : MonoBehaviour
             : skeletonAnimation.GetFrame(frameIndex);
 
     /// <summary>
-    /// Regenerates the spline and the keypoint list from the assigned animation. Knots are fitted to
-    /// the clip's root path in this GameObject's local space, so the transform places the whole path.
+    /// Regenerates the path and the keypoints now, and says so when it cannot. Nothing here is
+    /// serialized, so this exists for the report: the lazy path builds silently on demand and would
+    /// otherwise leave a misconfigured clip looking merely empty.
     /// </summary>
     [ContextMenu("Rebuild Spline And Keypoints")]
     public void Rebuild()
     {
-        keypoints.Clear();
-
-        if (skeletonAnimation == null)
-        {
-            Debug.LogError("[SplinePoseKeypoint] Cannot rebuild: no SkeletonAnimation assigned.", this);
-            return;
-        }
-        if (!skeletonAnimation.TryValidate(out var error))
-        {
-            Debug.LogError($"[SplinePoseKeypoint] Cannot rebuild: {error}", this);
-            return;
-        }
         if (transform.lossyScale != Vector3.one)
         {
             Debug.LogWarning("[SplinePoseKeypoint] The transform is scaled; splines are assumed unscaled, " +
                              "so keypoint targets will be wrong.", this);
         }
+
+        if (!TryBuildFromClip(out var path, out var built, out var error))
+        {
+            _path = null;
+            _keypoints = new List<Keypoint>();
+            RecordCacheInputs();
+            Debug.LogError($"[SplinePoseKeypoint] Cannot rebuild: {error}", this);
+            return;
+        }
+
+        _path = path;
+        _keypoints = built;
+        RecordCacheInputs();
+        Debug.Log($"[SplinePoseKeypoint] Rebuilt: {built.Count} keypoints over {path.Count} knots.", this);
+    }
+
+    /// <summary>
+    /// Builds the keypoints, and the spline they are measured against, from the clip alone. That
+    /// spline is fitted here rather than read from <see cref="splineContainer"/> on purpose — see the
+    /// class remarks. Reports failure instead of logging it, so the lazy path can call it on a repaint.
+    /// </summary>
+    private bool TryBuildFromClip(out Spline fittedSpline, out List<Keypoint> keypoints, out string error)
+    {
+        fittedSpline = null;
+        keypoints = null;
+
+        if (skeletonAnimation == null)
+        {
+            error = "no SkeletonAnimation assigned.";
+            return false;
+        }
+        if (!skeletonAnimation.TryValidate(out error)) return false;
 
         var skeleton = skeletonAnimation.Skeleton;
         var skeletonData = skeleton.GetSkeletonData();
@@ -131,21 +234,15 @@ public class SplinePoseKeypoint : MonoBehaviour
         var knotFrames = Simplify(pathPositions, simplificationToleranceMeters);
         if (knotFrames.Count < 2)
         {
-            Debug.LogError("[SplinePoseKeypoint] The root path collapsed to fewer than two knots; the clip " +
-                           "may not move, or the tolerance may be larger than the path.", this);
-            return;
+            error = "the root path collapsed to fewer than two knots; the clip may not move, or the " +
+                    "tolerance may be larger than the path.";
+            return false;
         }
 
         var spline = new Spline();
         foreach (var frame in knotFrames) spline.Add(new BezierKnot(pathPositions[frame]), TangentMode.AutoSmooth);
         spline.Closed = closed;
         spline.Warmup(); // curve-length and up-vector LUTs, before the projector hits them
-
-        if (splineContainer == null && !TryGetComponent(out splineContainer))
-        {
-            splineContainer = gameObject.AddComponent<SplineContainer>();
-        }
-        splineContainer.Spline = spline;
 
         // Keypoints keep their own cadence, and are placed by arc length rather than by projecting
         // them onto the curve: nearest-point projection is ambiguous wherever a path crosses itself,
@@ -154,6 +251,7 @@ public class SplinePoseKeypoint : MonoBehaviour
         var cumulative = CumulativeLengths(pathPositions);
         var knotDistances = KnotDistances(spline, knotFrames.Count);
         var totalLength = spline.GetLength();
+        keypoints = new List<Keypoint>();
         for (var frame = 0; frame < frameCount; frame += keypointIntervalFrames)
         {
             var splineT = totalLength > 1e-5f
@@ -168,10 +266,56 @@ public class SplinePoseKeypoint : MonoBehaviour
             });
         }
 
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.EditorUtility.SetDirty(splineContainer);
-#endif
+        fittedSpline = spline;
+        return true;
+    }
+
+    /// <summary>
+    /// Builds the path and the keypoints if they are missing or were built from different inputs. A
+    /// clip that cannot be read caches an empty result rather than retrying, so a repainting gizmo
+    /// does not re-attempt the build every frame; changing any input gets it rebuilt.
+    /// </summary>
+    private void EnsureBuilt()
+    {
+        if (_keypoints != null && IsCacheCurrent()) return;
+
+        if (TryBuildFromClip(out var path, out var built, out _))
+        {
+            _path = path;
+            _keypoints = built;
+        }
+        else
+        {
+            _path = null;
+            _keypoints = new List<Keypoint>();
+        }
+        RecordCacheInputs();
+    }
+
+    private bool IsCacheCurrent() =>
+        _builtFrom == skeletonAnimation &&
+        _builtFrameCount == CachedFrameCount &&
+        _builtInterval == keypointIntervalFrames &&
+        _builtTolerance == simplificationToleranceMeters &&
+        _builtClosed == closed;
+
+    private void RecordCacheInputs()
+    {
+        _builtFrom = skeletonAnimation;
+        _builtFrameCount = CachedFrameCount;
+        _builtInterval = keypointIntervalFrames;
+        _builtTolerance = simplificationToleranceMeters;
+        _builtClosed = closed;
+    }
+
+    /// <summary>The clip's frame count, or 0 with no clip. Part of the cache fingerprint, because
+    /// widening the clip's window changes every keypoint without touching this component.</summary>
+    private int CachedFrameCount => skeletonAnimation != null ? ClipFrameCount : 0;
+
+    private void OnValidate()
+    {
+        _keypoints = null;
+        _path = null;
     }
 
     /// <summary>Distance travelled along the sampled path up to each frame.</summary>
@@ -286,18 +430,20 @@ public class SplinePoseKeypoint : MonoBehaviour
     public bool TryGetKeypointNearT(float t, float tolerance, out Keypoint keypoint)
     {
         keypoint = default;
+        var found = false;
         var best = float.MaxValue;
-        foreach (var candidate in keypoints)
+        foreach (var candidate in Keys)
         {
             var delta = math.abs(t - candidate.splineT);
             if (closed) delta = math.min(delta, 1f - delta);
-            if (delta < best)
-            {
-                best = delta;
-                keypoint = candidate;
-            }
+            if (delta >= best) continue;
+            best = delta;
+            keypoint = candidate;
+            found = true;
         }
-        return best <= tolerance;
+        // Tested separately from the distance: a NaN t never beats float.MaxValue, and an infinite
+        // tolerance would otherwise pass that unset distance and hand back a zeroed keypoint.
+        return found && best <= tolerance;
     }
 
     /// <summary>
@@ -348,7 +494,7 @@ public class SplinePoseKeypoint : MonoBehaviour
         skeletonData = default;
         pose = default;
         anchor = default;
-        if (splineContainer == null || skeletonAnimation == null || !skeletonAnimation.TryValidate(out _)) return false;
+        if (!HasPath || skeletonAnimation == null || !skeletonAnimation.TryValidate(out _)) return false;
 
         var skeleton = skeletonAnimation.Skeleton;
         skeletonData = skeleton.GetSkeletonData();
@@ -393,7 +539,7 @@ public class SplinePoseKeypoint : MonoBehaviour
     /// position, and the facing interpolated from the keypoints rather than the path tangent.</summary>
     public void GetWorldFrame(float t, out float3 position, out quaternion rotation)
     {
-        position = splineContainer.EvaluatePosition(t);
+        position = EvaluateWorldPosition(t);
         rotation = GetWorldFacingRotation(t);
     }
 
@@ -421,21 +567,22 @@ public class SplinePoseKeypoint : MonoBehaviour
     /// </summary>
     private float GetFacingYawOffset(float t)
     {
-        if (keypoints.Count == 0) return 0f;
-        if (keypoints.Count == 1) return keypoints[0].facingYawOffset;
+        var keys = Keys;
+        if (keys.Count == 0) return 0f;
+        if (keys.Count == 1) return keys[0].facingYawOffset;
 
         // Keypoints are in ascending parameter order, so the bracket is the last one at or before t.
         var previous = -1;
-        for (var i = 0; i < keypoints.Count; i++)
+        for (var i = 0; i < keys.Count; i++)
         {
-            if (keypoints[i].splineT > t) break;
+            if (keys[i].splineT > t) break;
             previous = i;
         }
 
-        if (previous < 0) return closed ? LerpAcross(keypoints.Count - 1, 0, t) : keypoints[0].facingYawOffset;
-        if (previous == keypoints.Count - 1)
+        if (previous < 0) return closed ? LerpAcross(keys.Count - 1, 0, t) : keys[0].facingYawOffset;
+        if (previous == keys.Count - 1)
         {
-            return closed ? LerpAcross(keypoints.Count - 1, 0, t) : keypoints[^1].facingYawOffset;
+            return closed ? LerpAcross(keys.Count - 1, 0, t) : keys[^1].facingYawOffset;
         }
         return LerpAcross(previous, previous + 1, t);
     }
@@ -444,8 +591,8 @@ public class SplinePoseKeypoint : MonoBehaviour
     /// spline's final span and the wrap of the angles themselves.</summary>
     private float LerpAcross(int fromIndex, int toIndex, float t)
     {
-        var from = keypoints[fromIndex];
-        var to = keypoints[toIndex];
+        var from = Keys[fromIndex];
+        var to = Keys[toIndex];
 
         var span = to.splineT - from.splineT;
         var offsetIntoSpan = t - from.splineT;
@@ -459,7 +606,7 @@ public class SplinePoseKeypoint : MonoBehaviour
         return from.facingYawOffset + WrapPi(to.facingYawOffset - from.facingYawOffset) * u;
     }
 
-    private float3 WorldTangent(float t) => Flatten(splineContainer.EvaluateTangent(t));
+    private float3 WorldTangent(float t) => Flatten(EvaluateWorldTangent(t));
 
     private static float3 LocalTangent(Spline spline, float t) => Flatten(spline.EvaluateTangent(t));
 
@@ -482,13 +629,14 @@ public class SplinePoseKeypoint : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        if (splineContainer == null || keypoints.Count == 0) return;
+        var keys = Keys;
+        if (!HasPath || keys.Count == 0) return;
 
-        // Only the skeleton needs the clip, so a path whose animation reference is broken still shows
-        // where its keypoints are and which way they face.
-        for (var i = 0; i < keypoints.Count; i++)
+        DrawPath();
+
+        for (var i = 0; i < keys.Count; i++)
         {
-            var position = (float3)splineContainer.EvaluatePosition(keypoints[i].splineT);
+            var position = EvaluateWorldPosition(keys[i].splineT);
 
             // The drawn keypoint stands out, so the index field stays findable on a long path even
             // when its skeleton is off-screen.
@@ -496,11 +644,30 @@ public class SplinePoseKeypoint : MonoBehaviour
             Gizmos.DrawSphere(position, 0.05f);
 
             Gizmos.color = Color.yellow;
-            var facing = GetWorldFacing(keypoints[i].splineT);
+            var facing = GetWorldFacing(keys[i].splineT);
             GizmosExtensions.DrawArrow(position, position + facing * 0.4f, 0.1f, thickness: 3);
         }
 
         DrawKeypointSkeleton();
+    }
+
+    /// <summary>
+    /// The curve itself, sampled into a polyline. Drawn here because nothing else does any more:
+    /// the free Scene-view rendering came from the <c>SplineContainer</c> component this class no
+    /// longer keeps.
+    /// </summary>
+    private void DrawPath()
+    {
+        const int segments = 256;
+
+        Gizmos.color = new Color(0.3f, 0.3f, 1f);
+        var previous = (Vector3)EvaluateWorldPosition(0f);
+        for (var i = 1; i <= segments; i++)
+        {
+            var current = (Vector3)EvaluateWorldPosition(i / (float)segments);
+            Gizmos.DrawLine(previous, current);
+            previous = current;
+        }
     }
 
     /// <summary>
@@ -510,7 +677,7 @@ public class SplinePoseKeypoint : MonoBehaviour
     /// </summary>
     private void DrawKeypointSkeleton()
     {
-        if (drawKeypointSkeletonAtIndex < 0 || drawKeypointSkeletonAtIndex >= keypoints.Count) return;
+        if (drawKeypointSkeletonAtIndex < 0 || drawKeypointSkeletonAtIndex >= Keys.Count) return;
 
         // Sized from the rig, which answers 0 rather than throwing when it is unconfigured; the pose
         // itself is validated inside TryGetWorldBonePositions.
@@ -520,7 +687,7 @@ public class SplinePoseKeypoint : MonoBehaviour
         // Temp rather than a cached buffer: one skeleton is solved per repaint, and a MonoBehaviour
         // drawing gizmos in edit mode has no dependable hook to dispose a persistent one from.
         using var world = new NativeArray<float3>(boneCount, Allocator.Temp);
-        if (!TryGetWorldBonePositions(keypoints[drawKeypointSkeletonAtIndex], world)) return;
+        if (!TryGetWorldBonePositions(Keys[drawKeypointSkeletonAtIndex], world)) return;
 
         var parentIndices = Skeleton.GetSkeletonData().ParentIndices;
         Gizmos.color = Color.red;
