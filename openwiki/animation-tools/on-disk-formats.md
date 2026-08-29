@@ -152,9 +152,31 @@ version — do not read it as one.
 Kept separate from `.mmpose` on purpose: features are one way of *indexing* poses for search, and
 changing them should not force re-extracting the poses.
 
-Like the others it is unversioned, so a stale file is **misread, not detected**. Its compatibility
-check is `Debug.Assert`-only, which is stripped in release players — meaning a `.mmfeatures` baked
-from a different feature configuration is silently misread in a build. Regenerate after any change.
+1. `uint numberFeatureVectors`, `uint featureSize` (floats per vector), `uint numberTrajectoryFeatures`,
+   `uint numberPoseFeatures`.
+2. **Schema block** — per feature in vector order (trajectory first, then pose): name (LEB128 string),
+   `uint floatsPerPrediction`, `uint predictionCount`. A pose feature is always `3 × 1`.
+3. Per float of a vector: `float mean`, `float standardDeviation`.
+4. Per vector: `uint valid`, then `featureSize` floats.
+
+The trajectory/pose split is in the header so **the file describes itself**. Nothing outside Unity has
+a `MotionMatchingData` to read the feature configuration from, and anything training on this database
+has to know which floats are trajectory and which are pose.
+
+### Its version substitute is the schema block
+
+Like `.mmpose` it carries no version, and the schema block is what stands in for one.
+`FeatureSerializer.Deserialize` reads it *before allocating anything off the header* and refuses the
+file — with a message naming what disagreed — on a differing feature count, a differing vector width,
+or a differing name, width or horizon count at any position. Anything thrown while reading is caught
+and reported the same way, because a file written for another configuration gets its string lengths
+and array sizes from the wrong offsets and dies long before it runs out of bytes.
+
+`MotionMatchingData.GetOrImportFeatureSet` answers a refusal by re-extracting and rewriting, so a
+stale file costs one extraction rather than a database of plausible numbers.
+
+This replaces a `Debug.Assert`-only check, which was stripped in release players and left a
+`.mmfeatures` from a different configuration silently misread in a build.
 
 ## The `.npz` pair
 
@@ -220,5 +242,7 @@ read mid-stream.
 | Python reader | `Python/pose_set_importer.py` |
 
 **Tests.** `PoseSerializerTests` round-trips every channel with per-frame, per-bone distinct values so
-a misaligned read cannot pass by coincidence, and covers all three rejection cases. There are **no**
-tests for the recording round trip, and none checking that the C# and Python `.mmpose` readers agree.
+a misaligned read cannot pass by coincidence, and covers all three rejection cases.
+`FeatureSerializerTests` round-trips the demo database and covers the two refusals — a file written
+for another feature configuration, and a truncated one. There are **no** tests for the recording round
+trip, and none checking that the C# and Python `.mmpose` readers agree.

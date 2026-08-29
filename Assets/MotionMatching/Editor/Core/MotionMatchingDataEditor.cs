@@ -39,7 +39,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     /// (.mmpose — also what the Python side reads), compute joint forward axes, extract the features
     /// derived from those poses, serialize those too.
     /// </remarks>
-    public void GenerateDatabases(MotionMatchingData mmData)
+    public static void GenerateDatabases(MotionMatchingData mmData)
     {
         PROFILE.BEGIN_SAMPLE_PROFILING("Pose Extract");
         mmData.ImportPoseSet();
