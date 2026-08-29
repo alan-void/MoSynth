@@ -64,24 +64,41 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     public string RightContactBoneName => rightContactBone?.Name;
 
     /// <summary>
-    /// Frames of lookahead the longest trajectory feature needs. Poses closer than this to the end
-    /// of a clip cannot be used for prediction.
+    /// Frames of lookahead the furthest-forward trajectory sample needs. Poses closer than this to
+    /// the end of a clip cannot be used for prediction.
     /// </summary>
-    public int MaximumFramesPrediction
-    {
-        get
-        {
-            int maximum = 0;
-            foreach (var t in trajectoryFeatures)
-            {
-                if (t.predictionFrames.Length > 0 && t.predictionFrames[^1] > maximum)
-                {
-                    maximum = t.predictionFrames[^1];
-                }
-            }
+    public int MaximumFramesPrediction => FramesPrediction(ahead: true);
 
-            return maximum;
+    /// <summary>
+    /// Frames of history the furthest-back trajectory sample needs, mirroring
+    /// <see cref="MaximumFramesPrediction"/> at the start of a clip.
+    /// </summary>
+    /// <remarks>
+    /// A negative prediction frame is how a feature reaches into the past. Both the classic
+    /// motion-matching past-trajectory term and a PFNN-style trajectory window (which spans roughly
+    /// a second either side of the query frame) are authored that way.
+    /// </remarks>
+    public int MaximumFramesHistory => FramesPrediction(ahead: false);
+
+    /// <summary>
+    /// The furthest a trajectory feature reaches in one direction, as a non-negative frame count.
+    /// Prediction frames are not required to be sorted, so this scans them all.
+    /// </summary>
+    private int FramesPrediction(bool ahead)
+    {
+        var furthest = 0;
+        foreach (var feature in trajectoryFeatures)
+        {
+            if (feature?.predictionFrames == null) continue;
+
+            foreach (var frame in feature.predictionFrames)
+            {
+                var distance = ahead ? frame : -frame;
+                if (distance > furthest) furthest = distance;
+            }
         }
+
+        return furthest;
     }
 
     /// <summary>

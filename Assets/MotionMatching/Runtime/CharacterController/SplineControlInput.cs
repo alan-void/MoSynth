@@ -17,6 +17,11 @@ namespace MotionMatching
 /// Nothing here reacts to where the character actually is — the point on the spline advances on its
 /// own clock, so drift shows up as measurable path-following error instead of being steered out.
 /// That is what makes it a measurement tool. <see cref="CrowdSplineControlInput"/> steers.
+/// <para>
+/// A negative prediction frame — a trajectory feature sampling the past — needs no special case
+/// here: the path behind the current point <em>is</em> where this input has been, so the same
+/// spline evaluation answers it.
+/// </para>
 /// </remarks>
 public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSplineControlInput
 {

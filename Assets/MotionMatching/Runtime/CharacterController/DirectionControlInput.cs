@@ -108,6 +108,20 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     /// <summary>Horizons, in database frames, that the direction feature predicts at.</summary>
     private int[] _trajectoryRotPredictionFrames;
 
+    // --- Past horizons --------------------------------------------------------------------------
+
+    /// <summary>
+    /// Where the simulation object has been, for the negative prediction frames of a trajectory
+    /// feature that samples the past. Null while the database asks for no history.
+    /// </summary>
+    private TrajectoryHistory _history;
+
+    /// <summary>
+    /// Samples per second the history is sized to hold. The spring is stepped once per rendered
+    /// frame, so a render rate above this quietly shortens the window it can answer for.
+    /// </summary>
+    private const float HistorySampleRate = 240f;
+
     private int NumberPredictionPos
     {
         get { return _trajectoryPosPredictionFrames.Length; }
@@ -155,6 +169,13 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         _desiredRotation = quaternion.LookRotation(transform.forward, transform.up);
         _predictedRotations = new quaternion[NumberPredictionRot];
         _predictedAngularVelocities = new float3[NumberPredictionRot];
+
+        var historyFrames = mmData.MaximumFramesHistory;
+        if (historyFrames > 0)
+        {
+            var historySeconds = historyFrames * mmData.GetOrImportPoseSet().FrameTime;
+            _history = new TrajectoryHistory(Mathf.CeilToInt(historySeconds * HistorySampleRate) + 2);
+        }
     }
 
     /// <summary>
@@ -211,12 +232,46 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
             transform.rotation = newRot;
         }
 
+        RecordHistory();
+
         // if (DoClamping) ClampMotionMatching();
     }
 
     /// <summary>
+    /// Appends where the simulation object ended up this frame, which is what a negative prediction
+    /// frame is answered from.
+    /// </summary>
+    private void RecordHistory()
+    {
+        if (_history == null) return;
+
+        var position = transform.position;
+        var forward = transform.forward;
+        _history.Record(Time.time, new float2(position.x, position.z),
+            math.normalizesafe(new float2(forward.x, forward.z), new float2(0f, 1f)));
+    }
+
+    /// <summary>
+    /// Where the simulation object was <paramref name="framesBack"/> database frames ago, falling
+    /// back to where it is now for the first second or so of a run, before the history reaches that
+    /// far back — which is what a character that had been standing still would have recorded anyway.
+    /// </summary>
+    private void GetPastState(int framesBack, out float2 position, out float2 forward)
+    {
+        if (_history != null &&
+            _history.TrySample(Time.time - framesBack * DatabaseDeltaTime, out position, out forward))
+        {
+            return;
+        }
+
+        position = CurrentPlanarPosition;
+        forward = CurrentPlanarForward;
+    }
+
+    /// <summary>
     /// Facing at each horizon. The same spring as <see cref="ComputeNewRot"/>, jumped straight to
-    /// each horizon in one step — the implicit form is exact at any step size.
+    /// each horizon in one step — the implicit form is exact at any step size. Past horizons hold
+    /// the current facing; <see cref="GetTrajectoryFeature"/> answers those from the history.
     /// </summary>
     private void PredictRotations(quaternion currentRotation, float averagedDeltaTime)
     {
@@ -225,6 +280,8 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
             // Init Predicted values
             _predictedRotations[i] = currentRotation;
             _predictedAngularVelocities[i] = _angularVelocity;
+            if (_trajectoryRotPredictionFrames[i] < 0) continue;
+
             // Predict
             Spring.SimpleSpringDamperImplicit(ref _predictedRotations[i], ref _predictedAngularVelocities[i],
                 _desiredRotation, 1.0f - responsivenessDirections,
@@ -234,32 +291,38 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
 
     /// <summary>
     /// Position at each horizon. Unlike facing, these must be chained — each horizon continues from
-    /// the previous one, because this spring carries acceleration and cannot be jumped.
+    /// the previous one, because this spring carries acceleration and cannot be jumped. Past
+    /// horizons hold the current state and are skipped by the chain;
+    /// <see cref="GetTrajectoryFeature"/> answers those from the history.
     /// </summary>
+    /// <remarks>Horizons must be in ascending order, since the chain steps by their differences.</remarks>
     /* https://theorangeduck.com/page/spring-roll-call#controllers */
     private void PredictPositions(float2 currentPos, float2 desiredSpeed, float averagedDeltaTime)
     {
         var lastPredictionFrames = 0;
+        var position = currentPos;
+        var velocity = _velocity;
+        var acceleration = _acceleration;
+
         for (var i = 0; i < NumberPredictionPos; ++i)
         {
-            if (i == 0)
+            var predictionFrames = _trajectoryPosPredictionFrames[i];
+            if (predictionFrames < 0)
             {
                 _predictedPosition[i] = currentPos;
                 _predictedVelocity[i] = _velocity;
                 _predictedAcceleration[i] = _acceleration;
-            }
-            else
-            {
-                _predictedPosition[i] = _predictedPosition[i - 1];
-                _predictedVelocity[i] = _predictedVelocity[i - 1];
-                _predictedAcceleration[i] = _predictedAcceleration[i - 1];
+                continue;
             }
 
-            var diffPredictionFrames = _trajectoryPosPredictionFrames[i] - lastPredictionFrames;
-            lastPredictionFrames = _trajectoryPosPredictionFrames[i];
-            Spring.CharacterPositionUpdate(ref _predictedPosition[i], ref _predictedVelocity[i],
-                ref _predictedAcceleration[i],
-                desiredSpeed, 1.0f - responsivenessPositions, diffPredictionFrames * averagedDeltaTime);
+            Spring.CharacterPositionUpdate(ref position, ref velocity, ref acceleration,
+                desiredSpeed, 1.0f - responsivenessPositions,
+                (predictionFrames - lastPredictionFrames) * averagedDeltaTime);
+            lastPredictionFrames = predictionFrames;
+
+            _predictedPosition[i] = position;
+            _predictedVelocity[i] = velocity;
+            _predictedAcceleration[i] = acceleration;
         }
     }
 
@@ -361,6 +424,11 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     /// One horizon of one trajectory feature, converted into the simulation bone's frame. Y is
     /// dropped — the trajectory is a ground-plane path, so each value is two floats.
     /// </summary>
+    /// <remarks>
+    /// A negative horizon is answered from the recorded history rather than the spring; see
+    /// <see cref="TrajectoryHistory"/>. Before enough has been recorded it falls back to the current
+    /// state, which is what a character that has been standing still would have recorded anyway.
+    /// </remarks>
     // TODO: the trajectory construction should be inside the animation system
     // and not the character controller. Move it
     public override void GetTrajectoryFeature(
@@ -371,31 +439,48 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         if (feature.name == "FutureSphere")
         {
             output[0] = 0.0f;
+            return;
         }
-        else
+
+        if (!feature.simulationBone) Debug.Assert(false, "Trajectory should be computed using the simulation frame");
+
+        var framesBack = -feature.predictionFrames[index];
+
+        switch (feature.featureType)
         {
-            if (!feature.simulationBone) Debug.Assert(false, "Trajectory should be computed using the simulation frame");
-            switch (feature.featureType)
+            case TrajectoryFeatureChannel.Type.Position:
             {
-                case TrajectoryFeatureChannel.Type.Position:
-                    var world = _predictedPosition[index];
-                    float3 local = character.InverseTransformPoint(new float3(world.x, 0.0f, world.y));
-                    output[0] = local.x;
-                    output[1] = local.z;
-                    break;
-                case TrajectoryFeatureChannel.Type.Direction:
-                    var dirProjected = GetWorldSpaceDirectionPrediction(index);
-                    float3 localDir =
-                        character.InverseTransformDirection(new Vector3(dirProjected.x, 0.0f, dirProjected.y));
-                    output[0] = localDir.x;
-                    output[1] = localDir.z;
-                    break;
-                default:
-                    Debug.Assert(false, "Unknown feature type: " + feature.featureType);
-                    break;
+                float2 world;
+                if (framesBack > 0) GetPastState(framesBack, out world, out _);
+                else world = _predictedPosition[index];
+
+                float3 local = character.InverseTransformPoint(new float3(world.x, 0.0f, world.y));
+                output[0] = local.x;
+                output[1] = local.z;
+                break;
             }
+            case TrajectoryFeatureChannel.Type.Direction:
+            {
+                float2 dirProjected;
+                if (framesBack > 0) GetPastState(framesBack, out _, out dirProjected);
+                else dirProjected = GetWorldSpaceDirectionPrediction(index);
+
+                float3 localDir =
+                    character.InverseTransformDirection(new Vector3(dirProjected.x, 0.0f, dirProjected.y));
+                output[0] = localDir.x;
+                output[1] = localDir.z;
+                break;
+            }
+            default:
+                Debug.Assert(false, "Unknown feature type: " + feature.featureType);
+                break;
         }
     }
+
+    private float2 CurrentPlanarPosition => new(transform.position.x, transform.position.z);
+
+    private float2 CurrentPlanarForward =>
+        math.normalizesafe(new float2(transform.forward.x, transform.forward.z), new float2(0f, 1f));
 
     private float2 GetWorldSpaceDirectionPrediction(int index)
     {

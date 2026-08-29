@@ -215,21 +215,21 @@ public class PoseSet
         _clips.Add(clip);
     }
 
-    public bool IsPoseValidForPrediction(int poseIndex, int maxFramePrediction)
+    /// <summary>
+    /// Whether every frame from <paramref name="framesBehind"/> before <paramref name="poseIndex"/>
+    /// to <paramref name="framesAhead"/> after it belongs to the same clip. A feature vector that
+    /// samples outside its own clip describes a transition that never happened, so those poses are
+    /// excluded from the searchable database rather than given a bogus trajectory.
+    /// </summary>
+    /// <param name="framesBehind">
+    /// Frames of history the features need. Non-zero only once a trajectory feature samples the
+    /// past, which it does through a negative prediction frame.
+    /// </param>
+    public bool IsPoseValidForPrediction(int poseIndex, int framesAhead, int framesBehind = 0)
     {
         Debug.Assert(poseIndex >= 0 && poseIndex < _poseCount, "Pose index out of range");
-        // Check the validity of the pose
-        bool isPredictionSafe = true;
-        for (int i = 0; i < _clips.Count && isPredictionSafe; ++i)
-        {
-            AnimationClip clip = _clips[i];
-            if (poseIndex >= clip.Start && poseIndex < clip.End)
-            {
-                if (poseIndex >= clip.End - maxFramePrediction) isPredictionSafe = false;
-            }
-        }
-
-        return isPredictionSafe;
+        var clip = GetClipContaining(poseIndex);
+        return poseIndex - framesBehind >= clip.Start && poseIndex + framesAhead < clip.End;
     }
 
     /// <summary>

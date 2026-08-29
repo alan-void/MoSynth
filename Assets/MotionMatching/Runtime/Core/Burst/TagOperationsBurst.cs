@@ -27,14 +27,16 @@ namespace MotionMatching
     /// frame is inside some range of the query, false everywhere else.
     /// </summary>
     /// <remarks>
-    /// Each range is trimmed by <see cref="MaximumFramesPrediction"/> at its end: a feature vector
-    /// encodes the next several frames, so the last frames of a range have no valid trajectory and
-    /// would let the search pick a pose whose future runs off the tagged region.
+    /// Each range is trimmed by <see cref="MaximumFramesPrediction"/> at its end and by
+    /// <see cref="MaximumFramesHistory"/> at its start: a feature vector encodes the frames around
+    /// it, so the edge frames of a range have no valid trajectory and would let the search pick a
+    /// pose whose trajectory runs off the tagged region.
     /// </remarks>
     [BurstCompile]
     public struct SetTagBurst : IJob
     {
-        [ReadOnly] public int MaximumFramesPrediction; // Number of prediction frames of the longest trajectory feature
+        [ReadOnly] public int MaximumFramesPrediction; // Frames of lookahead the longest trajectory feature needs
+        [ReadOnly] public int MaximumFramesHistory; // Frames of history the furthest-back trajectory sample needs
         [ReadOnly] public NativeArray<int> StartRanges;
         [ReadOnly] public NativeArray<int> EndRanges;
         [WriteOnly] public NativeArray<bool> TagMask;
@@ -49,7 +51,7 @@ namespace MotionMatching
             {
                 int start = StartRanges[i];
                 int end = EndRanges[i];
-                for (int j = start; j < end - MaximumFramesPrediction; j++)
+                for (int j = start + MaximumFramesHistory; j < end - MaximumFramesPrediction; j++)
                 {
                     TagMask[j] = true;
                 }

@@ -48,6 +48,17 @@ Prediction horizons are counted in **database frames**, so converting one to sec
 multiplying by the database's own frame time — not by `Time.deltaTime`. The trajectory is a
 ground-plane path, so Y is dropped and each value is two floats.
 
+A horizon may be **negative**, meaning a point in the character's past
+([why](feature-vectors.md)). The two live inputs answer that from opposite directions, and the
+difference is not cosmetic:
+
+- A **path follower** needs nothing extra. The path behind its current point *is* where it has
+  been, so the same spline evaluation with a negative frame count answers it.
+- A **spring-driven input cannot compute its own past.** The spring says where the object is going,
+  and stepping it with a negative timestep does not run it backwards. `DirectionControlInput`
+  therefore records a `TrajectoryHistory` — a ring of timestamped ground-plane samples, read back
+  by interpolation — and answers past horizons from that.
+
 A control input can also raise `OnHighInputChange` to force an immediate search rather than waiting
 out the [search interval](matching-stage.md).
 
@@ -99,7 +110,13 @@ One asymmetry in the prediction worth knowing:
 - **Facing predictions can be jumped** straight to each horizon in one step, because the implicit
   spring form is exact at any step size.
 - **Position predictions must be chained** — each horizon continues from the previous one, because
-  that spring carries acceleration and cannot be jumped.
+  that spring carries acceleration and cannot be jumped. Horizons must therefore be authored in
+  ascending order, since the chain steps by their differences.
+
+Negative horizons are skipped by both springs and answered from `TrajectoryHistory` instead. Before
+the history reaches that far back — the first second or so of a run — the query falls back to the
+object's current state, which is what a character that had been standing still would have recorded
+anyway.
 
 It runs two independent springs, one for position and one for facing, precisely because facing and
 travel are different quantities — see

@@ -460,7 +460,8 @@ public class FeatureSet
 
         for (var poseIndex = 0; poseIndex < nPoses; ++poseIndex)
         {
-            if (poseSet.IsPoseValidForPrediction(poseIndex, mmData.MaximumFramesPrediction))
+            if (poseSet.IsPoseValidForPrediction(poseIndex, mmData.MaximumFramesPrediction,
+                    mmData.MaximumFramesHistory))
             {
                 _valid[poseIndex] = true;
                 ExtractFeatures(poseSet, poseIndex, mmData);

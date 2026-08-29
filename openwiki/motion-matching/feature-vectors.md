@@ -47,8 +47,14 @@ two blocks is simply the pose section's start offset.
 | `PoseFeatureChannel` | always 3 |
 
 A trajectory feature samples a bone — or the character's derived simulation frame — a number of
-frames into the future, stored once per entry of `predictionFrames`. A pose feature is a joint of the
-current pose expressed in the character frame.
+frames away from the query frame, stored once per entry of `predictionFrames`. A pose feature is a
+joint of the current pose expressed in the character frame.
+
+A prediction frame may be **negative**, which samples the past rather than the future. That is how a
+trajectory window spanning both sides of the query frame — the shape a PFNN-style network is trained
+on — is authored. `MaximumFramesPrediction` and `MaximumFramesHistory` on `MotionMatchingData` report
+how far the configuration reaches each way, and between them decide which poses can carry a valid
+feature vector at all.
 
 ## Rebuild, do not mutate
 
@@ -114,7 +120,7 @@ real bone target.
 
 A `Direction` trajectory feature stores **the character's facing**, not its direction of travel.
 
-- For a simulation-frame channel: the *future* pose's own simulation-frame forward.
+- For a simulation-frame channel: the sampled pose's own simulation-frame forward.
 - For a bone channel: that bone's rest-pose forward axis, rotated into character space.
 
 In neither case is a position difference taken — travel direction never enters. Both are then
@@ -140,8 +146,8 @@ constrains the three toggles so at least one axis survives.
 ## Normalisation
 
 Extraction computes a mean and a standard deviation per valid frame, then normalises. Invalid frames
-— those too close to the end of a clip for their lookahead — are left at zero and excluded from both
-the statistics and the normalisation.
+— those whose sampling window would leave their own clip, at either end — are left at zero and
+excluded from both the statistics and the normalisation.
 
 The mean is per dimension. **The standard deviation is not.** For each feature, the per-dimension
 deviations are averaged across all of its floats and that single value is written back to every one
