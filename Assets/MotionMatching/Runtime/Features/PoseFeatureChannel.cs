@@ -50,7 +50,7 @@ public sealed class PoseFeatureChannel : ChannelDescriptor, IMatchingFeature
                 break;
             case Type.Velocity:
             {
-                var nextPose = poseSet.GetPoseBuffer(NextPoseIndex(poseSet, mmData, poseIndex));
+                var nextPose = poseSet.GetPoseBuffer(NextPoseIndex(poseSet, poseIndex));
                 var position =
                     FeatureSet.GetLocalJointPositionFromCharacter(skeleton, simulationFrame, characterPose,
                         characterPose, boneIndex);
@@ -69,13 +69,15 @@ public sealed class PoseFeatureChannel : ChannelDescriptor, IMatchingFeature
     }
 
     /// <summary>
-    /// The pose one frame later. The frames past the end of the extraction window are never filled in,
-    /// so there the current pose stands in and the velocity comes out zero.
+    /// The pose one frame later within the same clip. Clips are stored back to back, so the frame
+    /// after a clip's last is an unrelated animation; differencing against it would report a
+    /// jump-cut as joint velocity. On a clip's last frame the pose stands in for its own successor
+    /// and the velocity comes out zero.
     /// </summary>
-    private static int NextPoseIndex(PoseSet poseSet, MotionMatchingData mmData, int poseIndex)
+    private static int NextPoseIndex(PoseSet poseSet, int poseIndex)
     {
         var nextPoseIndex = poseIndex + 1;
-        return nextPoseIndex >= poseSet.NumberPoses - mmData.MaximumFramesPrediction ? poseIndex : nextPoseIndex;
+        return nextPoseIndex < poseSet.GetClipContaining(poseIndex).End ? nextPoseIndex : poseIndex;
     }
 
     public override bool Equals(ChannelDescriptor other)

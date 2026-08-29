@@ -12,7 +12,7 @@ namespace AnimationTools
 /// <see cref="PoseSequence"/> over a <see cref="AnimationTools.Skeleton"/> that is exactly the
 /// clips' own skeleton: bone 0 is the rig's root, carrying clip world position and rotation.
 /// Read frames with <see cref="GetPoseBuffer"/>; write new ones through
-/// <see cref="BeginClip"/>/<see cref="EndClip"/> or <see cref="AppendRawFrames"/>.
+/// <see cref="BeginClip"/> or <see cref="AppendRawFrames"/>.
 /// </summary>
 public class PoseSet
 {
@@ -95,8 +95,8 @@ public class PoseSet
 
     /// <summary>
     /// Registers a new animation clip of <paramref name="frameCount"/> poses and returns
-    /// writable frames for it (zero-initialized). Finish with <see cref="EndClip"/> so tag
-    /// ranges resolve against the clip's start offset.
+    /// writable frames for it (zero-initialized). The clip's range is registered up front, so
+    /// tag ranges added afterwards resolve against its start offset.
     /// </summary>
     public PoseFrameRange BeginClip(int frameCount, float frameTime)
     {
@@ -285,6 +285,12 @@ public class PoseSet
         Debug.Assert(clipIndex >= 0 && clipIndex < _clips.Count, "Clip index out of range");
         return _clips[clipIndex];
     }
+
+    /// <summary>
+    /// The clip a pose belongs to. Clips are stored back to back in one array, so anything that
+    /// steps between frames has to ask for this rather than treat the array as continuous.
+    /// </summary>
+    public AnimationClip GetClipContaining(int poseIndex) => _clips[GetAnimationClipIndex(poseIndex)];
 
     public void Dispose()
     {
