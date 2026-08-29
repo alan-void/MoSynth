@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2a1bccbc7e98f9b7f52c4df154cbabec334569d1a5a5836187eefee46e720514",
+  "claims": [
+    {
+      "id": "claim_c1b6b5b9905545ebbf023e7f90be000b",
+      "statement": "StateBuffer is a view struct like NativeArray itself: copying it copies the view and every copy aliases the same underlying data, so ownership follows the Native* rule that whoever calls Allocate must call Dispose.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/State/StateBuffer.cs#L8-L20",
+          "version": "repo-lines-v1:sha256:ee704bfcffb575d7a35d7892e3e9fda8014c24063f0d46e7353a70282c2346e2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkODNjYmUxNzYxY2M0OWIyMGVmYmZhZjUyNTg5ZDY3M2M1NzA4NWU1ZDEyOTMyNDYzM2QyODY4NjhlMTM4YTQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseBufferTests.cs#L240-L251",
+          "version": "repo-lines-v1:sha256:cb167ca839ab9aa67e725e0e1cd06a9ba7564f83ef3c87955db754b6d30a3cd8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_950ded5b702048aa9bf41705a8a652a1",
+      "statement": "A ChannelHandle stores an absolute float offset into the buffer rather than a section-local index so reading costs no layout arithmetic, and it carries the LayoutHash it was bound against because such a handle would otherwise address arbitrary floats in a buffer built from a different layout; every accessor asserts the match in assertion builds.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/ChannelHandle.cs#L3-L9",
+          "version": "repo-lines-v1:sha256:b3a08e31cc7236002e7199f41f6defa54c51dc1c1bd86a66c12240dfbbc8320e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODQ3OGMzZDM4OWY2MzJmZWIzZDRhMTg3NDNjOWRhNTVmODJjZWFhNzkyY2QyZjA5Zjk0ZjgxODJlMTE5N2RiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmVkMGU3NDA4NjM4ZTY3ZDI3NmFlM2M4OTNjZThlODMxYjEyYzc4MmYzNDJjOGJkYzRiMTk2ZjM1N2RiMzRiMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2NlZjQ2MGIyZTEyM2UyOWZjOWYxZWY1ODhiMWQ2Y2FhNTQzNDIwYTJiODc1NjJlYzI2NzZjMjhhYjkzNzY4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2NmMTEwMTYxMzE4YjNmMDVlMWI4NTljOWY5NmQyMWNkNjEwZDcxNGQ2ODMyNzllYzA0YzMxODliYWJhODgzZCJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseLayoutTests.cs#L327-L349",
+          "version": "repo-lines-v1:sha256:a99d6855fc8684b37ab763217fcc380afc0506f7e0b67e4e442f602b4be41b29:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzNzFjMTUzMzVkZjJjZjM5ZjRiNjFmMjBlMzExZGI2MTljMGU5NGY4OTAzMDVhOTdlYTE5NzA4NzNlZjU3MjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3efda7b56dc147baa4db58ad84c3ae20",
+      "statement": "LayoutHash is claimed as the exact equivalence class rather than an approximation — it covers every channel's content and, for pose layouts, the skeleton — so equal hashes mean identical offsets, and because CopyFrom asserts on the same hash, handle validity and copy compatibility agree by construction.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/ChannelHandle.cs#L3-L9",
+          "version": "repo-lines-v1:sha256:b3a08e31cc7236002e7199f41f6defa54c51dc1c1bd86a66c12240dfbbc8320e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODQ3OGMzZDM4OWY2MzJmZWIzZDRhMTg3NDNjOWRhNTVmODJjZWFhNzkyY2QyZjA5Zjk0ZjgxODJlMTE5N2RiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmVkMGU3NDA4NjM4ZTY3ZDI3NmFlM2M4OTNjZThlODMxYjEyYzc4MmYzNDJjOGJkYzRiMTk2ZjM1N2RiMzRiMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2NlZjQ2MGIyZTEyM2UyOWZjOWYxZWY1ODhiMWQ2Y2FhNTQzNDIwYTJiODc1NjJlYzI2NzZjMjhhYjkzNzY4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2NmMTEwMTYxMzE4YjNmMDVlMWI4NTljOWY5NmQyMWNkNjEwZDcxNGQ2ODMyNzllYzA0YzMxODliYWJhODgzZCJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/State/StateBuffer.cs#L107-L111",
+          "version": "repo-lines-v1:sha256:61d1303efac4e2ddeb1f100b5fe6702c7e229bf524c43ec979d9f6053c0ad4d3:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RhOTYxMzg0YWYyOTYyZTIxYWMyNjZjOTg1NmMzNjFkMjRiOWVjYWI5OTA5YWMwMTA5MTM5ZTIyMDUyODRhZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTNlOGVlZWEwYjliNDJjOGIyMjIxZGNjYTQ5ZTcxMDk5ZGY2ZTY3MTljNjUyYjEwZGZkNjRiODliNGE4NTdkMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTk5Yjg1YmVjY2Y0MjhmYzgwNDYwYmIzZmE1NTFiMTZlZGVkOGZmNWVkZTVhODE3NWRhOTk0YmI4NTQyMmNlZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_307f2f40a7da41748415742976677533",
+      "statement": "A ChannelDescriptor carries two hashes deliberately: GetHashCode answers which channel this is and keys the offset table so binding never has to restate descriptive metadata, while GetContentHash also folds in space and rotation representation and feeds the layout hash — so two layouts differing only in a channel's space address identically yet are not interchangeable.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/ChannelDescriptor.cs#L5-L15",
+          "version": "repo-lines-v1:sha256:a2b158880d0168160ed75169bb57b330612491972bc11b7b9f083ed820b9ed07:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhMDA5Nzc0MjhmNWNiMzRhNmViYTc2YTZlZTU5ZTVlNmUxMzY5YmUxZTY1Y2FhODA5MzU5ODczMzU3YTYyM2UifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseLayoutTests.cs#L315-L325",
+          "version": "repo-lines-v1:sha256:cfb7700e44db1a23b210a5dde9a77ebbf062deead17cf69ac7ca05a13b588913:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZlZWE2ZDA0YTIzNzJiODI0YWQ4Yjk1YmQ1NjNhZTk3MjdmYjg5NjFkMWIxNzZjNWM5YzRhYzVmZjJjMzZiMWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f31b6f7f048d4d629918bc58d5216560",
+      "statement": "Section keys are const ints rather than enum ordinals because section order is a buffer-layout contract, and deriving it from a declaration order would let a cosmetic reorder — such as sorting the enum alphabetically — silently move pose data with no compile error.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/ChannelTypes.cs#L3-L21",
+          "version": "repo-lines-v1:sha256:8e7e563d1118618b8cb082a23fdf43ce8f933729a05752f10dd429128b5ba5b6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjZWY0NjBiMmUxMjNlMjlmYzlmMWVmNTg4YjFkNmNhYTU0MzQyMGEyYjg3NTYyZWMyNjc2YzI4YWI5Mzc2ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2YTA0OTY2OWI5NWU0ZWY3ZTEwNDE1NjQyMzZlNmYxOTdiN2MwYWRkYTI0ZTdjY2IzZTgxNDY2OGY1ZTRiYzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2b9ac387ab4546c1930c30e859fa6e17",
+      "statement": "Channel kinds outside the six built-ins must use a section key greater than Bool, which keeps them in a contiguous tail after the built-in sections; PoseLayout.Build throws when a non-built-in channel claims a reserved key.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/ChannelTypes.cs#L3-L21",
+          "version": "repo-lines-v1:sha256:8e7e563d1118618b8cb082a23fdf43ce8f933729a05752f10dd429128b5ba5b6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjZWY0NjBiMmUxMjNlMjlmYzlmMWVmNTg4YjFkNmNhYTU0MzQyMGEyYjg3NTYyZWMyNjc2YzI4YWI5Mzc2ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2YTA0OTY2OWI5NWU0ZWY3ZTEwNDE1NjQyMzZlNmYxOTdiN2MwYWRkYTI0ZTdjY2IzZTgxNDY2OGY1ZTRiYzkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L94-L124",
+          "version": "repo-lines-v1:sha256:1f05116f1cb32f2d0e7f05e5d40b7bef008aa927f3d12b172946c63503cad19c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5MTYzNDMzZmI5OTAzYzdkODViM2ZiMGJhOTlhNWJiMDBkZGE2NzRhMjk0NmZhYTE5MjNiNjgzMTVmYmQ4NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMTJmN2E0YTcyOWYzODQ1MjVmMTIwOTM5ZTY3MjdlYWQxMGRiNGFmYTdjOTRiZmI3MzlhZGZkYmQ3NjQ1OWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dfe58890714e44918958263d647daa23",
+      "statement": "Sections are laid out in ascending section-key order with declaration order preserved inside a section, and each channel occupies its own width, so a section is only uniform-stride when its channels are.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/State/StateBufferLayout.cs#L16-L30",
+          "version": "repo-lines-v1:sha256:7169969536a335f0ea7a9be99692b6c551e074b0848a9eb997738e91af25eaba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxMTA3M2VjMWUxMzk2YWMwMjZkMWVmNTJhMGY5NzhjZGZmNDc1ZTA5YjM2ZjNiYTY3ODYxZjA5ZGQ1NzljNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkODdlOGRmNDFmODJmNjE1ZjUyNmFiMjA0NDhiNGEyMmRlMDI1ODc5NTVkYTBhNzQ4NGMwOWE5ZWFlNzA1MWYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/StateBufferLayoutTests.cs#L51-L67",
+          "version": "repo-lines-v1:sha256:2f20926ffc8ba8b95ab5bc346e1523d6d4bef3dbdca368545e6959c3a919a22c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4MDg4M2RjYzQ1NWNiNGUwODk3NDkxNzMwZmVhYmQzOWM3MTRhYTRmYTUzZTc4MzA1YThkN2ViMWQyZjYxZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhZTRhN2YxYzJmZDVlNzg1YTc3ZGJjODM0ZTQ0NDk0ZGZhOGYxZTY2NzA4ZGNlYzgzMjAyNjRmMWM5MWYzNDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_19635abfd2a045e1a7a4620dcc1a9d99",
+      "statement": "The layout hash is supplied by the subclass rather than computed by the base class, because what a layout's identity must cover is subclass-specific — a pose layout's identity has to include the skeleton, which the base class cannot see.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/State/StateBufferLayout.cs#L59-L64",
+          "version": "repo-lines-v1:sha256:c8d21993818537e67aeafe31a9b1731e171d67295a430f450e08dbd2489967dd:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmNkZWI0ODBlMWYxOThjNDgxZTk2ZmRkYjU3Nzc4NzdhNTQzOGU0NDlhOWU0MzQ0Y2JhZTBjNTc0YWRlNTc5NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTBhODIzNjI2NzBjNWQwNGQxODI5NWEzYjU4MDc3NTI4YmNlY2ZmNzdlY2JjMjBmYjQ2ZjkwMDgzZmFiOGRlOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTA3MGI1NTBhOGUxMzJhMDc0YzZiMmE3ZDM5YjcxMWI5MWFlMDk1NzUxMzc4MDU3OGY1YWMxZGFiMDlmN2NlMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f0ecd434acfe40fa92b6464b4ba4af4f",
+      "statement": "Binding a channel allocates a probe descriptor per call and is intended for setup rather than per-frame use; the width comes from the stored channel, so a probe differing only in descriptive metadata still binds correctly.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/State/StateBufferLayout.cs#L16-L30",
+          "version": "repo-lines-v1:sha256:7169969536a335f0ea7a9be99692b6c551e074b0848a9eb997738e91af25eaba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxMTA3M2VjMWUxMzk2YWMwMjZkMWVmNTJhMGY5NzhjZGZmNDc1ZTA5YjM2ZjNiYTY3ODYxZjA5ZGQ1NzljNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkODdlOGRmNDFmODJmNjE1ZjUyNmFiMjA0NDhiNGEyMmRlMDI1ODc5NTVkYTBhNzQ4NGMwOWE5ZWFlNzA1MWYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/State/StateBufferLayout.cs#L121-L138",
+          "version": "repo-lines-v1:sha256:d269e3ff699f1ad4134a4d019f4d0c9e2bd5b70f36d9fae3ce1fa8f17c8296a6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4NzI3Mjc0N2VkNmJmYmZlYzUzZTAzYzQ4ZTI2NmY2M2NiM2M5ZWVkMzQ1ZTVkZjliZjVmMjc5MmQ4N2ZiMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhZGNhMGM2OGI5MjI0M2ViMjM4NzMzNmQyMWM0NmNiMTk4MTJkYzJkYmZkODZiMjY3MzNmNWJiZDVhODA3N2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cbee46ee59474bb2a0f3690833eaddf0",
+      "statement": "Rotational rates and offsets are worked in scaled-angle-axis form — a float3 of axis times angle in radians — because quaternions cannot be added or scaled meaningfully: half a quaternion is not half the rotation and a sum of two is not a composition, so springs, integration and blending would all be ill-defined on them.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Utils/MathExtensions.cs#L8-L19",
+          "version": "repo-lines-v1:sha256:a69f7a527a4fbe955747d5a28402dc3e3192b1912b76465040fdd028668de337:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExYTA3ZGI2N2Y0MWFmMjEwNDNkYTNhOGRhODRiMjkxYWM5NWFjOTljYTIzNTA3ODI3ZDJmNGM5MDEwZWNhNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3NzE0ZDAwOThmOWNmNTBkNzIzYWRjMDRkOTdiNjliZDBkMmM4ZjQxMjkxNzliMzhlNzdjMTg1OGFmYTRlODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0Y2RjZjEzZDg5ZDA1NmFmMDVhOWMwMTNjYWY4YzdiNjE3ODY5ZDk5MDY4NjM2YWI1Mjc3YjhjYmQ4NmYyYTUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/ChannelTypes.cs#L32-L43",
+          "version": "repo-lines-v1:sha256:9ac56b33c6863a5f27c69eaeaf38e6e692266cad515734272155c15475aaae9a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3MjQxMjJmMWQzZTI4ZTUzMmI1Y2QwZGQyN2E4YzMxOGJhMjk0NjI5NjJmY2Y2MDg2ZWZhM2ZiOTQwMTYzMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlOTNhYzIyZTZlNWE3NzFlZmRlMzg4NTRlZTUyODA3ZmM0Nzc2Mjk5MzE4ZWYwYTlhMWFkY2FmNzY2MjZhMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_edc66766a3694424bf8d502179db6777",
+      "statement": "MathExtensions.Abs picks the shortest-path representative of a quaternion by negating all four components when w is negative, because q and minus q are the same rotation but only one is the short way round — without it a difference of two rotations can come back as 350 degrees instead of 10.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Utils/MathExtensions.cs#L22-L32",
+          "version": "repo-lines-v1:sha256:0df2c7d563e400efad68877017a64f3eb70a64b05793d7f8b56f46c77223740d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYTRiMTcyYzc3YjRkMzgyODI5YWMxZjE1Mjg2YjQ3M2Y1MzUyNjdmNzEzMmQzN2RmYjdjMzY0YTM4YWUwODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0ZGRlODNmMjRmYzk5MWQyMzRmZGMzZjIxYWI5NjVjMjQ3ODhlMzFjOGNiN2Y4ZWM4ZWUwNjkwOTk4NTc4ZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlYTkxNzU1NDFjMWU0YjE5ZTk3MDQyNDdhM2Q4OGMyYmJlMTgzNzc4MTZiNjIyZGUwMjI4Yjg4YWMwNzViN2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_003723947f1d4d58ad4ca14ac1062734",
+      "statement": "The quaternion logarithm and exponential both take a small-angle branch below an epsilon of 1e-8, avoiding acos and the division by length near identity where both are ill-conditioned and where the branches agree anyway.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Utils/MathExtensions.cs#L61-L96",
+          "version": "repo-lines-v1:sha256:66b0f2ce5294dde79ce855348b18b49e0caa5aac4164be2a8bcf138fecb3f1d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYTRiMTcyYzc3YjRkMzgyODI5YWMxZjE1Mjg2YjQ3M2Y1MzUyNjdmNzEzMmQzN2RmYjdjMzY0YTM4YWUwODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiM2FlMmZlOTAzODg1MTdmZDBlYTQ5MDMwNjAwMmY3N2M5NjY3MjBhNzYyODFlZjQyNGI4MWU1MzBjNjhiZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5OGE4MGE3YTNlZDIwZjgxNWExYmZiOWQ1NTVhYmY2Zjk5MjQxYjczODdmYTk2YTc5MTA0OTNjOWFkYjY4NWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ea36b9eb0b6d44278e379b9378c6f1a2",
+      "statement": "ChannelUsage makes root motion an explicit, discoverable channel declaration rather than an implicit bone-index-zero convention, and it is what disambiguates multiple channels of the same kind on the same bone.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/ChannelTypes.cs#L45-L55",
+          "version": "repo-lines-v1:sha256:46d09dd6c1d8b258520cd5857b51e0e7a1d453bfe8d0d9372ebca7c6e18845b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwZjIyNjAzYWFhMjBmMjY4ZDdmMWM4YjM1ZTI3MTM0NTlhMTU1NzBjZDk1OGY1ZjM0NjUzNDJlM2U4YTQ2N2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseLayoutTests.cs#L193-L219",
+          "version": "repo-lines-v1:sha256:12b3f5c7f56a5b630dfb1ffe967124da78bf557e331edf8a8ebea7e1d81d2ef0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViZTI2Yzc1Yjg1MTUyMmMyZTJjNzE4ZGQwNTM2NjI4ZGYyZjNiMTRjNmMyN2ExNTllMmM4NWMxZTE4Njc2OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjZTVkN2Y0MjUwZGU0ZTdhZWI5MDZjY2QxNjQ5ZWZkNzA3MTI4NGNjZDA1NjE4Y2JjN2M3MmQyNTcxMTdkN2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_13f77efb9be046cf89b1027de896e4e8",
+      "statement": "A StateSequence hands out frame views that alias its storage and must never be disposed, and a sequence built over storage someone else allocated — such as an Allocator.Domain array — must never be disposed either, since disposing a sub-array throws.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/State/StateSequence.cs#L6-L23",
+          "version": "repo-lines-v1:sha256:73ea86dc80890747de5d7714f4ea7d0536d8c837286cd787838f7b6fae1013c1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0NzRiYWUwMTU3MjJjMTE2OGI1Mzk0ZmFhZjU2YWVhM2MzNTcyNWIwY2YyOTM3NTU3YjI2YTliZDg3NWM5MDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7011a294722e460da45baaa0b68a1f4b",
+      "statement": "Booleans are stored as one float, written as 0 or 1 and read back with a 0.5 threshold, which keeps a buffer a single homogeneous float array and is what makes flat copies and single-call numpy reads possible.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/State/StateBuffer.cs#L89-L99",
+          "version": "repo-lines-v1:sha256:4f3a87ccf9effbcbf8f39b72f7321adb1b63ed89b64b70fe706a34215b8854c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3Y2QxOTQ1YTE0YzUxNzYzMWE5OTUzZGVmMWYwNzJhNDZlZmNmY2Q1MDUwM2MxMmRmNjIwMTkzYjMwN2QzYzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2ZmJkZmMzOWRhNDNiMWFiYTU3NjEyNTU0NzRmMTZiNGVmYjIwMzRmODgwOTcxZTBmMjlhNzIzYzM2YjhjZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2Y2JkYzNjMzE2OWRhMWMwZTM4ZGJiMmRkODkyYzRkN2MyMTI1N2YyYzE2YTA1OTk0NzFkZTAyNmJkZmZiMjYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseBufferTests.cs#L105-L115",
+          "version": "repo-lines-v1:sha256:d1ec1289a728701ae1fe5a8690fbf38f80e33804e1271cecdabbfd600f873a7a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2Y2NmZmEyODNiYzdkZTNkNjg5Mzk1MmQwNGEzYTFmZDRlYjk5N2RiODJjZTg5ZGMyNjA1ZWI0NzFjNjc0NzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4ZDdkYWZiZGRmMjdmYzIwNTcwYmUyOTkxMGUxNWZiNjdhYzZhYzZlNDAwOWMwNmNjMTUzODNjZDAyYTc2NzUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:6f2c5474d4d314c38e8c240d42f99ba791af34c4b2e46a4274baf9cabee0749a",
+  "claims": [
+    {
+      "id": "claim_8d140b6a9e044bd3a43707e7b986dead",
+      "statement": "A PoseLayout is the pose file's own self-description: a serialized pose asset stores enough of it to reconstruct the layout without external context, which is what lets a deserialized database be read with no ScriptableObject to consult.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L33-L52",
+          "version": "repo-lines-v1:sha256:819fd083ae288185dc0ba505fd12de2c1453100d5e0cd467ff370c841ea017fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2ZWFlNmU1Y2I2NWNiYTE1NTY2NzUzZDZmNTc2NzE3ZWI0YTg5NGY5YjFiMTk2NmFiZDRkMjgwNzRjNDZkNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4N2RlMDg5MGJmYThlNGNmNDA0OTNjYWJlZGEwNDUwYjAyYmFlMjYxNDdhNGU2YjRhMzkwZGVlOWM4M2M2YTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2Y2Q4N2QzNjdlMjkxZWQ4MGJlMGJmZmJmMWRkMjBkZGYxYWU2M2Q4OTUzNzM5YmJhM2YxMTRmY2ZhZjg5ODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_789e0dfa465641cb92df511d799be1c6",
+      "statement": "Structurally equal skeletons from different sources share one cached PoseLayout instance, and that shared instance is what lets PoseBuffer.CopyFrom work between a PoseSet's frames and a live component's frames, since CopyFrom requires equal layout hashes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L33-L52",
+          "version": "repo-lines-v1:sha256:819fd083ae288185dc0ba505fd12de2c1453100d5e0cd467ff370c841ea017fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2ZWFlNmU1Y2I2NWNiYTE1NTY2NzUzZDZmNTc2NzE3ZWI0YTg5NGY5YjFiMTk2NmFiZDRkMjgwNzRjNDZkNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4N2RlMDg5MGJmYThlNGNmNDA0OTNjYWJlZGEwNDUwYjAyYmFlMjYxNDdhNGU2YjRhMzkwZGVlOWM4M2M2YTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2Y2Q4N2QzNjdlMjkxZWQ4MGJlMGJmZmJmMWRkMjBkZGYxYWU2M2Q4OTUzNzM5YmJhM2YxMTRmY2ZhZjg5ODcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseLayoutTests.cs#L267-L275",
+          "version": "repo-lines-v1:sha256:2a605b032b95f67de00a90afd69b87efc40d48a046e9070d9b4566464ac451e1:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTkyZThmNDI1YjEwZDM3ZWI0NzJlMzA2YTI4YmJjYWNjYTMxMjgyYWMzZjEyNjkzNmNjOGNiNDQ2ZDU3YTY3MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTExYTIwMDRhMzQxYTcxODJlOWM3N2EyMjI4MjE0ODY2MWRlN2MzMmM1MzBkMmY5MTU2OGFjMTAzZWM4MzllZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjAyNTJjZTIwYjUyNDMzNWY4NTg5NWI5M2JiYTRhMDllYzc4YTc1YWJhNmMxYmEzNjMxNDA2NjgxNTk5YmU3MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9fc3d1fac4b34866973111a509dfd67b",
+      "statement": "The PoseLayout cache evicts an entry whose rig Transform was destroyed by a reimport or scene unload, because such an entry reports zero bones and can never match again, so leaving it would poison its slot permanently.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L126-L150",
+          "version": "repo-lines-v1:sha256:8aca72b408ac9677019bcec379c2cc5793f93f0f01d4be080cc7dda499be67bb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZmI2ZTFiZWE2YWQyNTY5NTEzMGRiNjQ1OWM4MTkxNTEzNThjMDE5YWI3MWZkMTQyZmU0YjA0Mzk2ZmUzYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhOWY4NmQyOGU3ODRmOWZkMzFmYjcyZDE1ZjYwY2JjZWFhZmRkNjY5Y2JkNWI2ZGE3ODg4YTAyMzMyMWViYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1YWI5ZjFjMGYwMmM1MWY5OTFhMDczMzBhZGM2NWY5MjEwNWQzYzFiYTIzYjBmMmQzNTY1MjQ5ZGUzNGQ4ZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4e5ba5bdedef4340a736a04adfe4afe2",
+      "statement": "On a hash collision between structurally different skeletons the fresh layout is left uncached rather than evicting the incumbent, trading the cache benefit for correctness so the other skeleton's shared-instance guarantee survives; the cache key is the hash but membership is always confirmed with a structural-equality check.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L126-L150",
+          "version": "repo-lines-v1:sha256:8aca72b408ac9677019bcec379c2cc5793f93f0f01d4be080cc7dda499be67bb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZmI2ZTFiZWE2YWQyNTY5NTEzMGRiNjQ1OWM4MTkxNTEzNThjMDE5YWI3MWZkMTQyZmU0YjA0Mzk2ZmUzYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhOWY4NmQyOGU3ODRmOWZkMzFmYjcyZDE1ZjYwY2JjZWFhZmRkNjY5Y2JkNWI2ZGE3ODg4YTAyMzMyMWViYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1YWI5ZjFjMGYwMmM1MWY5OTFhMDczMzBhZGM2NWY5MjEwNWQzYzFiYTIzYjBmMmQzNTY1MjQ5ZGUzNGQ4ZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_04f0f30629684898a3e87daaeb48a1be",
+      "statement": "Every Rotation channel in one layout must share a single rotation representation, which is what keeps the Rotation section uniform-stride and therefore lets PoseBuffer.Rotations exist as a reinterpreted quaternion slice.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L94-L124",
+          "version": "repo-lines-v1:sha256:1f05116f1cb32f2d0e7f05e5d40b7bef008aa927f3d12b172946c63503cad19c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5MTYzNDMzZmI5OTAzYzdkODViM2ZiMGJhOTlhNWJiMDBkZGE2NzRhMjk0NmZhYTE5MjNiNjgzMTVmYmQ4NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMTJmN2E0YTcyOWYzODQ1MjVmMTIwOTM5ZTY3MjdlYWQxMGRiNGFmYTdjOTRiZmI3MzlhZGZkYmQ3NjQ1OWYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseLayoutTests.cs#L130-L139",
+          "version": "repo-lines-v1:sha256:0c69e9a98dfbfdd0eb03cf01b25069b517e094b886053c02ff001bac657ce024:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmYTU4NmU0YmI1YzlhN2Y1ODY5YzZlZDQyZWJjMTQ1MGYyNTg0MWFiMDZiODgyODVjMDNhNDBjZDk0NTE2YTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlM2UwZDJiNGQ4MjJjZWYxOGRiMzYzNWY1ZDg2N2ZhOGJjZjc0NzExNmU5NDAzZGVlOWY2YTkwOTJiM2FhZTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_af026b2393244e0e82bdd9ce0d2478e1",
+      "statement": "PoseLayout's named sections describe only the six built-in channel kinds and explicitly do not assume they span the buffer; ExtraStart and ExtraCount cover the contiguous tail any further sections form.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L6-L31",
+          "version": "repo-lines-v1:sha256:3aa97c304278762f8f89e8192c167741bc6d9116a49bb1c9c33f26c7d5d61e64:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4MGRmZWQxMThiY2Q4YWVjYjZkYTY5OTMzOTEyM2Y4ODIxYTczODQ1ZDFlMWUzZWY4M2ZiNTU3Y2U1NmFiNDQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseLayoutTests.cs#L286-L313",
+          "version": "repo-lines-v1:sha256:1353a53e6aa0343f3daa26fe62ed925421ffbf934b2b6c3288ebefe4d17dd64d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyODkzZDUwNDZjYTgzZmMyYWRhNTU0MTdhNGJmZjk1YjIxMjU5NzdkYzAyMjVmOTQwMjdjZWYzY2U1Yzc0MmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0YWQyZWVkNDhhMzZlMTQ2OTMwM2Q1N2Q5YTJlMTJmNjFkMTQyMmU2YTgwN2FhNDQ4MjVkNDQ0YmEyODkyMGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e7db2dc235b8439caf7be2cbba67c87e",
+      "statement": "CreateFullPose emits one position and one rotation channel per bone in skeleton depth-first order so that element index equals bone index, which is what lets every FK loop and every consumer index a bone directly without a lookup.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L152-L189",
+          "version": "repo-lines-v1:sha256:f47ba50b69b2ec832f82cae34f771096a598afd798b61d84957a549a3e6440ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZmE3YTE5OTM5NmFjNGY0NTBhNmRiMTFhMGRmNTZmOGYzN2JhMDY5ODQwNDY4YzI5MmQwYWMxNTY3NDU5YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5ODBiYTQ2MTAzNWY2M2JlMTliZDVhNjlkY2YyMTA1NmQ1ZjJiZDMyNjVjMWU3Yzg1MjI2ZmY2ZjVmMThiODMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseLayoutTests.cs#L221-L265",
+          "version": "repo-lines-v1:sha256:722003cb8e2605dcdeac95ec705332672a1495c0562325b83326647de32d14af:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiZTU2NzE0NTEwYTA3NmI1NzQ1ZTFhNjczMmYzZWRhZGY0N2JiZWVkOTUzNzgyMWEzMThkNzZhNmE5OTllZDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ba0b77aa5f54e3a827ab757beab4423",
+      "statement": "PoseBuffer.Lerp applies a different rule per section: positions, scales and velocities interpolate componentwise, quaternion rotations are hemisphere-corrected before lerp and renormalisation, booleans step at the halfway point rather than blending, and any extra tail section falls back to linear because it has no per-kind rule.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseBuffer.cs#L71-L141",
+          "version": "repo-lines-v1:sha256:3d9078f5fde4c3a78399bcdee25260f8b262326224c52ab7a6da23b73fb9644e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhMDc5Mjg3OTNkZWUwN2E0YzExZjZjNzBlMjFiM2EyMDlmMDA1YjEzMjFjMmY5Y2JhNTI4OWQzMDgwNzZhMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZjM3YzY1YmQ5OWMzZGM4Y2ExYmI3YzIwZjdmNDJhN2MyNTk1N2QzZWNmZWQ3MzkzN2VjODk3ZTBhMTAzNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkYjRkOGIxYzMwYjFiODYxYjg2NjdkMzEzMjZmZjUwOGM0NmM0OWFhYjg0YTkyODQ4Mjc5YTY0ZDBmNzIwMmMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseBufferTests.cs#L185-L238",
+          "version": "repo-lines-v1:sha256:b610bdad53cd9ffd016f8782c56ed38cccda550724130ba8ed14b9cd1fe39b27:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzOTAyNjU3ZDJkMWJkOGIyNDYwZTMxY2ExYWYyOWUwYjMzZDFmZWFiOWU3MjE5ZjE4YzhmODdhZGNlMzFiZDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_364843c3d7974602a70b3d8c957bcc68",
+      "statement": "PoseLayoutBuilder is the single authoritative motion-matching pose layout, built through by both PoseSet and MotionSynthesisComponent over the same skeleton so the cache hands them one instance and frames can be copied between them.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayoutBuilder.cs#L6-L18",
+          "version": "repo-lines-v1:sha256:6ceb651b43e0ee59775b46449bbebb4026d4b3603756b9a55d965c773d25dcf2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYjdjOWIwOGFiODFjOTk5NTFiMzUyYmQwOTI4ODEwMTllNmU0MmY0YjJkNTc4M2M2NzUwOTM4OWE0YjAwMTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_726cfeb0dff040499cfe5093b9716596",
+      "statement": "The contact host bone for each side must be a pure function of the skeleton's bone names and never of the skeleton's source, because otherwise the database side and the runtime side would pick different bones for the same rig, producing different channel identities and therefore different layout hashes and a failing CopyFrom.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayoutBuilder.cs#L6-L18",
+          "version": "repo-lines-v1:sha256:6ceb651b43e0ee59775b46449bbebb4026d4b3603756b9a55d965c773d25dcf2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYjdjOWIwOGFiODFjOTk5NTFiMzUyYmQwOTI4ODEwMTllNmU0MmY0YjJkNTc4M2M2NzUwOTM4OWE0YjAwMTYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/EvaluationRecorderChannels.cs#L170-L200",
+          "version": "repo-lines-v1:sha256:dcd62cdafb92bc2eb3e32065c73ce1c9e3c2996372fd287bccd5a5a33d55172b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhMGM0MWMzYjg0MGUzZTVjY2IxY2Y2YjJkMjAyNzM5MzY2YzM1MTUyNmNlYWQ3ZjMzZGRlNzE3NzIxNGE4ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc1YWI0NmM0MTdiMGYyZTEwODIxYmYxNWU2MjYxOWRiNjk4Y2Q3YzlhNjE3ZWQzODM1MzNiM2NlZThjNDc4YTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ed11152cac704318828e586ccef280b0",
+      "statement": "When both contact sides resolve to the same bone the builder forces them apart, because the layout rejects duplicate channel identities and a skeleton missing one foot must still end up with two distinct host bones.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayoutBuilder.cs#L60-L89",
+          "version": "repo-lines-v1:sha256:8fe44280a669d1d3da5014e293ab7efd139edb277043e5cc6a98fdbb1784cf08:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwNDkxODI5NDk5MmQ4ZTEzOTBlZmNjNDhiNjhiODY3MWM4MjBkYzFjYTk4YjQxZDlhMmI5MmYzYjI4NDIwZDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_53a5a4ba956d496c9f8689b281cb61dc",
+      "statement": "ChannelSpace is descriptive metadata folded into the content hash and is never enforced: every channel PoseLayoutBuilder creates is declared ParentLocal including bone 0's, which by the storage convention actually holds world position and rotation, so bone-0-is-world is a convention upheld by callers rather than something the layout expresses.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayoutBuilder.cs#L31-L58",
+          "version": "repo-lines-v1:sha256:e28babbf5dba45ceb9677f1e3a89589d4afb1a7705239092618046f0855fd1a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZDdmYTUwYzI1NzM5OTQ1YmNhMGJkNWUzYTVlMWM5YjdhYzVkZjM1MDRjMjJkNjUzMTA3Mjg4YWJiNjE5OGQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L28-L33",
+          "version": "repo-lines-v1:sha256:72455c679c10764c2c3fa2bf31192f3bb7f3179c72f157e6194d885977f1113a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjMyOWQ0ZDVjNTRlNTIwYTM1NzdlOTc0NWIzMjRkNzQ1NTFjMTc1MTc4MDM0OWEyM2Y2ZWNjMDY0NTNjNDllNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRmMDdmOWU4M2M1NjE0YmFhZjlkOTA0ZmIwYWM2N2EzNjMzZWVkYjU0Y2VjMmMyMTYwYjc5OTNiZDY1OGNiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWE0NjlhNzZjOWYxYWE2ZGMyMjBmYTRiMmFlMTk0Mjc1NzU0YmY0NDdkZjU5MTlmM2YwMzUwMGJmOGI2MzAzZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGE0YmZlZTZjZGQ2YWFlMTdjODBmZWYwNzM1MTRkNDdiZmNlMjFmYzQ2ZjkzNGIwOWVjYmNmYmE0MGVjZWZjNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_32d07ba2a857479fa1217d7b96ce86ce",
+      "statement": "Forward kinematics refuses a pose whose position or rotation count disagrees with the skeleton's bone count by throwing with both counts named, rather than asserting, because the mismatch would otherwise surface as an IndexOutOfRangeException from inside NativeSlice with nothing identifying the two things that disagreed.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonData.cs#L168-L193",
+          "version": "repo-lines-v1:sha256:9e646733099c5cafabf6c75cd2adcd9b9b79d118286710053a7d58d71cedf1a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzMTQ4MGQ2OTYwNDBiODM3NzkzMDM2NjYxZWNmYjkzOWVhNzRiNjJmMThmMGQxMGRhNDI0NjBhNjI2YjI0ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjODA1ZDFkM2FhMmQ4NzMxYjk1YTliMzVlM2VhMjhjMzFhOTRhNThlNWIzOTA1MDg3MGZjNzQzOTY3MmU3NWUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseFkTests.cs#L121-L148",
+          "version": "repo-lines-v1:sha256:7af6904f48376c085a8b9cdc8ef0ae66479a0917c40225af72aa7de9869564b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzYzYxNTRlMzRmOWVkOTIxN2YzYTRjNmZlOTYwYjQzNGU0ODljMmFiNjIzZjFiOGE2ODQzMzQwMTdjN2MyODAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_73200d5cde2a4e4fa0da6e7b24b2bba8",
+      "statement": "The FK path requires quaternion rotations and rejects Scale channels outright, so of the six built-in channel kinds Scale is one the forward-kinematics path actively refuses.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonData.cs#L168-L193",
+          "version": "repo-lines-v1:sha256:9e646733099c5cafabf6c75cd2adcd9b9b79d118286710053a7d58d71cedf1a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzMTQ4MGQ2OTYwNDBiODM3NzkzMDM2NjYxZWNmYjkzOWVhNzRiNjJmMThmMGQxMGRhNDI0NjBhNjI2YjI0ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjODA1ZDFkM2FhMmQ4NzMxYjk1YTliMzVlM2VhMjhjMzFhOTRhNThlNWIzOTA1MDg3MGZjNzQzOTY3MmU3NWUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

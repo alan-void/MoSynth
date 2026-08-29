@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:0426e1e31719c264a19d2649abe989e8a98d19ed21557f6bd02ef804b6ad2554",
+  "claims": [
+    {
+      "id": "claim_329681e9f5624decb6f3f8c4c50d2da1",
+      "statement": "The binary convention across MoSynth's own formats is components in order, little-endian float32, with no length prefix and no padding — arrays are their elements back to back, which is why the read helpers must be told a length — and this plain layout is what lets the Python side read the files with one numpy.fromfile and a reshape. Quaternions are xyzw throughout.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Utils/BinarySerializerExtensions.cs#L10-L19",
+          "version": "repo-lines-v1:sha256:e0e0e59ce280e4f6f0cc09a3827066e482102c213db23e492de18515a42cd241:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlZDBkYjYzOWI1MDgwMGYzNjNkNGY4ZWUxOTU5NzRlOTZmZjAwZjJmMWVkYWM1NjA2NWMxOWM1ODY5NWQyMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3NzE0ZDAwOThmOWNmNTBkNzIzYWRjMDRkOTdiNjliZDBkMmM4ZjQxMjkxNzliMzhlNzdjMTg1OGFmYTRlODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMDA3NWIwMmYzOGRlMmE3N2U0YWM5MmMwZjEzNjU1YTIwMTYwMjA2YTViNzA2MWI3MWFjMGY2NWU5MDk2MjMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Utils/BinarySerializerExtensions.cs#L45-L51",
+          "version": "repo-lines-v1:sha256:4d8f9fcf0d65c5cd9d2315380cc45cab1dddcb94ca69a986a3d3e7941b775c77:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWVhZWU2NjJiNDQ0NjVkNmYwYmE2Njc0ODE3M2QxNzJiZjY3ZmI1ZTI0MTFiNzM5YzBiZWVlOTg2NTg3YzNjNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODI1MWJmYWJjZmI2ZDg5ZmQ5ZjRlM2I3YmM0YTE3NGZkOTBjOTk4MTg2ZTRmZGUyYzhmYTM0ZTZkNWMyOTNhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDAzZTdlMWVmMzg2ZjY5ZDZlN2MwODBiYjk4ZjA5MjdhNTRmNjM4NzIzNjhkZTlmOTA4ZjUwOThkMzFlMDc2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTdiNjVlZTZhZTcwZTY5ZjU0MGYwNDJhM2MzMmVhZGQwYjFkYjQ3YTYxYTE0ZDhhMGM5NDA3ZmQ4YTNjM2VmYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b1ced389118847bfbc71db82a0ab6b66",
+      "statement": "A .mmpose file carries a skeleton block ahead of the poses that C# does not need — a config reads rest pose live off its own Transforms — but which the Python half requires, having no ScriptableObject to read: joint names key the bone-weight table, parent indices drive FK, and rest offsets give root-space positions.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L224-L245",
+          "version": "repo-lines-v1:sha256:74033c6765899f402190d667fa17231c567471d84c599afd5edd727dfb840e53:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzN2MxNDhkNDczOGFmODY3ZmYyMjRlZTI0ODA0ZTRiNjg2NjE1Njg5NWQ3ZDU2ZWZmZjFiMjczNDM3YjY3Y2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhOGEwMzAwOTExZmRiYzVlNzkzMDZiNjU2Njk2YjRiNTZkNzZmNzkxMjc3ZjdhN2JjMDdmYjg4ZjZjMTc2ZjIifQ"
+        },
+        {
+          "resource": "repo://Python/pose_set_importer.py#L35-L50",
+          "version": "repo-lines-v1:sha256:293cc7321897ba0c4c980f52159a4aff85a50a799ccf88b8c63dc52226397783:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4MzIyNDI4ODE3NmNjZWMzZWU0MTcyMjJkOTNhOTBlYTZjZTdmYjFiYWI1NjMwMjNhN2RlN2I4NTM5MzgwNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MWYzMDNhNmMyYjE2ZGE5M2Y0Njk5Mzg5NzQ4M2QxNzRkNDBkZWM3NzNhZjI0ZDVlNDFiMTgwY2JmMTYzNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGVlMWM4Y2NiM2JiYTliZTRmMzUyZjQwOGFhNTAxMTZhOWQyMTIwMTU2M2U1NDQwZmY4NjFkNDEyNTlkYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_52656d8571334c8fb7fc1fe78d252e95",
+      "statement": "The skeleton block is kept inside the pose file rather than in a companion file because a separate .mmskeleton file previously allowed the two to drift apart.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L224-L245",
+          "version": "repo-lines-v1:sha256:74033c6765899f402190d667fa17231c567471d84c599afd5edd727dfb840e53:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzN2MxNDhkNDczOGFmODY3ZmYyMjRlZTI0ODA0ZTRiNjg2NjE1Njg5NWQ3ZDU2ZWZmZjFiMjczNDM3YjY3Y2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhOGEwMzAwOTExZmRiYzVlNzkzMDZiNjU2Njk2YjRiNTZkNzZmNzkxMjc3ZjdhN2JjMDdmYjg4ZjZjMTc2ZjIifQ"
+        },
+        {
+          "resource": "repo://Python/pose_set_importer.py#L35-L50",
+          "version": "repo-lines-v1:sha256:293cc7321897ba0c4c980f52159a4aff85a50a799ccf88b8c63dc52226397783:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4MzIyNDI4ODE3NmNjZWMzZWU0MTcyMjJkOTNhOTBlYTZjZTdmYjFiYWI1NjMwMjNhN2RlN2I4NTM5MzgwNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MWYzMDNhNmMyYjE2ZGE5M2Y0Njk5Mzg5NzQ4M2QxNzRkNDBkZWM3NzNhZjI0ZDVlNDFiMTgwY2JmMTYzNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGVlMWM4Y2NiM2JiYTliZTRmMzUyZjQwOGFhNTAxMTZhOWQyMTIwMTU2M2U1NDQwZmY4NjFkNDEyNTlkYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf98e1a83b89431ea183f9bc828ba8fa",
+      "statement": "No MoSynth binary format carries a magic number or version header, so the .mmpose skeleton block is what stands in for one: comparing bone names and parent indices against the live skeleton is the mechanism that detects a database extracted over a different rig, or over the same rig before its bone list changed.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L247-L288",
+          "version": "repo-lines-v1:sha256:4d4a389e5d367478ca50b6201b9f889ea114ec340bed25abe2e2ae179f27a22c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjODA1ZDFkM2FhMmQ4NzMxYjk1YTliMzVlM2VhMjhjMzFhOTRhNThlNWIzOTA1MDg3MGZjNzQzOTY3MmU3NWUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseSerializerTests.cs#L129-L148",
+          "version": "repo-lines-v1:sha256:93fd2f00e0a3c34ef9adf539de93927ba90e57fb48ea4dfc4fdd8f0322312ae8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxMGI5MjBkZjY0OTAxZDQyYWZmMGQ2OWQ2YmE3MjhlYTFhMDM3ZWI4Y2Q4NDNkYTQ4ZDRkOGYyYmZmMzdkNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjM2E3YjJiN2ExMzMxMTE2MTBjNTllNTU1YTg2YWNiMzRjMjhiYzM4MjVhNzUxMzhlZjc5ZmYxNzJkOGU2NmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0817f889d2474f34a6631fb5572c0534",
+      "statement": "Deserialization rejects a stale .mmpose with three distinct diagnostics — differing bone count, differing bone name at an index, and differing parent index — each naming the offending bone and instructing the reader to regenerate the database; a differing parent index is caught even when names and bone count both match.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L247-L288",
+          "version": "repo-lines-v1:sha256:4d4a389e5d367478ca50b6201b9f889ea114ec340bed25abe2e2ae179f27a22c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjODA1ZDFkM2FhMmQ4NzMxYjk1YTliMzVlM2VhMjhjMzFhOTRhNThlNWIzOTA1MDg3MGZjNzQzOTY3MmU3NWUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseSerializerTests.cs#L150-L166",
+          "version": "repo-lines-v1:sha256:af72b1272592851fbd470dc8b728487a6987757851052c238dd3635a4b451d37:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmZjU3Y2FkZWZiZGMwZTQ2ODhlZGZmYzcxNDhkZjQ3OWI1NzhiMjg0ZDU4MDA5YjEzN2EwYzdkNmJkNmU5ZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4bde090d923d4a00bdd2d0e43997c999",
+      "statement": "The bone count appears twice in a .mmpose, once in the skeleton block and once in the pose header, and the second copy exists solely to detect a truncated or corrupt write, since the first has already been reconciled against the live asset.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L113-L124",
+          "version": "repo-lines-v1:sha256:3d088fa734a89bc0608aaad448d7880f7e6191f370be269715df182f3b371e7b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmNGZiNWY0MmNhZGFlNTRjNTE2YjJiNjI3YzU4MmE5YTQ3OWQwYmFjZDYxNDBiZDNhMzJjMTQ4MjE4Y2I4ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNjQ3OWNjMjMwNDQwZmQ0MWU4MjI0MjE4Njc5Njk4NTU5ZDI4OTNiZDY3YjQzODBhZmFiODExYjM4YTU1YWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljYmI2ZDMwZjRhNmRlNTVkMDM4NTI2YzY4ZTRmMDVkOTQ1OWVhYTgxMDA1MThmYWQzMDFlZmYwOTE2ZmJjNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMTdmYzc3NzgxY2RjNzAyZGM2ZDkwY2MxZWViMGRhNTE3ZTlmNmRmYjgyZjY0ZTc0Y2FhODI3MmI0YzBiMGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fcbaf5f3dc0c41c1b12ad3e78b6a95d3",
+      "statement": "The simulation frame is never written to disk: both the C# and Python halves derive it from bone 0's rest rotation, which the skeleton block's bone entries already carry.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L224-L245",
+          "version": "repo-lines-v1:sha256:74033c6765899f402190d667fa17231c567471d84c599afd5edd727dfb840e53:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzN2MxNDhkNDczOGFmODY3ZmYyMjRlZTI0ODA0ZTRiNjg2NjE1Njg5NWQ3ZDU2ZWZmZjFiMjczNDM3YjY3Y2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhOGEwMzAwOTExZmRiYzVlNzkzMDZiNjU2Njk2YjRiNTZkNzZmNzkxMjc3ZjdhN2JjMDdmYjg4ZjZjMTc2ZjIifQ"
+        },
+        {
+          "resource": "repo://Python/pose_set_importer.py#L35-L50",
+          "version": "repo-lines-v1:sha256:293cc7321897ba0c4c980f52159a4aff85a50a799ccf88b8c63dc52226397783:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4MzIyNDI4ODE3NmNjZWMzZWU0MTcyMjJkOTNhOTBlYTZjZTdmYjFiYWI1NjMwMjNhN2RlN2I4NTM5MzgwNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MWYzMDNhNmMyYjE2ZGE5M2Y0Njk5Mzg5NzQ4M2QxNzRkNDBkZWM3NzNhZjI0ZDVlNDFiMTgwY2JmMTYzNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGVlMWM4Y2NiM2JiYTliZTRmMzUyZjQwOGFhNTAxMTZhOWQyMTIwMTU2M2U1NDQwZmY4NjFkNDEyNTlkYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_028f64814b7b4013be5740e5f25d485c",
+      "statement": "Strings in .mmpose are the one place the no-length-prefix rule does not hold, because C# BinaryWriter prefixes them with a LEB128 7-bit-encoded length that the Python importer must decode by hand; this applies to bone names and tag names.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pose_set_importer.py#L13-L32",
+          "version": "repo-lines-v1:sha256:42005c07a0ee85305850d77297ce2a6502e344e7f687e35f0da6fb5306bf6949:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ODcxNzQ0ZmFlODkzNzcwYTczNzc5ZGYzODZjYTlmNTA2MTFhY2Y0N2NiYTMxOTNiZDczZTI2YjdlYzI5YzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzMGY5YzBjMmUxMWQ1NjU0ZGE0MmUyMjNmZjU3MGQzZDdmNDFlYzE4MmI2M2QyYzRiMGQyYTNiODkzZGYwNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzODRjNzYwOWQ1NTg2NDA0NzE0YmIyZGQwMmU2MzlmODc1N2JhYTg4Y2Y1Mzc1NGFmNjBkMGE0OGE5ZGYyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYTMyMTNhNWUwYWI0MjRhNjA2NTZlOWE1ZWUzNzAxNGFkNmFjN2Q0NTRlY2IwMzUzOWM5YWExYzYyNmZlNTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf1c259db5664b7eb9eabf0bdafa1d2e",
+      "statement": "Bone 0's parent index of -1 is written as an unsigned 0xFFFFFFFF and read back as signed -1 by C#, while the Python importer reads the same bytes directly as a signed int.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L224-L245",
+          "version": "repo-lines-v1:sha256:74033c6765899f402190d667fa17231c567471d84c599afd5edd727dfb840e53:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzN2MxNDhkNDczOGFmODY3ZmYyMjRlZTI0ODA0ZTRiNjg2NjE1Njg5NWQ3ZDU2ZWZmZjFiMjczNDM3YjY3Y2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhOGEwMzAwOTExZmRiYzVlNzkzMDZiNjU2Njk2YjRiNTZkNzZmNzkxMjc3ZjdhN2JjMDdmYjg4ZjZjMTc2ZjIifQ"
+        },
+        {
+          "resource": "repo://Python/pose_set_importer.py#L35-L50",
+          "version": "repo-lines-v1:sha256:293cc7321897ba0c4c980f52159a4aff85a50a799ccf88b8c63dc52226397783:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4MzIyNDI4ODE3NmNjZWMzZWU0MTcyMjJkOTNhOTBlYTZjZTdmYjFiYWI1NjMwMjNhN2RlN2I4NTM5MzgwNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MWYzMDNhNmMyYjE2ZGE5M2Y0Njk5Mzg5NzQ4M2QxNzRkNDBkZWM3NzNhZjI0ZDVlNDFiMTgwY2JmMTYzNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGVlMWM4Y2NiM2JiYTliZTRmMzUyZjQwOGFhNTAxMTZhOWQyMTIwMTU2M2U1NDQwZmY4NjFkNDEyNTlkYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_231cd1ebd5b842459aaed5d201dd6533",
+      "statement": "Generated artefacts live in StreamingAssets under a folder per source asset, named StreamingAssets/<domain>/<asset-name>/, where the asset name doubles as both the folder name and the file base name; MotionMatchingData uses the MMDatabases domain and MotionFieldConfig uses MotionFields, deliberately kept separate because the Motion Matching inspector owns and regenerates its own folder.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSetImporter.cs#L133-L147",
+          "version": "repo-lines-v1:sha256:4df9a768e3e9c7cc1489981cba20701d9ed4f2c2cdf169dfec9ffd8e39d33639:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxNzU2YTM0ZWVkMWNiZmQ1YWVlZWMwYmVjN2NmZTgwMjFjMDU5OGU0OWM1OTZiMGE4NDU3NjhlM2Y4MDFlZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L233-L247",
+          "version": "repo-lines-v1:sha256:a0d4bfc75032c8e5144449f8ebee433aa929d48149a667e3f9f407c0f8933d70:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMGQ5MGI2NzcwN2RlNWMxYzdkMjEwNDA5MDMzNjczMWYwYmUwMDRkNGIwODYzYzUzYzg3NmY3MmE0ZDk5ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlMTBjN2U3M2ZkMGJjOTFlOGY1YzU0MGRhODc4ZTFlZGExMmRkYmMxNzgwNzcxYTk4NmM1N2ZhNTM5MTBmYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1ZmM2Mjg3MDlmMjI1MWJkMjQ0ZmMyNWE0M2QwYjQ3ZDA0MGJiNmU0ZmMzN2QwYzAxYmJhMmE3NzRlZGRiMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiZjFkMmQ1NzhlZDc3M2IzODk4NmZjZGI0NjdhOWI1OGUxNGEyMjFmYWY0ZDUwMjlhM2ZjN2FkZjc1OTVlMmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e12e8a5106084817acb9dde958446082",
+      "statement": "When no serialized .mmpose is found, the importer warns, extracts the database at runtime, and in the Editor writes the result back to disk, so the fallback is paid for only once.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSetImporter.cs#L101-L131",
+          "version": "repo-lines-v1:sha256:841a415194885ffd3f235192a52ce28093011ca096abbdf9662c47459e564b5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxNzU2YTM0ZWVkMWNiZmQ1YWVlZWMwYmVjN2NmZTgwMjFjMDU5OGU0OWM1OTZiMGE4NDU3NjhlM2Y4MDFlZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2ZWNhZGViMzU3MTQ3ZGQ3NWExZjA2MGQ5OTAxODgwNzA2YmYzMTdiMzNkYzMxYjVkNzg0ZTVhOGNhNzFkZjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_877eecf556754466b34402f0beb5b40c",
+      "statement": "A motion recording is a raw float32 .bin plus a sidecar JSON manifest that describes the data well enough to load it with numpy alone and no AnimationTools code, the manifest carrying per-channel float offsets and a flattened mirror of the pose layout including bone names.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/RecordingManifest.cs#L7-L36",
+          "version": "repo-lines-v1:sha256:2e8a55c87d30c0ef0192178d4992f88c8d5d55b4c12b95e9aeed87468c8ec07d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkOTExZmI0ZTQ1N2E3ZjAyMDE2YTc3MjFmYmY3MWJlOTI3ZjRkMjdiMTEwZTM4Zjg1NmI2NTI1MWM5M2RlZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ODNlM2UyODA1NDIxN2U4ZWM5MjVlOTU1YzE1NTgzZTY0ZWM5YmQ5ZWIxMDVkODY0YWIwNTY2NzhjMzE4N2YifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/BuiltInRecorderChannels.cs#L220-L243",
+          "version": "repo-lines-v1:sha256:dd93ab841cb1b40d8448b53b405aa033fd39fe6667c5bf218510d384db120f0a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhNmJiZmM1MTA1YjJjYzZiMTgxZDQ2Y2EzY2NkYWEzZDFjZDExYTM5YzliNzE1NDM1YjRiMTMyMzlkZTE1MTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5OTM0NWZmYTNjMDkwMDBmMDFlOTEyODhiYWMwYjdjZjFjNmIyYWJlNGJhYzY2MWI4MmZmMjI1Nzg3MTdhZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1MTJmZjU0OWRmNWE2MjE2OTliYjYxZjIxOGFjMmYyMzlhZmVlNDkzNzkwYTZhZTZhNjIwNmFkNGJjNGE3OTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_72d9f7d537164aeb8d52833273e2e1bd",
+      "statement": "The recording manifest is the only MoSynth format carrying a formatVersion field, and nothing reads it — RecordingReader validates frameFloatCount and tolerates a file shorter than the manifest claims after a crash, but never inspects the version — so even that version is decorative.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/RecordingManifest.cs#L7-L36",
+          "version": "repo-lines-v1:sha256:2e8a55c87d30c0ef0192178d4992f88c8d5d55b4c12b95e9aeed87468c8ec07d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkOTExZmI0ZTQ1N2E3ZjAyMDE2YTc3MjFmYmY3MWJlOTI3ZjRkMjdiMTEwZTM4Zjg1NmI2NTI1MWM5M2RlZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ODNlM2UyODA1NDIxN2U4ZWM5MjVlOTU1YzE1NTgzZTY0ZWM5YmQ5ZWIxMDVkODY0YWIwNTY2NzhjMzE4N2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_02818da3b9b04d35bd7670eea3c8626b",
+      "statement": "The .mmfeatures file is kept separate from .mmpose on purpose, because features are one way of indexing poses for search and changing them should not force re-extracting the poses; like the other binary formats it is unversioned, so a stale file is misread rather than detected.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L10-L19",
+          "version": "repo-lines-v1:sha256:24d92e4d714458d095cafea451e8f94b16b6d5b97cb2fbda0e9df4c98cb4340b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjNDg0MmMwM2Y0N2NmYTU5NjQ4YjJjMzJiY2E3NmU0NjY0MzQ5MzhkNTQzZDg0YzVlMGMyZDkzN2I5YzdkMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwMzI5N2Q3Y2ZlZTcyYmJmYzY0MWI4NGRlNWY2YTlmNjZiMjljYWM0NjVlNmJhMjBhYjI4ZDgzM2NlNmQ2OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNGQxZjk1OTk4MWMyZWM1NmFjM2JkMTI4MTc1ODY3NWYxYjg5ZTc1MmQyYWQwZmE1ZjMxMThkNjMzZjRkNGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba412a8decfe43948ff8c3bd800db8b9",
+      "statement": "PoseSerializer.Deserialize guards against short reads using NUnit.Framework.Assert, placing a test-framework dependency inside the runtime assembly.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L113-L124",
+          "version": "repo-lines-v1:sha256:3d088fa734a89bc0608aaad448d7880f7e6191f370be269715df182f3b371e7b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmNGZiNWY0MmNhZGFlNTRjNTE2YjJiNjI3YzU4MmE5YTQ3OWQwYmFjZDYxNDBiZDNhMzJjMTQ4MjE4Y2I4ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNjQ3OWNjMjMwNDQwZmQ0MWU4MjI0MjE4Njc5Njk4NTU5ZDI4OTNiZDY3YjQzODBhZmFiODExYjM4YTU1YWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljYmI2ZDMwZjRhNmRlNTVkMDM4NTI2YzY4ZTRmMDVkOTQ1OWVhYTgxMDA1MThmYWQzMDFlZmYwOTE2ZmJjNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMTdmYzc3NzgxY2RjNzAyZGM2ZDkwY2MxZWViMGRhNTE3ZTlmNmRmYjgyZjY0ZTc0Y2FhODI3MmI0YzBiMGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_08e796a151d346bfb58fe0566dd6a0ee",
+      "statement": "PoseLayout declares a PoseFormatVersion constant of 1, but it has no usages anywhere in the codebase and PoseSerializer writes no version or magic number, so it is a dead constant rather than a format version.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L42-L46",
+          "version": "repo-lines-v1:sha256:b725ae2cec272118fb768d5f824a5760666890bc25727b13a417221b24807cd9:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmEyZmU0ZGZmN2ExMTZiMTk3YTNlMmVmMmRiOTEyOWMyNjBkNDYzYzU4ODIxZDNhZmM4Y2RjYTczNDcwZGNhOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzhmYTk2MjYwNWJiMDFiOTAyNzE5OTU3Y2FhNmQ5Mjg3ZTFhNTEyYTQzMDU5ZWEyNGU4OTY0YTAwN2U4MDFjZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTgyZGE0M2JmODQ5OTliNzc5ZTVmNzMwZDRlMTE4ZGQ4NzVmMjJiNWU4YjJhODQzZDc5M2JhYzRkNDE3YmUzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzU0Njc4YzJiZTI5MTZmZDllN2U5ZWI1OGQyZWU3MDdlNWQ3MjE3MDA0NGE0YTFlMjQzMmZiZjEzY2ExZDNlYyJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L21-L40",
+          "version": "repo-lines-v1:sha256:5c72a350994585fcb8116269bbce282804017b195502e0387b8068c77f60e4ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhYWMxZjRiYzQxOTZhMTUwZGFjZTUwMmJjM2FlMmQzNzE1YzU2YTU3MjQzY2Y1ZjcwZjgzYmFkMmUxMjY3OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjNTM2ZWFiMzBiODhiOTYyMjFlYTcwODgxODNlODMwOWQxMzhlNjk1ZDMxYTU1N2ViOTQ4Y2U3ZjQxMDdiNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYjgwZmYzYWFiODU1ZTdhNDY3N2MxMWMxZGJmZTA1N2I2Mjk3ZWU4ODFmNzU4MTEwMzM1NjQ3MTY3ZDFkMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxZDQxYjk3Yzk5Y2M2Zjc0OTZhNjE5MTAzNzY2ODAwNWM5MmRjYzhlZGFhN2NmMzc2NThhMjk2MTMxYmU1YWIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

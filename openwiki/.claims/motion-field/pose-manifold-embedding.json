@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:ca9c6ad1cbf87a4d0dadf15039262db363298d6da647a1ccc73fc6c21206a1e1",
+  "claims": [
+    {
+      "id": "claim_c291f976fdf5436f89c88e4e2b488b26",
+      "statement": "Under the default feature mode the UMAP projection covers joint positions only, so the cloud is a pose manifold: one pose held at two different speeds lands in one place rather than two, and how far apart two points sit means how differently the body is posed and nothing else.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L10-L44",
+          "version": "repo-lines-v1:sha256:8a15d1e058b00f64171d39d464296fd6b3f1419147ece58744453ba7253643c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGE0MDVkNGZhNDNhYmVhMWY4YjRiZDZkNDM4YTU3ZmJmNjkzMTgyNDMyZTg2ZjVkOTkxNzc0ZjczZmMwMTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMmUxZjMyYjUxZWY3MzJjYTdkOGY5ZjIxMWRhZTFmYTZkMzFkNWRlYjEyYmMxY2JmNWI4YzkwNDI3OTA3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiOTU0NDM3MTM2YzE5ZGJiNzNmYTA3M2Y5Y2Y5M2M4MDlhMzY4NWY4MTdkOTg3NjEwMzEyNTRhMzdmNDIxMmEifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field_embedding.py#L1-L34",
+          "version": "repo-lines-v1:sha256:15a48c8dc80d114f174665b92fe23ca2cad2dd492a77664b61cb8f9ea3d36f70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b9f936eadc84ff999636ee5427ad606",
+      "statement": "Velocity does not disappear from a position-only projection, it changes form: because a state's one-frame lookahead is exactly the next frame of its clip, the velocity of a state points precisely at the point for the next state — so the frame-adjacency edges are the velocity field, and the cloud is the set of poses while the edges are the flow over them.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L10-L44",
+          "version": "repo-lines-v1:sha256:8a15d1e058b00f64171d39d464296fd6b3f1419147ece58744453ba7253643c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGE0MDVkNGZhNDNhYmVhMWY4YjRiZDZkNDM4YTU3ZmJmNjkzMTgyNDMyZTg2ZjVkOTkxNzc0ZjczZmMwMTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMmUxZjMyYjUxZWY3MzJjYTdkOGY5ZjIxMWRhZTFmYTZkMzFkNWRlYjEyYmMxY2JmNWI4YzkwNDI3OTA3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiOTU0NDM3MTM2YzE5ZGJiNzNmYTA3M2Y5Y2Y5M2M4MDlhMzY4NWY4MTdkOTg3NjEwMzEyNTRhMzdmNDIxMmEifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field_embedding.py#L1-L34",
+          "version": "repo-lines-v1:sha256:15a48c8dc80d114f174665b92fe23ca2cad2dd492a77664b61cb8f9ea3d36f70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f178808b0d064341a02edd4f7d765ed5",
+      "statement": "Embedding the whole similarity feature instead lays out a phase space, where one pose held at two speeds lands in two places and nothing on screen distinguishes a different pose from the same pose moving differently — which is what made the first version of the visualisation hard to read.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field_embedding.py#L1-L34",
+          "version": "repo-lines-v1:sha256:15a48c8dc80d114f174665b92fe23ca2cad2dd492a77664b61cb8f9ea3d36f70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ca3b8a0eb58748e7b3b6479f533b1f55",
+      "statement": "The k-nearest-neighbour graph is built with the field's own metric — a sum of per-joint L2 norms, a mixed norm rather than the flat L2 UMAP would assume — and handed to UMAP precomputed, because embedding under the wrong metric would draw neighbourhoods the field does not actually see.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field_embedding.py#L1-L34",
+          "version": "repo-lines-v1:sha256:15a48c8dc80d114f174665b92fe23ca2cad2dd492a77664b61cb8f9ea3d36f70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dd3cce4fcc3d49d393e1c986d141a349",
+      "statement": "Because the neighbour graph is precomputed, UMAP cannot transform a novel point, so the live pose is placed at the similarity-weighted barycenter of its neighbours' embeddings — the same interpolation the field already uses to read values.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field_embedding.py#L1-L34",
+          "version": "repo-lines-v1:sha256:15a48c8dc80d114f174665b92fe23ca2cad2dd492a77664b61cb8f9ea3d36f70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L388-L433",
+          "version": "repo-lines-v1:sha256:633e61324185356b4fe204e6bb141f8f38b2be6d53e2e6891f74b5913d6c4269:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNzFiOGYwOTliZjM0Mzk1N2QyNzk1OTBmNTBkM2Y1MTliNDMwYzIzZjVmMGY3YmU1OWJlMzBmZDhmOWJlZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNjQ3OWNjMjMwNDQwZmQ0MWU4MjI0MjE4Njc5Njk4NTU5ZDI4OTNiZDY3YjQzODBhZmFiODExYjM4YTU1YWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiZTZhZmEwZjAxNDFiNTM5YmQzNDJjZTA3MDNlMzMyNGI2MjgzNDZkOWMxOThmYTg1YmY4MWJiM2QzNDM1ZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiOThjZjFjYmE3OTA1OTUyNThiOGQ3ZmQ1OTdhZjFmN2FjMmMxOTM0OTRkNDgxMjkyNmI5MTgxMTlhMWNiNzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b25c6a3bdc741f896cc34113f576b09",
+      "statement": "The live pose has no adjacency edge of its own because it is not a database state, so its velocity edge is built by averaging where its neighbours go next under the same weights that placed the marker — putting the head of the edge where the field's blended step lands, point to point on the same terms as every other edge.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L446-L467",
+          "version": "repo-lines-v1:sha256:dc99a8cfa9871462ab8c7b1116e97027af2b88514d46a41a074d473eb2f0504b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzNWE4YjE4NGM5ZDE2NTY4MWMxZmQyNmM0YzdkYWFkZDEzNjY5M2NiNjE3MzdhYzVkMTRlMjgxYmM0ODZlZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0ZTY1NjNiNjk3ODE5MjE0MjQ2MWNiMDlmMjE2NDYzODI2ZDVmZTEzZDE1MzA2NjcyYmIzYzVlNTU2ZTJmNGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_467286341c5e4b299be4ca98aa4e3ff4",
+      "statement": "The live pose's velocity edge is built from plain similarity weights, so it shows where the neighbourhood flows rather than which action the policy chose; the tug marker carries that instead, and because actions are chosen on value the tug is routinely not the nearest state.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L446-L467",
+          "version": "repo-lines-v1:sha256:dc99a8cfa9871462ab8c7b1116e97027af2b88514d46a41a074d473eb2f0504b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzNWE4YjE4NGM5ZDE2NTY4MWMxZmQyNmM0YzdkYWFkZDEzNjY5M2NiNjE3MzdhYzVkMTRlMjgxYmM0ODZlZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0ZTY1NjNiNjk3ODE5MjE0MjQ2MWNiMDlmMjE2NDYzODI2ZDVmZTEzZDE1MzA2NjcyYmIzYzVlNTU2ZTJmNGMifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L388-L433",
+          "version": "repo-lines-v1:sha256:633e61324185356b4fe204e6bb141f8f38b2be6d53e2e6891f74b5913d6c4269:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNzFiOGYwOTliZjM0Mzk1N2QyNzk1OTBmNTBkM2Y1MTliNDMwYzIzZjVmMGY3YmU1OWJlMzBmZDhmOWJlZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNjQ3OWNjMjMwNDQwZmQ0MWU4MjI0MjE4Njc5Njk4NTU5ZDI4OTNiZDY3YjQzODBhZmFiODExYjM4YTU1YWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiZTZhZmEwZjAxNDFiNTM5YmQzNDJjZTA3MDNlMzMyNGI2MjgzNDZkOWMxOThmYTg1YmY4MWJiM2QzNDM1ZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiOThjZjFjYmE3OTA1OTUyNThiOGQ3ZmQ1OTdhZjFmN2FjMmMxOTM0OTRkNDgxMjkyNmI5MTgxMTlhMWNiNzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8690b529bbcf4e65bc47ae29c1b5300e",
+      "statement": "UMAP preserves neighbourhood structure rather than distance, so two states adjacent in the real metric can land far apart on screen — closeness must be judged by the markers rather than by the gap.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L10-L44",
+          "version": "repo-lines-v1:sha256:8a15d1e058b00f64171d39d464296fd6b3f1419147ece58744453ba7253643c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGE0MDVkNGZhNDNhYmVhMWY4YjRiZDZkNDM4YTU3ZmJmNjkzMTgyNDMyZTg2ZjVkOTkxNzc0ZjczZmMwMTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMmUxZjMyYjUxZWY3MzJjYTdkOGY5ZjIxMWRhZTFmYTZkMzFkNWRlYjEyYmMxY2JmNWI4YzkwNDI3OTA3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiOTU0NDM3MTM2YzE5ZGJiNzNmYTA3M2Y5Y2Y5M2M4MDlhMzY4NWY4MTdkOTg3NjEwMzEyNTRhMzdmNDIxMmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7bddcbfcee594c46a00beed53ae1efff",
+      "statement": "A stalled policy is visible immediately because the trail stops sweeping the cloud and collapses to a knot, which is the diagnostic the whole visualisation exists to provide.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L10-L44",
+          "version": "repo-lines-v1:sha256:8a15d1e058b00f64171d39d464296fd6b3f1419147ece58744453ba7253643c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGE0MDVkNGZhNDNhYmVhMWY4YjRiZDZkNDM4YTU3ZmJmNjkzMTgyNDMyZTg2ZjVkOTkxNzc0ZjczZmMwMTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMmUxZjMyYjUxZWY3MzJjYTdkOGY5ZjIxMWRhZTFmYTZkMzFkNWRlYjEyYmMxY2JmNWI4YzkwNDI3OTA3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiOTU0NDM3MTM2YzE5ZGJiNzNmYTA3M2Y5Y2Y5M2M4MDlhMzY4NWY4MTdkOTg3NjEwMzEyNTRhMzdmNDIxMmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_15968234a64642fa9aec4678cb641d8b",
+      "statement": "The embedding is optional debug data, so every failure path leaves it null and lets synthesis carry on with the visualizer simply drawing nothing; the Python loader returns None rather than raising because it is called inside the GIL where an exception would surface as an opaque managed error.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L218-L242",
+          "version": "repo-lines-v1:sha256:8c4bc736f74191e72c1f91ea76ce5da2331fbc9fce7209fed92ccea81624e079:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMTY2ZDA3MjNiZjBkZmI2ZGU5YWRlOTA3NWVhN2Y0MmY4ZjBhZmViOWY3MWRiZGEzNDcyZmExZjgxZGRlZDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5OTI0ZWFjODNlNGNhZDc1NzQwNjg4YWJhMzc2YzRkMTU5ODM4NWNiN2RhODQ1MGRiOTA2OGQxYzBhMmFlYTMifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field_embedding.py#L274-L295",
+          "version": "repo-lines-v1:sha256:2c076dbe0775d01d33e4467c554edb75952e57d89bf53ddb29f12f4c5429ea29:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2ODc5N2ExMTYzN2FkNWUxYmFjMzQ0YTY3ZTFhYTA2Y2YyYTNkY2ZhMTVmZDZmYjM5NjQ1NzNhZTQyMDViZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMWViNjYxMjA1NjBkNTRhZWQ0MTRjNTBiYmVlOTM4ZWI1ZWFlZmZhZGY4MTg4YmE2NWZjYWUzYzhkYzQxZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2MWJmYzRmYmZhMTc1NmM0MmJjNzAxNjU3NDE3YzdjMDE0YjBjNjA0ZGViNjZjY2MzZjg1YWYzNDRhNzIyYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3YTE1ZjRjOWU3MDliNWJiOTZjYzZlNDk1MTM1YmM0YWYwZjE4Y2VlYWE1ZDc1ODcwZjg3NTFiMDVkOTVhZTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_de97798807564fc7b27e3a6237466ef7",
+      "statement": "The only integrity check on a loaded embedding is the state count — nothing hashes the database — so an embedding fitted on a different database of the same length is loaded and drawn as if current, a failure mode structurally identical to a stale value function but with no flag to catch it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L239-L241",
+          "version": "repo-lines-v1:sha256:fa3f55a7f80ad6673777afcb1cb730fbd34d8a5f993cfa3bd3b0a758b0c93efb:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWUxMjU3ZTVkZDRlOTdiM2ZmMzU5ZmVmNjc4NzIxMTcxZjc1ZGY5NzYzMGVjN2FjZmE4YmU3YWMxNmExNmRkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWE2Yjc1ZDY1OTRkZWZhMGJiMGE1NDZhOGI5ODNjYTE5YzI1MWYwZTNkYTU1NGY5MGEzNGZmYTBiMDAxZTI0ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTZjNjBlODcyZDEzMzU5MzIyNTY4MDQxNDBjMTIyNGM4NTY0MTU5NjVhMzA0OGQwOTAwZWM1OGQwOGU4ZGY4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTU4OGY1YzgzNDg4OTFhOTI2M2I3MDczM2NmOGVlNWVkZTIxOGNlMzI3Y2RlYTg2ZmM0NTc2ZjcxZGEyMTJlYSJ9"
+        },
+        {
+          "resource": "repo://Python/motion_field_embedding.py#L274-L295",
+          "version": "repo-lines-v1:sha256:2c076dbe0775d01d33e4467c554edb75952e57d89bf53ddb29f12f4c5429ea29:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2ODc5N2ExMTYzN2FkNWUxYmFjMzQ0YTY3ZTFhYTA2Y2YyYTNkY2ZhMTVmZDZmYjM5NjQ1NzNhZTQyMDViZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMWViNjYxMjA1NjBkNTRhZWQ0MTRjNTBiYmVlOTM4ZWI1ZWFlZmZhZGY4MTg4YmE2NWZjYWUzYzhkYzQxZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2MWJmYzRmYmZhMTc1NmM0MmJjNzAxNjU3NDE3YzdjMDE0YjBjNjA0ZGViNjZjY2MzZjg1YWYzNDRhNzIyYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3YTE1ZjRjOWU3MDliNWJiOTZjYzZlNDk1MTM1YmM0YWYwZjE4Y2VlYWE1ZDc1ODcwZjg3NTFiMDVkOTVhZTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_82dafa510a4144478b00d19edd9b3f46",
+      "statement": "Raw UMAP output has no meaningful units or origin, so it is centred and scaled into a box before being placed in the scene.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L289-L292",
+          "version": "repo-lines-v1:sha256:5ba0a240c37dd0a06b5ee259cae1031b50d0b6e8667f5cd04561349f0611dfd7:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmNkZWI0ODBlMWYxOThjNDgxZTk2ZmRkYjU3Nzc4NzdhNTQzOGU0NDlhOWU0MzQ0Y2JhZTBjNTc0YWRlNTc5NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDgwZWFhNjZlNWUzMWM2MTU4MDI3ZDc2NDBjN2RhNGEyM2M0OGI0MzU0ZDUxYzVkOTVjMTEwN2Q0MGFhNTZjZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjcwYjRjMDZjYWQ0NmE2YzhjMTUwMTE1YWMzNDYzNGE5MjU3MGUzNzViYTNmOGE2NzE1Y2I0ZmRkYjE3ZmEyMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1d8ccdc9ab3d4f348418423c80ef2995",
+      "statement": "Successor lookups are derived by inverting the edge list rather than assuming the next state is the next index, which respects clip boundaries for free.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldVisualizer.cs#L313-L332",
+          "version": "repo-lines-v1:sha256:a58c5d90fc143460e480e243f31db419f03a19f34c64908e7d18fcb7989b6bdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZjcwNWZmNmQ1NGU1MjljZGJlZDFiYjE1MjMzMzA5MmU0ZjViYWEwMTViZmZmYWE5YjhkZjA2MDRjNjJiMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0NmE0MzhhMjgzOTBkNTJhMTc0YzA5ZmI0MmYwYjJkNGM3OTQxNDBhNjM1OWIyYTg1YjY2YjU2MDhkOGY3YTcifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

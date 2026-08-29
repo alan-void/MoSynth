@@ -1,0 +1,284 @@
+---
+type: Architecture Guide
+title: The synthesis pipeline
+description: How MotionSynthesisComponent drives a character each tick, and the MoSynthStage contract every synthesis method plugs into.
+tags: [pipeline, stages, architecture, extension-points]
+sources:
+  - id: openwiki-source-e67ed4d7db4d26fc3b903c56
+    resource: repo://Assets/AnimationTools/Runtime/Benchmark/BenchmarkOverride.cs
+  - id: openwiki-source-c9ec04c146f7125c2e260739
+    resource: repo://Assets/AnimationTools/Runtime/Core/MoSynthStage.cs
+  - id: openwiki-source-08ea4bc02364c8785bdd8d8f
+    resource: repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs
+  - id: openwiki-source-2d7a23c484e1299ec007b15d
+    resource: repo://Assets/AnimationTools/Runtime/Pose/ChannelTypes.cs
+  - id: openwiki-source-9b84862940b622d8527df945
+    resource: repo://Assets/MotionField/MfConnector.cs
+  - id: openwiki-source-13742752b942a8c72fc71381
+    resource: repo://Assets/MotionField/MotionFieldStage.cs
+  - id: openwiki-source-fed6ec6af0a6135c6cbeddce
+    resource: repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs
+generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-08-24T17:01:26.052Z
+---
+
+# The synthesis pipeline
+
+Every animated character in MoSynth is driven by one `MotionSynthesisComponent`. It owns the
+skeleton, the pose layout, the buffers, the binding to the scene rig, the frame loop, and the
+write-back to Unity Transforms. It owns no synthesis at all. That belongs to a list of
+`MoSynthStage`s, and a stage's entire job is to rewrite the pose in place.
+
+This split is the most important structural fact about the codebase. Motion matching and the neural
+motion field are not alternative architectures — they are two stages that plug into the same seam,
+and a character can run either, both, or neither.
+
+## The stage contract
+
+A stage gets four callbacks and nothing else:
+
+```csharp
+public abstract void Init(MotionSynthesisComponent motionSynthesisComponent);
+public virtual  void OnValidate() { }
+public abstract bool Apply(PoseBuffer pose, float deltaTime);
+public virtual  void OnDestroy() { }
+```
+
+A stage is a plain `[Serializable]` class, **not** a MonoBehaviour. That is deliberate: a
+MonoBehaviour would bring Unity's own lifecycle with it — its own `Awake`, its own `enabled`, its own
+execution order — and would be in a position to supply or mutate the skeleton. Keeping stages as
+plain objects in a `[SerializeReference]` list means the four callbacks above are the whole contract,
+and they run in the list's declaration order rather than under Unity's component ordering. The
+skeleton is settled before any of them run, so a stage reads it rather than providing it.
+
+One consequence follows directly: `OnDestroy` is the only place a stage can release native
+collections. Nothing else will.
+
+### Returning false does not cancel the tick
+
+`Apply` returns a bool, and it is easy to read it as "did this succeed". It is not.
+
+**`true` means continue the pipeline. `false` means *this pose is final*.** The component still
+applies the result either way. Returning `false` short-circuits the remaining stages; it does not
+discard the frame, and it does not leave the character unposed.
+
+### Disabling a stage skips only Apply
+
+Setting `isEnabled = false` skips `Apply`. `Init`, `OnValidate` and `OnDestroy` still run.
+
+This looks like an inconsistency and is in fact the point. If `Init` were conditional on the toggle,
+then whether a stage contributed to the pose layout would depend on a runtime flag — so flipping a
+stage on or off mid-run could reshape the buffer underneath every other stage. Skipping only `Apply`
+guarantees that a disabled stage cannot change the skeleton or the layout. The benchmark harness
+relies on this: `StageEnabledOverride` toggles stages between runs precisely because doing so is
+safe.
+
+### Signalling a discontinuity
+
+When a stage replaces the pose discontinuously — a motion matching search jumping to a distant frame,
+a field snapping to a new neighbour — it must set `MotionSynthesisComponent.PoseDiscontinuity`. The
+flag is cleared at the start of every tick, so it means "something jumped *this* tick".
+
+Downstream blending stages read it to re-anchor. [Inertialization](../motion-matching/inertialization.md)
+is the consumer that matters, and it states the contract from its own side: a stage that jumps
+without raising the flag will not be smoothed.
+
+## One tick
+
+`MotionSynthesisComponent` runs in `LateUpdate`.
+
+```mermaid
+sequenceDiagram
+    participant U as Unity LateUpdate
+    participant C as MotionSynthesisComponent
+    participant S as Stages
+    participant T as SkeletonTransforms
+
+    U->>C: LateUpdate()
+    C->>C: TryBeginSynthesisTick() — skip frame if capped
+    C->>T: read rig into CurrentPose
+    C->>C: PoseDiscontinuity = false
+    C->>C: scratch.CopyFrom(CurrentPose)
+    loop each enabled stage, in order
+        C->>S: Apply(scratch, deltaTime)
+        S-->>C: true = continue / false = pose is final
+    end
+    C->>T: ApplyPoseToSkeletonTransforms(scratch)
+    C->>C: OnPoseApplied(scratch, deltaTime)
+```
+
+The pose handed to `OnPoseApplied` is a view over the component's scratch buffer. Read it
+synchronously, never hold it past the next tick, never write to it.
+
+### The frame-rate gate
+
+`synthesisFrameRate` caps synthesis independently of the render rate. When capped, the countdown to
+the next tick is *accumulated* rather than reset (`_timeTillNextAnimationUpdate += _animationDeltaTime`),
+so the synthesis clock does not drift with the frame rate. On Unity frames the limiter skips, nothing
+runs — including `OnPoseApplied`, which is why a recorder sampling `EverySynthesisUpdate` and one
+sampling `EveryUnityFrame` produce different row counts.
+
+Setting the rate to 0 (strictly, below `1e-5`) uncaps it and hands stages `Time.deltaTime`.
+
+## How a pose relates to the world
+
+A pose is stored in its own clip space. Bone 0 is the rig's real root and carries world position and
+rotation; bones 1 and up carry rest offsets and parent-local rotations. Nothing is prepended and
+nothing is reparented — see [pose buffers](pose-buffers.md) for the storage layout and
+[the simulation frame](simulation-frame.md) for how a character frame is derived from it.
+
+Writing that pose onto the rig is therefore not a copy. `ApplyPoseToSkeletonTransforms` re-anchors it:
+bone 0 is placed relative to the frame the pose *itself* implies, which is what lets a pose from
+anywhere in a database land on this character rather than teleporting it to wherever the source clip
+happened to be. The component's own Transform is then **advanced** by the frame's own velocity, so
+the character accumulates movement.
+
+Note what actually gets written. Bone 0 receives both a local position and a local rotation; **every
+other bone receives only a local rotation.** Their local positions are never touched by the apply
+path at all — so bone lengths come from the scene rig's own Transforms, not from the pose.
+
+That advance is gated. `rootPositionsMask` controls whether the Transform is integrated at all:
+
+| `rootPositionsMask` | Behaviour |
+| --- | --- |
+| on (default) | frame velocity and yaw rate integrate into `transform.position` / `transform.rotation` — the character travels |
+| off | the pose is still applied and bone 0 is still placed frame-locally, but the Transform is never advanced — **the character animates in place** |
+
+This makes the component's Transform the character frame — and it is why **every Transform between
+bone 0 and the component must be identity**. If something in between carries a rotation or an offset,
+the frame the pose implies is no longer the frame the pose is written under, and the character drifts
+in a way nothing detects.
+
+### Two rough edges in the read-back path
+
+`ConstructCurrentPoseFromSkeletonTransforms` refreshes `CurrentPose` from the Transforms at the start
+of each tick, so synthesis starts from where the rig actually is. Two things about it are worth
+knowing before you trust its velocity channels:
+
+- **The velocity pass must run before the pose pass.** It differences against the previous tick's
+  values, which are still sitting in the buffer, so it has to read them before the pose pass
+  overwrites them.
+- **The values it writes are not what the channels claim to hold.** It writes per-tick deltas rather
+  than the per-second rates the velocity channels carry, and it uses `Quaternion.eulerAngles` — Euler
+  degrees — for angular velocity, where the channel type specifies axis-times-radians-per-second.
+  So the seeded values are wrong in both unit and encoding, and because `eulerAngles` returns
+  `[0, 360)`, a small negative rotation reads as roughly 359.
+
+This is tolerable only because any stage that replaces the pose overwrites those channels before
+anyone reads them as rates. The source acknowledges the per-tick-delta half of this; the Euler
+encoding is undocumented.
+
+**Where that precondition does not hold.** The component applies the pose regardless of what any
+stage returned — or whether any stage ran — so the seeded values reach the apply step on several
+reachable paths:
+
+- an empty stage list, or one where every stage is disabled;
+- [`MfConnector`](../motion-field/python-interop.md) returning without a reply, which leaves the
+  buffer untouched;
+- [`MotionFieldStage`](../motion-field/motion-field-stage.md) after a mid-run exception, which
+  disables itself and stops writing while still returning `true`.
+
+**What goes wrong when they do reach it.** `ApplyPoseToSkeletonTransforms` reads those channels as
+per-second rates and multiplies by the timestep again — so a per-tick delta is scaled down by roughly
+a further factor of the frame rate. And the Euler-**degrees** angular channel is handed to a
+scaled-angle-axis conversion that expects **radians**, which is not a small error. The two mistakes
+compound rather than cancelling.
+
+Do not build anything on the seeded velocities.
+
+## Startup and failure
+
+`Awake` settles things in a fixed order, each step depending on the last: bind the serialized
+skeleton to the scene rig, derive the simulation frame definition from it, build the pose layout,
+then `Init` every stage — including disabled ones.
+
+It fails loudly in two cases and quietly in one:
+
+| Condition | Behaviour |
+| --- | --- |
+| No skeleton assigned | `LogError` naming the fix, `enabled = false` |
+| Any bone fails to bind | `LogError` with the count, `enabled = false` |
+| `characterRig` unset | `LogWarning`, falls back to searching under the component's own transform |
+
+The skeleton field must point at an **asset** rig, not a rig in the scene — see
+[skeletons and rig binding](skeletons-and-rig-binding.md) for why a scene rig silently corrupts FK
+rather than failing.
+
+## Extension points
+
+Extension points in this codebase live in the assembly that *depends on* `AnimationTools`, never in
+`AnimationTools` itself. A concrete implementation sits next to the thing it pokes: a motion field
+policy override belongs in the `MotionField` assembly, which depends on `AnimationTools` and not the
+other way round. The list picks implementations up wherever they are defined.
+
+Exactly four of these are `[SerializeReference]` inspector seams:
+
+| Seam | Shape | Where implementations live |
+| --- | --- | --- |
+| `MoSynthStage` | list on `MotionSynthesisComponent` | `MotionMatching`, `MotionField` |
+| `RecorderChannel` | list on `MotionRecorder` | `AnimationTools`, `MotionMatching` |
+| `BenchmarkOverride` | list on `SynthesisBenchmarkConfig` | `MotionMatching`, `MotionField` |
+| `MotionMatchingSearch` | single field on `MotionMatchingStage` | `MotionMatching` |
+
+Three further types are often grouped with these and are **not** inspector seams:
+`MotionMatchingControlInput` is an abstract MonoBehaviour, while `IMatchingFeature` and
+`IPoseSetSource` are interfaces implemented in code and on ScriptableObjects. The
+dependency-direction rule applies to all seven; the `[SerializeReference]` mechanic applies only to
+the four.
+
+A `[SerializeReference]` implementation must be `[Serializable]` with a parameterless constructor.
+
+## Unimplemented: pose adjustment and feature read-back
+
+`MotionSynthesisComponent` exposes a block of members that do not work:
+
+- `RootVelocity`, `RootAngularVelocity`, `RootPosition`, `RootRotation` — auto-properties that are
+  **never assigned anywhere in the repository**. They silently return `default`, so `RootPosition`
+  reads as the world origin and `RootRotation` as `quaternion(0,0,0,0)` — not even identity.
+- `SetPosAdjustment`, `SetRotAdjustment`, `GetMainPositionFeature`, `GetEnvironmentFeature` — these
+  throw `NotImplementedException`.
+
+The block is kept explicit because it is the contract the crowd and collision control inputs were
+written against. The intended design is documented in place: `Set*Adjustment` would nudge the root
+off what the database produced, blended in rather than jumped, for collision response and crowd
+steering; `Get*Feature` would read back the trajectory being predicted so a controller could steer
+against it.
+
+Finishing it means **routing, not adding state**. Root motion is already the component's own
+Transform and the trajectory already lives in the matching stage's query vector, so a copy here would
+be a second source of truth for facts that already have owners.
+
+For which control inputs this actually breaks, and which merely read zeros, see
+[control inputs](../motion-matching/control-inputs.md).
+
+## Two effects that used to live here
+
+Inertialized hips blending across a `rootPositionsMask` change, and toe-floor penetration correction,
+both used to happen inside `ApplyPoseToSkeletonTransforms`. They were dropped when the pipeline moved
+to stages. The intended home for each is a `MoSynthStage` running after the pose is produced, rather
+than another special case inside the orchestrator.
+
+## Measuring stage cost
+
+`MeasureStageCost` is off by default, because it costs a timestamp pair per stage and nothing in
+normal play reads the result. When set, each stage's `Apply` is timed into `StageApplyTicks`, indexed
+like `stages`. A stage that was disabled, or that the pipeline never reached because an earlier stage
+returned `false`, holds 0 for that tick.
+
+The benchmark harness turns this on by binding a `StageCostChannel` — see
+[benchmarking](benchmarking.md).
+
+## Source map
+
+| Concern | File |
+| --- | --- |
+| Stage contract | `Assets/AnimationTools/Runtime/Core/MoSynthStage.cs` |
+| Orchestrator | `Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs` |
+| Control-input surface | `Assets/AnimationTools/Runtime/ControlInput/IMotionSynthesisControlInput.cs` |
+| Reaching the MM database from a stage | `Assets/MotionMatching/Runtime/Core/MotionSynthesisComponentExtensions.cs` |
+
+There is no test covering the tick loop itself. The closest coverage is `SimulationFrameTests`, which
+pins the frame derivation and the frame-local round trips that `ApplyPoseToSkeletonTransforms`
+depends on.

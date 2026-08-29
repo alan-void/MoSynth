@@ -1,0 +1,66 @@
+# OpenWiki scope for MoSynth.
+#
+# Goal: leave only first-party source and design docs visible, so the wiki is
+# about MoSynth's own systems rather than Unity's generated project files or
+# vendored dependencies. Mirrors .contextignore (used by the semantic index)
+# and adds the generated-project noise that would otherwise dominate.
+
+# --- Vendored / third-party ---
+External/
+Assets/Packages/
+Assets/Samples/
+Assets/Lib/
+
+# --- Nested repos and local scratch (not part of the shipped project) ---
+Assets/LFS/
+Assets/Local/
+
+# --- Unity generated project files (~180 .csproj at the repo root) ---
+*.csproj
+*.csproj.DotSettings
+*.sln
+*.sln.DotSettings.user
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+.idea/
+.vs/
+
+# --- Unity YAML sidecars ---
+# Large serialized blobs; the C# type definitions are the real source of truth
+# for what these assets contain.
+*.meta
+*.asset
+*.unity
+*.prefab
+*.controller
+*.mat
+*.anim
+*.inputactions
+Assets/Animation/
+Assets/Meshes/
+Assets/Prefabs/
+Assets/Scenes/
+
+# --- Run outputs and captures ---
+Benchmarks/
+Assets/Benchmarks/
+ProfilerCaptures/
+Recordings/
+
+# --- Python bytecode / notebooks ---
+__pycache__/
+*.pyc
+*.ipynb
+
+# --- Binary payloads ---
+*.zip
+*.fbx
+*.onnx
+*.dll
+*.pyd
+*.so

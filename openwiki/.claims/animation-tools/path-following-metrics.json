@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:e3bd0b6193f324f508a5481acc62a176dca4b7acb7c6dbeabbd666bb7a7f73df",
+  "claims": [
+    {
+      "id": "claim_0d4acbd5bbde4c248c3fb5601cbd1687",
+      "statement": "SplineProjector searches only a window around the previous result so the projection tracks along the path, because SplineUtility.GetNearestPoint searches the whole spline and on a self-crossing path the globally nearest point flips to the other branch at the crossing — taking every consumer with it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplineProjector.cs#L6-L29",
+          "version": "repo-lines-v1:sha256:f40624523f107c176a2921da392cf7f463355094bd4aea13d89b7ad65dfffd25:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjOGJiM2YyYjhiNjQ2NjhlNjFjZWFiOTE0NWFjNTQzNDUxYWM4MWI1N2IwZTk1MTVjZTQ0Y2EzYjQwYzZhOWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiODFjN2NhNzMzM2Y2MGU4Yzg2ZDM0M2U4ZjI1YTYxN2I5NjM0N2Q5MmRmNTcxNDJkMDFhYzI4Y2M3NGZmNTEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SplineProjectorTests.cs",
+          "version": "repo-file-v1:sha256:2ca4a6815b95dea9813586c8e5e3520a89ad2cec0608d860fe5b6ec2a532c217"
+        }
+      ]
+    },
+    {
+      "id": "claim_2540f87a6f21417985bb17f2faa50022",
+      "statement": "The Unity Splines package offers no windowed nearest-point overload: both public GetNearestPoint forms hardcode a full-spline range, the range-aware internals are private, and SplineSlice is limited to whole knots and documents itself as unsuited to per-frame use — so the projector mirrors the package's own coarse-to-fine chord search over a caller-controlled window.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplineProjector.cs#L6-L29",
+          "version": "repo-lines-v1:sha256:f40624523f107c176a2921da392cf7f463355094bd4aea13d89b7ad65dfffd25:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjOGJiM2YyYjhiNjQ2NjhlNjFjZWFiOTE0NWFjNTQzNDUxYWM4MWI1N2IwZTk1MTVjZTQ0Y2EzYjQwYzZhOWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiODFjN2NhNzMzM2Y2MGU4Yzg2ZDM0M2U4ZjI1YTYxN2I5NjM0N2Q5MmRmNTcxNDJkMDFhYzI4Y2M3NGZmNTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d77f23512fe41d19eb3c116ab54f81c",
+      "statement": "The search window is sized from the point's own displacement rather than fixed, so one projector serves both a 30 Hz controller stepping centimetres and a coarse recording stepping metres; re-acquisition by global search is deliberately reluctant because re-acquiring is precisely what must not happen at a crossing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplineProjector.cs#L31-L61",
+          "version": "repo-lines-v1:sha256:9784ccf8ece34f8416456789e5a9a5f513b20a2851541203ecdab2bad4237504:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmOTg2OWQzZTAyZGFlZTY3Y2I2MDk5NGNjM2M4M2RhMDdkMDQwM2RhYTU2MThmY2YyOWUzN2E5M2ZlYTRhZjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYTM1NmJkNGZhZjQ5MTQ1YTEwM2UxOGQ4MTBjYzAzMzY2MWYyNjA0YjQ4MGEwMDJmNTY2ZmNkYjBlYTExN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5YTgzYzQzMDI4NzQzYjYxYjc0NDdmZTRlOTc4MGVjNDhmMzQwNDI4NTM1MzM4ODQyODI2ZDMxYTRmMWQwMzAifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplineProjector.cs#L87-L119",
+          "version": "repo-lines-v1:sha256:baad7bfa8234ea2f462b72011b8bf64a4e71646903eee52c0eedce139de79079:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwOGQ1M2Q2MmM4MWI4MTE1ODNhNThiMzA3ZDFkNjAwYzMxMDVlMzAzODhmNTExZmQ1YzdmZDU4NTY4M2EzZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0YzY4YzU3M2RjYmFjZjQ5NGEyYjI2NWUzOGNlYzg0MjNlNjk1MGE4NDliZjhhZjI5MzU0ZDIzNmRjM2Y2ZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjZmY1NWFkZGFiZTI1ZjdhNjJjODViOWI3YWNjOTc3NGUxZWViNjdmOTg2MjM1MDY4Nzc0M2Q5ZGZmMTQyMmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9c045447a3ce4ca687f411effa1546c6",
+      "statement": "Expressing the search window in metres is valid because normalized spline parameters are uniform in arc length, so a window of d metres is d divided by spline length in normalized space anywhere along any spline.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplineProjector.cs#L6-L29",
+          "version": "repo-lines-v1:sha256:f40624523f107c176a2921da392cf7f463355094bd4aea13d89b7ad65dfffd25:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjOGJiM2YyYjhiNjQ2NjhlNjFjZWFiOTE0NWFjNTQzNDUxYWM4MWI1N2IwZTk1MTVjZTQ0Y2EzYjQwYzZhOWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiODFjN2NhNzMzM2Y2MGU4Yzg2ZDM0M2U4ZjI1YTYxN2I5NjM0N2Q5MmRmNTcxNDJkMDFhYzI4Y2M3NGZmNTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_303177f68b374d96a339edcf1ff5ae78",
+      "statement": "The metrics calculator walks one projector forward across the analysis frames rather than re-deriving per frame, because a global projection would flip branches at a crossing and manufacture a roughly 180 degree heading error out of a run that never left the path.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/PathFollowingMetricsCalculator.cs#L109-L120",
+          "version": "repo-lines-v1:sha256:1a403e43777d19f8251c30d068206294019a9f344ba85ef1ef878aa0a651bf6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4NmRiZTkyOGY1ZWZlZTE1Y2IzMGUzNjllY2NjMmIwYWNhZDgwMDY1ZjY4YmUyMTU2NDU1ODQyZGYwYzg3MDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmOTVlYTNmNjBkMWQ1NTJjOWFkMWI4ZmYyMjU5MmNjNjdjYjk5MWU4YzcyNjMyNDhhY2JmMTdiNjRiYTkzMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4NjhkNDdmMWJmNGY0ZmUxZWQ0N2Y5ZmE1OTZhZDI1NDhjNjkyMzdlYTA2MWQ4OWZlNzUyNWRjMmIyYThlZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhYTQ1YWQyMTBiZTRlODAzYWQ1MzAwZjhkM2JlYzMwYjgxMTAzYjhkZmRiZDdjMzcyZWViMGFkOWE2MGIxYzkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PathFollowingMetricsCalculatorTests.cs",
+          "version": "repo-file-v1:sha256:5335ebb129c6f044d9b29269cbb0108cd038bca5485d2ee4e937e5576bcf3fec"
+        }
+      ]
+    },
+    {
+      "id": "claim_b448e04e26324f97954a01b11e9821be",
+      "statement": "Lap completion is measured from the character's own progress rather than derived from path length divided by target speed, because MotionFieldSplineControlInput reports NaN target speed — its policy has no speed model — and because measuring actual progress keeps the comparison honest, giving a method that falls behind a longer run rather than a truncated lap.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Benchmark/SplineLapTracker.cs#L3-L16",
+          "version": "repo-lines-v1:sha256:6b547d9103de010bba8a4369d1874547a3188e2881cfe76f2b50ea968b66f714:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjZWY0NjBiMmUxMjNlMjlmYzlmMWVmNTg4YjFkNmNhYTU0MzQyMGEyYjg3NTYyZWMyNjc2YzI4YWI5Mzc2ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3OThiNzIxZDcxOWY1MTVlODAxY2IzZmE3MjAyNWUyY2MzMTI5ZDBjYmY1NjgxYzlkN2QxMDA3NWI4NjI1OWYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldSplineControlInput.cs#L36-L44",
+          "version": "repo-lines-v1:sha256:946bfcfed158a2706dbb408a0119cd51b7ccbbf8cbe13c8f3df6414a19c321e1:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2Q5YjZkMzY2ZWM4YTM4NjBkOWUwMDdkYjVkMmY4NzU2ZWViNDU0OThiMjJiY2ZiNDMyNjYzMmUxNmEzODJlYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjJjMjBmNWU2ODUwZGFjMjAzZmJhNWEwOWI4NGRlODY5YWQ1OTM2ZmQyOWI2OTA4Y2FhNDQ1OGY3ZmM0MjIxYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzQzNzI5YjAyNGQ4MDI5OWU4MTQyZmM1NzgxOWZiZTFjZjMxZjJkOTQ3ZDExNWIzMTI1ZGI4ODdjNTVhZmIzNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1085f650773940cdaca1e88fba6d1752",
+      "statement": "Closed splines accumulate signed per-tick deltas wrapped into plus or minus half a lap, which lets a run survive the parameter wrapping from 1 to 0 while treating the backward jitter a synthesized root produces every gait cycle as negative progress rather than as a completed lap.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Benchmark/SplineLapTracker.cs#L52-L89",
+          "version": "repo-lines-v1:sha256:905e365b845e584b311096e3880a88aad92ebd6be82884c772fe8ea16c8b918a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczOTY1MDYxMjRlYTg1NWQzMmFiNmRkYmQxNDgxZGUzNjMyN2IwNmUxYjFiNjhjZDdlZTkyZWQ0YzEzMzJjY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3MGI5YmQyNTVlOWMyMGU5Njg1ZDA0ZjEzNTQyYWQ2YjBhNGJmMGYwMTdjYzgxMTJkZmVkNWI5ZDdjMDlhYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SplineLapTrackerTests.cs",
+          "version": "repo-file-v1:sha256:8e3f09b3b39f79f03a4da60b013c9e4fc1fc0b3091d618f155360d6f4b85f5ac"
+        }
+      ]
+    },
+    {
+      "id": "claim_7c31f01a52d545438eed46772674e6f3",
+      "statement": "An open spline counts as finished at parameter 0.995 rather than 1.0, because the nearest point to a character that has run past the end clamps to the final knot and a strict test would still reject it on floating point.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Benchmark/SplineLapTracker.cs#L19-L24",
+          "version": "repo-lines-v1:sha256:64823ea4885fe6c56a68373330eb2744173ff860f13b8c1cc49e66a49ca0417e:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjViNzFjN2RlN2RmZmMyYWQ2MzAxYzBkZjdhOGMyMTVlMmRjYzkwNWZkMmQxZWQxYjhhNWYxN2YzNTUwZTIwNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjAwMTVmYTAyZTQyMGNmNmVkNTlkYWQ2MDc4MTBlNjhiYTVlZGE2MmI4ZjNmYmY5OTQ2MjI0MmEyZmU3OGVlZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjVhNjEwYzA4YzgyZDE5MDU5ZjgwYzRjNzY0OTQzNTY1MDA2MDg4Mjc4MGEzMTQ1ZDdmNWE5ODEzMjAzZDczOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5c9fb8e939444ed6bcc9dcccc497e4e4",
+      "statement": "Speed is smoothed with a centred moving average of about 0.2 seconds before velocity error is computed, because per-tick speed is dominated by synthesis jitter that would inflate the error; centred rather than trailing so the smoothed speed stays time-aligned instead of lagging by half a window.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/PathFollowingMetricsCalculator.cs#L207-L227",
+          "version": "repo-lines-v1:sha256:65dcce47fa423f341b744999c3a4b3733089166cb8c1c1987fa17280dfa6a1b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0YWU0ZDVkYzQ0ZTU4MGI4OTc3OWM1NDdhYzRkYzJiZjI2YWEzMzE1MTNkMzg1MDQ4ZjQzNTBiNGMxMzMyMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3cc3fcd2879841ba96e4b158ceb4c5e7",
+      "statement": "Heading error is computed with an atan2 form rather than acos of a dot product, because acos loses precision for nearly-parallel directions.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/PathFollowingMetricsCalculator.cs#L133-L152",
+          "version": "repo-lines-v1:sha256:f55a5d3db3947cf1964ecda21b8c987fca87f56d633767003ac6c6c181f8098e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NDEwNTFmYmYxNzY0MTM4N2YwZWE2ZTUxOTJlNzc1MDM0ZmEwNDI4ZmY4YWVlZTc2NTgzOGMxM2E3OGY4ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhNGQ4MGZhZjljNWE5MTZjZDcwZTg0ZWU1Mjc5ZDM4OTlhMGNiZmRmOTA1ZDVmN2RmNDlkMGQ2MzhhNGE2NzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4NmViYWMyZWQ4ZTkzMmIwMzFlZThhNGUwOTMxZGFjMTk0NmJkOWUyNTMxZGJlMDUxYzdmZGRiMGNiMTljZWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_66f219bf5be64e629b38c3ae7d7a9973",
+      "statement": "Actual speed is obtained by finite-differencing the recorded root positions between successive analysis frames in the ground plane and dividing by the recorded time delta, skipping any pair whose delta is not positive; the smoothing window is then sized from the mean of those deltas rather than from the configured frame rate.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/PathFollowingMetricsCalculator.cs#L182-L199",
+          "version": "repo-lines-v1:sha256:533d38e201f76b6e092ec7702ac6912f47628627c13b31b8ea814cd93e4f88bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzMGI4MmY0OThjODRhMjhkZDdlNGVkN2M3NGJlYTdjNmVjYTVkMjA5ZjcwOTc4NzU4MzZjNWQ1MmJiMTBhMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0ZjAzOTBmNmVjZjAxNWQ2Njk3ODdlNmFkZmVjYTNhYTVlZmY1MzdhOWEwYzdiZjUwOTRkYWU1NzRhZGVkZmEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

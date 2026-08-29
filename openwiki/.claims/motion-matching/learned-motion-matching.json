@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:1e7703e86b92a66da1d235039b6cf275e78d9883d3ab759fa48a9220f4ad10cb",
+  "claims": [
+    {
+      "id": "claim_d4c448ad8df84e0585dc7d689bfbf895",
+      "statement": "Learned Motion Matching is a separate experiment that is not wired into the MoSynthStage pipeline at all: no file anywhere in the repository references its MM namespace, and it shares no type with the live architecture — no stage, no pose buffer, no skeleton, no pose set — driving Transform local position and rotation directly instead.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
+          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+        },
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs",
+          "version": "repo-file-v1:sha256:85fceb9f1cd4c5b6909b4ff30fbd7fc041ad7bd1ea786826e694aa3e80b00f7a"
+        }
+      ]
+    },
+    {
+      "id": "claim_e435c5fbfd884b0c9d45e246a9554199",
+      "statement": "MM.MotionMatching is a different type in a different assembly from the MotionMatching namespace the rest of this area documents: the folder has no asmdef, so it compiles into Assembly-CSharp.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
+          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+        }
+      ]
+    },
+    {
+      "id": "claim_6980f85686c04c43864e7e3aa1f27090",
+      "statement": "It is the repository's only Unity.Barracuda consumer, and it references UnityEditor from runtime code reached at Awake, so it could not be included in a player build as it stands.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
+          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+        }
+      ]
+    },
+    {
+      "id": "claim_2d2901f57cb24847ae89b0f595162931",
+      "statement": "The approach replaces the database and its brute-force search with three small neural networks — a projector standing in for nearest-neighbour lookup, an autoregressive stepper, and a decompressor reconstructing the pose — over a fifty-six float latent that is twenty-four query features concatenated with thirty-two latent floats.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
+          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+        }
+      ]
+    },
+    {
+      "id": "claim_802709c6f2cd4fbdb91c4ea220600b0a",
+      "statement": "The three networks can be disabled independently, which turns the debug branches into ablation switches: with the projector off the input comes from stored data rather than the user, so the chain can be run decompressor-only, decompressor plus stepper, or complete.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
+          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+        },
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs",
+          "version": "repo-file-v1:sha256:85fceb9f1cd4c5b6909b4ff30fbd7fc041ad7bd1ea786826e694aa3e80b00f7a"
+        }
+      ]
+    },
+    {
+      "id": "claim_e46a8a94be254f2caada512fcc4b3c36",
+      "statement": "The class carries no Serializable attribute while the driver holds it as a plain public field, so it would not be serialized and would be null when the driver calls into it at Awake — as committed the entry point appears non-functional.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs",
+          "version": "repo-file-v1:sha256:85fceb9f1cd4c5b6909b4ff30fbd7fc041ad7bd1ea786826e694aa3e80b00f7a"
+        },
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
+          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+        }
+      ]
+    },
+    {
+      "id": "claim_477ca773f9cf4203be7acd5c20b950af",
+      "statement": "It uses the legacy Input.GetAxisRaw rather than the Input System asset the rest of the project uses, and hardcodes a sixty hertz step in three separate places rather than reading the frame time.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs",
+          "version": "repo-file-v1:sha256:85fceb9f1cd4c5b6909b4ff30fbd7fc041ad7bd1ea786826e694aa3e80b00f7a"
+        },
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
+          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

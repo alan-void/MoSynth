@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:cb3fdfc24ea0da1561e570b3b4f7ae8101550622d28d4f7fbecd0fa4ced96c44",
+  "claims": [
+    {
+      "id": "claim_75915abd54e44ea38b857631168d4453",
+      "statement": "A one-step-greedy policy only asks which action points closest to the goal on the very next frame, so it oscillates rather than committing to a turn that takes several steps to set up; the look-ahead a trained value function buys is what makes the character anticipate, and without one the stage falls back to exactly that greedy policy.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L10-L18",
+          "version": "repo-lines-v1:sha256:c978aba6b6778206b687d085608ddfb284850a499fc5f38ea2117a77fa7e06e3:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWMxOTdiMTkwNDgzZjFiNzBkNDE0MTA2YWU2MTJjOTk4N2UyNzMyNjcwMTUwYmNhMGMyYzk3NGY3OTNjMGEwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDVkYTQwNWQ0ZmE0M2FiZWExZjhiNGJkNmQ0MzhhNTdmYmY2OTMxODI0MzJlODZmNWQ5OTE3NzRmNzNmYzAxMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjMyZTFmMzJiNTFlZjczMmNhN2Q4ZjlmMjExZGFlMWZhNmQzMWQ1ZGViMTJiYzFjYmY1YjhjOTA0Mjc5MDc1YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmQ2YTJlMTYwYjUyOTY2MjhiNDUyZDI3ZWRiMmJhZjIxMGNmNjQ4YzVlNTU3ZDkyY2U3N2E0ZDY3YTlhZWY5ZiJ9"
+        },
+        {
+          "resource": "repo://Python/MotionField.py#L477-L496",
+          "version": "repo-lines-v1:sha256:396bf4a7d077a3a3b15f17d15116db8a28bbbe2f41068c10de5f1146d3d7747a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllODFlOGU5MzY3MmI2NTI0MTk0NmI5OTAwMmNmOTc1ZTMwMWMzMDBkNzk5YjE1MmZkYzVmZDc1MmViMmNjNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4OGIxZjRkOTA5NGJmM2U2N2EwNTc0M2M3NmRmMDZmOGVjMGZjYjNjOTQ2ZWMxMzhkOGQ4MGI2YjhjMmFiMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYxNjY0ZmI3NjMyZjQ1OTZjZTQ4MDA4ZjA2ZjIzZDg1NWUwZmNmYzk4OWZmY2ZjZTgyZGQ4OWMxZWIzN2ZhYjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a6605531aa7b43cd8d7ffd20ea3a8d36",
+      "statement": "Policy dispatch is a C# switch that names a different Python method per case, so the policy never crosses the boundary as a value — no enum, string or integer is sent, and an unknown policy is a C# exception rather than a Python attribute error.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L343-L360",
+          "version": "repo-lines-v1:sha256:8c2f26048b5c66df1b9629f991ddf5811a1f08e07f0e4231e51650c872bda992:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5MmI5ZmQ4MGM4MGUzOTYyOTM0OTAzMGY2NDg3NTAxMzQzZGNkOTAyMTE1YjBiMTcwYjFmNjNiODBhYjAxNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkOWUxMjU0NjQyNTU3NmQzZGVhZThjOWI5ZGJmMTI4ZDVkNmRkYWY1ZDdmZTg1NzkzNDkyN2RlZmZhM2I5ZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYjQ4ZDhmNTVkNmY0MDIxNTJmMTQwZDY1N2YwNWQ2MTY1NDIwOGFkNzA1YmU0YzY2NmVjMDNlODRmODhjZDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9cdedec2f6847ff9515f23a7a6db7d1",
+      "statement": "Theta is the character's own heading expressed in the goal frame, which makes it frame-agnostic: Python accumulates its root pose independently of Unity's transform and the only thing coupling them is the per-step yaw, so measuring the goal relative to the current facing means the two accumulators never have to be synchronised. The sign matches the training convention where reward is the negative absolute value of theta plus the yaw change.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L362-L393",
+          "version": "repo-lines-v1:sha256:0b8de33c01879b3675bd318b055f5a9db0a5b7431a117dad87a8bafaafce11fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExNjllMGE3MDg5NWNmOTcwZTAwMGViMzliOGU0Y2M2OTViZmMwNzYxMzhlNzQyODdkMTI3NDdjYjE2OWVkNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliMzU0YmFlZjI2NTEyNWZmMzhhN2NiN2YyNGVjMzBjMmZkNjkwNGVhNzZiYjVjOWUxZmM0MmMzMmU1NjlkOGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1577c84365fa4688aa5cdd55dbe6e6f2",
+      "statement": "A stale or absent value function degrades to greedy control rather than throwing, because failing hard would surface as an opaque managed exception in a player build; refusing a stale one is not caution, since the value function is indexed by database row so a mismatched pair reads plausible numbers off the wrong poses and the character merely moves badly rather than visibly failing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L171-L193",
+          "version": "repo-lines-v1:sha256:13959d12c0c632a5d66d40837c72696c4d7545e615fbd1eb002a29740215e4dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkZDAyM2IwMWE4MmMxNWI5MzNlNWQ2MDI1MjliYzUxNDQxNGQ5MmRiNjNiNzc4YjgwZjgwZTljMTk3OWE0ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNjQ3OWNjMjMwNDQwZmQ0MWU4MjI0MjE4Njc5Njk4NTU5ZDI4OTNiZDY3YjQzODBhZmFiODExYjM4YTU1YWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1YWMwMWY4YzBlNjg2NjU5OTdiY2YyYTEyYzQwNDZhMDlhYTQ0ZTg3YjRkZjFmMWM3MzVhNzEyNGFlY2RjM2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhOTJmOTU0Njk1MDI3YTI3MGMwZWFkMWRiNzM0Yzk3Yjg1NmNlYTg2YTg4ZmE1ODUyMmQzYjIzNTEwM2QwNTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf14c0497d4149a188d75932fa4e6213",
+      "statement": "Bulk debug arrays are exposed as methods rather than properties on purpose, because they run to thousands of entries and anything walking the component's properties by reflection would stall or dump megabytes if they looked like cheap getters.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L86-L104",
+          "version": "repo-lines-v1:sha256:411925d1103da86b116fa3329afd050b19cd92a2e9c3ffdeebe7b20414333886:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzM2E2ZWU5YzdhNDFkOTUyODgwZDI2ZjBhYmU5N2I3NTA3NzIzOWExMzdjYzIyNDYyNmE3NmIzYmFjYWRkNTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiNTcwMWVhZGUxNjBiNDU5ZWVlNTJjZDQ1NzM3MTVlNDA5NDAyY2U3OTEwNTljZjI3MTMyY2I2NTFiNWNjODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxYjU5NGI2Y2QzYjYyNzIyYTFhN2Y5N2FiMzZlYjkwZGJhMGYxZDUzMzU1YjExNGNjMjAzMTlmZmY4NGM2MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2YzM0MDc2OWU1NGUzOTk0OTY5MTFkOTI3MDljY2JjNWFiNGIyNGExZDg5ODJjODFjZmU0OTY2OWExM2EyZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d94f7fe5d89483783b2d97bd5022716",
+      "statement": "The debug neighbourhood is taken from Python rather than recomputed in C#, so the visualizer highlights the decision that was actually made; a second nearest-neighbour search on the C# side could disagree with the one that produced the pose.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L269-L281",
+          "version": "repo-lines-v1:sha256:5a2119928866be53622b9745c62d156ceec0a080ed1df140957aa03a8d3e1202:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA0MDU1ZjVlOTViMmM5ZDQyMzcwODU5OWNmODA4N2UzM2EwYWM0NjE0YzllNTU3NWNjNmVjMWE4YzljNGNlMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2ZDg1MGRmMWViNTE2MGI3NDc2ZTZmMjQzNTllZGQxMTY1YmRhOTEzMDlhNTE5NDZhZDk4YTAyYTQ4MzkyNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e9cbd5a8b05a40849a589dd99a811abc",
+      "statement": "The motion field spline input reports NaN as its target speed because the policy has no speed model at all, making lookahead distance its only tuning knob — shorter hugs the spline but can oscillate, longer cuts corners.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldSplineControlInput.cs#L8-L44",
+          "version": "repo-lines-v1:sha256:5a6d9f88d96619711ad59a2d1351462979e332749d0115471a819706d2d2cedf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkOWI2ZDM2NmVjOGEzODYwZDllMDA3ZGI1ZDJmODc1NmVlYjQ1NDk4YjIyYmNmYjQzMjY2MzJlMTZhMzgyZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMmUxZjMyYjUxZWY3MzJjYTdkOGY5ZjIxMWRhZTFmYTZkMzFkNWRlYjEyYmMxY2JmNWI4YzkwNDI3OTA3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0MzcyOWIwMjRkODAyOTllODE0MmZjNTc4MTlmYmUxY2YzMWYyZDk0N2QxMTViMzEyNWRiODg3YzU1YWZiMzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ed9e844bad5c4817b335f9cdfe221ba7",
+      "statement": "A mid-run exception disables the stage rather than letting it throw every frame, after which it silently stops updating the pose while still returning true so downstream stages keep running against a frozen pose.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L283-L341",
+          "version": "repo-lines-v1:sha256:a0cd56ce10b788e36efbbeaa14af10e6322b5ce3476d1fb32e772ddc2c46ce66:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYzI1ZmJlNGI2NjEyNjQ0OTBkNzIyYjMzMzRiYTliM2NiZThjODBjMDhlODZkNWYwOGM5ZmU3MTEwODdjMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0ZWE0ZGEyMzIwNDk5NmUzY2U4MWZhZjQyN2Y2ZTE5YmJiNGUzODcyZjQ5ZWI4YTdmZTk1Nzc2YTg2YzdjMTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8b706bdc6a414e99a640c660b247de09",
+      "statement": "The stage captures the start state's foot contacts once at initialisation and never updates them, so the contact booleans it reports every frame derive from the start pose rather than the current one.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L134-L169",
+          "version": "repo-lines-v1:sha256:5b3defc388304e3a42a8b654005beec3b5601048d5eb457514e629cb812ef9b7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0MDg1MzZiN2VhOGQ1MzdiYjRkM2UwYTk0MjU4ZGViYmZjNTgzMTdkMTlmZjRmMWQzOWYyNjBkZTdmNzVhMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMzc2YWQ2MTUzYTU4Yzg4YTRmODM5NGJkNTJhODA4NjFmNGM3M2RjNTUxMmQ3NDEwNjNjMjRjZmY0MzM5Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkYWYwODgxMDg3MWFmMDk0YzE1ZDhmNGUxYjYzZjVjNjViNjZiYWY1YmM5MjViMzkwNDcyYWU1YTliYzhhYWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0NThjYzYwNTFlNWM2ZDA5ZDBjMWRkMDk0Zjg3NGQyMjRiOGVmYWIxOTg3OGQwMThiMzVlZTk0NDBmNDcwMzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bc18fcf86f34443d8d31e297873ccba7",
+      "statement": "The motion field stage never sets PoseDiscontinuity even though its playback and nearest-neighbour debug policies replace the pose discontinuously, which the stage base class documents as mandatory.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L283-L341",
+          "version": "repo-lines-v1:sha256:a0cd56ce10b788e36efbbeaa14af10e6322b5ce3476d1fb32e772ddc2c46ce66:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYzI1ZmJlNGI2NjEyNjQ0OTBkNzIyYjMzMzRiYTliM2NiZThjODBjMDhlODZkNWYwOGM5ZmU3MTEwODdjMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0ZWE0ZGEyMzIwNDk5NmUzY2U4MWZhZjQyN2Y2ZTE5YmJiNGUzODcyZjQ5ZWI4YTdmZTk1Nzc2YTg2YzdjMTYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MoSynthStage.cs#L41-L58",
+          "version": "repo-lines-v1:sha256:7eae437dba8ae8e66867086049ea518888e4e14484ca0b687f80fe390279f49a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNTZkYjc1NmY4MzI4N2RkZTM3NGZkOWQzYmNhOWY2YjFhYWFjYTdhZjQwZjQ0ZmI5YjBjODQzOTUxNGQxNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2MjkxODMyZTY1YjM3YjQ2YjNlNzFjNjA5MDVlZmNkZTdkY2E2NzIxNjFmNDQ5NDg1OTE0MTM2OGJmM2NjMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4MzVkODI4NDEzMzlhYWFiMWE5MTJlZWUxY2NmYmRiMGUzMWJiNmM1ZTJlMTAzZjZjZmVjZjBlNGRiMmE1ODIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c929b35f6b5e431f9e357472f1e0139f",
+      "statement": "The returned per-bone lists are unpacked with a loop bounded by the pose buffer's own bone count while indexing the Python arrays, so a Python side returning fewer bones than the rig reads past the end of those arrays and throws, which the stage catches — disabling itself and silently freezing the pose — while a Python side returning more bones has the surplus silently ignored.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L296-L335",
+          "version": "repo-lines-v1:sha256:8dba9faddceef55e812438558ef6f0cea3cb4950c2092238342080be2970e705:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3YjUzNmM4NjQ5ZWQxNDYwZDU3MjE3ZTVjYzBiMmVkNjEyNDdmMmUwMDE0MjI2NGZhN2EwMjFiY2Q4MDU5OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNTQ0YTgxYmZkYmUyNzZjNjVhODVjZmRlYjRiYTQ1MDA0NzgwYTFmYjQ2MGEzMGVkZjU3YTdmOWFhNjdmNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1YTNhNjhlOGE2NTk0NGQ3NTVlOGEyOGM4ZWFmMjIyMjNkZTgwNTVlODE4MjRlNTQ2ZDhlZTZkZmQzNGFiNzYifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

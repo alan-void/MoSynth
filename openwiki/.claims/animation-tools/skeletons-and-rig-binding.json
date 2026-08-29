@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:79c4db8c922036dbb09debb63fb3c9912a3c68ca78e706fb4b946ac9ea3eaaca",
+  "claims": [
+    {
+      "id": "claim_bbfded48a8f14b4d9775eed28ee72976",
+      "statement": "A Skeleton is not a stored bone list but a single serialized root Transform plus a derived preorder depth-first walk of its subtree, and that walk is the project-wide bone order every downstream index is expressed against.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L9-L28",
+          "version": "repo-lines-v1:sha256:4e89a3e0dc73709eb2bdec6dc786fff04d3bbcdf8024b07d4dc891c1a1263659:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyOGMyMjEzYTExNjg1YTlkODQ5ZjkxODI2ZDQyMWU4MTEwNGQzMjM2MmExOTY2YjIyMGUxMDYyMWUzZjBmZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyN2I0ZTg5YTg2ODFiODFkNzhlZjVlNzM4NzgyZTk0NzI2YjBkNTRmM2FlNWU3OWUwMTJmYmQ0Y2VmYTBjN2IifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L213-L234",
+          "version": "repo-lines-v1:sha256:24abcef9b9fdc84afd09223404358cc4f800853a132213335f04453c45e13b23:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MGIxMGIzMDcxZDg1MjRlNjdlMWIwYjJjODU4YjA1YjYxOTFlZDE1NzBjMTVjMWZkNGYyMzcxNTZhZDZjZWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_be77de5321ce4f5dae7cc5cbc9541dbb",
+      "statement": "A Skeleton must point at an asset rig rather than a scene rig, because the rest pose is read live off the Transforms: a skeleton built over an animated scene rig reports the current pose as the rest pose, which silently corrupts FK with no detectable error.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L14-L24",
+          "version": "repo-lines-v1:sha256:ce8d22a360aef437fedf6dc2b00ed8c176255a7c90ee8cf30c6de05457418c5d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzMjlkNGQ1YzU0ZTUyMGEzNTc3ZTk3NDViMzI0ZDc0NTUxYzE3NTE3ODAzNDlhMjNmNmVjYzA2NDUzYzQ5ZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwN2RmYmU4M2RiYzQ4MWFhNzEwMzkyM2VmYjEzNGVjM2E2Y2Q3MTk3YzQwNmM0MzVkOTBmMDJiNjFiZjRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkMTA3MGIzY2E4ODI4YjJiYmI3NjAxMGM2ZTMwYzlhNDdhOGQ3ZDliMWE2MTYzZGNjNmMwYTZmZGJlMTcyMDAifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L49-L74",
+          "version": "repo-lines-v1:sha256:75c48add2ce2b1c3eaf28b7957534c5ebbad95d9b1eb876f38217a13289225c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkZmEyZTliOWEzYTIxZDhkM2EwODI2YWJiOGU4NTg3OTlkNWQ1MzE3Yzg1MmVjMzY1ZjRmZDBkZTZlZjgxYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3NjRlNWVhMTMyMzNjNDVlZDkzOTJjNDkxYjQyNTZhNjZkOWJkM2IyZmY0ZTgwMjg0MTRjN2MyMjc4MTA0YjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiMWZhYWEzNTMzNjBjNTczYzUyMDBhNmI1MDM5MWRjZDRkMzNlOGVkOTYzMjM5ZjEwOTI0YWRmN2ZhMTgxYzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2ZTRkNjFiZTk4YTE1M2M0MDc5ZDc3YzMyOTAyMjVlODFmY2UzYzQ3NjI3OTQ1OGU2M2FhNGY0MTMwNTkzM2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0cabb37e3856436ebb2b1235fd1296d9",
+      "statement": "The asset-rig requirement is enforced in exactly one place and only in the Editor — SkeletonAnimation.TryValidate's IsPersistent check — so a skeleton assigned by script or through a prefab variant bypasses every guard, since MotionSynthesisComponent's own Skeleton field has no runtime equivalent.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs#L98-L107",
+          "version": "repo-lines-v1:sha256:ded8b57079edf24e36709344925fefca7e24071dccaac1015b7c42e9bbfc70d7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NDM3NWVhYTBhNDk4NTBmN2Q3YWY5MGMwMTkwOGMzZTY3M2MzYTRhOWQ2ZmMyZGE1YzdjZDhhNjgyMjg3YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMzQ5YmJkMWEyMTEwNGYwNTFlMzRiMmM4YTllNzBjYzdmYmI1MGJjMTlhNjc3ODFmMmExNDBjMzg2ZDk0MzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhY2M1ZDg0M2ExMzc3YjIwYzc1NWI0MDQwN2QzMmQ4NmJmYjg0ZjYyZjlkOWU1MTRhN2E0Mzc0NmE0MTMzODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZTA4MzQ2MDRiODk1MjY5OTc0NmZhNTQyMjM2Y2M4NjVkNjM3ZGVlMzEzYWRhYTZkMTVhYzBmNTcyZjg5NzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a15a42183b7b4a709a572264994dd8fb",
+      "statement": "Everything beneath a skeleton's root Transform becomes a bone, so a mesh node, attachment point or IK helper parented under the root shifts every bone index after it and silently invalidates features, contacts and serialized databases.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L14-L24",
+          "version": "repo-lines-v1:sha256:ce8d22a360aef437fedf6dc2b00ed8c176255a7c90ee8cf30c6de05457418c5d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzMjlkNGQ1YzU0ZTUyMGEzNTc3ZTk3NDViMzI0ZDc0NTUxYzE3NTE3ODAzNDlhMjNmNmVjYzA2NDUzYzQ5ZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwN2RmYmU4M2RiYzQ4MWFhNzEwMzkyM2VmYjEzNGVjM2E2Y2Q3MTk3YzQwNmM0MzVkOTBmMDJiNjFiZjRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkMTA3MGIzY2E4ODI4YjJiYmI3NjAxMGM2ZTMwYzlhNDdhOGQ3ZDliMWE2MTYzZGNjNmMwYTZmZGJlMTcyMDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_656084f3645249d1b07be59cdf1bafd6",
+      "statement": "Bone ids are the bone index plus one so that zero unambiguously means unset, and IndexOfId returns -1 for id 0 or any id past the bone count.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L96-L107",
+          "version": "repo-lines-v1:sha256:233acf203aba8b00ea99821297c8f248f1195f345e0d0a1dcff4dade7509193c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1MTg2ZDMwNThlZTc1ODc0ZGZkNmY1MTdjOGU3ZjQ2ZDlmYmViMTMwYWI5NGRiNTc2MDQwYTBlODM0NjEwNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1ZDdjNGE5ZTIyZGFlNDU0OWVkOTQwNjQ2MzNiMzc3ZmQ3ZGViNzM1NmE3YTUxMjU1NzJjYjc2ZmVkMzhjZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4MmM5MzEyNzQ4OTlkZTc4YWM3Y2M2OWJlNmRjOWY2YjAxZDJiOWM0MDIxMjllYjcwZWQ4NWQyMDkwNTg3YTcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SkeletonTests.cs#L126-L153",
+          "version": "repo-lines-v1:sha256:74c5a5fe59aa04a063073a0328e870089d9475a1703363deefec390179bbfd30:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzMTRiZTllZTRmMTVkNTAzMTI2NGVmYjdlMWM4ZTQ0MDA1NDE2ZDU1OTY4YjU5ZDI4NjgyZGNmOTNhYTNmN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzN2FhMWU0MmYwYTBlODZkN2ZlYzMzYTMzNjE5MTIzN2EyNzg5YWRjZjk3ZmU4MTg1MjUzMGUwYjJiNmNmZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_640f5a4983094bfbbd9695f7d5bac73a",
+      "statement": "Because a bone's local frame carries whatever roll the rig was authored with, the axis meaning \"forward\" differs per rig and must be read from the rest pose via RestLocalAxis rather than assumed to be a constant.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L127-L133",
+          "version": "repo-lines-v1:sha256:12e84efb937e305944be1b5f7cf77e6804f841a1ed59ec08cad405d41eae5486:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjAzZmI4NDJlMzE3MjU3NmQ5YzJlNTdiZWRjMzhjNDBhNDlmMjIwODczOGQyZDU5N2U1MThjZTIwODc5Mjk1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjEyOGZjYTlmN2IwNGM5MzY3YjdiMjYxZGE0ZTI0YzVmODk5ZmE2NzIxOTNmYzEzZDAwMjRlY2ZiMDM4MzAwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmEzZjE3NjJlNDY5YzI1MTNlMTI5ZDQxMzRlNGFiY2MxNTlhY2E5Y2M4YjBmNDg3YTRjZmY1NjA5ODYxOTZlMSJ9"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs#L161-L188",
+          "version": "repo-lines-v1:sha256:27de7a408c2ce76189b2940157cbc07c90fa21008fff8c4f746332c0b4a05492:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNTQ5MzA0NWUzZTgzMDljMmI5M2E0NDAxMDM5ZTFlOWFmYjE0MTM5ZTZhMDdmM2NiOGI2MWE1NjAwN2NmNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMzk3NzkzN2YzOTMyNGVmOWRhM2M3MDJjZjBiNTA2YmE3N2MzZDJkNzM0MWY5NWFjNDU5NGMwZjA0MjU3OTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a10f9fad0bb3455b982233824f472de5",
+      "statement": "SkeletonBone stores its Skeleton by value rather than by reference, so an asset with several bone-reference fields holds several Skeleton instances over one rig; the derived bone walk is therefore cached per root Transform in a static map rather than per instance, so those instances share one walk, one parent-index array and one Domain-allocated SkeletonData.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonBone.cs#L7-L21",
+          "version": "repo-lines-v1:sha256:c5ec5f45df5dbfb34ba5a063e5ee06fe7c514b0d352048272e4c7a11c04f5eb8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjZTY0NWM5YzgzMGFhNmY2NTIzMTY2YzQyMzg4NmVhNmQ5NzMxZGRiMWY2Y2ViNTcxZTE0MzZiMzgzODM4NzIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L236-L256",
+          "version": "repo-lines-v1:sha256:8d5ee7f4da1c6532c0ea2130a3da7493bad07ac5f9e6e7ca5c80a50ce8c1ddfc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExZWNkN2FiODhmYmUzOGVkYWZlZDRkZDZkMmJmMWE1ZGRiOGI1OWE5M2JkZTg5OWY3Y2RkYzY4ZTA3NzRkYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMDhiY2VjNTI5MDQ4M2IwZjUyMjcwNmI2M2VmODkzYmExYWMwODc4YjIzZjA5ZTQwNGRkZThmMmFkNmNkNWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiYzA3ZjQ5ZDgwODQzMzJjZGM2N2NiOTYyNDQ4ZjMxMGUxMjNlOWUzMGNmODllYjhjZTE5NDQ5ZDhjNmQwZDgifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SkeletonTests.cs#L171-L183",
+          "version": "repo-lines-v1:sha256:58c74a62481550f80c196920dafc8eef6dfeecb9d694b535167a4e72dc4a4030:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlZGEzODcwOGQyNzkwYmVhNTU2NDg3MmYxMmY0OGMyYjNiZGI2YTY3ZWM4MzM5M2U5YmE1M2M4MGY5Njg3OWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_32acb750a0004057b9491db7cd2ee256",
+      "statement": "SkeletonData's arrays are allocated with Allocator.Domain and live for the domain's lifetime, so callers must never dispose them.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L135-L169",
+          "version": "repo-lines-v1:sha256:6cb9b2cdec529d98973e86457b429d9e1a69ad254d06e4c50f686788f92e1b13:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1M2Q1NTc0M2ZhMmE3NDZlOGU2ZGEzNTU5ZTMwYmM0NDNkYzE5MmE4MmU4YmEwMzVlN2U1M2ZjOTAxMDc1ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0YmQyODNlOGNlNjE3ODM3ODYwMDQ0NjM3YTU3MWJlODVkZmQ3NTRlNTI5ZTc4NGZlYmZlOGViMWI5NmQ0MDkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonData.cs#L9-L24",
+          "version": "repo-lines-v1:sha256:8a713f84efec1b4edfe33ee96b0880f084c33ae5839f055ceb1871054ba6ea4b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhMGMyMmEwMGMxYTRjYjAyYmQ0MmQ2ZDI5NGExNjY2MzU2YWZhNmQ3NWQxZTUwMzIyZjcwOTc0YzlkMGE2OTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3647c992fcbd4c449363d4a3c5e073c9",
+      "statement": "The parent-of-every-bone-precedes-it invariant lets SkeletonData compute forward kinematics in a single forward pass instead of walking each bone's parent chain.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonData.cs#L26-L50",
+          "version": "repo-lines-v1:sha256:837f22f4c5cf2c72072f7015f16782eaa099288413368909f8cff579fb7f2ccf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5YmI2NDk4YmU1ZDMwODJiNmVjOWFhZDdiZTlmZjZkYjcxNWEwNzYyMDg5ODk5MTE1YWQ1NzI5ZmQ4NzE2NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljM2Q4ZmVhNmUyZDcyY2VhNmU0ZTUwODYwZTg4NTRiYmQ3NWMyZWQzNDdhZTIwZTkyM2Q1NDU0NzdlNDYzMDgifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SkeletonTests.cs#L53-L62",
+          "version": "repo-lines-v1:sha256:7e67cdf405d6bc85b9c47aab07d056b54ad8e21b0cba0c025e4ac0a095e7d8e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4MTQ5NGE3NjY4OWMxMDJiODJjNTAxNGQ3ZWQ3NjI1MDMxNTM2YTk3Y2ZlOTgwMGU5MTQyMWY1MTMxZTcxNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjNmUwMmE1ODY5MWJmMTdmZjQzMjBmZDZkZDk5MmViZjVhZjkxMzFkZWEwODQ1MDBhY2FmMWQxYzlmMzllZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_06d6ac3b2a274a69ac5ccb7479914cc4",
+      "statement": "Derived skeleton data is invalidated only manually, because neither the cached bone list nor ContentHash notices a rig changing underneath a live skeleton — and PoseLayout's cache is keyed on that hash, so a reimport or bone-tree edit requires an explicit Invalidate call.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L341-L355",
+          "version": "repo-lines-v1:sha256:f798c3464d34c6f1db3c52fac9f45a29494e5b26678a6ebbbbee0ddb8c1ce857:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyNDIxZDMyMTllYTA0NTY0ZTExZWNhYmIyZDkzMjkyM2I5NzIyOWFmM2JkNThlNjU4ZjFkZWY3NDk4YjRhZWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fad18b9975984d558827b6dfb6a4e196",
+      "statement": "StructurallyEqual compares bone count, names and parent indices while deliberately ignoring the rest pose, so two rigs with identical structure but different bone lengths compare equal.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L171-L183",
+          "version": "repo-lines-v1:sha256:14af1a9e421525efe73320546d8fe509dea12bb77fd3114e01734757a262d6d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0NzA5YjVmNzEzYWNlNDI5ZDM1YzgzZTFjNWQ0NWZhYjNiZmQ5N2M5NTU4ZTBhYzFhNjQ2NTliN2VkMDUzNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMGI2YTMxOGJmMDNjODliOTJkOTE5ZTlkNGY0NDFmZTcyMTg0N2RlMWIyZDIzMDk5MTEzYTczZTI2YWI1Y2UifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SkeletonTests.cs#L205-L215",
+          "version": "repo-lines-v1:sha256:0ce271de7a81519ef0f0910451d3b5583253201ec21438a31a6faf0d363385b6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1MDk3OTczZTZlZmI4Zjk4MmRhOTNiNTA3ZDk1NGYxNzZmN2IyMzgyZDhmYWI3MGZmMjc1NDlmZmQyYjc3MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhMjcyMTQwN2JmOWU1NjU5ZjJmNWVhOWQ5YmZhYzY0MzM5MDM5N2M4N2NiNDVhOTlkNGI2MTRjMzZlNDI3Y2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_66c4e3ee89ac4585acd0ce3836cd21ff",
+      "statement": "MatchesFrom asks whether another skeleton is embedded in this one starting at a given bone, shifting parent indices by that offset, so a rig nested under extra ancestors such as an armature node can be compared against the bare hierarchy.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L185-L211",
+          "version": "repo-lines-v1:sha256:88a76d79e33f9b58e2e4ef79180ee681e7116ac36643460cf3dcee1400f51827:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4ODIxNGU3NWYzZmI0ODcwYzQwZTgyNmQ4ZjVmNjExNWIxZjRhMjNlMmQ3NzY4OWY4NmI1YTgwYzdlZDE5ZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlYjFmNTZlZWFkOTNjYWNjMzc3ZjFmYWE0N2JkZDMwNWJmODUxMDEyZDI5NDIwM2JkZGJhYmNiM2ExY2Q2NGYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SkeletonTests.cs#L254-L314",
+          "version": "repo-lines-v1:sha256:94da6a7411e47dcb8d1c34a0bb95e0091408a0eb287f86e802e9f52d4e2896da:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhYWM4ZWQxNTI2MjRlZWQzNWY3ZDIzMmM5MDUyZmRiOGEyYTRlM2JkYzM2NjRjY2MyMGY1ZGMzMmRlMDhlNTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxNzlmYjQ2NjdiMTlmZjhhMDc5ZjdhYjNmNDM4NmIyZTRmYzIyOTM1YzMxZDQ0ZTZkMzAxYWYzMDY2M2JjNDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_928ff8d4cf6b45f6a6946f2ff2428ea2",
+      "statement": "SkeletonBoneOverrides binds an asset skeleton to a live scene rig by bone name because the two are different object graphs sharing no Transforms, so a name is the only identity that survives the crossing; per-bone overrides are the escape hatch for a bone named differently or living outside the walk.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonBoneOverrides.cs#L7-L26",
+          "version": "repo-lines-v1:sha256:5261fea334c44ed43705f894e157b3486f6208c736ced170476943ef0388cfed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4MjUzNjJiNzYxMjgzNzFmODIzZjIyMDMxYTAzOTFhNjFlOTdmZjhiMzQ5OWU5ODMxOTViYTAxNTAwYWE4OTMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SkeletonTests.cs#L343-L353",
+          "version": "repo-lines-v1:sha256:c018ca1d1694f9fef72815112caeac387833b13fe7e4cac1a7a430c02fdceff6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5ZmZiNWYyNTdhY2NjNDM1YWUzM2ZkYTc4MGU1YWFkNmU2Yjg3NjQ1YTljZTY1ZmZkMjU0NGVlNThhZGY4N2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1OTM0MThmZTNjODZiNGMyOTJkMzVkNjExMmVkMGQ3YTVkZDQ3OWYxM2UxOTg3ZWYzNWUzOTI2OTc1MGI3NGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_34ce8e7c016246448d2a58ec1d282c93",
+      "statement": "Binding failures are non-fatal at the Skeleton layer — an unresolvable bone logs an error and leaves its slot null so the caller decides severity — while MotionSynthesisComponent counts the nulls and disables itself; duplicate bone names under the root only produce a warning, since the first depth-first match silently wins.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonBoneOverrides.cs#L68-L112",
+          "version": "repo-lines-v1:sha256:866b45bd7336c88a159208b08c5b5c26cd4dddf33bc5421a44cfa0f97b987e0b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5NjY3MDlmMjgwYjJkZGEzMzk3NDQwOGMzODNiZjMwOGIyZTcxOGM3YTc2YmVjY2Y4MjhjNjUxYjZlNWYxZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjNmVhOGRjYTBlMjI0YjM2MWQxN2RhNDNkNDYzNzhlYzUzYmU5M2M3ZWQ4MDQ5YTY0ZWQ3OTVlMDI5ZWQ4NGEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L154-L176",
+          "version": "repo-lines-v1:sha256:4bb0990f09b4afcd1898aacd2ac330dd190f0546727b5ddaa9779b2461920475:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ZWY5Yzc1ZGQ1YzM1M2U2OTk2M2QzNTQzNzA1M2NiN2I1Yjk4M2E1Y2RiY2ZjMjIyN2YxM2I5ZmI4NDgwNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMDBlZDAxMDNmM2JiNmQ1ZDVhMmFhMjliZjZiYjkxNWZiZWJkYjZkYjI5YThhMTkxOWYyMmRkZGM5MWZhODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMzhmZDI4MWYxMDY0NzIxODQzZDM0ZjA3OGNjYzJjNGNjNjk4M2U1YzgyYmQ4MmJlZjk5MjYxZWQwNmNmMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5NDI3YjBlOGMxOWMzZjZlZmMyMDUxMWFkNDY3ODYxMDU0N2QzZDA1NTZlN2M4ZGEzNDVlNGI5YTBkYjJkZWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2ee06b7826ed4c54847d665d635b3412",
+      "statement": "AnimationTools.SkeletonBone collides with the built-in UnityEngine.SkeletonBone, and the codebase copes by aliasing rather than renaming: nine files outside the AnimationTools namespaces carry a using SkeletonBone = AnimationTools.SkeletonBone directive.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L250-L251",
+          "version": "repo-lines-v1:sha256:cee04c1ab837ca0ddcf0b8ec6162c3c04914e7b30b6df0b25b340915ef0f7b69:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTUwY2Q3Mjc4MDEyMmI4MTcwMDExMjVkNjk4MzNjNWNjYWUxZjc4ODFhYzE2ZDQxM2Q4YWM0MTcxMmJiZDJhOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODNhNzMwMDJhMGY2OGUwMTYzZTVlZDAyMzgwNWUzMzEwOTU5MTQzMDAxYmRhMTNmZWM0NzY4ODkwMDFiNGMyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmJhN2UyOGQ5YmE3ZmM0NDUzYzZmMTE5Y2JhYzlhOGJhMjE2NmY0ZTAxMjc2MWU5ZGFiOWRjMTM2ZjZlZTFhNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTlkNjhlMDdmZjI0YWZhOTg0NjUyYWE3YTJjMjIxMmUyZWI0ZTYwYzIyYjI5MjVlZjViZTM2NDVkZWQ3OWNmNiJ9"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L1-L10",
+          "version": "repo-lines-v1:sha256:e14d3519ddf9a3e4507467f3c18619c18b0eabd862be1aae2d83d66e2961ab6e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1YWJhNDRlYzhmZWMzNGY3OWM0ZmRjMmM1YmM1ZmUwODA1ZjgwMDE2NmEwZWY2ZTg1MDg5ZWMwOGNhMGY4MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExMjIzNjQ4ZjAzZGVjYTExZTZmMzViZGEzNDI3NGU3NjdhYzQ5YmU3M2IyMGJhZjAyMDkxZTg1MzZiNjcxODYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bae3b59208c84de6be43afd638728a13",
+      "statement": "Bone-name heuristics in BoneNameConventions are best-effort fallbacks for rigs following the shipped BVH naming convention and are explicitly not a substitute for an explicit SkeletonBone reference where one is available.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/BoneNameConventions.cs#L5-L17",
+          "version": "repo-lines-v1:sha256:a74133b4baf5454ec8f24d62be00d7f3ccb613b39cf1dfc59ec5ebaec7cb5697:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGViNDgwZTFmMTk4YzQ4MWU5NmZkZGI1Nzc3ODc3YTU0MzhlNDQ5YTllNDM0NGNiYWUwYzU3NGFkZTU3OTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlYzZiMzJhZDhmYTg1YjBhZTVkYzdmYzkyNjQ4ZGRjYzk0N2UzNjVmMTZmNTYxYjcwNzE4MDU5ZDU5YjM4ZDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d7b4749a2aed464cbb4bb0409f5efede",
+      "statement": "The skeleton root needs a custom dropdown because an imported model exposes only its top-level children as sub-assets — typically the mesh node and the topmost bone — so any deeper bone is unreachable from both the Project window and the object picker.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/SkeletonDrawer.cs#L7-L28",
+          "version": "repo-lines-v1:sha256:8db23243b18d918a0b8d351df7d30e733f3dce22b7ec0744544d5092926b0089:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMGIzODdiYjk2OWQ0YTU4NmQ5YjljOTNhY2Y2ZDI1OTE4ZjZkMmUxMjJiYTgwMDBjNGM2NGFiNDNjNzcyM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4MjIxNDBlZTEyODEwOTI3YjdiYTA1NGVkODg3ZDM4NjkzZGQ4OTVhMjY1YzczNjE1OWRkNTYxNWI0MmRkOTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_13991d3bbd704b759b49920cbb3018fe",
+      "statement": "The skeleton drawer intercepts drag-and-drop by hand instead of letting EditorGUI.ObjectField take the drop, because that control normalises a dragged sub-asset up to its model's main asset, which caused dropping an exposed bone node to assign the whole FBX.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/SkeletonDrawer.cs#L67-L95",
+          "version": "repo-lines-v1:sha256:d889e56bb22abf29300c1e235d9aa0611e97eb3419ad06987c949c1103ceeca0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhMDdmMjhiNGExY2I2NzY3N2FiOGRlYTIxN2U2OTg5YjFiNTZiNmU0YjkyMDdhMWFmYzRiOGNlNDdkYTRhMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzNjQ5MTU0YzBjNDRjMzhhY2VmYTk5OGQ4NGU5MDQzNjNmNGI5Yjg3OThhNmZkNjc5MTM1N2Y2ZjgwMzI2MmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0da84c05e81349c7b35c5eeaec6711e1",
+      "statement": "SkeletonData reports a pose/skeleton bone-count mismatch by throwing with an interpolated message rather than asserting, because the mismatch would otherwise surface as an IndexOutOfRangeException from inside NativeSlice with nothing naming the two things that disagreed; the interpolation forfeits the Burst compatibility the type advertises, a tradeoff the code acknowledges as real but currently unexercised.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonData.cs#L168-L193",
+          "version": "repo-lines-v1:sha256:9e646733099c5cafabf6c75cd2adcd9b9b79d118286710053a7d58d71cedf1a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzMTQ4MGQ2OTYwNDBiODM3NzkzMDM2NjYxZWNmYjkzOWVhNzRiNjJmMThmMGQxMGRhNDI0NjBhNjI2YjI0ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjODA1ZDFkM2FhMmQ4NzMxYjk1YTliMzVlM2VhMjhjMzFhOTRhNThlNWIzOTA1MDg3MGZjNzQzOTY3MmU3NWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5a0f2d96c0124fd58231e2d341871260",
+      "statement": "The Assets/Scripts skeleton-UI trio — SkeletonUIManager, BoneSelectorWindow and SkeletonUIManagerEditor — is an unrelated 2D node-graph bone-picker in the global namespace that references neither AnimationTools.Skeleton nor AnimationTools.SkeletonBone, and BoneUIElements.cs is entirely commented out.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/SkeletonUIManager.cs",
+          "version": "repo-file-v1:sha256:5e5d05e907cda06473d4183e0fed6c477875cd360d7fb09e0b79d0b1df3901d7"
+        },
+        {
+          "resource": "repo://Assets/Scripts/BoneUIElements.cs",
+          "version": "repo-file-v1:sha256:f56da997d94134347496bbea5bb8be6b8abaa7cd16ee8616105f9ac0f30918b6"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

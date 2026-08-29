@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:727f5ec99ec840075ae090e02c50afe7e8e76840363c328c0a365015f0696dfb",
+  "claims": [
+    {
+      "id": "claim_9b0894ffd44d4f3e812e9b73ab5fa681",
+      "statement": "The two visualizer stages are ordinary MoSynthStages authored into the same SerializeReference list as any synthesis stage, and PoseSetVisualizerStage is documented as able to stand in as the only stage on a component — the strongest available demonstration of the extension seam.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Pose/PoseSetVisualizerStage.cs#L8-L17",
+          "version": "repo-lines-v1:sha256:9a422c589d62982d7ad0dd49d6004d785e7fc468521d4e913028f9a20047e043:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxYjI5OTQ2OWYwZDJkZTlmOGRjOTg1YWE5ZmNlY2Q1YjBmN2Y1NzRmYjk2NzYwYzg1Y2JhNDFhZWRmNWMwOTQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MoSynthStage.cs#L5-L19",
+          "version": "repo-lines-v1:sha256:5ddcfc9be3c0a640f5b03d74d27efed5df8acc196c7944f4f69b6f65e7db9339:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNDM3NWRiZjBmN2E1MzdkNTUzOGUwMDkyOTEwYWQxODczZWZhMWVmYTA4YzM1MzM5Mzc1NWM3ODRhNjMxNjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2NjQ4ZGQ4ZGRkZjYyMWU4NzdjNTlkNzlkYjJiZDYwMWQ4MTk1MmMxYWNjMGQ3ZjM4NmI3ODcwMTI0ODg2YjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_17f1263b05e84c63a2703b683d80a395",
+      "statement": "MotionMatchingDataVisualiser draws a baked database's poses and the trajectory features extracted from them, so a feature pointing the wrong way — the usual cause of a search picking odd frames — is visible there and nowhere else, before any synthesis is involved.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Debugging/Visualisers/MotionMatchingDataVisualiser.cs#L10-L18",
+          "version": "repo-lines-v1:sha256:2b9a7c5e369a96493564514f885015070f4f00d81a5bd0f927cbb4d8286bda50:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWMxOTdiMTkwNDgzZjFiNzBkNDE0MTA2YWU2MTJjOTk4N2UyNzMyNjcwMTUwYmNhMGMyYzk3NGY3OTNjMGEwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzAwZmRkODNlNzA5MzNlMTBhNzk2ZjBlZjFlMzRmNjA5YTdlMGNlM2EwNmZhYWUzNTliNzIyNzcwMTMzOTJlZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmY5MTNiNDUwZDg5ZWE0ZmZhMGQwMjQxYTc2M2Q4NGFmOTZjMGE3Mjc2ODI1NzZlZGUwOTMxZGFhYmFmNzMzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjIxOWIyNzEwMDkxOWRkYjU4NDU5MGYyNjZmYzljMTRiYjE2NzY0NTdlMWJkZDdjODNlN2I2Njk5YTVjMTBiYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_657609c6d82d4413851799e32148c2c6",
+      "statement": "PoseSetVisualizerStage plays a pose database straight through with no search and no control input, which is how an import, an extraction or a retarget is inspected with the rest of the pipeline out of the way.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Pose/PoseSetVisualizerStage.cs#L8-L17",
+          "version": "repo-lines-v1:sha256:9a422c589d62982d7ad0dd49d6004d785e7fc468521d4e913028f9a20047e043:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxYjI5OTQ2OWYwZDJkZTlmOGRjOTg1YWE5ZmNlY2Q1YjBmN2Y1NzRmYjk2NzYwYzg1Y2JhNDFhZWRmNWMwOTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9ba32f66205f43359bef014f531f6337",
+      "statement": "ContactVisualizerStage applies the same velocity-threshold test the pose extractor uses when baking contacts, but against the pose the whole pipeline produced after searching and blending — so it answers whether a foot is planted right now rather than which frames a future bake would mark.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/ContactVisualizerStage.cs#L11-L20",
+          "version": "repo-lines-v1:sha256:c13202b30b274d49981e02862a21e8d95f74e346b21a661cdb8ad068041116d9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYjI5NWFhNzliYjE0NjlmNTY4NWNkZDI2MGMzZGE5NjFlMzk5YTgyYmVjNGQzN2QzMTg1MWZhMmJjZTNiNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5MjEyZGQyMmIwMWI2NWY1OGEzMmFiYmVhYTU4MzY2NjE3YWI3OWNlMzhmMGI5YjMwMGRhZjVmYTA3NWE3ZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1baa4c2bc8e342fa8b02c304223fbb9b",
+      "statement": "The contact visualizer carries a private pose buffer in its own layout, adding one bool channel per configured bone, because the pipeline's layout only carries the two built-in foot contacts and a read-only stage must not change the layout everything else shares.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/ContactVisualizerStage.cs#L36-L48",
+          "version": "repo-lines-v1:sha256:676393e3f3cff362c07aafe02fca12ca8159bdf13ff745a26db371bcff79fd28:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1Y2E2YWQwZjIwZGZjN2RmNjNmMzE3MmJiZDQ2YWNiMmEzMWQ0ZGIzYjNiMGZlYzY1MTM0MTI3MTUzOTdkZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4MWFhYWMzYWE4NGUwZDdiZjg4NWEzMTZlODI4ZmFiOGVlYmRjMzEwYmY0ZmM1MDM0NzI1NGFkOGRmZjJlOTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhYzdkMzdkMDNiNzI5OWYwYWJkN2U0MzAwYTNhM2M2MTI3MzQ1YTkwZGU4NmQ3YmZhNjgzODA4YmZkMjg1ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxYTliNDU1NWQ1NWE3MWU2NzAxM2VjNjcwOTNhNDMxNThiODJmYzg4YTRiOTRkM2U3ZWIzNWRmM2JlYmIzZjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_526400a17e2b43e3acc37c76ded9f861",
+      "statement": "GizmosExtensions exists because Unity's gizmo lines have no thickness: it routes through Handles.DrawBezier with a degenerate control polygon and scales thickness by camera distance so gizmos do not turn into slabs up close; the whole file including its namespace is wrapped in a UNITY_EDITOR guard.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Utils/GizmosExtensions.cs#L1-L16",
+          "version": "repo-lines-v1:sha256:292c8097474dfb98121023e08cb84c195e88ad6e6cdf8bb4f00d7137f37f665d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzNTc1MDlmYjNhNmNhYmY4ZjNkYTBhNDRlOTVlN2Y3ZGZlZjg2ZGE4YTZmMDU1ZDdjOTEzYTJjN2QyMzkyM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZlMDcyYTMyMDBjZmFhOGQ0OGNkN2VjMzljY2EwYjYxYzY0MzNiNzRjNWRkYzk3MjYyN2Y5ZGM2ZDhiYmU1ZDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_75cdf937de9441709ca22b5b1be69ad0",
+      "statement": "PROFILE is kept separate from Unity's profiler because it accumulates minimum, maximum and rolling average across frames rather than showing one frame at a time, which is what matters for a search whose cost swings with the query; it compiles out entirely unless its define is set, and its shouting-case names are intentional so instrumentation stands out from the code being measured.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Utils/PROFILE.cs#L14-L23",
+          "version": "repo-lines-v1:sha256:8ab426948e72125a1767267a319cfbf03f3ccd36d95504e930543f6b27f70b31:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExYTA3ZGI2N2Y0MWFmMjEwNDNkYTNhOGRhODRiMjkxYWM5NWFjOTljYTIzNTA3ODI3ZDJmNGM5MDEwZWNhNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmYWQ0Mzc5NjUzODg1NjI2MjcyYjVlZTlhZTQwNGZmODlhMzAyZTM3YzU4MDUyODVmNDE5ZGIwNmIxYTRhZjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d264b028f124a48be3f26a2c1ee621a",
+      "statement": "The PROFILE define is commented out, so the profiling helpers compile to empty bodies and the data accessor always returns null.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Utils/PROFILE.cs#L1-L2",
+          "version": "repo-lines-v1:sha256:ae120231c3b770375cdf511fb0920d9fbe5ea389f25b02dfb0a080feb923ef16:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWRlMGVjNTZmMzU2ODJhY2Q3MjQ3NTJkMDhkNTQwYmMwOGJlYzZlYzQyY2FkYmI2YzZkODBjNWI1NDA0ZWM4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjg2NmRjODA4YmJlMGNkYzQyMjk5MmIzOTkzNTQ0MDcyYTNmNTI5MjE5YzI1ZTljNjMyZDY1YjZiODdmMTMwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGU3NmM0MTJmMzg3NDA1ODE2MmRmYTJkOTJjZDBhZGY1NTVlN2RmNjE3MzhjZjdlMGIzMThhNGE3M2E5OWQ1YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b2e6eb8030e40a0b48e2de24580d651",
+      "statement": "MotionMatchingDataVisualiser disposes the pose set and feature set it obtained from the shared cached accessors, in both OnDestroy and OnApplicationQuit, so it disposes assets it does not necessarily own.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Debugging/Visualisers/MotionMatchingDataVisualiser.cs#L34-L55",
+          "version": "repo-lines-v1:sha256:0d8134b186389b18298be92233e637dba4cfac0b85d1f3ac18199c49aa86c1ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjOWU1Yjg1ZWJjNDdhM2NlZGY5MWY1OWFjYzFkNDBiZDJjODMxZmJmMWU0NWRlZDU5ZTYwYzY2NzQ5YjU0MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxMDVhNTI3YTVmNmFmNWIyZTgzYzNjZTU2NDg0ZTE4MGZlNTg1ZGQ3ZDI5ODFlZjJhM2QxMzFiMjgwOTY5MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2ZTU0NjAyODM3NTAzMDZlZTM5MWFiMjQ3NDBiODk1MzEzNjExMjEzMzk1MjI3YzUwMzRlZmU0ZmIxNzY0NTQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

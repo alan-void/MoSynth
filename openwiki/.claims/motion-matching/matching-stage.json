@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:b4531c72000f2f671dd89d7b9f5634adbeecb62099c914fea6b4a46bfce0ec20",
+  "claims": [
+    {
+      "id": "claim_85fdbbfcb1d6436a80ab2dd8e82e31fe",
+      "statement": "Motion matching runs playback and search on separate clocks: the playhead advances every tick while a search happens at most once per searchInterval, defaulting to ten database frames at sixty hertz.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L13-L27",
+          "version": "repo-lines-v1:sha256:7f9311b6b341a455496a510c428d7180e824f75f968bdad12e50702955f83585:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4OTg2N2RmZDdjNWVkZmVkMDQ2MWY5NGM3NTdjZDIzOWNkNmQ0NmQ2YTdjNDAxNTkzOTU1MzM1NjJjNzJmMjYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L175-L191",
+          "version": "repo-lines-v1:sha256:96b367ce75dcd028dd0c6e5f0f66348c97b3b5b6252d297efd1838a0be8dc66a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzNzM5NThiMmRkMDcyNzE2NTkxNGMyZjZlYmJiNmI0ZWU3OWZiZTdkZGM4MzQ5MTY4YmFiYzVjYzYyZDczZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmZDI1MjQ0MzkzYmQ3Mzg5MzMwYzNjODgzMzQ0MjljYzFmNzNkZGExMWIyMmMzOTNjM2Y1ZDM1ODRlMmZmZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2461338089e845d29e1387df950eedbf",
+      "statement": "A control input can force an immediate search by raising OnHighInputChange, which the stage subscribes to and uses to zero its search timer — the escape hatch that makes a coarse search interval acceptable.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L121-L145",
+          "version": "repo-lines-v1:sha256:854438b426ac489aa62764efdb4dccc6d8ca6e76d49d5ed1f94bfa2fafcb6ac2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMTUxZjFhYWE5OTIzMjc0MDk3NmFkOTllYTgyMTA0NjVkMGFjMGZiZjZkMGU4Yjc4ZDVmNzgwYzVmMGNiMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhZDI0NjUwMjUzNDU0ODM3YTlhMDhlMTRmN2Y0YTUyYTRlMjA0ZDNhMmY3MTQ0ZTNhMWVhMDc0MmIzMDM5NzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkOGE2M2QzYzc5MzU4NGQ4MzUyNjcxYzRiZTlhMzU2NmJlOGI3YTVhZjcyN2EyNjYzYzY2MzcwOGExM2RkMDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b9fda204490c4939ad03b1451901d928",
+      "statement": "The stage scores the frame already playing and passes that distance into the search as the initial best, so a search reports only something strictly better and returns -1 when nothing beats what is playing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L193-L218",
+          "version": "repo-lines-v1:sha256:74941442d49c32821e85bbfde50ffe6f3a033ab93acb1c46f98898bb55cd52bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmZjBjNTVlZjcxMGEyZWMyMWY2NDU1ZmZiYWYwNDhmNWI3MTNiNGNhMWYyZDRiOGRmYTc2NzMxOWY4N2Q4YzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxNzRlMWE2MjFjMzk2NDE3MzI4YWU2MGJiM2RjOTIyMThjYzk3YmU3Nzc2YWFmZWIzY2IwNmI1YjQ3ODMyYjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_85a779ef85314b0599854a821e0f8cbd",
+      "statement": "A winning frame closer than minFrameSwitchDistance to the one playing is ignored, defaulting to twenty frames, because nearby frames look almost identical so jumping to one costs a discontinuity and buys nothing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L57-L69",
+          "version": "repo-lines-v1:sha256:47bb8e658f64a431f8441e10520d71a7a14dcc4d427eecd86ef70efb8788b83d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZDU4NTE2OWU2MDdmOTllN2YyZDU3NzhkNTdhMzhjMmFjNWQ1MWFiNGM4NWEwM2VlZTBkNmQxMzAzOGRkZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0MmM1Mzc3NDIxZTdiOTkxMjY0YWFjMzgwZDIwYmIyYTY2NDY4ODBkMzJmZTBhNTEwODFjYjg1ZGE0NGI4MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5MDU2MzQyNDJmMWRkODJmMGU5MjI4NzlmZGIzMjliMDY4MjJlN2Y0YjA0MTViZTkzN2E3MDU0OTRjOWE5MzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczMTFlZjQzNDg3ZDMxYzVmMzAxOWIzZGY4NWUyMzExZTE1ZDYxNDE0OGFkMjhkY2U5YzZlNTcyMGRmNTM2MzQifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L193-L218",
+          "version": "repo-lines-v1:sha256:74941442d49c32821e85bbfde50ffe6f3a033ab93acb1c46f98898bb55cd52bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmZjBjNTVlZjcxMGEyZWMyMWY2NDU1ZmZiYWYwNDhmNWI3MTNiNGNhMWYyZDRiOGRmYTc2NzMxOWY4N2Q4YzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxNzRlMWE2MjFjMzk2NDE3MzI4YWU2MGJiM2RjOTIyMThjYzk3YmU3Nzc2YWFmZWIzY2IwNmI1YjQ3ODMyYjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1e23c011c4884938b062473e35736cb4",
+      "statement": "The jump gate compares raw frame indices, which are global across the concatenated pose set, so a genuinely better frame a few indices away in a different clip is rejected as if it were adjacent.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L193-L218",
+          "version": "repo-lines-v1:sha256:74941442d49c32821e85bbfde50ffe6f3a033ab93acb1c46f98898bb55cd52bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmZjBjNTVlZjcxMGEyZWMyMWY2NDU1ZmZiYWYwNDhmNWI3MTNiNGNhMWYyZDRiOGRmYTc2NzMxOWY4N2Q4YzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxNzRlMWE2MjFjMzk2NDE3MzI4YWU2MGJiM2RjOTIyMThjYzk3YmU3Nzc2YWFmZWIzY2IwNmI1YjQ3ODMyYjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a78b64b68c8249dbaf4ca9eb792c9528",
+      "statement": "Running off the end of a clip into the next one is treated as a pose jump exactly like a search switch, so the stage raises PoseDiscontinuity in both cases.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L220-L238",
+          "version": "repo-lines-v1:sha256:5ad9ad1b55930de609925391a2bf193821ceb72507a86692e01eebe7a02385b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiMmQzZGE2OTU4N2Q2NzNjMTU1YzJlNjE1ZDgyYzY1ZjkzYWVkNTg4ZDAzZmNiNWI5NTBkNTRjOTQ0YjM2MTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5a435a63b9c4716b58a8d62af34ce91",
+      "statement": "Pose features in the query come from the frame currently playing rather than from the character, which keeps the query in the database's own pose space; using the character's pose would require inverting the retargeting first.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L261-L307",
+          "version": "repo-lines-v1:sha256:af80ad210c06f92334fe00ccfffdf9a217afacc38a259e7df01f0e3bdb717423:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MmU5YzNiYjUyNDYxN2JjZDAwOGE0NTAyOTgxNzVhYmEyZTNlNzc2ZGNkMzcwN2FkYjM4NzRiZDUyYTUyY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyZDk2OGQ2MWI2ZjAzMzlkNDk5ZjU0NzVhMzYwNTJiYjQ2YzU4Zjk0NmUyNGY1OGI1MDIxNTQ1OTE3NDdlNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNjY0YzFjYzU3ZDg5ZjhiNzY2NTE1NWUyNmFiM2M2ZmFmZWU5ZTgxODEwYTdiZjQzN2Q3ZTIxZGUzMzE0NzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1607eb6530b84843bce7d8e977a161d2",
+      "statement": "The stage refuses to initialise unless the component's skeleton is structurally the rig the MotionMatchingData was built over, because the database's poses are stored over that rig.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L121-L145",
+          "version": "repo-lines-v1:sha256:854438b426ac489aa62764efdb4dccc6d8ca6e76d49d5ed1f94bfa2fafcb6ac2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMTUxZjFhYWE5OTIzMjc0MDk3NmFkOTllYTgyMTA0NjVkMGFjMGZiZjZkMGU4Yjc4ZDVmNzgwYzVmMGNiMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhZDI0NjUwMjUzNDU0ODM3YTlhMDhlMTRmN2Y0YTUyYTRlMjA0ZDNhMmY3MTQ0ZTNhMWVhMDc0MmIzMDM5NzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkOGE2M2QzYzc5MzU4NGQ4MzUyNjcxYzRiZTlhMzU2NmJlOGI3YTVhZjcyN2EyNjYzYzY2MzcwOGExM2RkMDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_caca347409fc43b0a1a66e4f278210c5",
+      "statement": "MotionMatchingStage never overrides OnDestroy, so the search backend's Dispose is never called; this is bounded only because the search result array is allocated with Allocator.Domain.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L146-L173",
+          "version": "repo-lines-v1:sha256:3f237590e4a3426909d5539b1fb79f4c14970a5196ab48808eb5a3a439aa409c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ODI4YWFhOWI3ZWRhNDA1ZDA1NDA1YmM3ZTVjYjM0YzdiODE3ZmZmMTgwODk2NmZiMTM3OWE1MWRiMzVkMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMzhmZDI4MWYxMDY0NzIxODQzZDM0ZjA3OGNjYzJjNGNjNjk4M2U1YzgyYmQ4MmJlZjk5MjYxZWQwNmNmMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2ZDg1MGRmMWViNTE2MGI3NDc2ZTZmMjQzNTllZGQxMTY1YmRhOTEzMDlhNTE5NDZhZDk4YTAyYTQ4MzkyNjYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingSearch/MotionMatchingSearch.cs#L40-L64",
+          "version": "repo-lines-v1:sha256:74e6381cb687fdcba281da51591a84f1b81cb9d9716b4e1272d5abff0af35428:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkZmRkNDg5ODRmNGI3OTY0OGI2N2YzM2M4ZGJlOWUyMTk5Y2RmY2RkNTZjOWRlNzhhZjc2YWVkNTdmNDI3MDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2e1aa1f3054548858d328ea3c71b724c",
+      "statement": "UpdateFeatureWeights is never called — it carries a TODO to call it from the editor — so the responsiveness and quality inspector sliders currently have no runtime effect and weights come only from the serialized per-float list.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L309-L326",
+          "version": "repo-lines-v1:sha256:865f6c3e77e7ec5aef7b8fa53f6a4d5654a50e7cdecf012bfca0485512540ec7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiOTNjMTc3MWRkMmQxNmU5MGM5ZWQ4ZTlmNWMzNTkyODdjNjNjYzdiMGRlMmVlNzZkYmFhYmQ5NmNhNDVkMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5ZWMwMThiMDc3ZmNjMTI1OWRmYmQyOTU0NmRhNTcxOGRmZTA5ZWYzOGRjYjNlNmQ2ZGM2ZTBiZWQyNGJhODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_77d42d5f087e4974a9df6fe4deb5c97c",
+      "statement": "The uncalled weight-expansion method reads one weight per feature definition from the head of the very array it then fills in per float, so it must snapshot those source values before its first write or it would consume values it had already overwritten.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L309-L326",
+          "version": "repo-lines-v1:sha256:865f6c3e77e7ec5aef7b8fa53f6a4d5654a50e7cdecf012bfca0485512540ec7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiOTNjMTc3MWRkMmQxNmU5MGM5ZWQ4ZTlmNWMzNTkyODdjNjNjYzdiMGRlMmVlNzZkYmFhYmQ5NmNhNDVkMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5ZWMwMThiMDc3ZmNjMTI1OWRmYmQyOTU0NmRhNTcxOGRmZTA5ZWYzOGRjYjNlNmQ2ZGM2ZTBiZWQyNGJhODEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

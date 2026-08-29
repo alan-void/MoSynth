@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:cf77b97121e0bd10f9dcbeebdfe158c4ebf42b36043591bd818ef8c1a770a6c2",
+  "claims": [
+    {
+      "id": "claim_30b6c195c876442f995c47e548d37143",
+      "statement": "Inertialization changes the target pose instantly but computes offsets from the current pose to the target and decays them, rather than crossfading, so only one pose stream has to be kept — an upstream stage can jump anywhere without keeping the abandoned animation alive, and when nothing has jumped the offset is zero so continuous animation passes through untouched.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs#L8-L37",
+          "version": "repo-lines-v1:sha256:9b272ab31cfa520ea49f8d173c65725ce2ce6f7d382c7312c2861d8cc41b0822:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwZjBjNWEyZmVjNTcyNzVmOTQ1MGEzN2MxYjBmYmUwMjFlYWI2MWQ5NGZiM2RhY2M0YWZlNWM2YjNlYjg0OGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2a36fb439d1448059e98f327325f2999",
+      "statement": "Bone 0 carries the root's world position and rotation, so blending it directly would smear the character across the world whenever the target pose comes from a different part of a clip; it is instead blended in the space of the simulation frame each pose derives and written back through the target pose's own frame, while bones 1 and up are parent-local already and blend as they are.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs#L8-L37",
+          "version": "repo-lines-v1:sha256:9b272ab31cfa520ea49f8d173c65725ce2ce6f7d382c7312c2861d8cc41b0822:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwZjBjNWEyZmVjNTcyNzVmOTQ1MGEzN2MxYjBmYmUwMjFlYWI2MWQ5NGZiM2RhY2M0YWZlNWM2YjNlYjg0OGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b45e7dcc2ca1403ea70018e557937d20",
+      "statement": "Offsets are re-anchored only on the tick a stage raised PoseDiscontinuity; between jumps they simply decay, so continuous animation passes through unfiltered with no lag.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs#L120-L197",
+          "version": "repo-lines-v1:sha256:b57c6caede9927f8ecd425b54639a624280ae91aea058156fcdf7bae264b41e0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4NzAzNTE4ZjBiMmUwYTEwMjUxMGQ0NGQ3Mzc0Y2M5NmRlNGZlZjQxNTY3MDc0NGQ4ZTljMDk2ZTUyZmVhN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhOWFkYjI1YWQzMDUxMDJmZjZlYTQ5MjA0ZmQ1MzMwNTA2ZTAwYzI5MTRkNjU2MWQ0ZGIwOTBkOGZjNzFhMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f24205551f0a4922b3a83a2af7151f6e",
+      "statement": "The offset is measured from the stage's own previous output rather than from the previous input pose, which is what makes a jump during an ongoing blend fold the remaining offset into the new one instead of restarting it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs#L120-L197",
+          "version": "repo-lines-v1:sha256:b57c6caede9927f8ecd425b54639a624280ae91aea058156fcdf7bae264b41e0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4NzAzNTE4ZjBiMmUwYTEwMjUxMGQ0NGQ3Mzc0Y2M5NmRlNGZlZjQxNTY3MDc0NGQ4ZTljMDk2ZTUyZmVhN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhOWFkYjI1YWQzMDUxMDJmZjZlYTQ5MjA0ZmQ1MzMwNTA2ZTAwYzI5MTRkNjU2MWQ0ZGIwOTBkOGZjNzFhMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_775308b2c2794d56827ace6ce47bcfdd",
+      "statement": "Each side of a jump is read against the frame it derives for itself, so the two poses are compared as two characters each standing at their own origin.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs#L120-L197",
+          "version": "repo-lines-v1:sha256:b57c6caede9927f8ecd425b54639a624280ae91aea058156fcdf7bae264b41e0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4NzAzNTE4ZjBiMmUwYTEwMjUxMGQ0NGQ3Mzc0Y2M5NmRlNGZlZjQxNTY3MDc0NGQ4ZTljMDk2ZTUyZmVhN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhOWFkYjI1YWQzMDUxMDJmZjZlYTQ5MjA0ZmQ1MzMwNTA2ZTAwYzI5MTRkNjU2MWQ0ZGIwOTBkOGZjNzFhMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1d067561542940478ec6a8c7446fabcd",
+      "statement": "The velocity channels must be written back through the frame along with the position, because the synthesis component re-derives the frame's own motion from them when it advances the character.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs#L120-L197",
+          "version": "repo-lines-v1:sha256:b57c6caede9927f8ecd425b54639a624280ae91aea058156fcdf7bae264b41e0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4NzAzNTE4ZjBiMmUwYTEwMjUxMGQ0NGQ3Mzc0Y2M5NmRlNGZlZjQxNTY3MDc0NGQ4ZTljMDk2ZTUyZmVhN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhOWFkYjI1YWQzMDUxMDJmZjZlYTQ5MjA0ZmQ1MzMwNTA2ZTAwYzI5MTRkNjU2MWQ0ZGIwOTBkOGZjNzFhMGQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L106-L136",
+          "version": "repo-lines-v1:sha256:9dcb831722fd71cba3f59ba24987e62a8ade64d07d3607d5c29b27a775db3025:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzNjhmOTBhOWRlZTFkYWU4YjUxMTkwYjJhM2I4YzYzYTM3ODQ1NmIyMmY5Yjk2YzkzNjgxYzJhMzJkOTU3ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZDA2MTM2Y2UyZTkxNTRhZjM0MzA1NGRkNmZmNGYzMTI4M2QzNGIzNGE5NjhmMjRhZTc3ZDQ3YzY5ZWQwMTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9840f2a4446642f7a5649ead22ff04d3",
+      "statement": "TwoJointIK is analytic two-bone inverse kinematics in closed form, whose forward argument exists because the chain can otherwise hinge anywhere on a circle around the root-to-target axis, and it holds the reachable distance an epsilon short of both full extension and full fold where the cosine rule is degenerate.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/IK/TwoJointIK.cs#L8-L30",
+          "version": "repo-lines-v1:sha256:b3d7dfbdb48940be52a04c12b5f431471c87bad215fc33f747607fced2145cd1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MTIzZjFhMjcwYzgzZjhkMmVkMTgyNWE3OWFlYWY3OTQ3NDg3MzYwMjIzMzFjMzI3YmQ4YWQ1N2ZlYjQ3ZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxMjQ1YjVjNzViMmI5YzI4MjM2ZWQ0ZmNjNDg3ZTNlOTFlY2E3ZTI1OWVjZjkwMTcyYmQ1ZjVhYmQ0YTE5YjIifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/IK/TwoJointIK.cs#L86-L94",
+          "version": "repo-lines-v1:sha256:f059b4fe23935a5ae5ab899fde035d97953544d5cfd0316e1dbc6907c7c5ee12:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJhNGIxNzJjNzdiNGQzODI4MjlhYzFmMTUyODZiNDczZjUzNTI2N2Y3MTMyZDM3ZGZiN2MzNjRhMzhhZTA4MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODI1MWJmYWJjZmI2ZDg5ZmQ5ZjRlM2I3YmM0YTE3NGZkOTBjOTk4MTg2ZTRmZGUyYzhmYTM0ZTZkNWMyOTNhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2QzNDk0YmYzYTFmOTQyMThlZWQ5NjI0YTZhNDNmNDlhZTU0Y2Y4NWI4ZDFlNDM5NGVhODM1YzgyZGE0MTU2MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDk4YTgwYTdhM2VkMjBmODE1YTFiZmI5ZDU1NWFiZjZmOTkyNDFiNzM4N2ZhOTZhNzkxMDQ5M2M5YWRiNjg1ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_63368ffab4a148288ccdac0db19484ce",
+      "statement": "TwoJointIK has zero call sites in the entire repository — the only occurrence of the identifier is its own declaration — so foot planting is not wired up anywhere.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/IK/TwoJointIK.cs",
+          "version": "repo-file-v1:sha256:579584783c7136b1227d8a031f131ab6051acc4c690f5c1566b35944b2e07f5c"
+        }
+      ]
+    },
+    {
+      "id": "claim_626fc30e68c04af5a8bf7fb1f5a09e62",
+      "statement": "The pre-stage entry points in Inertialization's OLD_IMPL region are all uncalled, and one of them blends the root in world space — exactly the mistake the frame-local design exists to avoid; only the shared maths at the bottom of the file is live.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs#L41-L45",
+          "version": "repo-lines-v1:sha256:09bfb4f42f628fd39c0ceed62660d8d4d72f0601ed0e57ed18dae33fa5231357:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDI3NjQ0YmY0MzUzNjg5ZDMzMDI0Zjk2OTkzMTQ4ODI1ZmRjMDNkOGU1ODM4ZjUyOWZmMjk2MGFiMmE2MDA2OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWNhN2Y2OTIwOWE5YzMwZWNiY2YwNDg2OWIwOWZiYmY3ODY0NDdjZmJkNDU2NmQwZGUyMDZhN2Q4ZmFiNmUyMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDBmMGM1YTJmZWM1NzI3NWY5NDUwYTM3YzFiMGZiZTAyMWVhYjYxZDk0ZmIzZGFjYzRhZmU1YzZiM2ViODQ4YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjhmYTg0NzIxN2IzMGExNGMyZTIzZmY2NTY3MjE4NmI2YTdlYmE5NWExNWM1Y2Y5Mzc1NTNhMzliNjYzYTY4MSJ9"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs#L247-L360",
+          "version": "repo-lines-v1:sha256:cf60d083208f359e305e8647e4abda73079097608479cb2fb7ba0a9dd4234ff4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxY2E3ZjY5MjA5YTljMzBlY2JjZjA0ODY5YjA5ZmJiZjc4NjQ0N2NmYmQ0NTY2ZDBkZTIwNmE3ZDhmYWI2ZTIyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODkzZjQwZTM3ODFlYjg5NmM4MmQwNDZhMDgwNjdhMTFlMzVjZGYyZjFkZmFmMjZmZWE5MGI4ZGI2Njc2NDEzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjODA4ODNkY2M0NTVjYjRlMDg5NzQ5MTczMGZlYWJkMzljNzE0YWE0ZmE1M2U3ODMwNWE4ZDdlYjFkMmY2MWZmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiNWNiM2Q1YWVhNzhiMzhkYmE0ZmM3MmY2ZmFiMTViN2Y0MDdjNzRhODhmZWNkZGU4NzhlODM4MGY5Mjg1ZWY5In0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

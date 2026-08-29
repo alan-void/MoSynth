@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:bc00773fcd21737ab6b409e13bb53137e3e5d59b53ef7d9f8de62539fc757bc4",
+  "claims": [
+    {
+      "id": "claim_740417a902b14564800520db378e9b08",
+      "statement": "All recorder channels share one contiguous tail section rather than per-kind ordering, because time, bone transforms, the full pose and custom channels have no reason to be ordered by kind the way a pose layout's built-in sections do.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/RecorderChannel.cs#L5-L14",
+          "version": "repo-lines-v1:sha256:6382511ab01a470219d883a53199b55ad80149823f468a82bb35fd6134133b16:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZTQ3MTc5YmU4ODNhMGRiZjY3NTdiMGJiNWM4OGE2YmNkNTdkOGU3ZWViNzdmYTI2Y2VlYmRhNzdlZWI1NDgifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/RecordingLayoutTests.cs",
+          "version": "repo-file-v1:sha256:b6f9b3780e7244a0fbd9e3be0a1f02e178db27cc74adc6c5d5ff10008373d62f"
+        }
+      ]
+    },
+    {
+      "id": "claim_33070f7327ee48d0b289228e6cca00b5",
+      "statement": "Recorder channel identity is concrete type plus name plus config rather than type plus bone plus usage, because recorder channels are inspector-serialized and therefore need default constructors and mutable fields; two channels differing only by name get distinct offsets.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/RecorderChannel.cs#L46-L58",
+          "version": "repo-lines-v1:sha256:6b9146ec5e3cb4341128741410bc4bf4e3336a03fb6236e9498b0f4954fdbc18:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNzA3MGE5MmRiYTZkZjYyYjAyNGM4ZDU1MmMzODEwMDg4YTQzNWEzZjJjMGViYzlmMmNmNmQ1ZmYyNDIwOTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxYmE3ZDMxODEzODk1ZjRiMjkxNDk0MTdmMzY0OWMzY2JhYTZhZmIzYjk0ZWQ2YTZhNjgxOTY3ODg2NTlhZmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d8237f6239f46678b43bfc3e00201a6",
+      "statement": "Every channel is bound before the recording layout is built, because a channel's float count may depend on state that binding resolves — the full-pose channel throws if its width is read while unbound.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/RecorderChannel.cs#L60-L70",
+          "version": "repo-lines-v1:sha256:e7fbf76ec8579c937e01bc1f5b47940a4b69975e77b19deebf12f00911bd52c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5M2UxMDJlZGMxYzQ0ZDk1YTI3NDkzYjU2MWUyMzk1MjRhZDIxNTU3MmZlMWQ4OTNmZDNjYTQ0MmEyYzY0MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjMjA3MGQ1ZTQ4ZTNmNjI3NDk4ZDMwODA4ZjNjODc5ZGM5MWIyNTIzNmU3ZDQzZDg5Zjg5YzIxNjJhYjM2ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1Yjc4ZjFiZjExYWE4MTE2ZjAzOTEzYzdiNTA3MWNiYTAyZjVhOWMzODA3MGE0MzlhYmY4OWZlYzcyYTViMTIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/BuiltInRecorderChannels.cs#L189-L205",
+          "version": "repo-lines-v1:sha256:24e3d3e319beb2d1214dd141f7e121a5dcbe4791b5e33d685f8a5bd72816992d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMDU1Mzk4YjViYzQwMzRmNTc1MTFmZTQzMjU4NmIyNTNkOTRhYWI1ZmNkNWQ1OGRhMWFlNTYxMGU5ZTBmZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY0ZmUyNmUyMDc5NjY5NWM4ZmM2MTIzZmYxYTA4NTVmNDQ0MDM2MjRkMDg0MjU4OGRiYzg5MDI3ZDEwNzc2MDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2YjVlYTEyMGYwMDNjZDU5Y2Q3ODU4YTQxOTMyMjExYTEzMjZkNWZiMWRmYjI4MzVhMDE1MDEzMTZlODI5YTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e48e675104f845699704f6b5d57c9c36",
+      "statement": "MotionRecorder runs at execution order 1000 so it samples after every other synthesis-tied behaviour, which is what makes a bone transform's world position this tick's answer rather than last tick's.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/MotionRecorder.cs#L16-L30",
+          "version": "repo-lines-v1:sha256:d29b3dafa5a1f2d5d5b507266c8cc3f254e9d00b00bb9f059e6b37a5d41ccc92:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZDQ0ODE5NDEwNTIzODA2MjIwOTg3MmIzMmE0MTJmZTk3ZDk3NWI5ODEwMmZjZmM3ZTYyYTc3OGNhNDU1YjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ZWVkNzM5ZmM0YmI3ZDdjZDQ1MDNiNjYxZDZmYzJjNWY3NzI3ZDA0YTA5YzAwMDYwNzJhMmU1OGIwNDBjYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4N2Q0M2Q1NWE5MzFiOWU2Njc1MDViNWNhZDVjNzViMTU2NTAyODJjYmY0NTc2N2Y1NmNkMjI0MzdkODMzZDEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/BuiltInRecorderChannels.cs#L73-L81",
+          "version": "repo-lines-v1:sha256:9f75daa8a1771face809923a421f8a1b3056e150329bb9106bf20ab689c0955f:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzIwY2M1YWI4MjM2NjNkNzg2ZjE2MDk3Y2IyOWFjMTgxOTY1OWQwNGJhYzdiZDhlM2I1NDRjNDYyOWVjYmU2MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk5YmRlZmVlYWNhNjM0MGUwMjkwZGM4NmU4ODljODlkNWUxODlhYTViYTQ0YjU4NWIzYjcwNzM0ZjRhNjJkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjY2NmI4NmMwZGZhNDllZTc2YjdkOGFmZDhjMWRjYjE3Zjc5NDQxZjc1Y2FmZWI0MjM0NTQwNTc1NjIzOTk1MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_da679b39a8934ec5ae06a58e616323f8",
+      "statement": "An unresolved lookup records NaN rather than the origin, so a broken setup shows up in the data instead of reading as a legitimate measurement at position zero.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Recording/MotionMatchingRecorderChannels.cs#L32-L63",
+          "version": "repo-lines-v1:sha256:59d53578206e4cd8ec7636a7120ac1c96401bbb9ea9d0b51e5213d62fe6da37e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5YjAyMjAwNzkxODdkZmIyNmExY2UxOGVjYzBiMTIzMTM1MzJmN2E1MTc5ZjY5YmFjOGNhMzY5YjNlY2VmODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1OTYyMDk5YTkwODk5MTM1ZWQ4N2Q3OWU1MDFlOTE5ZTczNWI4ZDY1ZjFhOTMwYzdkNzI5ZWZhMTY5YjViMmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e8c846ceca894171b07949d7472e8de5",
+      "statement": "Binding a stage-cost channel switches MeasureStageCost on and nothing ever turns it back off, which is acceptable only because the component is torn down at the end of a benchmark run.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/EvaluationRecorderChannels.cs#L16-L54",
+          "version": "repo-lines-v1:sha256:0a0559ef201fcc661001523b742c5af7f5bfa5d8ddb4abce3c6cf4f1ce9e56f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGE0MDVkNGZhNDNhYmVhMWY4YjRiZDZkNDM4YTU3ZmJmNjkzMTgyNDMyZTg2ZjVkOTkxNzc0ZjczZmMwMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1YWY4ZDQxNDA1MDQxODRjYjUyNGM3MjYyMzBlMTg1NzFmMTUyMDE2NjExYjBkMTY5YTgwMTkyZDk4ZmQyNmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2YjVlYTEyMGYwMDNjZDU5Y2Q3ODU4YTQxOTMyMjExYTEzMjZkNWZiMWRmYjI4MzVhMDE1MDEzMTZlODI5YTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f25eb6e96ba149a68031f4d48f5fda29",
+      "statement": "The footskate contact-position channel resolves its bone through BoneNameConventions exactly as the pose layout builder does, rather than exposing a hand-picked bone, because footskate is the distance a bone travels while its own flag says planted — so the position and the flag must name the same bone.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/EvaluationRecorderChannels.cs#L170-L200",
+          "version": "repo-lines-v1:sha256:dcd62cdafb92bc2eb3e32065c73ce1c9e3c2996372fd287bccd5a5a33d55172b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhMGM0MWMzYjg0MGUzZTVjY2IxY2Y2YjJkMjAyNzM5MzY2YzM1MTUyNmNlYWQ3ZjMzZGRlNzE3NzIxNGE4ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc1YWI0NmM0MTdiMGYyZTEwODIxYmYxNWU2MjYxOWRiNjk4Y2Q3YzlhNjE3ZWQzODM1MzNiM2NlZThjNDc4YTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3e257579a041453c8879327c1a9af05b",
+      "statement": "RecordingReader derives frame count from the actual file length rather than the manifest's claim, truncating a partial trailing frame, so a recording survives a crash mid-write.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Recording/RecordingReader.cs#L15-L33",
+          "version": "repo-lines-v1:sha256:10c72f7f0e66a7c431935935b0d7465eddff3836ec4abc67f8ac647ee27a1140:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhYzNlZTA2ODc3ZGViY2E5MDAwOWE5NjliZTM2ZWM4YTIxNDRhOTFjZWYxYTg1MjRmZGRmOGUzZTc4NzZjODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkMTNiOGI5NTdhNGNmZTQ2M2NhY2MwMzM3N2I4NWJmNzg5MTEwYzY0NzQyZTM4ZWE3MTVjZmY1YzkxYWQxNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4MWQxNmYwMDBhNTMzOTE3MGFjMzU5ZjkzNjQ2YjU1ODA4NTJmNmVmNGI4M2NmZWQ5Yjc5MjE2MThlNzc3YTEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/RecordingReaderTests.cs",
+          "version": "repo-file-v1:sha256:9b02752814e652469fc05ec39328652519e6da1eae3d5b03551af05b593adcba"
+        }
+      ]
+    },
+    {
+      "id": "claim_c46b8f3040044477b54eddfb1444f4c7",
+      "statement": "Assets/Scripts/JointLivePlotter.cs is an unrelated live-charting debug tool that finite-differences a single Transform into XCharts line charts; it shares no type with the recording stack, persists nothing, and uses UnityEditor from a runtime MonoBehaviour so it would not compile into a player build.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/JointLivePlotter.cs",
+          "version": "repo-file-v1:sha256:be3971f7587caae6ca28c00fb4235046fa7b5271492c40c73d0394c6eadb0edb"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

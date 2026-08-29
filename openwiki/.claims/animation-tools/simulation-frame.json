@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:20a5209d07b242960e3a3651639acb986b67bf45e253ee9c661b63336f7dedbf",
+  "claims": [
+    {
+      "id": "claim_8c28891be78c4f6eac453e2a79448b21",
+      "statement": "The simulation frame is the ground-projected, yaw-only frame a character controller works in: position is the reference bone's world position flattened onto the XZ plane and rotation is the yaw aiming at that bone's flattened forward axis.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L34-L41",
+          "version": "repo-lines-v1:sha256:e1dc2cad0f76b8096d08bd0a4a9df0d0b468903fc068bd06a98329a4ead891fe:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNThhZTBlOWQxMzM4ZTBkOGM1ZDJjNTc2ZDljYjgwMWY5YmU4YzQzMWNkNmUxYzRmNzk2ZWFmYjQyZWE4ZGM2YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNThhZTBlOWQxMzM4ZTBkOGM1ZDJjNTc2ZDljYjgwMWY5YmU4YzQzMWNkNmUxYzRmNzk2ZWFmYjQyZWE4ZGM2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTJjYjgwZmJmODljNTliMGIwZTA2MzJmZDNiNDNjMjQ3OWIwM2U5NTQ1OWM3MjNjY2RlNjQyZTUwNmE0YmNiZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTMyNmMwZTRlOTIxODNhZWEyMTYxNWNmNzU0NTlkOTgwZjEwZWUzYzJmYjc0ZDAzODk1YTdlMDBmYzgxYTkzZiJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L50-L61",
+          "version": "repo-lines-v1:sha256:d676b6fc64133d4234790cb726f9e34dc4cb2e9e2d0f54f365ad9874c953ff22:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3MDc2MDM2MTg5ODZlYWVkZjg3ZGJjZDE4ZTA0MzczYjQzNjUzYmU1MDhiZjVmMGMzM2MxOWNkMGY0MTQzMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExYWVhZmUzYTI2ZGFmNzYzNGFkM2FkOWQyMThiN2UxMDM2NDVlYWRiMjFhODIyYzkwMGIxODgwMmUzZGY2NGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b86a1916d3e24dd8a7b1c635346f79ce",
+      "statement": "The frame is computed on demand and never stored, which makes it yaw-only by construction and makes it impossible for the frame to drift out of sync with the pose it came from — a stored frame would be a second source of truth for something the pose already fully determines.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L34-L41",
+          "version": "repo-lines-v1:sha256:e1dc2cad0f76b8096d08bd0a4a9df0d0b468903fc068bd06a98329a4ead891fe:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNThhZTBlOWQxMzM4ZTBkOGM1ZDJjNTc2ZDljYjgwMWY5YmU4YzQzMWNkNmUxYzRmNzk2ZWFmYjQyZWE4ZGM2YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNThhZTBlOWQxMzM4ZTBkOGM1ZDJjNTc2ZDljYjgwMWY5YmU4YzQzMWNkNmUxYzRmNzk2ZWFmYjQyZWE4ZGM2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTJjYjgwZmJmODljNTliMGIwZTA2MzJmZDNiNDNjMjQ3OWIwM2U5NTQ1OWM3MjNjY2RlNjQyZTUwNmE0YmNiZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTMyNmMwZTRlOTIxODNhZWEyMTYxNWNmNzU0NTlkOTgwZjEwZWUzYzJmYjc0ZDAzODk1YTdlMDBmYzgxYTkzZiJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L25-L33",
+          "version": "repo-lines-v1:sha256:72fb35953bd3f439aaea99d46d08ce6b330efee38bddba601c577705cdc124dc:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDU2MTNlYjYwMWVkNmUzZWU0MzZlYzQ1MjgzOWU1ZTYyMDgzNzM1NGZlNjc2ODliMDM3NWVmZmY1MDQwNzY2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTUxMGViY2ZjNTkyYWNjZmVlNzBlZmQ3M2RiZjIwZTQ5ZjZhYmI0MjMxOTk4N2I1MmU2ZDNjMDhlZWRlZjY0MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzM4MTNjYzIzMWEyZjMxMDFhZWExYTk0ZjUxZDk3MzI5YzVhMjgyYzZlZGVkMTU2ZjQ5MTNmMmExYTk4YjkxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzFiZWExN2I2ZWM4MjgyZGZjZjY2ZGQxODM4ZTdkN2IxODgzOTdmNjIxMmMzMjM4Y2VmMDE1NDU1MzZhMGU1ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fa174413ee0949a999b55a67ab8a27cc",
+      "statement": "Expressing a pose's bone 0 frame-locally yields a pose whose own derived frame is the identity, and this idempotence is what lets a pose from anywhere in a database be re-anchored under an arbitrary world transform and re-derived without loss.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L42-L47",
+          "version": "repo-lines-v1:sha256:38421e0059382be4cc0b635907b4cc1810e7aa948202424ec81fc4a0976cd5f1:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTFhNmFmNzYyNTY4ZDMzMGU0MDMwZDQwYzVkYmIwZTVhYTlmM2UzMDhhZGJlMzJlYjFiZGE5ZjhmN2Y1ZTQzNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzAwZmRkODNlNzA5MzNlMTBhNzk2ZjBlZjFlMzRmNjA5YTdlMGNlM2EwNmZhYWUzNTliNzIyNzcwMTMzOTJlZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTg2OWI0NTM1MTJjMzZlMDBhNDdlY2NiMDMzZmM2YjYwOGM3NjJjMDI0ODc1M2VmZjExNTRiNzIyNTY4MGY2YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjIyYTllOTQ2NDZlMTQ1ZWEwZjBlYzVlOTNmZjMwODFiYjQ5NzAwNGI1NGI0NGM3YzkxZjg4OTBhMTcyMWYxMCJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SimulationFrameTests.cs#L219-L237",
+          "version": "repo-lines-v1:sha256:3f32ea85c97d18987ede4e09664c970aea266428fd4c4a178779a20dcea4354e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlZDY4YTA4MTMwNDUxZmFkMTI2NmIyZTM2Y2RjYzFhZDYzODJkZTQyNjI1MmNiMmEyZTdhMDMzMGU3ZTkxNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlYjAwMzUzOWJlNGFhYTQwMjRiNzUyZWUwZDI2MTBhNDAwYTFjNTcxZjMxMzVjZDk2ZjkwNjEzNDhiMDQ4ODgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_376f138efec64201b5019d1d2d01dc67",
+      "statement": "The reference bone's forward axis is read from the rest pose rather than hardcoded, because a rig's bone roll is arbitrary: two rigs that animate identically can disagree entirely on what a given bone's local +Z means, so the stable character-space fact that forward is +Z is converted into the bone-local axis realising it on that particular rig.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L6-L23",
+          "version": "repo-lines-v1:sha256:3ffd27ab63151160a0af185b7b8959380f5acb713122e0b2dc038965a77dbef1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NmJiZTNiNDliMGVmODAyMDQ3MDJjYjc3MmJmODI1ODcxMzJjY2UzMTNlZWVhNGM1MGNmY2UwOGZjMTRiNGIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L127-L133",
+          "version": "repo-lines-v1:sha256:12e84efb937e305944be1b5f7cf77e6804f841a1ed59ec08cad405d41eae5486:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjAzZmI4NDJlMzE3MjU3NmQ5YzJlNTdiZWRjMzhjNDBhNDlmMjIwODczOGQyZDU5N2U1MThjZTIwODc5Mjk1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjEyOGZjYTlmN2IwNGM5MzY3YjdiMjYxZGE0ZTI0YzVmODk5ZmE2NzIxOTNmYzEzZDAwMjRlY2ZiMDM4MzAwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmEzZjE3NjJlNDY5YzI1MTNlMTI5ZDQxMzRlNGFiY2MxNTlhY2E5Y2M4YjBmNDg3YTRjZmY1NjA5ODYxOTZlMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c8b83d237c5a42388655bbbd8ec2b34b",
+      "statement": "The derivation assumes the exported FBX rig is a T-pose facing Unity forward, so character forward is +Z and character right is +X; arms are the exception, taking the character's right axis as their forward because arms point sideways in a T-pose.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs#L161-L188",
+          "version": "repo-lines-v1:sha256:27de7a408c2ce76189b2940157cbc07c90fa21008fff8c4f746332c0b4a05492:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNTQ5MzA0NWUzZTgzMDljMmI5M2E0NDAxMDM5ZTFlOWFmYjE0MTM5ZTZhMDdmM2NiOGI2MWE1NjAwN2NmNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMzk3NzkzN2YzOTMyNGVmOWRhM2M3MDJjZjBiNTA2YmE3N2MzZDJkNzM0MWY5NWFjNDU5NGMwZjA0MjU3OTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d263018230b0490bbdaa79a3c890ed13",
+      "statement": "There is no longer any configurable simulation-frame bone: every production construction goes through SimulationFrameDef.Default, which fixes the reference bone to the skeleton root and the forward axis to that bone's rest forward, so the C# runtime, the serialized database and the Python pipeline cannot disagree about it. The type itself remains general and still supports an arbitrary reference bone.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L6-L23",
+          "version": "repo-lines-v1:sha256:3ffd27ab63151160a0af185b7b8959380f5acb713122e0b2dc038965a77dbef1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NmJiZTNiNDliMGVmODAyMDQ3MDJjYjc3MmJmODI1ODcxMzJjY2UzMTNlZWVhNGM1MGNmY2UwOGZjMTRiNGIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L25-L33",
+          "version": "repo-lines-v1:sha256:72fb35953bd3f439aaea99d46d08ce6b330efee38bddba601c577705cdc124dc:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDU2MTNlYjYwMWVkNmUzZWU0MzZlYzQ1MjgzOWU1ZTYyMDgzNzM1NGZlNjc2ODliMDM3NWVmZmY1MDQwNzY2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTUxMGViY2ZjNTkyYWNjZmVlNzBlZmQ3M2RiZjIwZTQ5ZjZhYmI0MjMxOTk4N2I1MmU2ZDNjMDhlZWRlZjY0MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzM4MTNjYzIzMWEyZjMxMDFhZWExYTk0ZjUxZDk3MzI5YzVhMjgyYzZlZGVkMTU2ZjQ5MTNmMmExYTk4YjkxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzFiZWExN2I2ZWM4MjgyZGZjZjY2ZGQxODM4ZTdkN2IxODgzOTdmNjIxMmMzMjM4Y2VmMDE1NDU1MzZhMGU1ZSJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SimulationFrameTests.cs#L137-L158",
+          "version": "repo-lines-v1:sha256:e41263b9e11a8b73088377f0fa7aa70897886b01c402ac7ccdd13876338f9622:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3MTk2ODE0MTg0YTQ4MjUwYmNiY2MyN2MxZDk1NWRlMmRhYjY0ZDY3NWY5NzkxYTQ4ZmQ2ZDNkNGFiOGZhODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmM2M4MTk5NWJmOGZlMTVkMWJiNThlZjNhNGRkNzY1M2QxYjJhNmZkNzNjMDM1MjQ4ZDZiOWRkZGE4MGZkNzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_50fc653ac9754b1287e7dc746409cb11",
+      "statement": "A character's facing and its direction of travel are independent quantities — a character can strafe, backpedal or turn on the spot — and the codebase treats the control input as the authority on facing and SplinePathDirection as the authority on travel, falling back in the order input, then path start direction, then transform forward.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplinePathDirection.cs#L6-L21",
+          "version": "repo-lines-v1:sha256:fa76dd616ff6e99e4dfa0aa686ce80da68b7313174306a95ccd6b9ab62f3a784:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0NmFjZGU5Njc3ZWIyMzRkODJkZGU1OTg0NmY5YjFjYzU5ZWM1YzcwY2Y3MmM0NjVlMzAzZGRjZTliYzAwNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0NzdmYjAyYTljMWFkNmMxMWJhMzlkNWY4MDE2ZjcxZjdjYjE0ZDcxZjA3Yzg3YjYzZTgyZWRhYmQ0ODE0OTIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/SynthesisBenchmarkDriver.cs#L496-L530",
+          "version": "repo-lines-v1:sha256:fa155e979080abfa95b0137146de496b2d3d6a2a5f7cfa2144f8a562ba238661:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5YzQ1N2UzNjhlY2M5ODIzMzM0OTkxOWMyYThjMjRmMTNmMmYwY2I2N2Y3YTlhNWZhYzc0YmIxMGI2ZDgzNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5NDM5MWNlZmJjNTJiMDgxY2E3YmNmYmM5YjY1MTQ4NWE1YjU1MzQwNTI1YzBhMjc3NDE4YmFkOWEzMjEyYWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e676ffba1642457cbc96331a0e4fa826",
+      "statement": "Feeding direction-of-travel into a query whose database bakes Direction channels as facing would fight the foot constraints on any pose whose facing differs from its heading, because the search is asked to match a foot position and a direction simultaneously and the two objectives then pull toward different clips.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypointControlInput.cs#L15-L28",
+          "version": "repo-lines-v1:sha256:1816499d101a20f90e42ca724772f262d0c7688dc7ce5f7c886f4d3a77dc8d69:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzMjlkNGQ1YzU0ZTUyMGEzNTc3ZTk3NDViMzI0ZDc0NTUxYzE3NTE3ODAzNDlhMjNmNmVjYzA2NDUzYzQ5ZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhMzY1MWQ0NjcyYTAzZDU3MmE1NmUyNTc5N2YzNmVlNGE4MTQ0NzRmMzIxNDJhNjczZGMwYjQ3YzRmZTBmY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0ZTlmY2VlMzcyZjUwNWYzNzA2MTJjYmIxNmU1YmFlYmIyMTFhMWZhYTI0ZmQwODk0Yjk1M2YyOWE4NDA4NzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1aae563aa60a41ecbc8012290f488004",
+      "statement": "For a pure path follower travel direction is the honest answer, because such a controller has no notion of facing beyond its path and the character's Transform forward is arbitrary when it is spawned onto a path it was never authored against.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L231-L242",
+          "version": "repo-lines-v1:sha256:252c241015c6ff742e8387fb63ba9bbd027465c2f48671061a82e1c44984926e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhODgyYWUzY2RmNWY1M2VkNDlmMTRkYzQ4MGVmM2Q4MzM4NDg5OGYyYzk1MmQxNmQwM2VjNDdkMzdmYTY4ZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjNDFkOTA2NWYwYjdlOTk5MWYxODU2YzBkOWMwNjE2OTYzZDljY2M3MzBlYTE3NjIzY2E4NzNjZWJmNmEyZDIifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldSplineControlInput.cs#L40-L44",
+          "version": "repo-lines-v1:sha256:9628a00eef693496d574e03999fe93e898fbf4aae44a4986cc4cd2cd130d8641:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2Q5YjZkMzY2ZWM4YTM4NjBkOWUwMDdkYjVkMmY4NzU2ZWViNDU0OThiMjJiY2ZiNDMyNjYzMmUxNmEzODJlYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODdkY2E3NTgxZWEwNjA0YTE0YzQ0M2E0M2U2NjcwMTdjNWU0NDJjNjllMGNmYTJlM2Y5NDg0NTI2ZDc0OGZjMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzQzNzI5YjAyNGQ4MDI5OWU4MTQyZmM1NzgxOWZiZTFjZjMxZjJkOTQ3ZDExNWIzMTI1ZGI4ODdjNTVhZmIzNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c4c2317cf1e349aebb8dbb15984fb45f",
+      "statement": "SplinePathDirection is a shared AnimationTools type because MotionMatching and MotionField are sibling assemblies with no reference between them, and AnimationTools is the only common dependency where a helper visible to both spline-following control inputs can live.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplinePathDirection.cs#L6-L21",
+          "version": "repo-lines-v1:sha256:fa76dd616ff6e99e4dfa0aa686ce80da68b7313174306a95ccd6b9ab62f3a784:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0NmFjZGU5Njc3ZWIyMzRkODJkZGU1OTg0NmY5YjFjYzU5ZWM1YzcwY2Y3MmM0NjVlMzAzZGRjZTliYzAwNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0NzdmYjAyYTljMWFkNmMxMWJhMzlkNWY4MDE2ZjcxZjdjYjE0ZDcxZjA3Yzg3YjYzZTgyZWRhYmQ0ODE0OTIifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/MotionMatching.asmdef",
+          "version": "repo-file-v1:sha256:d9c4ad2b45b69797a684d9871c8219ce5dd67f9dd6fd7e83d263c3e63387acaa"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionField.asmdef",
+          "version": "repo-file-v1:sha256:8a6c67946124364486fa287bbcc9b6900d224762fbc1d58d2c4c47c139df8c2d"
+        }
+      ]
+    },
+    {
+      "id": "claim_edb0fc282e024df1a8a88520c4423d6b",
+      "statement": "A knot authored with a linear tangent evaluates to a zero tangent, so a path with square corners has no analytic direction at its start; SplinePathDirection falls back to a short forward chord capped at both 0.1 metres and 5 percent of spline length, which agrees with the tangent everywhere the tangent exists and is therefore safe to apply unconditionally.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplinePathDirection.cs#L22-L49",
+          "version": "repo-lines-v1:sha256:3366bac10099ff209a1befef6bdaf2d618eca593ca5f3f0531c1ca80110540b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhZmUzYTQwMzIyMDZiZDNmMWM5NzViOTE3MWJjNDk4OWM2ZDA0MWQzZTE2MDA1N2RkMTE2NTQ2ZWZlOWJmNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjYzc2YjUyMmMzZTA0MDI2MjBhMDI0NGFhMzI4NWY3MmQzNTIzNWVkNjI1MDI0ODUyZGFlMWExMWEwM2I2MzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_796ba31e72864d1e9ab011ca68acd6ee",
+      "statement": "ComputeVelocity is defined in the finite-step form the extraction pipeline stores: the reference bone's channels are advanced by one step of dt and the frame re-derived, so a pose holding one-frame finite differences reproduces the neighbouring frame's simulation frame exactly.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L63-L88",
+          "version": "repo-lines-v1:sha256:4bc1ba11f67b87dc9ae356c8a4d65fac0d70cef51106837296086cd15038e4f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwMWFkZGQwMzFhNGY1ODE1ZGIwMGUyYjcxZTIzNmY5OGFhN2FmNTEzZjc1MGRiY2IyZTIzY2Q0YzZiZDUyNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3OTQ0ZjY2M2NjNzdmZGU1ZDNlNmQ0ZWUzODQ5YmRmMDE5ZDU4ODQxMWVjNzZjMWQyNmI3NGVhY2I4MTkzNDYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SimulationFrameTests.cs#L160-L193",
+          "version": "repo-lines-v1:sha256:21a101052ca3b454726037bb7566f9ae7009c9eae9842022cebc7c400693afac:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1ZWM2MGFlMTNiMTA4YWFhNzY2MTRmYWE0ZWIyMjE5YWQ5MzczYTA5ZGVkNGJhYjNlZDAxNmVkZDNmZTU4YjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjY2VmMzEyNjcwZDg4MDM5OWY0M2M1OWE5MWUxY2FlOWJhOWVjNzAwZWQ4ZjRhZTcwZDRjYTE3YmI5MDZlMjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f5c9fe0d6b664ea5ae3cb484f714b283",
+      "statement": "Every degenerate input has a defined answer rather than a NaN: a bone aimed straight up or down falls back to the character-forward axis when flattening, and SplinePathDirection returns a zero vector as an explicit no-answer sentinel that callers must test for.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L138-L152",
+          "version": "repo-lines-v1:sha256:7dd82acdd72fb4d6dc995134b041c527e3c128e9bca0b5af72eb6be65600eab3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkNDRiNjFjNjhlMjIxYzNkYTY5ZGI5ZmFjZmM1NzFjOGUxMWVmMjJkYmNkNjA2NDIxMTFkODY0YTA2Njk1Y2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyNmZhNjg2MWIyNmM1MzcyNDM3YzRhYWFlOWQ0NTA3YTdkNzVmYmYxZTc4YzYzODkzZGNmZjI1ZDNkYzE4NGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplinePathDirection.cs#L22-L49",
+          "version": "repo-lines-v1:sha256:3366bac10099ff209a1befef6bdaf2d618eca593ca5f3f0531c1ca80110540b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhZmUzYTQwMzIyMDZiZDNmMWM5NzViOTE3MWJjNDk4OWM2ZDA0MWQzZTE2MDA1N2RkMTE2NTQ2ZWZlOWJmNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjYzc2YjUyMmMzZTA0MDI2MjBhMDI0NGFhMzI4NWY3MmQzNTIzNWVkNjI1MDI0ODUyZGFlMWExMWEwM2I2MzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6fa352fe219a41e6958600cb183438b9",
+      "statement": "Ground projection discards the reference bone's y coordinate outright rather than raycasting, so the frame assumes a flat world at y equals zero in character space.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L50-L61",
+          "version": "repo-lines-v1:sha256:d676b6fc64133d4234790cb726f9e34dc4cb2e9e2d0f54f365ad9874c953ff22:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3MDc2MDM2MTg5ODZlYWVkZjg3ZGJjZDE4ZTA0MzczYjQzNjUzYmU1MDhiZjVmMGMzM2MxOWNkMGY0MTQzMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExYWVhZmUzYTI2ZGFmNzYzNGFkM2FkOWQyMThiN2UxMDM2NDVlYWRiMjFhODIyYzkwMGIxODgwMmUzZGY2NGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5facc4450b82484cb4e2acd2c479a69b",
+      "statement": "DecomposeRootVelocity splits bone 0's world velocity into the part the frame already carries — including the tangential velocity the frame's yaw imparts at bone 0's offset — and the leftover, with RecomposeRootVelocity as its exact inverse; Inertialization is the only production consumer of the pair.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L106-L136",
+          "version": "repo-lines-v1:sha256:9dcb831722fd71cba3f59ba24987e62a8ade64d07d3607d5c29b27a775db3025:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzNjhmOTBhOWRlZTFkYWU4YjUxMTkwYjJhM2I4YzYzYTM3ODQ1NmIyMmY5Yjk2YzkzNjgxYzJhMzJkOTU3ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZDA2MTM2Y2UyZTkxNTRhZjM0MzA1NGRkNmZmNGYzMTI4M2QzNGIzNGE5NjhmMjRhZTc3ZDQ3YzY5ZWQwMTIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/SimulationFrameTests.cs#L274-L295",
+          "version": "repo-lines-v1:sha256:e615ca246a8308f407ae1e1572eaa0026400a67fd38aa51a751470353b1d2e1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0NjRkNTkzNTU5ZTU4MzhhZTI2ZjBkNGM5ZmI5OWRiNTkwN2Q1NGNkNmIxNzlhMDVjNzQ3MGJiOWU3MWExMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliNDk0MjIxYzlmZWUwYTJmY2I4N2NmZDIwMWM3NDZkZjFjYTdmNjA3NTc0ZjZhZDE1YjkxMWRmY2FlNDNhYTEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

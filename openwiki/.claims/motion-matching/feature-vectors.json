@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3d2599d839bd36bf3ec94c94d7302f07bfc31bca4d1fcf45186dcf73a09fbb38",
+  "claims": [
+    {
+      "id": "claim_04540207790f42d2b269354f4688f493",
+      "statement": "A feature vector is laid out as all trajectory floats followed by all pose floats, because the two feature section keys sit immediately after every built-in pose section and the boundary between them is the pose section's start offset.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/MmFeatureLayoutBuilder.cs#L5-L46",
+          "version": "repo-lines-v1:sha256:330d7b5d33e01ce55444688175b57a1005bc1615289b869c511c1f35977131a6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTU4YjJmMWYyNDc4NjFiOTYyODM5M2NiZjIyODU3MzIxZjJmM2JjNmU5YThiNjQwNGQyOTUyODM5YmI3YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYTU3MWZkYTRhMThhODMxNDJkNGY1ODkwYzFjNWQ4ODQzYTczYTVlN2ZlMmUxY2Q1ODA5MDEwNmI4MDM5ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiOTNkYTU1NzEwNTg3OWYyYjBiNDIzOTZhOTZkZDRkMDQzNWVhMmY5MDJlNzQwYzY4OThkNWNmZjdkMTNhMGMifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/MmFeatureLayout.cs#L61-L76",
+          "version": "repo-lines-v1:sha256:163029ae1d9520d769aae1f7ff380253bccf546dccc06d6058a29759360c3fd2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjYzE3ZDNhOGM5MTQ5Yjc5Y2NhMjk2MzJmNDg5MDRmNTc4OThkMGI4MjhjNzcyNDY2ZjI1N2M1OWE4MjJhZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjOGIyZTQ2OWYxODk3OWZlOGQ4ODhkMGQ5ZDE4NDdmZDYwZDBiYjYxYzU1MDI4MzQzNTdjZTdkMGIwMGM5YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzOGJiZjU1OWUzZGQ5ZTM0YjU0MjU4NjE4NjM1YWJlOWJmZDM4ZmEwZGY5MGU1Yjc5Y2FiYmI2ODQwOGQ4NDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_95fc5638119d451f80f9041abebe4356",
+      "statement": "A feature definition is simultaneously the authored asset data and the layout channel, and the layout keys its offset table on the descriptor's full authored content — so mutating a feature after a layout has been built makes its dictionary entry unreachable, and the layout must be rebuilt rather than the feature edited in place.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/TrajectoryFeatureChannel.cs#L10-L19",
+          "version": "repo-lines-v1:sha256:9593b5985de696c1e3378e81b54ea5bd5e66533bc263ef6f472b3b6a27822423:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiN2YxYTgyNjA4MDJlNjQ4OWMyOWU0NjIxOWNhYjc4ZGZiZTM2NmMyOGRjMGUyOWE0ZTRmMDIyMjdmZDFiMGYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/TrajectoryFeatureChannel.cs#L173-L205",
+          "version": "repo-lines-v1:sha256:0f30ec5f441fdc01e6cd21d810e97f8a29d8d1cebcd2a32b7be942094e5fd234:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlYjdkYWFlNjI0NzE4OTI1NTliZDdmMWJmM2ZlMjZiMGZmNGUzZGJmNWM4Y2Q2NDE1MmU1OTAzNjY5NDYwY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkOTYxYTY0ZDAwNjAyMGE0NzNiY2U1OTc4ODYzMzBkMTZlYmIwNDMzNjdmMjYxZDlmMjMzN2IzZjQ0ZDZmMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4NGQ0ZDk3YjRhMWY3YWQ1OGQ1MzcyNTllMzM1NDI4YjQxNTVmNTFmNGVlZWM5OWU1NmE2ZDY1MmIyZGNiYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzMGNmOTI1ODMyNjdiMTI4MTkzMDVlOTg0OWMxYmM4OWUyNzQ0NTQ5NzU2NzA4ZmMyODc4ODA4NGM2ODEwNGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4f3e5f0f090646d299c9354b4c43888e",
+      "statement": "Inactive bone trajectory channels are switched off by zeroing their per-float weights, restored from an authored-weights snapshot when active, rather than being filled with a plausible value; filling them with the character's current bone position would score every candidate on how closely it matches the pose already playing, silently adding keep-doing-this to the objective and biasing the search against switching.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L261-L307",
+          "version": "repo-lines-v1:sha256:af80ad210c06f92334fe00ccfffdf9a217afacc38a259e7df01f0e3bdb717423:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MmU5YzNiYjUyNDYxN2JjZDAwOGE0NTAyOTgxNzVhYmEyZTNlNzc2ZGNkMzcwN2FkYjM4NzRiZDUyYTUyY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyZDk2OGQ2MWI2ZjAzMzlkNDk5ZjU0NzVhMzYwNTJiYjQ2YzU4Zjk0NmUyNGY1OGI1MDIxNTQ1OTE3NDdlNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNjY0YzFjYzU3ZDg5ZjhiNzY2NTE1NWUyNmFiM2M2ZmFmZWU5ZTgxODEwYTdiZjQzN2Q3ZTIxZGUzMzE0NzkifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L106-L125",
+          "version": "repo-lines-v1:sha256:fea750feaaf633817bc98ca2aeb16c60f47f9ad0381368d74d3e97df7761b1ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNWJmNGQ0ZWNjNWQwMGU3MTVkYTY1YmYyY2RjZTE1OTU1NzhlNDdiZWY4NjA3NjU5MmFhNDY1MWIwNWY1NTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2MDY3MmZkZjI4ZWM5OTQ1YWEyMWViNjVlM2VkMjlkZGNkZGY4NmQyMjhhZGE4YTk1MGRiZmVjMTI1YmJlNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ce40c249efb549bc998a2e8955817dee",
+      "statement": "Simulation-frame trajectory channels are always filled and never masked; only bone channels are optional constraints, gated on the boolean return of GetBoneTrajectoryFeature whose base implementation returns false.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L261-L307",
+          "version": "repo-lines-v1:sha256:af80ad210c06f92334fe00ccfffdf9a217afacc38a259e7df01f0e3bdb717423:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MmU5YzNiYjUyNDYxN2JjZDAwOGE0NTAyOTgxNzVhYmEyZTNlNzc2ZGNkMzcwN2FkYjM4NzRiZDUyYTUyY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyZDk2OGQ2MWI2ZjAzMzlkNDk5ZjU0NzVhMzYwNTJiYjQ2YzU4Zjk0NmUyNGY1OGI1MDIxNTQ1OTE3NDdlNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNjY0YzFjYzU3ZDg5ZjhiNzY2NTE1NWUyNmFiM2M2ZmFmZWU5ZTgxODEwYTdiZjQzN2Q3ZTIxZGUzMzE0NzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c21b4f1590ab4e8d9125724d130b3d05",
+      "statement": "Because the weight array handed to the search at initialisation is the same NativeArray the query fill mutates, a per-search weight mask reaches the Burst job with no re-binding.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L146-L173",
+          "version": "repo-lines-v1:sha256:3f237590e4a3426909d5539b1fb79f4c14970a5196ab48808eb5a3a439aa409c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ODI4YWFhOWI3ZWRhNDA1ZDA1NDA1YmM3ZTVjYjM0YzdiODE3ZmZmMTgwODk2NmZiMTM3OWE1MWRiMzVkMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMzhmZDI4MWYxMDY0NzIxODQzZDM0ZjA3OGNjYzJjNGNjNjk4M2U1YzgyYmQ4MmJlZjk5MjYxZWQwNmNmMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2ZDg1MGRmMWViNTE2MGI3NDc2ZTZmMjQzNTllZGQxMTY1YmRhOTEzMDlhNTE5NDZhZDk4YTAyYTQ4MzkyNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_da196d54c63c4fcb99f47edda8113615",
+      "statement": "A Direction trajectory feature bakes the character's facing, not its direction of travel: for a simulation-frame channel it is the future pose's own frame forward and for a bone channel it is that bone's rest-pose forward axis, and in neither case is a position difference taken.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/TrajectoryFeatureChannel.cs#L127-L148",
+          "version": "repo-lines-v1:sha256:a547134f39505cf9b40819919ef215659199257829e2d68d4d82f2a54c0cb5db:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1ZmU4OTUyNDM4NjcyNTFlZDM3NmEzYmRmZmYyMmFlOTE1MjYwZDFhYWMyMTc1YzlmYTIxYjAyNzAwODhhZDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkMGQzYmUwYmEzMzIxZmEwZmRlZTE4M2ZhZjhmZDc2YzFiNDI1MTc3OGY1ZTAxNDgyYTVkNTAxZmRiMDNjODkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_489d2dad1f7846729a1facbafd9ae140",
+      "statement": "Axis masking makes one trajectory prediction one to three floats wide, and a masked axis is not stored at all so packing and unpacking step over it; for a Direction feature the masked axes are zeroed before normalisation, so a Y-masked direction is a unit vector in the ground plane rather than the projection of a unit 3D vector.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/TrajectoryFeatureChannel.cs#L42-L55",
+          "version": "repo-lines-v1:sha256:2d11c25a62b8e320287666864aa8448f519f8931e76a17974f776a6e1258a583:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzNjEzNTY2MGViOWZlYzI3MzliZDAxZmE1MGZkM2MxNGQ3OTg3YmY3NWU2MjlmMDExMDNkM2FjNDFkZDJmYzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkZDYzODEyMzYxOGI0NWJiZDczZGIyYTdiNzZmZTY3YTA5MTg3ODBkNWNlNjYzN2UyMWE5ODA1MjY5NTljNzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4Yzk5Nzc4MmUwYTMwZDYzYzJhZmM0MDE4ZGVlODNjNjhiMzFiYjBkZTY1NGEyZDJjNGI5ODFkZGNiMDAzN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1ODM1NWYyOGNlYTRjMjUxZjYzNGUxZDJiZWEyNTZmNzQyMDI4NzZlOWUwNjAwMTUzN2VlNGMxNTlmMTQ3Y2IifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/TrajectoryFeatureChannel.cs#L57-L91",
+          "version": "repo-lines-v1:sha256:b6789c882f887984526e23b391023a9e77f128b7d707ea1b7c3194d071773ef9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MWE1ZGY2NzVhYTU2YTA5NTA3NDM3YzE0YWY2YjM2ZDFlOWYxOTdiMjAyODA5NGNjZWM1YWZjOWJjZDgzZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5NmNhNTQxYWI5NzEwNDk2Njg4YzIzMzk5YjZiYTI4ZjVlMDFkNzA5NmNjZTYyZTBlYmYyYTc0ZGU0MjgxNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljOTJiNjY4ZWNmMjBjOTFjYzZjN2RkYmNlYzYzNjY3YjgxNGRjZjU1YjBiMmY2YjRkNzUzZjc5MDc3Y2YxOWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_39bd06b2751c4424a3431dd40499b404",
+      "statement": "Standard deviation is computed per feature rather than per dimension: the per-dimension deviations within one feature are averaged and that single value is written back to every float of it, so a feature's internal shape is preserved rather than each axis being independently rescaled.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSet.cs#L396-L448",
+          "version": "repo-lines-v1:sha256:8366a30ed9227a83298dc554dddc48244d0d16031d56a2f32e3e007294f7ee3e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OGI0ZjlkNjIxMTVjMmZkNzIwYTA2ZWVmMjQxNmJmYWE1NzhiNTU0MjY3YzEwMzlhYmQ4NThhYjAxZDlmMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhOWY4NmQyOGU3ODRmOWZkMzFmYjcyZDE1ZjYwY2JjZWFhZmRkNjY5Y2JkNWI2ZGE3ODg4YTAyMzMyMWViYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_02be25a0a91743c3a3ebe07a3db2a184",
+      "statement": "The editor forces a simulation-frame trajectory channel to mask out Y, so such features are always two floats per prediction, because the simulation frame is a ground-plane frame.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/MmFeatureLayoutBuilder.cs#L5-L46",
+          "version": "repo-lines-v1:sha256:330d7b5d33e01ce55444688175b57a1005bc1615289b869c511c1f35977131a6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTU4YjJmMWYyNDc4NjFiOTYyODM5M2NiZjIyODU3MzIxZjJmM2JjNmU5YThiNjQwNGQyOTUyODM5YmI3YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYTU3MWZkYTRhMThhODMxNDJkNGY1ODkwYzFjNWQ4ODQzYTczYTVlN2ZlMmUxY2Q1ODA5MDEwNmI4MDM5ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiOTNkYTU1NzEwNTg3OWYyYjBiNDIzOTZhOTZkZDRkMDQzNWVhMmY5MDJlNzQwYzY4OThkNWNmZjdkMTNhMGMifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Editor/Core/MotionMatchingDataEditor.cs#L322-L357",
+          "version": "repo-lines-v1:sha256:3a2715245c6711fa9dd20c93efb9d35aea6d56798ccfef0cdd61596716f56dd1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZDE1OTNhMzVjZGViMWE5ZDBlYmIwMjNlNGQxMTAxYTI4MzIwYzFiM2E4YmI1YmVmZDliNTRkOWE4ZWI4MjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkYzZkMGYzNThmMDM4NmM2M2FlNTFiZWViZjJkODYwZTlkMmJjMmVkMjdjZWQ1ZGQ1ZjliZmZmYWJkNTliOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4NzkxOTM0ZTdiNDI4MDFmZjdjY2IyZTA2YzJlMTNlZjhhZmYyZWYyMWQwNjgzNjM5YjFhYzM0ZDg1MzdlYTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_337bad351c7f42ba9dbafb9fc9d969dc",
+      "statement": "A simulation-frame feature is given bone index -1 rather than a real bone, so that anything indexing a bone with it fails loudly; a non-simulation feature whose bone cannot be resolved instead warns and falls back to the skeleton root.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/MmFeatureLayoutBuilder.cs#L5-L46",
+          "version": "repo-lines-v1:sha256:330d7b5d33e01ce55444688175b57a1005bc1615289b869c511c1f35977131a6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OTU4YjJmMWYyNDc4NjFiOTYyODM5M2NiZjIyODU3MzIxZjJmM2JjNmU5YThiNjQwNGQyOTUyODM5YmI3YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYTU3MWZkYTRhMThhODMxNDJkNGY1ODkwYzFjNWQ4ODQzYTczYTVlN2ZlMmUxY2Q1ODA5MDEwNmI4MDM5ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiOTNkYTU1NzEwNTg3OWYyYjBiNDIzOTZhOTZkZDRkMDQzNWVhMmY5MDJlNzQwYzY4OThkNWNmZjdkMTNhMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a84c7ad1827441e181b905c8058b0f0f",
+      "statement": "The MotionMatching runtime assembly declares InternalsVisibleTo for its editor assembly, but no internal member is currently read across that boundary — the editor reaches everything it needs through public API and serialized-property lookups.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/AssemblyInfo.cs",
+          "version": "repo-file-v1:sha256:767588329ef93fb397ab68bb13b3a9da1b4c15d3ba6262a67afc8048914f3167"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

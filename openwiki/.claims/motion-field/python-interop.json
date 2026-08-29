@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:ee80ef869d6751b3cc62680141bdf1da56e495ce9f2ebd4a6d3f35710b426dcc",
+  "claims": [
+    {
+      "id": "claim_8a195cdcd62546a29b6c66af20f03896",
+      "statement": "The CPython interpreter is process-wide and can only be configured once, so both the runtime stage and the editor trainer must initialise through one shared bootstrap rather than each calling PythonEngine.Initialize with their own paths — pythonnet throws if the DLL path changes after the interpreter starts.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L8-L22",
+          "version": "repo-lines-v1:sha256:406955f436fe9bc42d3fe2168fec2280657ec59401e7ad39edb2cd2421a17ee7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkMDA5N2JjMTQ1ZTA3ZGU0OWI3NGRjNWJhMTIyMjE0NWI5MmExOWVhNTY5ZThmYmFmMjBkZDFjMmZiODJkYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMmUxZjMyYjUxZWY3MzJjYTdkOGY5ZjIxMWRhZTFmYTZkMzFkNWRlYjEyYmMxY2JmNWI4YzkwNDI3OTA3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2QzNTM2MmYxMmEyZjI5MzdmNGU0ZWFlYjFlZTI2MmFiZDJmMzJhODdmOTk4N2FlNTg5ZDBhOGI4MzM2YjIifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L24-L52",
+          "version": "repo-lines-v1:sha256:be3cfb5ad7e8b534c4fd617710c3dfdd1dbcb23a7dfa493e87beca8ebaea9ec2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhNDBmY2QwZmFlZDZkNDdjNDM4NGE2YWU3ZWVjY2M1NDQxMTBkODJiMWUwZmFkOTIwZDRiODg3YzVlNDI5NWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZTMwMjAwMzRiODg2YzZhNjcxZmQwNDA1MzgzZjQ0MmU4NWIzOTNjN2JkODM0M2ZjMmY4Y2E4MjMxMTU4MjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d766d068e8041bd8138a12638e2ade5",
+      "statement": "The CPython DLL path and virtual environment are serialized on the config, an empty DLL path falls back to the PYTHONNET_PYDLL environment variable, and Python 3.13 is required for PythonNET compatibility.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L24-L52",
+          "version": "repo-lines-v1:sha256:be3cfb5ad7e8b534c4fd617710c3dfdd1dbcb23a7dfa493e87beca8ebaea9ec2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhNDBmY2QwZmFlZDZkNDdjNDM4NGE2YWU3ZWVjY2M1NDQxMTBkODJiMWUwZmFkOTIwZDRiODg3YzVlNDI5NWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZTMwMjAwMzRiODg2YzZhNjcxZmQwNDA1MzgzZjQ0MmU4NWIzOTNjN2JkODM0M2ZjMmY4Y2E4MjMxMTU4MjkifQ"
+        },
+        {
+          "resource": "repo://AGENTS.md#L84-L87",
+          "version": "repo-lines-v1:sha256:a4ed4e0149d18ebfbf320ea39a100a8f14313ccb1608bfe658fefabe53843612:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGYyYjNlMThkMThkNmIwMWM5ZTEzODliYmM0NDNlOTdkZDk0M2Y5ZGVhYWYyMmNhNDY5Y2Y5ZmM2MGExZmQ4NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU2OWNhYjFhYWFmMDc1ODZkZWI5NDYxMjUzOWU2MmQ5NzAzOWZkNThlYmFjZmJlYjczMmVhZDFmOGVmMzc0MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTMxMWU5ZDg4NzdkMDc2ODY2ODkwYTQwODAxMGMzNjY3ZWI0YmYyYjI1YzMxZjE0NmYzZmM5YTY2YzMzY2ZhOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTk1N2RhOWVhOTQ4Nzc2ZTM3OWJiNzEzZGU3MTIwOTAxNzEyODE2YzAxNDI5MDVkNjVmOTVlY2IxNWQ1MmFkYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_af69ab7b76ac46adb2274f69f48b45fb",
+      "statement": "Module reloading drops the whole project module graph rather than using importlib.reload, because reloading one module leaves its dependencies cached — so reloading a module after adding a symbol to a shared one re-runs the new import against the old dependency and dies, making edits to a shared module effectively impossible without restarting the editor.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L100-L126",
+          "version": "repo-lines-v1:sha256:5396cf91eb04a1434402934476878b26109bddbaaa867b240868bf277ffb5cee:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5ZGMyNmQ0Y2U1MGNmMTdkMjA3NjcyYjg5MDM0Y2QyMDc2ZmM2N2QyNDc1MzRkOWNhY2Y1NWQwNTJjNTA3ZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMmY0YmUxYWY0NTBhMTViOWQ4ODJhYjEzYjYyN2NmMDdjNzc5MTdlYzA4NjgwM2U4NDVhNjM5ZTdiM2JkODgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8455c88714434181a34989e9f7cbae11",
+      "statement": "Dropping the module graph wholesale also means a group of imports issued after one call sees a single consistent generation of the code, where reloading module by module can leave two modules holding different class objects for the same class.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L100-L126",
+          "version": "repo-lines-v1:sha256:5396cf91eb04a1434402934476878b26109bddbaaa867b240868bf277ffb5cee:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5ZGMyNmQ0Y2U1MGNmMTdkMjA3NjcyYjg5MDM0Y2QyMDc2ZmM2N2QyNDc1MzRkOWNhY2Y1NWQwNTJjNTA3ZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMmY0YmUxYWY0NTBhMTViOWQ4ODJhYjEzYjYyN2NmMDdjNzc5MTdlYzA4NjgwM2U4NDVhNjM5ZTdiM2JkODgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc9abae0288c4818a02ab06b88cd25b3",
+      "statement": "The module-invalidation script is embedded as source rather than kept as a file in the scripts folder, because a module that purges the project's modules should not be one of the modules it purges.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L128-L147",
+          "version": "repo-lines-v1:sha256:9b62125d52e12d944d114c715adf36014c85a311f9dca2fafa2527d5ccee84a6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0MDRkYmJhMDA1OTE1ZTQ0YWJjNDQ4NDY1ODA1NGEwNjVmZWE1ZTA3YjVkMGFlMTY2ZjZmMWM4ZTVlMjRiMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZWM3YTgyYjNjOTNlZTcwZDMzY2E5NTkxZDA1M2E2YzFlZjc2NmY4OTYxOGIyZDA1NDkyZDNjMzFiMjM5ZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1MzhkMWEyNzAzMzEzMjZhOTFjZmY0NTRkOTdhMDViNmJiZjk3M2E4ZmM5NjA0M2E5MTMwNTc4OTkzZDYwN2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1f08030c584d4eb9ac79432a21788cde",
+      "statement": "MfConnector is the out-of-process alternative to the embedded interpreter, reaching a separate Python process over a ZeroMQ request-reply socket with JSON poses on the wire: the socket costs latency and a serialization round trip, and buys a Python side that can be restarted and debugged without taking Unity down.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MfConnector.cs#L13-L25",
+          "version": "repo-lines-v1:sha256:e18f23b9c6e3d69dba4a827596bbe934bac33804cc8c515e038db6e62f525ea1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYjI5NWFhNzliYjE0NjlmNTY4NWNkZDI2MGMzZGE5NjFlMzk5YTgyYmVjNGQzN2QzMTg1MWZhMmJjZTNiNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzNDZlMjRkOTA5MDgxY2NmZmM4YmU0OWI5MDgzZGZkM2MyNjk5NzY2NTRhMTVjZjYxNTRiZDAxMGFjMzhlZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ODc2NGNiMDlkNmJlM2NlYTk4OTgyMjk2YzQwMTdhYjE1ZjU0MGM0Y2I2NjFiOGUzOTg4MjliMGRmMTljMDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e6aa1f74f1af46b5bcf56457c1287eda",
+      "statement": "Because NetMQ sockets are not thread-safe and must not be closed from Unity's main thread, the socket is created, used and disposed entirely on the worker thread, and the two threads meet only at concurrent queues and volatile flags.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MfConnector.cs#L13-L25",
+          "version": "repo-lines-v1:sha256:e18f23b9c6e3d69dba4a827596bbe934bac33804cc8c515e038db6e62f525ea1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYjI5NWFhNzliYjE0NjlmNTY4NWNkZDI2MGMzZGE5NjFlMzk5YTgyYmVjNGQzN2QzMTg1MWZhMmJjZTNiNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzNDZlMjRkOTA5MDgxY2NmZmM4YmU0OWI5MDgzZGZkM2MyNjk5NzY2NTRhMTVjZjYxNTRiZDAxMGFjMzhlZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ODc2NGNiMDlkNmJlM2NlYTk4OTgyMjk2YzQwMTdhYjE1ZjU0MGM0Y2I2NjFiOGUzOTg4MjliMGRmMTljMDcifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MfConnector.cs#L150-L201",
+          "version": "repo-lines-v1:sha256:b5819e8e942bcf23311362d307c8a16fec67151b062f20c16e4a4f1162c4d8f6:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMGE0ZTdmNjliZWE0MTY1ODAxYzMyMjc5NGRhMTE0YWU4ZmUwYmY3YmRmNTgzOTU4OTU5MTcwYzJkMmIxMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MzM4YmNkY2VhOTExZDNmZjMzZjYzNDc4ZDFjOWMzYjliMTJmNmFhZDM2MGUxNmQyM2Q3MTllMDgwY2UzNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0YzNlNjNhYmE0YWRmZDQwMTA3Yzc3ZTU3ZGJmNTRjZTdlMzEyYjBmYjJiYjYwNjNlZGMzZWQ2MzcyODZmY2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_26f1c354f06547aabfa2f346ca1ef365",
+      "statement": "At most one request is outstanding at a time, both because a request-reply socket must receive its reply before sending again and because queueing one per frame would grow the queue every frame whenever the server is unavailable; the receive loop polls with a short timeout so play-mode shutdown can be observed between attempts, which is what bounds the shutdown wait.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MfConnector.cs#L98-L148",
+          "version": "repo-lines-v1:sha256:1ce0c995c47385f368a9ac5a64c864b93e7d3f688ff286f9c12f251d2a1917a4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmMmY5NjRhOTQ4OWI4MDlkOGM1ZDk5ZGRmZTBkNjE4OWQzNTVmYTU0NGY3ZDVkOTEyYTRkZWZmYjRhMGM5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YjkzMGJmNTg1MTc1ZTE4NjA4YmJhM2ZiNzUzN2ZmNGU4YjQzMDJjZmFlYWMzYTVkNjBlMDg5YTk3NGQyMzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2MTY4YTVmMGU3ZmI2NjJmMDM4YTY1Y2NiYjU3YzE4MTQ0OWU0YjVjOWU0NTdkMjY3ODY5MmFlNDc1ZGNiMjgifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MfConnector.cs#L150-L201",
+          "version": "repo-lines-v1:sha256:b5819e8e942bcf23311362d307c8a16fec67151b062f20c16e4a4f1162c4d8f6:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMGE0ZTdmNjliZWE0MTY1ODAxYzMyMjc5NGRhMTE0YWU4ZmUwYmY3YmRmNTgzOTU4OTU5MTcwYzJkMmIxMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MzM4YmNkY2VhOTExZDNmZjMzZjYzNDc4ZDFjOWMzYjliMTJmNmFhZDM2MGUxNmQyM2Q3MTllMDgwY2UzNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0YzNlNjNhYmE0YWRmZDQwMTA3Yzc3ZTU3ZGJmNTRjZTdlMzEyYjBmYjJiYjYwNjNlZGMzZWQ2MzcyODZmY2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c3bb24054ace4f22913cdf4e5a7f2968",
+      "statement": "The socket path is effectively documentation-only: MfConnector hardcodes its desired direction, carries no config, and sends a JSON object while the only Python server in the repository expects a bare frame number — so the two sides have drifted and no server consumes what it sends.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MfConnector.cs#L150-L201",
+          "version": "repo-lines-v1:sha256:b5819e8e942bcf23311362d307c8a16fec67151b062f20c16e4a4f1162c4d8f6:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMGE0ZTdmNjliZWE0MTY1ODAxYzMyMjc5NGRhMTE0YWU4ZmUwYmY3YmRmNTgzOTU4OTU5MTcwYzJkMmIxMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MzM4YmNkY2VhOTExZDNmZjMzZjYzNDc4ZDFjOWMzYjliMTJmNmFhZDM2MGUxNmQyM2Q3MTllMDgwY2UzNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0YzNlNjNhYmE0YWRmZDQwMTA3Yzc3ZTU3ZGJmNTRjZTdlMzEyYjBmYjJiYjYwNjNlZGMzZWQ2MzcyODZmY2UifQ"
+        },
+        {
+          "resource": "repo://Python/test_server.py",
+          "version": "repo-file-v1:sha256:3de6ec9a1b787f6f9557fa5169f23f9a5e2ecd7b56f9c89fa77407c876d547b4"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

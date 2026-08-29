@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:4d3d288b0a00da6924658331946b56624441eac61baeb0ddaf619e87189fbf7e",
+  "claims": [
+    {
+      "id": "claim_17247bd5de454603bc610632907b8738",
+      "statement": "AnimationClipBaker.TryValidateClip accepts a clip as soon as it animates one skeleton bone rather than all of them, because rigs routinely leave leaf bones uncurved — the project's own clips animate 72 of 85 bones, the other 13 being FBX \"_end\" markers, so demanding full coverage would reject every asset in the repository.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L26-L42",
+          "version": "repo-lines-v1:sha256:2eadb15425229d16f3f32f937d457d9c5b308c4a920dc05601883ec92af7297e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxNjIxZjU1ZGI5YTdmYzVlY2EzYTE2MzczNDQ3YTRiOWM3NzIwZTYyZGVmNGE3MGQyOWIyY2E5OWJmYzVlODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxM2M0NWY3MjBkNGQ4MjU2NzFkN2E4Njc2ZDExYTJhNjUyOTliMTMyNmMyMGRkZmNiMGY4YzM3ODE2MmYzMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwOTY0OGE4ZTMwODIyZTA4Mjc2NjE1NWQ2ZDliYWQxODZjZjM2NTY2MDA1YjZlMjE4OWVjZjgyODJiMmUwYzEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/AnimationClipBakerTests.cs#L57-L69",
+          "version": "repo-lines-v1:sha256:c81ccde3f8c3dfbc83f8d6b97eb0b46d51765b3f320937190beca60392f84e40:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3MWM2ZjU0ZTIyNTZhNWI2MzhlOTA2M2UzYjBlNjE4ZDUzYmU1MzQzMGNlYTczMjI3OTRiNzU3MmU5OWZlMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4MjRmMWZlNjJjNWZlZjAxMWViNWExMzgwZjY2MzBhMTIzODQ2NWY0YmMxZDM0ZmYwMmNiYWMyYWM3NTZlNWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5a0affad1575457baccfa781a4789378",
+      "statement": "Clip validation exists because AnimationClip.SampleAnimation silently ignores curve paths that do not resolve against the instantiated rig, so a clip authored for a different rig produces no error at all — only a figure frozen in its rest pose.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L26-L42",
+          "version": "repo-lines-v1:sha256:2eadb15425229d16f3f32f937d457d9c5b308c4a920dc05601883ec92af7297e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxNjIxZjU1ZGI5YTdmYzVlY2EzYTE2MzczNDQ3YTRiOWM3NzIwZTYyZGVmNGE3MGQyOWIyY2E5OWJmYzVlODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxM2M0NWY3MjBkNGQ4MjU2NzFkN2E4Njc2ZDExYTJhNjUyOTliMTMyNmMyMGRkZmNiMGY4YzM3ODE2MmYzMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwOTY0OGE4ZTMwODIyZTA4Mjc2NjE1NWQ2ZDliYWQxODZjZjM2NTY2MDA1YjZlMjE4OWVjZjgyODJiMmUwYzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_380cade4de364093819fe7058d1d117a",
+      "statement": "Humanoid muscle-curve clips are unsupported because they produce no transform motion on a plain hierarchy, and this is enforced at asset-creation time by CreateAnnotatedClipMenu rejecting Humanoid rigs with a dialog rather than failing later during bake.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L7-L18",
+          "version": "repo-lines-v1:sha256:72000c774b459d0ece1030f6364c28a58461d34cab9b364839d71151e7cfe65f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlZjA5NjFiYjU5MjlhMjMzZmI3ZjljOWE2ZmYwNjkyZTYzOWRlNWJjM2Y3MzExZmIzN2M0YmU2OTE4OTAzMzIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/CreateAnnotatedClipMenu.cs#L30-L69",
+          "version": "repo-lines-v1:sha256:a17e5585cfec9fab864e3819f7d73e2ff2489aa5296a4c216554e79e35e488cc:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0NmRlNzc0NWNkODNkZTkxMTJjYTdlNzY3NWQ1NzJmNjQyNzlhN2RiNmZjNDg4NzQ1YTEzMzAyMDdlZWRmNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlNjQyMmZkYjU1NWZhMzVmMzdkOWFkZDlhMGNlMzNlMzRiODljNGNlZWJiODQ5ZDZkMDQ2N2U2YjU3NTllNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZDg5MzQwM2VmODYyNmI5MzFiMTMzZWJlOGZkZTYxNDdhNDAyMGZhNzgwYWI3Yzk1NTE1NGQ3YzlkNzU5YzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5a1131308f0745f2a58230a60a8d8290",
+      "statement": "Baking stores only the root bone's translation per frame; every other bone's position stays at its skeleton rest offset because PoseFK reconstructs non-root positions from the rest pose and the parent-local rotations.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L7-L18",
+          "version": "repo-lines-v1:sha256:72000c774b459d0ece1030f6364c28a58461d34cab9b364839d71151e7cfe65f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlZjA5NjFiYjU5MjlhMjMzZmI3ZjljOWE2ZmYwNjkyZTYzOWRlNWJjM2Y3MzExZmIzN2M0YmU2OTE4OTAzMzIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L151-L196",
+          "version": "repo-lines-v1:sha256:cb8a45bad089cc10214c0536e2f54b2b780aa820365ae1056985c42c8cf62639:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2NGYwOWY5NjhmZDU2ZDQwYjBmMmZmY2I3ZmExNTFlNWJkOTNiMTNjNWY4NWFkOTllNGE5NGNkNjhiNTQ5NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhOTg1YTAwYjQwZjM4MjY2YTc3NmU5ODM0ZjczMjc1OGZmZDVlYmI0MmI5NzMxMThjOGEzZjEyYzM5OTRlOTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzZmY4ZTQ4ODlhN2IwMGU3OTQzYWIwNzJiNWQ3NDZiZWIyYzc0OGExZjBjNTczZTEwOWM4ZDJjYjE2Y2FjM2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e00897b6540b4f2e87e2ccce953b2359",
+      "statement": "Baking is runtime-legal because it uses AnimationClip.SampleAnimation, so pose extraction keeps working in a player build; only validation is editor-only, since curve bindings are unreadable outside the Editor and TryValidateClip therefore returns true unconditionally in a player build.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L7-L18",
+          "version": "repo-lines-v1:sha256:72000c774b459d0ece1030f6364c28a58461d34cab9b364839d71151e7cfe65f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlZjA5NjFiYjU5MjlhMjMzZmI3ZjljOWE2ZmYwNjkyZTYzOWRlNWJjM2Y3MzExZmIzN2M0YmU2OTE4OTAzMzIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L26-L42",
+          "version": "repo-lines-v1:sha256:2eadb15425229d16f3f32f937d457d9c5b308c4a920dc05601883ec92af7297e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxNjIxZjU1ZGI5YTdmYzVlY2EzYTE2MzczNDQ3YTRiOWM3NzIwZTYyZGVmNGE3MGQyOWIyY2E5OWJmYzVlODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxM2M0NWY3MjBkNGQ4MjU2NzFkN2E4Njc2ZDExYTJhNjUyOTliMTMyNmMyMGRkZmNiMGY4YzM3ODE2MmYzMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwOTY0OGE4ZTMwODIyZTA4Mjc2NjE1NWQ2ZDliYWQxODZjZjM2NTY2MDA1YjZlMjE4OWVjZjgyODJiMmUwYzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3cf39bb6d9784a608da659a00b1efc94",
+      "statement": "The rig that a clip is sampled against is derived as the skeleton root's topmost ancestor rather than stored in a field, because an importer writes curve paths relative to the asset's main object and a second serialized field could disagree with the skeleton while a derived value cannot.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L115-L131",
+          "version": "repo-lines-v1:sha256:cc4027c95761c32a2f40c259f82cce82ddd872cdfb44ff050c040b106f4275be:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYTdiNGE1MzVjYjczOTMxMmFmYWQ5NGMxYzY1NmIyOTg3ODQ2NGMyOTMyODY3ODBkNTNiOGZiMzI3MDI0YzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVlY2JmYmViNmIxNWNjZWMzNDcyOTExYTdlNjUzYzkzNjY0ODE0NDc4NWM0M2I4NDM4YzU2MDg0MzVmYmUwZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljYTVmYjJhNWMwYmU4NWY1YzJkMGU5ZDliNDc3OGY3NzdhZDM3ZTZmZjBlMmM5ODQyNjk3N2NkM2VkYmZhNDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a4fe79f418564f6ca70300aaab477bd5",
+      "statement": "SkeletonAnimation memoizes clip validation on a composite key of clip, Skeleton.ContentHash and the live DFS bone count, because reading curve bindings walks every curve in the clip (730 for a walk cycle) on every inspector repaint, and because ClearRuntimeCaches is not triggered by a rig reimport.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs#L117-L144",
+          "version": "repo-lines-v1:sha256:9d016416ba64dbcb4fe1b67bcfd9a9a2a82ce2b9a6b59e762b7c0571b6af2a5e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliZTI0MmZiZTA3NmFhZmI1YWM5ODZjZTg0NGIxODUzMDg5YTM5YjI5MTZmNDAwYTBhYmNkNDgxYTY5ZmJlNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1M2VhMTlkM2RmZmJlYTZkNzUwYjg2NDBiMmFiYWE5OTVhZDY3NzM3ODVjZTg0YWM1ZTQ0MGIyZWY3MTUzN2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_21455882055f4d2e9958ed46e6b139cc",
+      "statement": "The live bone count is part of the validation cache key specifically because Skeleton.ContentHash is derived from the skeleton's own cached bone list and so cannot change in the one case the check most needs to catch: a rig whose bones changed underneath a skeleton that has not noticed yet.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs#L117-L144",
+          "version": "repo-lines-v1:sha256:9d016416ba64dbcb4fe1b67bcfd9a9a2a82ce2b9a6b59e762b7c0571b6af2a5e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliZTI0MmZiZTA3NmFhZmI1YWM5ODZjZTg0NGIxODUzMDg5YTM5YjI5MTZmNDAwYTBhYmNkNDgxYTY5ZmJlNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1M2VhMTlkM2RmZmJlYTZkNzUwYjg2NDBiMmFiYWE5OTVhZDY3NzM3ODVjZTg0YWM1ZTQ0MGIyZWY3MTUzN2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b09a8fa6ebd9447c89469ee1709891e1",
+      "statement": "SkeletonAnimation rejects a skeleton root that is a scene object, because the rest pose is read live off the Transforms and a scene rig hands back whatever pose it happens to be animated to, which nothing downstream can detect.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs#L98-L111",
+          "version": "repo-lines-v1:sha256:c7a355642ef866909b2a2357ed1102d797f61c5ca9ee20e3a201544765ea16c5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NDM3NWVhYTBhNDk4NTBmN2Q3YWY5MGMwMTkwOGMzZTY3M2MzYTRhOWQ2ZmMyZGE1YzdjZDhhNjgyMjg3YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhY2M1ZDg0M2ExMzc3YjIwYzc1NWI0MDQwN2QzMmQ4NmJmYjg0ZjYyZjlkOWU1MTRhN2E0Mzc0NmE0MTMzODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiM2VlMDc4MmYyYzljZDU2NzY2YzkxMWIyZTI2YTE2YjllYjliYmQxOTVkYmMzOGY5NmZlYjZiMjYxYmMyNWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8917b843c689490eb23d74e804d60262",
+      "statement": "SkeletonAnimation treats a missing serialized reference as distinct from null by probing it inside a try/catch for MissingReferenceException, because Unity deliberately reports a missing reference as non-null so that touching it throws a diagnostic, and inspectors reach RootBone and TryValidate on every repaint.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs#L38-L57",
+          "version": "repo-lines-v1:sha256:42cec1051b6090011b1a29a7c48ff4a9220cc0650fcdf1746c1dd477b4aba1a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzMmJmZjkwMTY5MTcyMjI4OTY5OGMwZWZhMGViOGYzNTgyMTA3NDNmNTMyNGQ0MWFhNDllODA4YmQ1NjhjMGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlYTM3Y2MwNmRmNGYwZGM4MjAxMTgyMzI0ODU2NGIwNzkxZWI1MTM2NGYzZDA4YWE2YzJiMDU0YTM3MjU0OWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c73512e11e0e48c9b81486a29ef1b293",
+      "statement": "A SkeletonAnimation bakes lazily into a PoseSequence on first access rather than at import, and AnnotatedAnimationClip re-bases that sequence through a [startFrame, endFrame) slice.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs#L146-L167",
+          "version": "repo-lines-v1:sha256:2a5c0b9a5fab7ab367d7f703abbaa91a0a3710d856a1f02f740c01fcecd75956:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5NGI5NjdmN2UxMzgyZDc0YWVhZjU4ZGJmZjYwYTkxNDNkY2I4OTRkNzkxM2E4MTg2YzE5YTY0NWM5MDVkMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzZWFiYzJiZmFkYmIxMGNiNTlhNGY1ODNlZGIxOTFkNjU0N2U0YjIyYTlmZjc3ZmEzNmM4ZTI2MWM2M2MzNGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkxZTUwZDVhN2RkNzY3YmEwNjE2NWJlZDQ1NjcyMTdkODA2YzE3MzgyZDIyZDk3Yjk4MWU3N2YzM2EyZjIwMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlY2MxMmUxNDYyMzc4ZmU4YmFkYzY3YjQzYjJmY2Q3NWI0NzUzZjU0ZDBhYTA0MGJiM2IzZjg4MmQwZDcyNDAifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnnotatedAnimationClip.cs#L20-L45",
+          "version": "repo-lines-v1:sha256:92472f328982d4200a4c746cfdd04a5321f4b69f2b74b76b012d8dffe1655c77:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmYjQwZmUzMjdiZDEzNjdhZWU1YmQ2NGUxZTg4ZWIyNzFhOTBmNzhhN2FlNGY4MGNlOWU4NmNiNmFiOTU5YWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3YzRkYzQ1OWRkOGI1MDY3NDhiOWVkMDIzMGQ2YjM0OTllNThjNTYzNmEzODE1MzY1OGU2MzFlZTY1Y2NjZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0YzUzMTgzMzJhMmE3OTg2Yzc4MzY1OWRlODcyYTg5MDE3ZTk3YTk3N2JjY2VjOWI0YTJhZTk3NDQ0YWE1OGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_51cdec28c197454ba441317af985f24b",
+      "statement": "BvhImporter places the imported bone hierarchy under a container GameObject because Unity renames an imported asset's main object to the file name, which would clobber the root bone's name and break name-based skeleton binding.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Importers/BvhImporter.cs#L215-L226",
+          "version": "repo-lines-v1:sha256:50bca2ac183e5b5cef29f59636b402eaf61837007ed91d6f82014b1b137ad40e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjJlNDA1ZjY3ZDMyMmM0YjUxM2Y3NGUxMTEzMzFhYjIzNmYwNGNlMjcyZmQ1NjI0NzAxZjRmMmY5MzBhMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2NGQ0ODNjZGQ3ZmQwYWNkYTE5ODYyZTNhNzFhNmVhYjI0MjRmOTJkNjAzZGFiNDNkZmViMjNmYjM3MmVmMTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5YmRlNmJhZmI3NmMxZTU0Y2FlODhmNjBhNzlmYzMyZmY5NzMyYzQ0YmIwOGM5N2YxMDkwZDhkMWZkZjY3ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmYmU5MzljOTIyM2U4NjZjNzhkM2NlMGFmYjhlMjIyMzJmMDMxMTU1NzM0NWY3MTEzOWU1MzRkNTRkOTU4ZjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1690e362caf4460a8e2e5ca0a25131f9",
+      "statement": "BvhImporter discards the BVH HIERARCHY root OFFSET and takes root position from motion channel 0 instead, giving the root bone an identity rest transform.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Importers/BvhImporter.cs#L215-L226",
+          "version": "repo-lines-v1:sha256:50bca2ac183e5b5cef29f59636b402eaf61837007ed91d6f82014b1b137ad40e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjJlNDA1ZjY3ZDMyMmM0YjUxM2Y3NGUxMTEzMzFhYjIzNmYwNGNlMjcyZmQ1NjI0NzAxZjRmMmY5MzBhMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2NGQ0ODNjZGQ3ZmQwYWNkYTE5ODYyZTNhNzFhNmVhYjI0MjRmOTJkNjAzZGFiNDNkZmViMjNmYjM3MmVmMTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5YmRlNmJhZmI3NmMxZTU0Y2FlODhmNjBhNzlmYzMyZmY5NzMyYzQ0YmIwOGM5N2YxMDkwZDhkMWZkZjY3ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmYmU5MzljOTIyM2U4NjZjNzhkM2NlMGFmYjhlMjIyMzJmMDMxMTU1NzM0NWY3MTEzOWU1MzRkNTRkOTU4ZjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_27b8e49fe90c42cb935e7ac1b00ac4aa",
+      "statement": "Assets/Scripts/BioVisionHierarchyToAnimClip.cs is a second, unrelated BVH converter that produces only a standalone .anim with no rig object and uses a different handedness convention from BvhImporter — it flips X for position where BvhImporter negates Z — so the two BVH paths are not interchangeable.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/BioVisionHierarchyToAnimClip.cs",
+          "version": "repo-file-v1:sha256:14948aeff835c2a393b1bb0a26c2ddb78e56d4c6f776ac44ab3a4cfc87e648fc"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Importers/BvhImporter.cs#L215-L226",
+          "version": "repo-lines-v1:sha256:50bca2ac183e5b5cef29f59636b402eaf61837007ed91d6f82014b1b137ad40e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjJlNDA1ZjY3ZDMyMmM0YjUxM2Y3NGUxMTEzMzFhYjIzNmYwNGNlMjcyZmQ1NjI0NzAxZjRmMmY5MzBhMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2NGQ0ODNjZGQ3ZmQwYWNkYTE5ODYyZTNhNzFhNmVhYjI0MjRmOTJkNjAzZGFiNDNkZmViMjNmYjM3MmVmMTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5YmRlNmJhZmI3NmMxZTU0Y2FlODhmNjBhNzlmYzMyZmY5NzMyYzQ0YmIwOGM5N2YxMDkwZDhkMWZkZjY3ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmYmU5MzljOTIyM2U4NjZjNzhkM2NlMGFmYjhlMjIyMzJmMDMxMTU1NzM0NWY3MTEzOWU1MzRkNTRkOTU4ZjQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:b577b85568dbc394015e1ce73145671732ce2c1bb4ba02a08e47638eafbe982a",
+  "claims": [
+    {
+      "id": "claim_13de8b8aa44a45fbb2460ef40519c72e",
+      "statement": "Every control input works the same way: it drives a lightweight simulation object, usually its own Transform, then predicts where that object will be at each of the database's prediction horizons — and those predictions are the trajectory. Nothing in a control input poses the character; the character follows only because the search keeps picking frames that move like the prediction.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L9-L31",
+          "version": "repo-lines-v1:sha256:78a61155c9604599059bafe633fb3e7bfbdc897088fd51c3b897c898c5a7d3b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4NmEwODE1MzlkZDRlNTgzNjJhNGU4ZTUyOTcxYjE3OWQ5OTgwNDQ1NGEzNjdkMDcwYjE1OGNjZTExNDQ2ODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_72eefcac214547c890a9165867284c25",
+      "statement": "Prediction horizons are counted in database frames, so converting one to seconds means multiplying by the database's own frame time rather than by Time.deltaTime.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L45-L55",
+          "version": "repo-lines-v1:sha256:1c2184bda965670af7865018b21660be5a1791e561deef038f60858b8a4f8356:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0OWQyMGZmM2MyYjYxNDRiODAyNDczOGIyMDM2ZjI0NThmYTY1YmFjNGMyMDQ1MzhhOTljZTMxZjgyOWIzYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2NzE5MTJiOGQ2OTgzNTEwOTkwOWUxMzQ1ODk0ZWRmODY1NDQxZjcxNmNjOWU0NTFiNDJmYTUzMTQxM2U1YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8cc0dab6e11e4cc5bf0e147d50ec1fc3",
+      "statement": "In the spring-driven direction input, facing predictions can be jumped straight to each horizon in one step because the implicit spring form is exact at any step size, while position predictions must be chained horizon by horizon because that spring carries acceleration and cannot be jumped.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/DirectionControlInput.cs#L217-L239",
+          "version": "repo-lines-v1:sha256:32d83f1eb8b58fe3da047690662cb6bfbd4261df5e4b2b1f71cc0234422bf828:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ODRmNDE3YTE5Y2FiNWE3ZWY3YzViNzdlYmEzMjljYmIzZGY0OTZhMDgwYzg5MTJkODVhOWNjZDAwNzg2MDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjZWUzYjM3ZjU4ZDFkODhhMzc0ZDUyOTY5ZjBmNTkwNmIzZWQ2NDI3MzM5NDBmNTg5MTQ1YzYxODg3ZjFjNDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhMjUzYjc0ODg2ZTkwMDllNzkwMWM3NmUyODgzMGU0NGY0ODA2M2U5ZTdlNDRjOTc5ZWIzY2MyYmFmNTk1ODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8c6047bb9c5d4901a0b6b8953d928234",
+      "statement": "SplineControlInput deliberately does not react to where the character actually is: the point on the spline advances on its own clock, so drift shows up as measurable path-following error instead of being steered out, which is what makes it a measurement tool rather than a gameplay controller.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L10-L19",
+          "version": "repo-lines-v1:sha256:1c17e4a8863eb5bf4fcee2775d301d2658b93f45e6a1e6384bac73fb3911d55e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4OGNiNWMzMWVkYzU2MTEyYWU0MjZlZGViNjhhNTk0N2YyNzE3ZWFmOTc0ZDRhZjQ1MzhiMDBhNDZlZTNiYjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c223d27ed91f44578a99a3cf04470482",
+      "statement": "SplineControlInput routes every direction through one seam, so an override reaches the trajectory query, the debug gizmos and the current-rotation accessor together; a bare path carries no facing of its own, so that seam measures direction of travel as a short step further along rather than as the analytic tangent, which keeps it consistent with the predicted positions.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L147-L165",
+          "version": "repo-lines-v1:sha256:218ab8892869e3bd040a484ed40065f537ee4e59bec98cf84834cdd8f3c57702:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5YjYxYjdiOTk2MjhkOTI5YTJmMDhjZDcxNDZlZjFmMDM2YWM3YWJiMDkwMDJiMThkZDIzYmYzZjA4OWY0OWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1ZTI1MmFlZWE2ZmM1ZDA3ZjRlN2Y0MzQ5NTczMmUxMmZhYTI3ZWJlNGNhYTZlYjNlZjJmZjczMzZkYzQyMGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ca7d8d96f3f64e88a5a221ca9b72229d",
+      "statement": "The path-usability check has to happen before evaluating a spline rather than inside the evaluation, because a container whose spline list has been emptied throws from EvaluatePosition and CalculateLength rather than answering null; a zero-length path would additionally make the parameter advance infinite and leave NaN stuck in the follower's state.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L33-L46",
+          "version": "repo-lines-v1:sha256:4dda726cd57c3b4700a73613a9dc24309c4d48b14b4ea07243ed9d046265c244:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2NjM4M2RiNDcwMDkxNDQ2ZmU1OTU2YjQ3M2QwYTA1NWZkOWZiMzIxMWUzMzRmZDI3OTYxNTIxMWZlZDdkNDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MDZkNGQyNTYwYzFkNDA3MDMxNGJjMTQ1OTZjYmZkODI2Y2JlYzQ1YWVhM2MwNDE3MzI0NTM1NzczZDc3MmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2OGRhZGM2NmM5NzU4ZWQ0MDY3OTNiMGQwMzZiNTBmNzdmOWExYjA4MzcwMDU3YWI1OTNhMjA2YmM2M2UyMmEifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L115-L145",
+          "version": "repo-lines-v1:sha256:1b452c7fe30ad78f5019bd1bb1a1e408652d0f2cbc08dcfd8bdbf6e6a7823be6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYzJhYmIwNTg1YzNlY2JkMDViNDNlYjg4ZDgzZTY3ZTMzMDhmZDlmZjk0MTc3MmZkZmZmYmY4YWQ2NzBhMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1YTVlOWY0YmYxOWYyMjMyNjE3ZmEzYmU5MzU5MzAxNjYyZmJmZDNiOTI5MDRiNGVjYmQ2MTQ1ZWZmNTI4NmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f4434526612d45459b4a9c4f6c4cf958",
+      "statement": "Crowd steering casts a fan of rays ahead and lets only the closest hit steer, because avoiding several obstacles at once averages into steering nowhere; the force is perpendicular to forward so it sidesteps rather than brakes, and a logarithmic falloff makes distant obstacles barely matter while close ones dominate.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CrowdControlInput.cs#L386-L404",
+          "version": "repo-lines-v1:sha256:4c325632086fc258897eb11f3a1584ba28226ef4aa79e791d42874b3e12911ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMjg2MDMyZWJmNDgxNzk4YWIzNGEwN2Y2YTZjMzVkNDQ4ZjJmMjVkYzE0MWNhZDE1ZDhmY2I0MzBjNTZmMzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiZGEyMjIyZTA3ZTgzZDJlMWQ1NmE4ZWRiZjU3NjJiYTZkYjUyNjcxNzBjMjI0MjhjZmVjYmVmMTY0NjhiMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNDdlOGU1OWIwNDg4YjM5ZWQxZDE5OTA1MjQyMWZhZjY3YTczM2Q5NmE0ZmRmMWEyZDYzYmQyMDc5NTUwODIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_097288b01656406e94b3028ab5b6b2f8",
+      "statement": "Which side to pass an obstacle on is a coordination problem — if both characters dodge the same way they still collide — so when the obstacle is itself steering the avoidance takes the opposite side; static obstacles are skipped entirely because walls do not negotiate.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CrowdControlInput.cs#L386-L404",
+          "version": "repo-lines-v1:sha256:4c325632086fc258897eb11f3a1584ba28226ef4aa79e791d42874b3e12911ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMjg2MDMyZWJmNDgxNzk4YWIzNGEwN2Y2YTZjMzVkNDQ4ZjJmMjVkYzE0MWNhZDE1ZDhmY2I0MzBjNTZmMzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiZGEyMjIyZTA3ZTgzZDJlMWQ1NmE4ZWRiZjU3NjJiYTZkYjUyNjcxNzBjMjI0MjhjZmVjYmVmMTY0NjhiMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNDdlOGU1OWIwNDg4YjM5ZWQxZDE5OTA1MjQyMWZhZjY3YTczM2Q5NmE0ZmRmMWEyZDYzYmQyMDc5NTUwODIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a638e0e84c48412596f5d87f6027a0f1",
+      "statement": "Crowd avoidance is two separate mechanisms that are easily confused: steering deflects the simulation object so the character walks around neighbours, while obstacle features put nearby obstacles into the query vector so the search can prefer animations recorded while avoiding something. Either works alone.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CrowdControlInput.cs#L10-L20",
+          "version": "repo-lines-v1:sha256:370ba147165516315b89c1b0d860c220b62ea48e54a6219136d5e6f2db2664d7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0YTY1OTVhYzMxZjQ4OWUwMjQ0YWM2MGMzMjE5NTFkMGQ0OTRlZWNiYTAzOTJhNDc4NzI0YjYxN2ZiNDI3MTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9e6cdda847784b9ba8c4e7646d15e228",
+      "statement": "In the collision-aware input both raycasts act on the simulation object and never on the synthesized character, so the trajectory handed to the search already respects the environment and the search picks an animation that turns along a wall rather than one that walks into it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CollisionsSpringControlInput.cs#L8-L20",
+          "version": "repo-lines-v1:sha256:bdfd3d40b8d00e93d25b75bdfc688874e8b6b593583f0cb062ed90a4e7208920:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkMzc4ZjBjYWIxZWMyNmM4NTdmMDRlNzFiMDkyMTg4YzI4ODIzNzkxODdhNDlkMDdhNGFmMGViMzhjZjMwN2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_394a7cd4b15c43278fc5da6f426e4d04",
+      "statement": "Of the control inputs that depend on the unimplemented adjustment API, only CrowdControlInput and CollisionsSpringControlInput actually throw on their first update with default inspector values; CrowdSplineControlInput's only throwing call sits in a method that is never called, and PathControlInput calls none of those members at all.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CollisionsSpringControlInput.cs#L179-L210",
+          "version": "repo-lines-v1:sha256:32a35e609236765746f09ec4fa0abcc5d5d061f4039d00ba3f84e145adb0bd06:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZmI3ZGYwZWNiY2M5NDUxZDg0MTM0ZTE0YTBmYzU1YTgyMmJmYWFkMzgwZGQ1MDczZmNmMDFlNmNkZWQxMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNDkzMjNkYmM4OTk5YTJkYTc0NmY5YzI5MmNjZDBmNjlkZTgzMTQ2MGZlYmUzYmIzNzAyMmYzZWE3M2EyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0ZDllYTI1YzUwMjZkMzMzM2MxYTVlOTBmODZmYzIyOTJkY2FiNGFmYzg3Mjk5NWM5NzQ3MjNjN2UwNTFjOWIifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CrowdControlInput.cs#L225-L262",
+          "version": "repo-lines-v1:sha256:3fe7f5bc53ab380f0942acbceb46ce8d6b5ca602485783297cc43d22c9fb9016:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZmI3ZGYwZWNiY2M5NDUxZDg0MTM0ZTE0YTBmYzU1YTgyMmJmYWFkMzgwZGQ1MDczZmNmMDFlNmNkZWQxMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNDkzMjNkYmM4OTk5YTJkYTc0NmY5YzI5MmNjZDBmNjlkZTgzMTQ2MGZlYmUzYmIzNzAyMmYzZWE3M2EyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5MTFkODllZDhkODYzZDVmMjhmYjI0NTQyZGU0MTVkNjU1MmFjMTg1MThhOTUzNDk2N2U0NDEyZDQwYjBlODkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L369-L406",
+          "version": "repo-lines-v1:sha256:75b2e1478f9040d1ee340e4389a83831b3fb111c78585605742dbcc7a00bcd5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyMzBjNzU5Y2VjMWZkYTQyZDQ2Yzg5M2UzNWZlZTFjMDYyNTQ3MDc4YjhkMDEzMmRhNzBlNjY4ZGM4OGEzMzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0ZGZhNzdmZTAzNjJjNDcyNTYzMDJkMzc3Y2UxZTBiYTc2NDc1MzY1ZjQ3MDM4Y2YwZjNlNzQ3ZjE4MGM0NzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b69d90608c4e45bb870001b239c96c11",
+      "statement": "A worse and quieter defect than the throwing methods is that the four Root properties on MotionSynthesisComponent are never assigned anywhere, so every crowd input that reads RootPosition silently measures the character at the world origin instead of failing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L369-L406",
+          "version": "repo-lines-v1:sha256:75b2e1478f9040d1ee340e4389a83831b3fb111c78585605742dbcc7a00bcd5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyMzBjNzU5Y2VjMWZkYTQyZDQ2Yzg5M2UzNWZlZTFjMDYyNTQ3MDc4YjhkMDEzMmRhNzBlNjY4ZGM4OGEzMzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0ZGZhNzdmZTAzNjJjNDcyNTYzMDJkMzc3Y2UxZTBiYTc2NDc1MzY1ZjQ3MDM4Y2YwZjNlNzQ3ZjE4MGM0NzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CrowdSplineControlInput.cs#L165-L269",
+          "version": "repo-lines-v1:sha256:38820ab5f8c50471a84526ba7753adf88cff5589db343e37dcab41cf614a9248:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3NGZiN2RmMGVjYmNjOTQ1MWQ4NDEzNGUxNGEwZmM1NWE4MjJiZmFhZDM4MGRkNTA3M2ZjZjAxZTZjZGVkMTIwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODkzZjQwZTM3ODFlYjg5NmM4MmQwNDZhMDgwNjdhMTFlMzVjZGYyZjFkZmFmMjZmZWE5MGI4ZGI2Njc2NDEzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyMzcxNGU3ZTg5YmE1MmRiYTQ5MmUwZTA2YzBlMzFmMjgwMzA4NjhmNGEyYjhmYWMzMDcyNTY4NTA5NWE1ZWM3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3N2FhNWU3Zjc1MWU1OWNiM2IzOTM1NjQ1NTVkMzljMjk2NTFiNmI3NjkyYWY3Mjk0ZDY5ZjJlNjJhZGMxYjE3In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_179432ec21de427c8d3fccc26f7131a9",
+      "statement": "Player input reaches the direction control input through a singleton that wraps the generated InputActions asset and re-broadcasts the Move action as a serialized UnityEvent, so the connection is made in the Inspector rather than in code.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/UserInput.cs",
+          "version": "repo-file-v1:sha256:fd6db96d42728366c09989f853a5e6fd830c8431f6d669ccf5095dc7fbbac307"
+        }
+      ]
+    },
+    {
+      "id": "claim_b64cb5a0f280493b87ad0ddaabade7a7",
+      "statement": "When the spline follower finds a path length at or below a small epsilon it returns without advancing, holding the character where it is, because the parameter advance would otherwise be infinite and the fractional part of infinity is NaN, which would stick in the follower's state and leave as a non-finite character position.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L115-L145",
+          "version": "repo-lines-v1:sha256:1b452c7fe30ad78f5019bd1bb1a1e408652d0f2cbc08dcfd8bdbf6e6a7823be6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYzJhYmIwNTg1YzNlY2JkMDViNDNlYjg4ZDgzZTY3ZTMzMDhmZDlmZjk0MTc3MmZkZmZmYmY4YWQ2NzBhMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1YTVlOWY0YmYxOWYyMjMyNjE3ZmEzYmU5MzU5MzAxNjYyZmJmZDNiOTI5MDRiNGVjYmQ2MTQ1ZWZmNTI4NmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5735872c6a5146e4b950ce1fb4dc7036",
+      "statement": "The motion field's spline input returns the vector from the character to its lookahead target, so at the end of an open spline that vector shrinks to near zero — which the stage reads as no opinion and keeps the previous heading rather than snapping.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldSplineControlInput.cs#L66-L109",
+          "version": "repo-lines-v1:sha256:21e84de9b61232b558c80a1b0bb48e62828c4664cc72f15570b23134a9e2eca8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4MTJkMTdhYTIyNTI0ZTI3ZjMwNWQyY2I3ZGI1MzBjNWUwYjI5ZjcyYjU3MjhmMTFiZWI5NTJjZmQwNjFiOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3OTYxYjUwMzQwMzNmODgxYmVkOTVhZjk0NWQxYjAwOGNhNGVlMjMwZDcyYTY1MDNlYjg2OTBmOTU0ZTgxYzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlZmUxNGNjZjA4YzE4ZWRjNzI0NDg5NWViOTgzZDU1NmZlY2EwNGY4N2M4ZjQ5OTI4MGJjMGFlNThkNDFkYTgifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L362-L393",
+          "version": "repo-lines-v1:sha256:0b8de33c01879b3675bd318b055f5a9db0a5b7431a117dad87a8bafaafce11fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExNjllMGE3MDg5NWNmOTcwZTAwMGViMzliOGU0Y2M2OTViZmMwNzYxMzhlNzQyODdkMTI3NDdjYjE2OWVkNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliMzU0YmFlZjI2NTEyNWZmMzhhN2NiN2YyNGVjMzBjMmZkNjkwNGVhNzZiYjVjOWUxZmM0MmMzMmU1NjlkOGQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

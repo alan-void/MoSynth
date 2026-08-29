@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:c514f0b6287bc2e8dee8f6d1317ca10a86aeb26b0f05aa15c79907e13da9abce",
+  "claims": [
+    {
+      "id": "claim_04259d5b863d4a68aba5baa4f6d9e4b3",
+      "statement": "There are two staleness flags, not one: hasPoseDatabase records whether the extracted database matches the config as it stands, and hasTrained whether the value function does. Regenerating the database always clears the trained flag as well, because extraction renumbers every state the value function indexes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L249-L271",
+          "version": "repo-lines-v1:sha256:b1bcef45dd34df3909cd212b48f9eab98502076e45025008d2ebe03ca5833a6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MGQ0MDBlNzMyMzFhMjViMWZlMzE1YzQzNzBiMTVhOTM1OWIyMjIxMTY2NmI5YTU5ZmZiYjJmMzVkN2I5ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwNTZjODUzMWM2YTRkYjBlNTgyNDY4MDhjZDBiZTEzNmI1N2UxYjM1YzU1OTllM2U5ZmZjOWEwMWY3NjUxM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhZDFkNDJhYmMzNGU2Zjk0YjkzZWVkZTc1MGY1MWI3ZjM0YzBiOThiMzAzOGI0MmNmN2M2MDhhYzQ1ZjgxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwODYxZDE0MDg0Zjg5NmFjYTRlMzI1OWM2ZGEzMjM5MmY3OTVlZGQwOGY3NjRlMzA5Y2MwY2Q2NzcxOWY0NGUifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L98-L110",
+          "version": "repo-lines-v1:sha256:e552643a029dfe84480b2b38755614bb70cb04c528aef1966a66b411e627b356:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhMjY1NGY5OGE3YzA5Njg2OWE3ODQ1NjYzZmY5NGFjODlkNGU1YTljMTBjZTU4MTQzNzc4NjA3N2U3MDVjYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4ODZhMDJhMzIxNGMyMGRlOTBjNGRiNmU0YTAzNTQ4MDBmNWVlNDZjMzc5YzZiNjY5ZGU1MDllYjkyNjFiZWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0d8f97d402a74d99b3bc71457db94b06",
+      "statement": "The editor's change check cannot tell which field moved, so any edit clears the flags — deliberately over-flagging rather than missing a change that matters, on the grounds that over-flagging costs a rebuild while under-flagging costs a character that quietly moves worse than it should.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L249-L271",
+          "version": "repo-lines-v1:sha256:b1bcef45dd34df3909cd212b48f9eab98502076e45025008d2ebe03ca5833a6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MGQ0MDBlNzMyMzFhMjViMWZlMzE1YzQzNzBiMTVhOTM1OWIyMjIxMTY2NmI5YTU5ZmZiYjJmMzVkN2I5ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwNTZjODUzMWM2YTRkYjBlNTgyNDY4MDhjZDBiZTEzNmI1N2UxYjM1YzU1OTllM2U5ZmZjOWEwMWY3NjUxM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhZDFkNDJhYmMzNGU2Zjk0YjkzZWVkZTc1MGY1MWI3ZjM0YzBiOThiMzAzOGI0MmNmN2M2MDhhYzQ1ZjgxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwODYxZDE0MDg0Zjg5NmFjYTRlMzI1OWM2ZGEzMjM5MmY3OTVlZGQwOGY3NjRlMzA5Y2MwY2Q2NzcxOWY0NGUifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L50-L96",
+          "version": "repo-lines-v1:sha256:ced1648dd80a8f3c145a5580c744a01f9dafe9f17a1bd21cd452749c9c43d310:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2MTA5NDM5Y2FiNDY2OWQ1MjE1OGQyMzY0NjYxZDM1ZGRkMzlkNDM4MDU5MGNhOTJjZGZiOGRjYTQ4ZDE4ZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2ODBiMTZjZmYyNDk2Nzg3NWFhYWY5MmZjYmQ5Yjc4YjM5Y2U0ODRhYTY5Njk4NjM5YjE0M2Y5MjFlZjVhY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiYjNiOTE4MmI5ZjM0NzJiZDhhYmNlMzBhZTFjZWRiYzQ5MWY4ZWViNjgyY2M1ZTc5ZGRkMTk2NGMwYzZhNWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1f221ee7430345e4b6868583c94afac0",
+      "statement": "Both flags are initialised true so a config saved before they existed — which was by definition current when it was last generated — does not demand a pointless rebuild the first time it is opened; a config that has never been generated has no database file, and every reader takes the file's absence rather than the flag as the answer.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L249-L271",
+          "version": "repo-lines-v1:sha256:b1bcef45dd34df3909cd212b48f9eab98502076e45025008d2ebe03ca5833a6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MGQ0MDBlNzMyMzFhMjViMWZlMzE1YzQzNzBiMTVhOTM1OWIyMjIxMTY2NmI5YTU5ZmZiYjJmMzVkN2I5ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwNTZjODUzMWM2YTRkYjBlNTgyNDY4MDhjZDBiZTEzNmI1N2UxYjM1YzU1OTllM2U5ZmZjOWEwMWY3NjUxM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhZDFkNDJhYmMzNGU2Zjk0YjkzZWVkZTc1MGY1MWI3ZjM0YzBiOThiMzAzOGI0MmNmN2M2MDhhYzQ1ZjgxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwODYxZDE0MDg0Zjg5NmFjYTRlMzI1OWM2ZGEzMjM5MmY3OTVlZGQwOGY3NjRlMzA5Y2MwY2Q2NzcxOWY0NGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fba5fbea44ab42e3ba409c090c1e72ed",
+      "statement": "The inspector's change check is scoped to the config's fields rather than the whole GUI, because a button press also sets the global changed flag and a blanket check would wipe the trained flag the instant the Train button set it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L50-L96",
+          "version": "repo-lines-v1:sha256:ced1648dd80a8f3c145a5580c744a01f9dafe9f17a1bd21cd452749c9c43d310:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2MTA5NDM5Y2FiNDY2OWQ1MjE1OGQyMzY0NjYxZDM1ZGRkMzlkNDM4MDU5MGNhOTJjZGZiOGRjYTQ4ZDE4ZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2ODBiMTZjZmYyNDk2Nzg3NWFhYWY5MmZjYmQ5Yjc4YjM5Y2U0ODRhYTY5Njk4NjM5YjE0M2Y5MjFlZjVhY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiYjNiOTE4MmI5ZjM0NzJiZDhhYmNlMzBhZTFjZWRiYzQ5MWY4ZWViNjgyY2M1ZTc5ZGRkMTk2NGMwYzZhNWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_224f8893743d46288b9314eb53e207be",
+      "statement": "Edits that change the similarity metric but not the extraction — such as a bone weight — clear only the trained flag, since the extraction is unaffected.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L292-L302",
+          "version": "repo-lines-v1:sha256:9b0b00abe5a608d025ed23be7f8b500cbdaa03da11879be0a87f374cae7ab48e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmNmI1N2E0OTNjYjE2ZjE0OTMyZGViMTIxNDRiZTFmOWU4Mzc0ZjcxNmMzMDBmYTkxYTRlZGRkY2NiYTU2YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0MGQ0ZmIwYmMwZDFlZmE5MTcxYmE3ZTVmNTU1N2M0NTdhZWRlNWIyZjBkM2RiMDQwZGIzMGExOWI5MWEwOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjNDNjMjBmY2I3YWFlYjRiZjI3MmY1OGU1OTA5M2VmNTMwZTliOThkOGU2NGYwNWUyNGQ1YTExNDg2MTVmODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_75d0dbeab9524ae2b4978ae1f1bc5394",
+      "statement": "The trained flag is set only on the success path, because a failed training run leaves the old value function on disk and it is no less stale than it was a moment ago.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L490-L542",
+          "version": "repo-lines-v1:sha256:5efcf69db232f7804ff0985870c8306407af350e50ed7c224449011f052c5b05:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1ZGFhYjIyMGZhYzQwZTZlNmQ2MzY0ODU4YjNkNjI3ZTg1ZTFiNjU3MjM0OWU5YjYwODU0NjU3MjFjZDk1OWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiNWRjYTA5ZGFkYmU2ZDJhYWQzMDhiNDM3N2FkN2QyOTE4NTU1ZDQ1NDBiYWVmMmNmMTU0ZTc1ZTI5MWVhYWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVmZGYyOTI0Y2UyNjUzOGUxYWNiY2Y1Y2Q2NTRlM2JiNmEwY2UzMWQ0NTA5NzlkZTAwMzU5ZDBkNzllYmVkOTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5f206391b91948fbaa4942beac9a70e1",
+      "statement": "Training runs in-process through PythonNET, synchronously on the main thread, with assembly reloads locked out for the duration because a domain reload mid-call would take the editor down with it; it is disabled in play mode because it would hold the Python GIL for seconds and stall the running stage.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L490-L542",
+          "version": "repo-lines-v1:sha256:5efcf69db232f7804ff0985870c8306407af350e50ed7c224449011f052c5b05:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1ZGFhYjIyMGZhYzQwZTZlNmQ2MzY0ODU4YjNkNjI3ZTg1ZTFiNjU3MjM0OWU5YjYwODU0NjU3MjFjZDk1OWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiNWRjYTA5ZGFkYmU2ZDJhYWQzMDhiNDM3N2FkN2QyOTE4NTU1ZDQ1NDBiYWVmMmNmMTU0ZTc1ZTI5MWVhYWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVmZGYyOTI0Y2UyNjUzOGUxYWNiY2Y1Y2Q2NTRlM2JiNmEwY2UzMWQ0NTA5NzlkZTAwMzU5ZDBkNzllYmVkOTkifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L386-L424",
+          "version": "repo-lines-v1:sha256:e7e9ea94e27ebd3c8a71816c346a6c5d8cffa3524aa1e6ca8e608797220975f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwOWQ2ZjA1MWQ3OWRmZTM0MTZkMDVhMGRjOWZjZWYxMjFmMzIxNDJkNmM3MWU3NjdhYjA1MDQ1MjBmNjA2MWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYjQ4ZGY1N2ZjNmVkZjFjYmI3ZjQ0MmQ5ZTdmOWJjMTNlM2QyYmU2NzFhYjcyNWYzMDBjNjhhOTQ2NTZjNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0c41721cabaf4d859beebddf648a9bde",
+      "statement": "Bone weights are keyed by joint name rather than by index, because the similarity metric sums over joints in depth-first order which is not guaranteed to survive a skeleton being re-extracted with a different hierarchy — resolving by name means a moved joint takes its weight with it instead of silently applying it to whatever now sits at that index.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L79-L98",
+          "version": "repo-lines-v1:sha256:a8edd77759449cd1b54813e365469af7df0cc23cef657da3c6fe2ca3ccbf284c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMTdiNDhhOTBmODhjOGE4MjY5ODc1NGExOTE0OGYzZGYyMGI4ZWI1YTM0ZmQ3NWNkNmMxNjJlMzBhMzg1ODEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5MGI2ZGFmMzBlOGFhMjZhYzk0NDExZmE3Mjg1ZTQ0ODlhZTFjMTJlMjNjZGZmN2U5MmU4NDNiMjFmMTJiNWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5946ad55ad634c8d9fe3455560d33a02",
+      "statement": "The bone weight list is stored sparsely and hidden from the default inspector, because as a raw list it is a couple of dozen nameless elements with no indication of which bone each one is; the custom editor draws every joint of the database as an indented hierarchy row instead, and reads the config's own pose skeleton rather than the source clips' since a clip can be authored against a differently shaped rig.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L79-L98",
+          "version": "repo-lines-v1:sha256:a8edd77759449cd1b54813e365469af7df0cc23cef657da3c6fe2ca3ccbf284c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMTdiNDhhOTBmODhjOGE4MjY5ODc1NGExOTE0OGYzZGYyMGI4ZWI1YTM0ZmQ3NWNkNmMxNjJlMzBhMzg1ODEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5MGI2ZGFmMzBlOGFhMjZhYzk0NDExZmE3Mjg1ZTQ0ODlhZTFjMTJlMjNjZGZmN2U5MmU4NDNiMjFmMTJiNWQifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L308-L313",
+          "version": "repo-lines-v1:sha256:81f213173d76befb120ba90571f30f37cc04b38293e82ca1121e89e3fd993294:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmNkZWI0ODBlMWYxOThjNDgxZTk2ZmRkYjU3Nzc4NzdhNTQzOGU0NDlhOWU0MzQ0Y2JhZTBjNTc0YWRlNTc5NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTM1NmExMTNiYTlmM2Q0YzM2OGQyOTliYjEyMGQ5MzNiNDY0ZjEyZTA1ZmY3Y2M4MjAxNWE1YjliNjBiMThiYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODE3MjQ1ZmZhMTNmMTE1Mjk1NTY4YjU2NzI1MGI1ZmI3ZjYyNzQ3ZTMxZTY3YmExZGUxZWY5ZjgyNzQyMmY4NCJ9"
+        },
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L229-L262",
+          "version": "repo-lines-v1:sha256:2777e3b0bee1959cb71cb4081bdcd2f7e082a7f8137da303f4bfe4a7219252a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmNWE2ZDdhN2QyNWI0MGFjOTA2ZjI0ODg5N2YxM2UyNTM3ZjM2N2I2ODUwY2VmYzkwYTZjODllOTc1NTAyZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjYzU5OTRkMjQ0ZWUwMWZjYzgzMDVjNDkxM2VmNzcwZDE0YzllZTgxZGJiMDFlNjZiNjNmZjk0ODExZmY3ZTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dccbe65a1cc94655b86eed44a68538fa",
+      "statement": "The default similarity weights put roughly three quarters of the distance on joint positions rather than velocities, because a velocity-dominated metric matches states that merely move alike with pose ignored, which is how the field wanders into idle poses mid-stride.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L47-L77",
+          "version": "repo-lines-v1:sha256:12928255abdbdcccab6e33f5aa0770697ca133ee03f3ab69a483f32cca740828:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MjRkOWRlZWZlNmNjZTgyOGY3M2Q1NDZkYmY0NzBhNDI3MGY4YmU1OTQ2ZDc2Y2ViYTJhMzhkOGZlMzdkYTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMWNmN2ZhYWFhODU4MmIzMTlhOGY3MTUwNzM1N2UzY2M2MjRjNDY2NGYzZDVkOTM1OGZhNjA5ZDAyZTUzYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxZDYwMjRmYTAwODc0ZDQ0M2E1NDQwOWE5NDA3YTdmZTY2NzIxMjUyYzJhZmZhZmFhZDgwMmVjNmUwZGRhNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlNDRiNjE3MGRkNWQ5OTg5NjYwNjI3N2Y0Y2IyYmUxNDVlYjFiYTY5NTEwZWRmODcxZWUzNzA3NGMzZWZlZjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_637a8287ead846de8072e57c256fc88b",
+      "statement": "The locomotion bonus is not optional tuning: at zero every reward is at most zero, so an idle pose that faces the goal scores a perfect zero forever and the policy freezes into it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L47-L77",
+          "version": "repo-lines-v1:sha256:12928255abdbdcccab6e33f5aa0770697ca133ee03f3ab69a483f32cca740828:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MjRkOWRlZWZlNmNjZTgyOGY3M2Q1NDZkYmY0NzBhNDI3MGY4YmU1OTQ2ZDc2Y2ViYTJhMzhkOGZlMzdkYTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMWNmN2ZhYWFhODU4MmIzMTlhOGY3MTUwNzM1N2UzY2M2MjRjNDY2NGYzZDVkOTM1OGZhNjA5ZDAyZTUzYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxZDYwMjRmYTAwODc0ZDQ0M2E1NDQwOWE5NDA3YTdmZTY2NzIxMjUyYzJhZmZhZmFhZDgwMmVjNmUwZGRhNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlNDRiNjE3MGRkNWQ5OTg5NjYwNjI3N2Y0Y2IyYmUxNDVlYjFiYTY5NTEwZWRmODcxZWUzNzA3NGMzZWZlZjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a1625be58d6b40e39d6ea129a8ad4a5e",
+      "statement": "The UMAP embedding participates in no staleness flag at all — there is no equivalent of the trained flag for it, and the only guard anywhere is a state-count comparison.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/Editor/MotionFieldConfigEditor.cs#L426-L460",
+          "version": "repo-lines-v1:sha256:f64a2866606cd8d31d190b213f1c9e69a72940670a4a5d9940b1fbea252aa8fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkY2I5NmIzZDU5NjAyNTBmZGY0MTA3NmE3ZGUwN2YwYjMyMGY2MmY5YWIwNDQ5YWRhYjA4ZDEzZDdjOGM4ZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxZmY0ZDA4NjIzZjAxODA4ZDRkMmVlZWY3Y2Y3OGE4MGM4MDI2Y2IzMzRhMGU2YmYyZDlmMDAzNDRjZDUxNDEifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L239-L241",
+          "version": "repo-lines-v1:sha256:fa3f55a7f80ad6673777afcb1cb730fbd34d8a5f993cfa3bd3b0a758b0c93efb:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWUxMjU3ZTVkZDRlOTdiM2ZmMzU5ZmVmNjc4NzIxMTcxZjc1ZGY5NzYzMGVjN2FjZmE4YmU3YWMxNmExNmRkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWE2Yjc1ZDY1OTRkZWZhMGJiMGE1NDZhOGI5ODNjYTE5YzI1MWYwZTNkYTU1NGY5MGEzNGZmYTBiMDAxZTI0ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTZjNjBlODcyZDEzMzU5MzIyNTY4MDQxNDBjMTIyNGM4NTY0MTU5NjVhMzA0OGQwOTAwZWM1OGQwOGU4ZGY4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTU4OGY1YzgzNDg4OTFhOTI2M2I3MDczM2NmOGVlNWVkZTIxOGNlMzI3Y2RlYTg2ZmM0NTc2ZjcxZGEyMTJlYSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

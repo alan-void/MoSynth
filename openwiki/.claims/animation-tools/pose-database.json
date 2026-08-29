@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:25c48d7af379f11d2e7653ad5a7ac895d48146604b80cf658539f69950603c76",
+  "claims": [
+    {
+      "id": "claim_958b0e9469e14fc0b81e860d09a51ed5",
+      "statement": "IPoseSetSource exists because PoseSet, PoseExtractor and PoseSerializer previously took a MotionMatchingData directly, which forced anything wanting a pose database to also be a full Motion Matching asset carrying trajectory features, pose features and a skeleton map; the interface is exactly the handful of members the pose path actually reads.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/IPoseSetSource.cs#L6-L19",
+          "version": "repo-lines-v1:sha256:b01b6670a0f92adef3b3211cd1b93de95cf0029f08f74ab57998e2f6e4b1996a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5ZGVmODczYmRhODY2NzY5ZTQ2YTNhNzFlYTQ4YmIzNzQ1NDE1YzkxODZiYTczMjhiY2UyYzMzODFlMWYzMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjMjI4NGNjYjkxNWM0ODdhY2FlNDg1ZWU4MmQyOThkYjIxYmJjNmQxZTE5MjhlOTNlZmRkYzQ2ZGI3MTAwNzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5269c802f01f448bb94d794244385506",
+      "statement": "IPoseSetSource lives in the AnimationTools runtime assembly rather than in MotionMatching because it is generic pose-database infrastructure, not specific to any one motion-synthesis technique; MotionFieldConfig implements it to own a .mmpose database while deliberately carrying none of the feature machinery, since a motion field searches on full-body pose and velocity.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/IPoseSetSource.cs#L6-L19",
+          "version": "repo-lines-v1:sha256:b01b6670a0f92adef3b3211cd1b93de95cf0029f08f74ab57998e2f6e4b1996a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5ZGVmODczYmRhODY2NzY5ZTQ2YTNhNzFlYTQ4YmIzNzQ1NDE1YzkxODZiYTczMjhiY2UyYzMzODFlMWYzMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjMjI4NGNjYjkxNWM0ODdhY2FlNDg1ZWU4MmQyOThkYjIxYmJjNmQxZTE5MjhlOTNlZmRkYzQ2ZGI3MTAwNzcifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldConfig.cs#L9-L20",
+          "version": "repo-lines-v1:sha256:e84619a65cd9d0ffe803c747def2f1c69dd3c86202989005f9c793bca74465ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhYTlkOTNkNzYwNTQ4ZTYyODU5ZmNiZjM4MzE1YzhmMzRlMzdjMTc3MThhN2ExNjVlNzMwYWUyYjcxMzYwMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxYjBjNmM5NTQyMmEyYjc0MWY3ZTQ5OTk0MzRlNGIzNjlhYmM5NzVlNThjN2I0OWFiNjYzMGVmYmNiNDQzYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2MTA2YjhiYjgzM2RmOGVlM2EwZjgzNzYyM2YyNjQ1OGQ4ZDczYjhjZGI1MjZjNTUwMTQ1ZjYxYTNjMmQ2YjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ec8c2c83bb148f7a2eb626d9cc0716f",
+      "statement": "A pose is stored exactly as the clip bakes it — bone 0's world position and rotation, rest offsets and parent-local rotations below it — with nothing prepended and nothing reparented, because the character frame is derived from the stored pose on demand rather than baked into storage.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseExtractor.cs#L179-L197",
+          "version": "repo-lines-v1:sha256:abe3804d88f95ea2211dd1594c4eb9d9796f972fbc5159fd44b2d598d7720b8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmYTFlN2JiY2U0MDEzY2Y1ZGRhZmY3ZTIwZDRmYzJjMjVhZDIzY2U5ZjMxNjllYThmMTQwMzEzMGFiYzJjNjUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L9-L33",
+          "version": "repo-lines-v1:sha256:96f0aec7afe97dad3865cf8400bd0723fafb0eea03332131ae8878130f5f2ca7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MTBlYmNmYzU5MmFjY2ZlZTcwZWZkNzNkYmYyMGU0OWY2YWJiNDIzMTk5ODdiNTJlNmQzYzA4ZWVkZWY2NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxYmVhMTdiNmVjODI4MmRmY2Y2NmRkMTgzOGU3ZDdiMTg4Mzk3ZjYyMTJjMzIzOGNlZjAxNTQ1NTM2YTBlNWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b948b7b08ce34ab6b34fd162b6034991",
+      "statement": "PoseExtractor requires the pose skeleton and the clip's own skeleton to be the same bone tree and rejects a mismatch as the clip belonging to a different rig, and PoseSetImporter.Import skips such a clip rather than failing the whole extraction.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseExtractor.cs#L19-L44",
+          "version": "repo-lines-v1:sha256:4fd1da628933cdecf20dde8d98933b08e1a91c526bf306c18d1575ea64d77fd7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMWI3ZTcwZDdmOGUyOTE4ZWM1YjEzYmE4ZGExMmU1ZmM2Y2NiMWRmODNiMTg1NWJiNThiNDg3Y2ZmM2QyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZjkwNzFlN2ZlOTAwZTUxOGYzZWMxNzhkZGEyZWVlMTUxMTE0YTg0OTk5MGZmMzk4MmY3MGMwMTAyNTQ1YTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5ZWEzODdkN2NiNTA4NGZhYTIxMWE5MTg5MmUwYzE0MTg3YmI3ZGNjNzAzYzhmNTZjYzUwYjFjYzYxNzM5YzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MzA3ODJhMDk2MTA5NDEzMzA5N2E1Mzk1NTc5YjdjYTM4YTlkNjBiZDM0NDc5ZTExNzZlNGE0Y2ZkOGYwNTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae8c549add2b48b2b9e3eb845d0f0d22",
+      "statement": "Extraction registers one fewer pose than the clip has frames: the final clip frame is materialised only into an Allocator.Temp pose so the last stored frame can be given a forward-difference velocity.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseExtractor.cs#L19-L44",
+          "version": "repo-lines-v1:sha256:4fd1da628933cdecf20dde8d98933b08e1a91c526bf306c18d1575ea64d77fd7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMWI3ZTcwZDdmOGUyOTE4ZWM1YjEzYmE4ZGExMmU1ZmM2Y2NiMWRmODNiMTg1NWJiNThiNDg3Y2ZmM2QyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZjkwNzFlN2ZlOTAwZTUxOGYzZWMxNzhkZGEyZWVlMTUxMTE0YTg0OTk5MGZmMzk4MmY3MGMwMTAyNTQ1YTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5ZWEzODdkN2NiNTA4NGZhYTIxMWE5MTg5MmUwYzE0MTg3YmI3ZGNjNzAzYzhmNTZjYzUwYjFjYzYxNzM5YzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MzA3ODJhMDk2MTA5NDEzMzA5N2E1Mzk1NTc5YjdjYTM4YTlkNjBiZDM0NDc5ZTExNzZlNGE0Y2ZkOGYwNTQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseExtractor.cs#L46-L82",
+          "version": "repo-lines-v1:sha256:aa6cc7f53b3b1bee886243e210ca83572d0785c8d6880d1f25111a6e14bd5c1f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNzVmYzk2YWNhYjI5ZmM3Y2RmZTk2Y2Q0NDRiMzRkNjQ4MGUyMjhlMDQ1NGYxZTJkZGI3ZjQ3NTc5YTNmZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4OTAwMDY2ZTZhMzI2YjE5ZTE5NGZkNWJjMmVhZTQ4ZTcwMjNmNTY3MWQ4M2M1NzA1YzA1YjRlZWU1OTdlN2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjZWY5YmNkM2IzNzI3NGQxODA4NmFmM2ViNzcyMmRlZTU3MWJhZWM4NDVmYTY2ZmRhZDY3YzE0ZTMwNjg5YTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e98da5ce9a7a48d1821458a41dff5491",
+      "statement": "Foot contact is detected by thresholding the contact bone's character-space velocity against IPoseSetSource.ContactVelocityThreshold, with no ground-distance test, and is then median-filtered with a window radius of 6 frames to remove short spurious contact and release regions.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseExtractor.cs#L221-L231",
+          "version": "repo-lines-v1:sha256:57fc20a1d4aae040b2eee1b34b0693088176af60a09dda621f889c91a17a36d7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyZGE2NjIwMTM1MDkxYjlhYWZjMTg5Nzg3OTNhZGUyMDczYTNiNGM4N2E3NDUwZDA2Y2Q4NmY0NjFmYWZlOTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e097116d55fb44c9ac6e5a67a88d7d5a",
+      "statement": "The contact-detection bone is resolved by preferring an explicitly configured bone name, falling back to the BoneNameConventions heuristic, and finally to bone index 0 — the last step being a compatibility fallback that preserves the legacy behaviour of defaulting to the root joint on failure.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseExtractor.cs#L85-L102",
+          "version": "repo-lines-v1:sha256:efc4ccbad6be349c8f273d051e893ab3635ba647a109ffe92d0aabd0e36f4607:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MGVhYTY2ZTVlMzFjNjE1ODAyN2Q3NjQwYzdkYTRhMjNjNDhiNDM1NGQ1MWM1ZDk1YzExMDdkNDBhYTU2Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYmJiMTUwYjIwNjE1YjdjZmZmYjQ3YTlkZThlZjc1YjQ5OGE3Y2E2ZmNiZWM1NjQxZjQ0N2NjODQ1NDcwZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9a2f66fcfdd840fc8a94f3016296c6cf",
+      "statement": "PoseSet storage uses Allocator.Domain and is never disposed — an outgrown buffer is abandoned to the domain after its contents are copied — so PoseSet.Dispose releases only the tag arrays, because pose sets are shared between consumers.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L139-L159",
+          "version": "repo-lines-v1:sha256:0a36a6f87b097670853cd8a34a41342619c8dc208f102e5dfdb2022d69670c24:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3Nzk0NTZhZWNkNTBjNjdkNDljODgxZDE5MjAwYWI1NDU2ZTIxNWQwOGExMDk3YjAwZjYyZjY3MDNkNjMxZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3YzViYmRkMTY2MzcxNzdkNjkxZWY1MjczZGIyYzg1ZWFiYWYxNWNiM2M4MTJhMDk2YjVhMTRiYjU1MjQyYzYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L289-L300",
+          "version": "repo-lines-v1:sha256:39087bdb34c3288982c815d3e93bea7f07638ea4594933623c2d9336a920c89a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmODJjNDY4MGEwMTRkZDdlYzc1N2MyMjU2OGY4YzkxZGM1YThhNmRmZTI5ODk1NTRhNzBmNzM1MjA4NTU1ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1OTBlODVhNWY0MGJlYWVmYjBjYWZhNGFlMmY1MmE3YmU5OTRjMmMwNGFjNTk3ZjVlNmRjOWZjY2QwYTdkM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxMGM3M2MzNTRjNzg4ZGI2YzllMmNlMmU1YzNkMmIzMTU2MzZhNGYxY2Q1ZmY1ZjJjYjg1NmUwOTI0YmY4NDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5996ff0091c446b1b91169ef9b8d17ed",
+      "statement": "A PoseBuffer obtained from a PoseSet is a view aliasing the set's storage and must never be disposed by the caller.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L96-L127",
+          "version": "repo-lines-v1:sha256:9d56f9a40dfc7d287fe5dd8bf34263a298457026f703dd4a3e5810a021e977bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1MjIzZTUyYTUxZmU2ZTdlM2M0ODM5MzBjNTlhNTFkZDI2ZjBkZjQ2OTgyOWYwMzZiYjdjNTAyYzBkMzZjOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3OWM3NmQ3ZGQ1NjU1YzA3NjZmMjNhYWE5YWU3YmM3ODY1ZWY2NWE2MmMwYzM5Njk4NmJkZjFhYzhkNjc2NTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1a1461a9e5554a7d8c7fa08c65ca9770",
+      "statement": "PoseSet documentation refers callers to an EndClip method that does not exist anywhere in the codebase; the only real write paths are BeginClip and AppendRawFrames, the latter used by deserialization because it appends frames without clip or tag bookkeeping.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L96-L127",
+          "version": "repo-lines-v1:sha256:9d56f9a40dfc7d287fe5dd8bf34263a298457026f703dd4a3e5810a021e977bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1MjIzZTUyYTUxZmU2ZTdlM2M0ODM5MzBjNTlhNTFkZDI2ZjBkZjQ2OTgyOWYwMzZiYjdjNTAyYzBkMzZjOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3OWM3NmQ3ZGQ1NjU1YzA3NjZmMjNhYWE5YWU3YmM3ODY1ZWY2NWE2MmMwYzM5Njk4NmJkZjFhYzhkNjc2NTAifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L9-L33",
+          "version": "repo-lines-v1:sha256:96f0aec7afe97dad3865cf8400bd0723fafb0eea03332131ae8878130f5f2ca7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MTBlYmNmYzU5MmFjY2ZlZTcwZWZkNzNkYmYyMGU0OWY2YWJiNDIzMTk5ODdiNTJlNmQzYzA4ZWVkZWY2NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxYmVhMTdiNmVjODI4MmRmY2Y2NmRkMTgzOGU3ZDdiMTg4Mzk3ZjYyMTJjMzIzOGNlZjAxNTQ1NTM2YTBlNWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_77138c9ccbda42e9afc827f534e0dbbb",
+      "statement": "Animation tags are never populated during extraction: PoseSet.AddTag is private with no callers and PoseExtractor never reads AnnotatedAnimationClip.Tag, so a freshly extracted pose set always reports zero tags and tags can only arrive by deserialization.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L96-L127",
+          "version": "repo-lines-v1:sha256:9d56f9a40dfc7d287fe5dd8bf34263a298457026f703dd4a3e5810a021e977bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1MjIzZTUyYTUxZmU2ZTdlM2M0ODM5MzBjNTlhNTFkZDI2ZjBkZjQ2OTgyOWYwMzZiYjdjNTAyYzBkMzZjOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3OWM3NmQ3ZGQ1NjU1YzA3NjZmMjNhYWE5YWU3YmM3ODY1ZWY2NWE2MmMwYzM5Njk4NmJkZjFhYzhkNjc2NTAifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseExtractor.cs#L19-L44",
+          "version": "repo-lines-v1:sha256:4fd1da628933cdecf20dde8d98933b08e1a91c526bf306c18d1575ea64d77fd7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMWI3ZTcwZDdmOGUyOTE4ZWM1YjEzYmE4ZGExMmU1ZmM2Y2NiMWRmODNiMTg1NWJiNThiNDg3Y2ZmM2QyMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZjkwNzFlN2ZlOTAwZTUxOGYzZWMxNzhkZGEyZWVlMTUxMTE0YTg0OTk5MGZmMzk4MmY3MGMwMTAyNTQ1YTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5ZWEzODdkN2NiNTA4NGZhYTIxMWE5MTg5MmUwYzE0MTg3YmI3ZGNjNzAzYzhmNTZjYzUwYjFjYzYxNzM5YzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MzA3ODJhMDk2MTA5NDEzMzA5N2E1Mzk1NTc5YjdjYTM4YTlkNjBiZDM0NDc5ZTExNzZlNGE0Y2ZkOGYwNTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fa56156b0ee243ce89d8dfc1d17c8990",
+      "statement": "All clips in a PoseSet must share one frame rate, asserted on both the extraction path and the deserialization path.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L96-L127",
+          "version": "repo-lines-v1:sha256:9d56f9a40dfc7d287fe5dd8bf34263a298457026f703dd4a3e5810a021e977bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1MjIzZTUyYTUxZmU2ZTdlM2M0ODM5MzBjNTlhNTFkZDI2ZjBkZjQ2OTgyOWYwMzZiYjdjNTAyYzBkMzZjOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3OWM3NmQ3ZGQ1NjU1YzA3NjZmMjNhYWE5YWU3YmM3ODY1ZWY2NWE2MmMwYzM5Njk4NmJkZjFhYzhkNjc2NTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_881a27c22b6748348e2708bbdebb8536",
+      "statement": "Validation of a pose-set source never logs, because inspectors call it on every repaint; extraction logs instead, and the pose set is returned as null when validation fails so the caller can report through the inspector.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSetImporter.cs#L101-L131",
+          "version": "repo-lines-v1:sha256:841a415194885ffd3f235192a52ce28093011ca096abbdf9662c47459e564b5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxNzU2YTM0ZWVkMWNiZmQ1YWVlZWMwYmVjN2NmZTgwMjFjMDU5OGU0OWM1OTZiMGE4NDU3NjhlM2Y4MDFlZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2ZWNhZGViMzU3MTQ3ZGQ3NWExZjA2MGQ5OTAxODgwNzA2YmYzMTdiMzNkYzMxYjVkNzg0ZTVhOGNhNzFkZjUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

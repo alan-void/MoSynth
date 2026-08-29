@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:91cddf8cb824b5c7d96dc5efcc21e18fed7730f7c5b4837fce82afbe2654ed84",
+  "claims": [
+    {
+      "id": "claim_9a9892898b414938b24e09bea97be954",
+      "statement": "The packed pose array is row 0 the character frame's position, row 1 the rig root bone's position within that frame, row 2 the frame's rotation, row 3 the root bone's rotation within it, and rows 4 onward the remaining joints' parent-local rotations — a four-slot header, not the two-slot root-and-hips header some parameter docs describe.",
+      "evidence": [
+        {
+          "resource": "repo://Python/MotionField.py#L12-L14",
+          "version": "repo-lines-v1:sha256:271fe9c8b6df1ede2216f2622a0349137b30187adf46a2d82eba48cdd737c30e:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjhlMzY1ZDYxZGEyNTdhOWUxYzE4YzFjNjcwYmRhN2RkYjk2YzBkZGRkYzljYzExYmI1ZDZjODg0NzAzZTQ3OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTU1Mjg3YmZmOTQ4NDIwNTA1ZjA2ZGMxOTYwNGVhNGNkZjczZjBjMjM1NGUwZmVmZmYyOTY3YmQyNDU3MzM0YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjA5M2YzM2Y4YjZiZDdiMmQ1ODQyYzQ5Y2I4NWMxMzcxYWYwYzkzMDk1MTA4ZTQ3YWFiN2MxZDE3ZDJlNTExOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDNlZDYxZDBjYTQ3OTc1ZmE2MDQzNzM1MjExYzI0YTNhNjk4YzRjYmRjYTE0YjNiOGQzODI2NjM2ODAxOTBkYyJ9"
+        },
+        {
+          "resource": "repo://Python/action_predictor.py#L116-L133",
+          "version": "repo-lines-v1:sha256:0675af45a06cc8a167ef20904d0f73c3ea124c227161e63e45995605cc7e9671:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDhkOGZhNmE5N2ExMzM4YTFlZDI4M2ViNGJmZTNhNTI3MzVhNjAzOTZlYTBiMWM2MWQ1MjljNzJkNjZkY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliMzcxOGVmMzg3ODYwNjY0MWU4ZDczMGI3ZTI0NzEyOGEzOTA2NTVhYmQ3NDg3NTI0MzExODBlNGJmMmI0ZjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3MTI1NjgxYzI0NmQyMmNjMDJkYjcyNDk3NWRjYTQ0MDc3MDFjNDczMWJhODdiMWNmODg1Yjc2Y2U2ZDdkZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkMWQ1Njk2MjBjNTI4ODAwZGNjZTRhOTM0NzM2YjUyN2RjZWJkZDE0NDMzOWJlZDIzMzg0OTU2MTM2YWFjODkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a116dc7f4b464bd092759d2ecf66ec93",
+      "statement": "Pose.py names slot 1 hips, but every consumer treats it as the rig's root bone rather than a Hips joint; the shipped database's bone 0 happens to be named Model:Hips, so the legacy name coincides with reality for this rig without being what the code means.",
+      "evidence": [
+        {
+          "resource": "repo://Python/Pose.py#L10-L34",
+          "version": "repo-lines-v1:sha256:63242f2613e177445539dcbfec9cfc57589c9f55ecd3bb550068a45c7aba21cd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViZWQ3NzU0NGQ3ZTk0MTMzMzFjMGI0ZjNkMzQxM2Y2ZjEwZTk3NzM0OGQ3MDg2MTQxN2I0OTJiMGNhMjM2MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyYzQyOWQ2OTczMWM2Nzc4M2E4NmM2YzMwYWQwNDBkMGU2NjBkMjY2YWY1ODY0MGRjNTViZjFmOTcxMDAwYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiM2ZiNmE2N2Q1OGQyZTc4YTkwNzcxY2ZhNzg2OTZjZWVmOGNmOThmMWVmYjk0NDg0YzBhZmNkNmY5NTVhZjIifQ"
+        },
+        {
+          "resource": "repo://Python/Skeleton.py#L45-L66",
+          "version": "repo-lines-v1:sha256:cc33655c4dc2aa85ef9fdb9a06699a8a3a301f6435ac460b518a3b1b4bbaf460:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4YTQ2ZjRhN2EzYzk3YmEzOWRhZmJmMThjNDE5NGQ1YzZkMmEzMmQwZjM2Y2JlODYxYmY5MTAxOTg2NGM3OTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMWZmYzZjNzFjM2FiZjUwNTc5ZWE4OTA2NzFjZjczMzgxYTVhYzIwYWYwOTE4NGVmNWY3MWYwZWFhMjIwZDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlkYzE4Y2I2MWM2M2I1OTMxMjkyYjQ4Y2Y2YmUwMDc2NDIyOTI4NWI0MThlNTA3ZTRmMTUwYTQ3MDBlMzA1ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkYWJjNDZlNWNjYjdmZmZkODU1YmQxOTg4ZDZjMmU0ZmZmMTAxNTg3NTRmY2RlMjQ3MjdkODFjMGE1NzM1ZGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_660e5ba9d21d4aea859387c3fb90e0c0",
+      "statement": "Angular rates are kept as rotation vectors rather than quaternions because a unit quaternion can only carry a rotation below two pi and scipy canonicalises it further, so round-tripping a radians-per-second rate through a quaternion silently aliases every joint turning faster than pi radians per second — about 2.6 percent of this dataset, of which the majority come back pointing the opposite way.",
+      "evidence": [
+        {
+          "resource": "repo://Python/Pose.py#L192-L215",
+          "version": "repo-lines-v1:sha256:2c0415723a4aa01ee3109a2a13ba78f4aba190c8fccec28cfdc4bcd3fa30171a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5Y2IxYWJjYTQ0ODBiZWFkMjFiNTc4YzE3MDI0NTMwYjVlYjRjMzRjY2EwYTQ2MTk1NzBlYjY0ZTk2MDUzY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4OGQxN2QyNTEwODAzMmI1NjZmMTIxNGUyOTE4YjQwMGNlYTFhOGZmZjIyM2M4Y2NiMDQ5NWRhNTQxZDNmMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5MjljNWJhM2Q0MzQ0NTY5ODk3MzFlZjMxYzcxNjE2NDVjODU1ZTJiYTRkYzg1ZTIxZTI1OGNlOTM0MmE2MTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b42196d2437f401f817f1a0d73a5d9ca",
+      "statement": "The character frame is reconstructed on the Python side rather than read from the file, from the same structural definition the C# side uses — reference bone zero and the bone-local axis that points forward in its rest rotation — which keeps one skeleton for the clips, the database and the rig and makes the frame exactly reproducible on both sides.",
+      "evidence": [
+        {
+          "resource": "repo://Python/simulation_frame.py#L1-L22",
+          "version": "repo-lines-v1:sha256:ca13049528ef42e3ce075e496d07ff6ab65451f1da2dc621894c73653b334c13:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        },
+        {
+          "resource": "repo://Python/pose_set_importer.py#L35-L50",
+          "version": "repo-lines-v1:sha256:293cc7321897ba0c4c980f52159a4aff85a50a799ccf88b8c63dc52226397783:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4MzIyNDI4ODE3NmNjZWMzZWU0MTcyMjJkOTNhOTBlYTZjZTdmYjFiYWI1NjMwMjNhN2RlN2I4NTM5MzgwNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MWYzMDNhNmMyYjE2ZGE5M2Y0Njk5Mzg5NzQ4M2QxNzRkNDBkZWM3NzNhZjI0ZDVlNDFiMTgwY2JmMTYzNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGVlMWM4Y2NiM2JiYTliZTRmMzUyZjQwOGFhNTAxMTZhOWQyMTIwMTU2M2U1NDQwZmY4NjFkNDEyNTlkYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e8489ef7d10a423191314842eafb06fb",
+      "statement": "The skeleton block is read from inside the pose file because the Python side has no ScriptableObject to read the bone tree from — names key the per-bone weight table, parent indices drive FK, and rest offsets give root-space positions — and keeping it in the same file is what stops the two drifting apart, which a separate skeleton file previously allowed.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pose_set_importer.py#L35-L50",
+          "version": "repo-lines-v1:sha256:293cc7321897ba0c4c980f52159a4aff85a50a799ccf88b8c63dc52226397783:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4MzIyNDI4ODE3NmNjZWMzZWU0MTcyMjJkOTNhOTBlYTZjZTdmYjFiYWI1NjMwMjNhN2RlN2I4NTM5MzgwNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MWYzMDNhNmMyYjE2ZGE5M2Y0Njk5Mzg5NzQ4M2QxNzRkNDBkZWM3NzNhZjI0ZDVlNDFiMTgwY2JmMTYzNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGVlMWM4Y2NiM2JiYTliZTRmMzUyZjQwOGFhNTAxMTZhOWQyMTIwMTU2M2U1NDQwZmY4NjFkNDEyNTlkYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_940ccb6779e94b59af530202ef23869d",
+      "statement": "Expressing a pose in the derived frame removes exactly the translation and yaw the motion field must not see, and applying it to an already frame-local sequence is the identity because the reference bone's own horizontal offset and yaw are zero by construction.",
+      "evidence": [
+        {
+          "resource": "repo://Python/simulation_frame.py#L164-L204",
+          "version": "repo-lines-v1:sha256:8ba3d54b7daa9e4e48b8b1cb0fe3961e0f4cae37d469e903b361025d0977f12b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1OGU1OWNlNzUxYTBhNGNlYmYyYzMwNTY3Zjk5MjY0ZDM2MmQ2MWQ1YTdmYzRlM2NlZmM2MDY3NjY3ZTYxMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2NWQxMzU2OGYzNjk1N2M2OGJjOWRiZTQ5ODgwYmVhMmIwMTI1N2ZkMDM4YmVkOWE3MzQ3YWEwYjIxMDUxMWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlMjljMDRkZmMwYThhN2M1NmM0ODQzNzI2ZDZmNTRlODhiZWViODlkMmM1NWQzYWQ0Y2M3YTBhMTliMThlN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyZTg4MGUxY2RlZTI3NGU1OTExYjZlZWE0ODhjNmU3NTI5ZDczZGJjNmE1ZmFmMTAyYjE3ZTkwZjBlZTRiZDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_46889fcfb4934f0ea94763562af44975",
+      "statement": "Every stored pose has a velocity including the last of a clip, because the extractor samples one frame beyond what it stores; stepping the last pose by its own stored rates inverts that exactly, which is what lets a derived rate exist for every stored frame rather than for all but the last, and keeps rates aligned with the poses rather than lagging them.",
+      "evidence": [
+        {
+          "resource": "repo://Python/simulation_frame.py#L247-L265",
+          "version": "repo-lines-v1:sha256:72744a3f57fad5049083d788554a603e80beda3fce6c530811fb44a08df09345:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZWIyNGMyZGQzOGFlNGNhMzZlZDJkNTk3NDYyYTY5M2VhZDU1NGZkOTlmN2Q5ZGM5MzhhMDdjMGU5N2Q3ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjZjU4YTA0OTVkZGFkNjI0MDVmMWNjNDJiM2JkMGI0YzY2ZWFiOWZiMDVkYjFlNzc2NTIzNmZiYzRmYjY4NGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3ZjMwNDA0YWMzMmNlZDk4YmRjNjQ5ODMzNjNhOTljNmFhYTFmYTIzNjQ4ZTg2MWIyMzdlNjhjM2E1ZGMwOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxN2ZkZGFkOGMyZmNhYmNkMjY4ZDZiMTJjNGE5NmMzYTA5YTdjNGM5M2I2YzE4ZGI3ZWYzYzcwZmE2YzY2MDQifQ"
+        },
+        {
+          "resource": "repo://Python/simulation_frame.py#L268-L316",
+          "version": "repo-lines-v1:sha256:dab25dad1ab37a268c9a9e453e35265c932c80195d283cc9e91ad57c6f9050a9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5ZGFkYzE5OWQ4MmU4ZmY4NjIxNjU0ZTBjMTE5NjU1ZmVjNGM3ZWMyNzUyYjlmNzgwZTc3MWMyY2MwNjQ2YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiYjI3MDg3ZDRiNThjZmJjMTJmZDQ4N2VmMWUwOTcyYjc4Y2M1ZjM2NDg5ZTYwMjUxNzE2MWZjYmNjNjIwNDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzNWU1MjJkZGUxNmFmODA1MzI3MGRmZTNkZGIyODRjY2RiZTQ1YTJhNWQwZjM3MTczYjFmNzU4NzZmODU3NTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e487db9dadc7489c80ddc06e537f877d",
+      "statement": "Frames are indexed globally across the database, so frame i plus one does not continue frame i across a clip boundary; the clip table is what maps global indices back to individual animations.",
+      "evidence": [
+        {
+          "resource": "repo://Python/Animation.py#L6-L36",
+          "version": "repo-lines-v1:sha256:e57825f65440fac715cb2297c6192b65ef8eb7cc49145a3658df86bb5c5062b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZWRkNjE1NGRlYWFjMTFjMjIzZjg0ODU1YmNiOTIzY2VkMmE3ZTAwMjNkZGM5NTIxODVmYzVkOTQ5NmY4MDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg0MGM3NWU4NTc5MjlkZGJmZTAwYmFkOTRlMTFiZTE5MWFlMmRlODMwYTBhMjIyNGI4ZmJhNmExMWM3ODJhOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhOTUzZTBhZWZlNjliMTQ2MjJkY2I0OGY1MmI1OTk5MDIyY2E1ZmFhNTRmMjM4OTFjYWY4ZjM0YWNjZDViNTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a057bfec74e7468091730a583827f8ca",
+      "statement": "Neighbourhood blending uses normalised linear interpolation rather than spherical, because spherical interpolation handles only two rotations while blending a k-nearest-neighbour set means combining k at once; signs are aligned against the first quaternion first, since q and minus q are the same rotation and without that two near-equal neighbours can cancel instead of reinforce.",
+      "evidence": [
+        {
+          "resource": "repo://Python/utils/quaternions.py#L1-L26",
+          "version": "repo-lines-v1:sha256:5318e472a5a2279c3fe79c1d1df8a565d914f4cd5baabfa4f95c4f3a2be71bf8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NWQ0NTg5ZTkxY2M4Y2I5NzQ4ODlkYWIwMWRlMTVkYjE1NzRjYTEwZWVjNzI5MGExMDliZjU4OGM5NGUwMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmODczZThlZDA1N2RiZmM5ZGJkZTA3NWI1ZTQ3MmU5NWE3MjMzZmJjODBiYzY4NDI3OTJhMmQyMWJiZmNmZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5MDcwMjllMDRjNWZiYmEwZjllYjg4Y2I4MjI4YWExNzYxOWEyM2VlNGVmZmRkMmNiYTZlMTZlOTExNjJlMjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_08bf8387648f4e5ca7356ecd6c6683c0",
+      "statement": "In forward kinematics joint 0 is the character frame, pinned to the origin with identity rotation, which is what makes the result independent of where the character stands and which way it faces; joint 1 is the rig's own root bone and carries the translation the pose stores.",
+      "evidence": [
+        {
+          "resource": "repo://Python/Skeleton.py#L20-L45",
+          "version": "repo-lines-v1:sha256:2fb2a8e449c9a41434b3e0613bac9e409db7a2af02b0e3fd2f98c7999d850332:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3N2I2YWRhMThhNjBhNDRlNDU3ZTg4OGM5MWE5MzFjNzhkOTU5MGI0Mzk4ZjYxZjZkMTg0MTBkMDk2NGZlYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4YTQ2ZjRhN2EzYzk3YmEzOWRhZmJmMThjNDE5NGQ1YzZkMmEzMmQwZjM2Y2JlODYxYmY5MTAxOTg2NGM3OTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkZGEyZTkxMDZkZWQzYmQ4MThlYmExYTJjMzhlZTI5OTc1OTFiOWQ4NTZkYzA4NTkxNzdiODlmY2QzOTRlYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjNmY0MGUxZTE1OTZlNGJmMzhkMzVmMTc5ZjE2OWY4MWEwZGU0NGFlZmI0YzY2ZDI1ODViNGYxZDQwODE3ZmUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

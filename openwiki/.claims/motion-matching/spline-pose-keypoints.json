@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2d08ae8f86c7be1ae5a4372ccf67f4aff4198a8192e80e641af087d684691669",
+  "claims": [
+    {
+      "id": "claim_12abe590ef29418b85e1a78e26ac2027",
+      "statement": "A SplinePoseKeypoint builds a spline from a clip's root trajectory and remembers which pose the clip held at a configurable frame interval along it, so a bone's constraint target is that frame's bone position expressed relative to the keypoint's own simulation frame and re-anchored onto the spline's frame.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L11-L41",
+          "version": "repo-lines-v1:sha256:29bfbfbeaae313f0ca6e0d970c10cbc33bcd276a437d50a158d85abbfbf35b74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzMDI0NWNhOWQ5NzlkODg1MTA2OGEyNDE4YTU1MGQ3NTJiZTI3MTYzZGFiNDNhMDU0MjQwMDA5MTQ1ZDMwNWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_33d637fed72f4fb7b0bdd1c8105320bd",
+      "statement": "Facing is stored explicitly rather than derived from the path tangent because the bone offsets are expressed in the clip's facing-aligned simulation frame, so re-anchoring a strafing or backpedalling pose against the direction of travel would place the feet rotated about the character.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L11-L41",
+          "version": "repo-lines-v1:sha256:29bfbfbeaae313f0ca6e0d970c10cbc33bcd276a437d50a158d85abbfbf35b74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzMDI0NWNhOWQ5NzlkODg1MTA2OGEyNDE4YTU1MGQ3NTJiZTI3MTYzZGFiNDNhMDU0MjQwMDA5MTQ1ZDMwNWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bb5fa9822b5343d3b7024036841f143f",
+      "statement": "Facing is stored as a signed yaw offset from the tangent rather than as a bare world direction, so a keypoint reads as thirty degrees off the heading here and a thirty degree strafe stays a thirty degree strafe relative to whatever heading the path has at that point.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L11-L41",
+          "version": "repo-lines-v1:sha256:29bfbfbeaae313f0ca6e0d970c10cbc33bcd276a437d50a158d85abbfbf35b74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzMDI0NWNhOWQ5NzlkODg1MTA2OGEyNDE4YTU1MGQ3NTJiZTI3MTYzZGFiNDNhMDU0MjQwMDA5MTQ1ZDMwNWQifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L76-L86",
+          "version": "repo-lines-v1:sha256:1e42524a841246fc5791a2325da91cd8413b640c934117c891adbc6b48e25eb2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2ZmIzYzg5YmE0ZDViYzJmNGZhZTg1NTM2OTg5MWQ5ZjA2MGI0ZjFhOTA0MDg2MzFlYTVkYmQ1NTRiMTQwZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ZGQyZTQyY2Y1NjFlOTM4ZTEwM2M3ZDU5N2QzOTkyNThkNGFhNjBlODA1ZDdjYzYyZGJkMTRmMWNlODg5MTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmYzUyMGMzN2M4NDhlMWE3NWQzYWExNmIyOGExNDIyOTJjYTAwOTRmMWVhMzUzMzE2ODM0NTJjYjhlNzExZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1327b1f3b7034642b43bdd0a32e63e37",
+      "statement": "The GameObject's transform must be unscaled and upright, which is what makes the stored yaw offset — measured against the local tangent at build time — valid against the world tangent at query time.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L11-L41",
+          "version": "repo-lines-v1:sha256:29bfbfbeaae313f0ca6e0d970c10cbc33bcd276a437d50a158d85abbfbf35b74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzMDI0NWNhOWQ5NzlkODg1MTA2OGEyNDE4YTU1MGQ3NTJiZTI3MTYzZGFiNDNhMDU0MjQwMDA5MTQ1ZDMwNWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d3b523d8a384490d893078a95825bda3",
+      "statement": "The path and the keypoints are generated together from the clip in one pass and held un-serialized rather than the path living in a SplineContainer, so they cannot describe different curves and there is no editable copy for anyone to drag out of agreement — an emptied container previously sent speed over length to infinity and a NaN parameter into every downstream evaluation.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L11-L41",
+          "version": "repo-lines-v1:sha256:29bfbfbeaae313f0ca6e0d970c10cbc33bcd276a437d50a158d85abbfbf35b74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzMDI0NWNhOWQ5NzlkODg1MTA2OGEyNDE4YTU1MGQ3NTJiZTI3MTYzZGFiNDNhMDU0MjQwMDA5MTQ1ZDMwNWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bcb919f59b884303bfffae8e87041e02",
+      "statement": "Keypoints are placed by arc length between their bracketing knots rather than by projecting them onto the curve, because nearest-point projection is ambiguous wherever a path crosses itself while the correspondence is already known — the curve passes exactly through the knots — making the placement monotonic by construction.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L246-L250",
+          "version": "repo-lines-v1:sha256:4466140e9716eabd020f93896f6d42c6340c1fc892c255a82916a30848903113:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MwZmZjNDE2Yzg2ODRmMGVhNWU4M2ZhNDE1ZmMxZDUxNDVhMThlZmRiZWY1NDc0ZWJkOTE1OTdmM2Y5OTZkYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjdjNmZiMTQzNmI2MzQ4MjliM2Y3MTkxNDVlNGQyNDM2ZjQyM2UxMGJkNzU5MTk1NmNlYjdjODhkNjk3YmE0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGE0ZjJlOWJhMThmYTYzNmVjNWFjMmUyOTk5OWY5OTcyM2ViZmY2NTQ3ZmQyOTRlNzc2OWNlMTgwNzQ0MjRhZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2eee50e435ad4f0cb876891011c2ccf2",
+      "statement": "Knot density is independent of keypoint spacing: knots are fitted by Douglas-Peucker simplification to a metre tolerance so they cluster through turns and thin out on straights, and because the retained samples become AutoSmooth knots the fitted curve bows through them and deviates somewhat more than the tolerance — it is a knot-placement control, not a hard error bound.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L367-L376",
+          "version": "repo-lines-v1:sha256:4ff6b5f1a3789b505a9369f72d222cbfb19af623f547237ce39fa13a0d055ae5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYTM0NGM2Njc1YWU2MWEwMGQ1NmYxODczNDg4YTQyNmZkMDdlOTQ0OWM4ZmM2Y2EzMDI1ZTJiZDg2NGQ3YjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlMWQyNmFjNTJiN2U0NWUzNWU0YjZjNzZjY2QyNmM0NGE4MTdkNWM3OTk3OWMzN2JmOWVjZTg3NzkxN2JmYTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eac222048704465ea2cad99279ae53d0",
+      "statement": "Bone trajectory channels switch on only when a prediction horizon lands within an activation window of a keypoint; away from keypoints they stay off and the stage weight-masks them, so the input behaves like plain spline following.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypointControlInput.cs#L8-L28",
+          "version": "repo-lines-v1:sha256:85cef028b1571f5a383a9af022e39ed9e51ce5146b6fcb09debc23c11f17189c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0ZTlmY2VlMzcyZjUwNWYzNzA2MTJjYmIxNmU1YmFlYmIyMTFhMWZhYTI0ZmQwODk0Yjk1M2YyOWE4NDA4NzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_54a3c9f51c7a4306ba61d4d0bd05c53c",
+      "statement": "The keypoint control input converts bone targets to character space by hand — yaw-only rotation, ground-projected origin, absolute height retained — rather than using InverseTransformPoint, which would subtract the transform's height and apply its scale; this diverges deliberately from every other trajectory feature in the codebase.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypointControlInput.cs#L93-L120",
+          "version": "repo-lines-v1:sha256:81ba1d0cbd9b59e6b368495d7713e495d6c856aaabaced438ef273270e79dd7a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzMGJmYjU3ZDA3M2NkYWZmMGVhNjhiZjc1ZWE1NWI4NGY4NzUzMjc1ZjMxOTY5NTUyNjliNzBkMDYyNTMzZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlMjk0OGE2ZTE4OGVmNGU5NGQzNDI3NWMwNWMzNDhmMmUxYjVlYzYxZTVkYTk5Mzk2YmY0ZjYyYWYzMjYxMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3Y2I0YjNmNDBmYTI0ZTc1NGJjNTVlNzM0ZmFlYTI3YzFjZWY1YjFiZDJiNTM0YzY4YjQzNjM3YTdkMDlhZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f18415c60d6b413491acfbed5931dbbb",
+      "statement": "The keypoint control input's SplineContainer property is always null and refuses assignment out loud, because the path-following harness and the benchmark driver push a container into every spline input they find and that must not look like it changed where this one goes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypointControlInput.cs#L51-L76",
+          "version": "repo-lines-v1:sha256:d7d415a3f94034426db8bb92c0818d2f5dbb553706b276679da9283b361e2488:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA1ZDMwODFjZTkzN2RmZGFlN2Q3MWIyNTAzYmU3ZTdjYjVlNmIyMjFlNWMwMTk2NDM1M2NiZGFlMGQ0MGE0MTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNWExZTMzODgwYmY3NDYyMTI2ZTMzZWVhMWE0MGNhOThhODY2ZGYzZWUyMTE4OWE3MTc0MjQwODE5YmNkOGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_acef88063f404dc6bc7f6558b57ae04f",
+      "statement": "A keypoint pose lookup answers nothing rather than solving when the clip's bake and the rig disagree on bone count, because the two are invalidated by different things and letting the FK pass index one by the other's count would throw during a gizmo repaint.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplinePoseKeypoint.cs#L474-L477",
+          "version": "repo-lines-v1:sha256:60537b93fc4114f8f6b894d827c9bb81825c3442ea5e9801b7a0ac367db96d0b:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjRhOTYzNzYyZDA0MDk2ODM1MTBlODUxZTVmZDc1NDI2NTg5ZTNmYWYyN2FkN2ZlZmM5NTE5OTMxMzI2MGMzMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDBmMWM3OWMwMjMxZjYzYzUyZDFjZDZiMWExYjNhMTVhMjliZjc5YjRmNjFkNDU3ODRmZDgwNmY0ZjUyM2Q0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDIzZDk3YjJmMWY4N2NhZmE0ZTNiMWIzNzZmMjNlNjlkY2Q3YzA0ZWQ3ZDcwZDZhZjQ1ZmFkOWYyZDhiNzgxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjk4NzkwYjFlN2Y0ZWU1ZTk1NjBiZGRmNWVjMTA2OWVlZDU0ZjZmZmI3YTFjMjhhYWRkMTAxZTNmNzlmNmYwZiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

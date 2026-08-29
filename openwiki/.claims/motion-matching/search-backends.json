@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:d0246ac90554952875a8ea7dd7c24a0cf2d80a9d0406d2c1d2c2a60f7bc13851",
+  "claims": [
+    {
+      "id": "claim_7799451bed774aee9c0c0016a6dac5a3",
+      "statement": "Every search implementation must use the same distance metric because the caller compares results against a distance it computed itself, but this is a contract rather than shared code: the stage's SqrDistance has exactly one call site and neither Burst job calls it, since a job cannot take a ReadOnlySpan — both re-implement the weighted sum of squares inline.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingSearch/MotionMatchingSearch.cs#L7-L21",
+          "version": "repo-lines-v1:sha256:6987693c84315905ec2da6552e7b00c71655ebd60bd1dfbf2a57ccb5e76e122a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4MzE4NTIxZTRmM2RhYTE1NTk3YzcwOTMwYmI0MWRjOTQ3ZmNmMzY1ZTNlMTMxNzhjZWZmNzVmOWFkNmNkNTgifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L240-L254",
+          "version": "repo-lines-v1:sha256:918e08dd28752af775e19f3ce95dd9347a46ea10c5c8141acad365d8a57039c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5MzU3Nzg3OTViMmYzYWNlOTcwMzcyMTY4YThkZjc3NjZkMTRiOWE2MzVmZWQ1YTRkNGNhMjhmYzRhYjkwY2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_64005cec6d964ec78ca97f0d609cf098",
+      "statement": "The metric is squared rather than true distance because only the ordering matters and squaring lets a search abandon a candidate early.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L240-L254",
+          "version": "repo-lines-v1:sha256:918e08dd28752af775e19f3ce95dd9347a46ea10c5c8141acad365d8a57039c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5MzU3Nzg3OTViMmYzYWNlOTcwMzcyMTY4YThkZjc3NjZkMTRiOWE2MzVmZWQ1YTRkNGNhMjhmYzRhYjkwY2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_33c37848de9a459d8eb058e665f2ed9d",
+      "statement": "The brute-force backend is kept deliberately as a reference implementation with no acceleration structure to get wrong, and its inner dimension loop forgoes even the safe early exit so that it cannot diverge from the accelerated backend for a subtle reason.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingSearch/LinearMotionMatchingSearch.cs#L8-L25",
+          "version": "repo-lines-v1:sha256:d03891272ef21f83feeac06c11d64fa11794302689a3b6c82421bb978e868d41:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc1OTc1ZTI3ZDU2ZGY4ODQwMWZlNDY3YTI4ZjU3YzUxNThkZGE0Mzc0MTQ4NWY1ZGI4YWUyNmQ2MDMyZmY4MTYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/LinearMotionMatchingSearchBurst.cs#L10-L18",
+          "version": "repo-lines-v1:sha256:1acea935160903f71b134abcdfd04a98c5870055d1e0538d6c46b902adc33e5f:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2IzMjE4OTFiMzk5MDM4NDAwY2FhZTdlMjA2MDBhZDc2NzA4MWRhMjlkNThlZDFhZGYxMzkxNzlhNDMzMmJjMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTFhMDdkYjY3ZjQxYWYyMTA0M2RhM2E4ZGE4NGIyOTFhYzk1YWM5OWNhMjM1MDc4MjdkMmY0YzkwMTBlY2E1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGVkNTM2NGIxOTE3NDJhNjVmZGEzOGVkMTQ3NzYwNDgyYTc5YWEzNjY5NjViMTViZmFmMjA1NGFjNzUzMzQ1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjMxNGFlYzAxN2RkZTdjYzQwMDMxNjVlMTJlMjE2MzIxYzVhMzJjYzYzMzMwODgzYmExODY4NTBkNmFhMGRmYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_455be780b79e4453a38287e24692f3e7",
+      "statement": "The bounding-volume hierarchy groups consecutive database frames by index rather than clustering them spatially in feature space, which is cheap to build and index and effective because consecutive frames have similar features; box membership is pure integer division.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingSearch/BvhMotionMatchingSearch.cs#L7-L26",
+          "version": "repo-lines-v1:sha256:a4415e76054a2037c1b50153dccfde77013b5b86f4506a8cc1a01993ecbfc198:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjMThkOWY3YTNiODUxYTQyMjAzNjE3ZWQ0YmEyMTM4ZDIyYmI0OGNmNmVlNjIxM2I0ZGEyMDhkN2Q0OWRkYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0OGU3ZGU0NjhhN2E5ODAwMjA1M2I5Mzg0MmZkNzcxMzgyNzk5ODI2MzRiNmM2Yzg5M2FkMmViYzc1OTc1M2YifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/BVHMotionMatchingSearch.cs#L8-L17",
+          "version": "repo-lines-v1:sha256:93de6a055eea3774ba2b584f7548b7d4709a3ef50d4c4ec9bffeaa7afc55008c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxMGIyNGE5M2U4NjA0YWVmYzdkZGNjN2UyZmI1ZDNkMjgzYzBlYjhlODQyZjc0Njg1ZTg2NzEyNDVjNGNjYTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5b8c137d367b4a6c9d7ca350e08eceb0",
+      "statement": "Pruning works because the distance to a box's nearest point is a lower bound on the distance to anything inside it, so once that bound reaches the best distance so far the whole box is skipped; the dimension loops break early for the same reason, since the running sum only grows.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/BVHMotionMatchingSearch.cs#L72-L102",
+          "version": "repo-lines-v1:sha256:865813bda16349522a76e07a6dd5f6479c3e5312daf398436c532caaa3246292:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhODA2ZjYxMzQ5YmJkNjNjNjM2MTI5NzkzZDA4ODc0Zjg1MzRjODI3MTFiNzMxYzRmZmRmNDdmMmRlMzlmNDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0MmEyNDRkMGRlMGI2MjY3NGNiNjljNDYyMjhjY2M0YTkzOTYzZTg4YmI1MTdiZTQ3NDFkMDc5YWZlMDhkZGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_42900965364246638e91b8d0eb5b0c09",
+      "statement": "Small bounding boxes nest inside large ones only because the large box size is a multiple of the small one, an invariant the search relies on that is stated in prose and unenforced — neither size is a compile-time constant.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/BVHMotionMatchingSearch.cs#L19-L38",
+          "version": "repo-lines-v1:sha256:1be85d8f789db58e5e5abdee43ce5e3fe74706c5ceb65a29bd215c33803cca88:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNGVkZDVjYmI1ZGM5OGZhZjYzYmVmOTFjOWFjYTg0NzJiNTE0YjU2NTQwNjJlNTExNjUxY2NjMzkwMTEzN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNzk2NzU5MzE5NzdjYTg1YWUzZDg2ZGZiYjA2YzRkYjFhYWZjMjM3NTg2ZGYzYTA3ZjIwNmFkMmIzYzBmYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0MmEyNDRkMGRlMGI2MjY3NGNiNjljNDYyMjhjY2M0YTkzOTYzZTg4YmI1MTdiZTQ3NDFkMDc5YWZlMDhkZGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_37df9dd53c2e4f1182cae71bca1965c8",
+      "statement": "The bounding boxes are computed over every frame including invalid ones, so boxes containing un-normalised zero frames are inflated toward the origin; pruning stays correct because the bound is still a lower bound, but it is weaker than it could be.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/BVHMotionMatchingSearch.cs#L19-L38",
+          "version": "repo-lines-v1:sha256:1be85d8f789db58e5e5abdee43ce5e3fe74706c5ceb65a29bd215c33803cca88:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNGVkZDVjYmI1ZGM5OGZhZjYzYmVmOTFjOWFjYTg0NzJiNTE0YjU2NTQwNjJlNTExNjUxY2NjMzkwMTEzN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNzk2NzU5MzE5NzdjYTg1YWUzZDg2ZGZiYjA2YzRkYjFhYWZjMjM3NTg2ZGYzYTA3ZjIwNmFkMmIzYzBmYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0MmEyNDRkMGRlMGI2MjY3NGNiNjljNDYyMjhjY2M0YTkzOTYzZTg4YmI1MTdiZTQ3NDFkMDc5YWZlMDhkZGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8fb9ba1a39e143d386e1b1c369c3ebf3",
+      "statement": "The tag mechanism is designed but unwired: SetTagBurst and DisableTagBurst are never scheduled from anywhere and the stage's tag mask is filled all-true at initialisation and never rewritten, so tag queries currently narrow nothing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/TagOperationsBurst.cs#L10-L23",
+          "version": "repo-lines-v1:sha256:a889faa93de26b12dc68dc2fe281364df0f2082adba2ab09987709cdf88f28b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyNGM4OWU1NTI2MjA3ZmUxNjZmZDg2YWFkNGQyZWM4NTliMWM1YWU2ZjZlNmM2YzE4OTkyNDRmNmU1YzczYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0NTNlZGVmZmVhNTcwYzczZGRhNWQxM2NlYTM0MTU4ODczMDEyMDE4ZjE3ZWY3MGMwYmMzNzI3YTYzNTU4MGMifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L146-L173",
+          "version": "repo-lines-v1:sha256:3f237590e4a3426909d5539b1fb79f4c14970a5196ab48808eb5a3a439aa409c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ODI4YWFhOWI3ZWRhNDA1ZDA1NDA1YmM3ZTVjYjM0YzdiODE3ZmZmMTgwODk2NmZiMTM3OWE1MWRiMzVkMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMzhmZDI4MWYxMDY0NzIxODQzZDM0ZjA3OGNjYzJjNGNjNjk4M2U1YzgyYmQ4MmJlZjk5MjYxZWQwNmNmMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2ZDg1MGRmMWViNTE2MGI3NDc2ZTZmMjQzNTllZGQxMTY1YmRhOTEzMDlhNTE5NDZhZDk4YTAyYTQ4MzkyNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5a262526a00f4dc3aec0751203e84369",
+      "statement": "When a tag query is applied each range is trimmed at its end by the maximum prediction lookahead, because a feature vector encodes the next several frames and the last frames of a range would otherwise let the search pick a pose whose future runs off the tagged region.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/TagOperationsBurst.cs#L25-L57",
+          "version": "repo-lines-v1:sha256:07b5afa5e6bb72a31eddca8fcc421aa93f06543d828e720b6f2549a10ab213a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5OGE4MGE3YTNlZDIwZjgxNWExYmZiOWQ1NTVhYmY2Zjk5MjQxYjczODdmYTk2YTc5MTA0OTNjOWFkYjY4NWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_19eeaef53f16442e8a5906b3df401afc",
+      "statement": "UtilitiesBurst is not a search backend despite sharing the Burst folder: it is iterative point-to-ellipse geometry following Eberly, used for crowd personal-space queries, and nothing in the search path references it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/UtilitiesBurst.cs#L5-L30",
+          "version": "repo-lines-v1:sha256:21b97fa79461dcf91260813dabf9e3286781066d93b5928fb62b28b491f06279:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5NDhkMjNkNmMxYmQyZDZkMzE0ODRjNDMyNDA3NDNiMDRhMDY2ZmM2ZjYzZGJlOWU0MzJlNmNmNDQzM2I5ODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0OGI1NTExNTk2ODYyZTUyYWU0YzI5MjBiNmFlNGVlYTFkNzc5ZGVhMDRjNjcxMjhjZDhlMmI0N2JiY2Y4MGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZWM4YzFlZDIxNjI1ZGI2ZGE0YmFjOGViMTViOTliYzIxZmQwZjA2NDRjMDI3MWZjNDNmZjhlNzgxMmE5NTkifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}

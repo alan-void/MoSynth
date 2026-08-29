@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:fd61a38554992ea4a7aaaf07e8d3c6e2bb13fd61661f3c5bdbc434ed010b85b7",
+  "claims": [
+    {
+      "id": "claim_bdc4d64eb0d04419ac1e99180277843a",
+      "statement": "MoSynth is a Unity 6000.4.4 project that synthesizes character locomotion, structured as a synthesis-agnostic substrate in the AnimationTools assembly plus two interchangeable synthesis methods — search over an animation database, and a neural motion field evaluated in Python — that both plug into it through the MoSynthStage seam.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MoSynthStage.cs#L5-L19",
+          "version": "repo-lines-v1:sha256:5ddcfc9be3c0a640f5b03d74d27efed5df8acc196c7944f4f69b6f65e7db9339:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNDM3NWRiZjBmN2E1MzdkNTUzOGUwMDkyOTEwYWQxODczZWZhMWVmYTA4YzM1MzM5Mzc1NWM3ODRhNjMxNjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2NjQ4ZGQ4ZGRkZjYyMWU4NzdjNTlkNzlkYjJiZDYwMWQ4MTk1MmMxYWNjMGQ3ZjM4NmI3ODcwMTI0ODg2YjEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/AnimationTools.asmdef",
+          "version": "repo-file-v1:sha256:3c6cd84dc1a70b546efd58dc32f831eb677998502dc1d5abff6f79d3066ff6b6"
+        }
+      ]
+    },
+    {
+      "id": "claim_fffe2d87e0a447f68c3764cd2628c14b",
+      "statement": "MotionMatching and MotionField are sibling assemblies that both reference AnimationTools and neither references the other, so anything both need must live in AnimationTools.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/MotionMatching.asmdef",
+          "version": "repo-file-v1:sha256:d9c4ad2b45b69797a684d9871c8219ce5dd67f9dd6fd7e83d263c3e63387acaa"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionField.asmdef",
+          "version": "repo-file-v1:sha256:8a6c67946124364486fa287bbcc9b6900d224762fbc1d58d2c4c47c139df8c2d"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/AnimationTools.asmdef",
+          "version": "repo-file-v1:sha256:3c6cd84dc1a70b546efd58dc32f831eb677998502dc1d5abff6f79d3066ff6b6"
+        }
+      ]
+    },
+    {
+      "id": "claim_c5adf98d801e4c14a612af87e45d0cc9",
+      "statement": "The Python side is reached in-process through PythonNET and requires CPython 3.13 with numpy, scipy and torch; it is a second consumer of the exported pose database rather than a helper, reading the same .mmpose file the C# side writes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L8-L22",
+          "version": "repo-lines-v1:sha256:406955f436fe9bc42d3fe2168fec2280657ec59401e7ad39edb2cd2421a17ee7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkMDA5N2JjMTQ1ZTA3ZGU0OWI3NGRjNWJhMTIyMjE0NWI5MmExOWVhNTY5ZThmYmFmMjBkZDFjMmZiODJkYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMmUxZjMyYjUxZWY3MzJjYTdkOGY5ZjIxMWRhZTFmYTZkMzFkNWRlYjEyYmMxY2JmNWI4YzkwNDI3OTA3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2QzNTM2MmYxMmEyZjI5MzdmNGU0ZWFlYjFlZTI2MmFiZDJmMzJhODdmOTk4N2FlNTg5ZDBhOGI4MzM2YjIifQ"
+        },
+        {
+          "resource": "repo://Python/pose_set_importer.py#L35-L50",
+          "version": "repo-lines-v1:sha256:293cc7321897ba0c4c980f52159a4aff85a50a799ccf88b8c63dc52226397783:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4MzIyNDI4ODE3NmNjZWMzZWU0MTcyMjJkOTNhOTBlYTZjZTdmYjFiYWI1NjMwMjNhN2RlN2I4NTM5MzgwNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MWYzMDNhNmMyYjE2ZGE5M2Y0Njk5Mzg5NzQ4M2QxNzRkNDBkZWM3NzNhZjI0ZDVlNDFiMTgwY2JmMTYzNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGVlMWM4Y2NiM2JiYTliZTRmMzUyZjQwOGFhNTAxMTZhOWQyMTIwMTU2M2U1NDQwZmY4NjFkNDEyNTlkYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7ee43da912b943cbbfb626a6d4eaba65",
+      "statement": "Barracuda appears in the project only in the isolated Learned Motion Matching track under Assets/Scripts, which has no asmdef, is referenced by nothing, and is not part of the synthesis pipeline.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
+          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+        }
+      ]
+    },
+    {
+      "id": "claim_5b0f062acf7d435c9fb6b7803d2f1755",
+      "statement": "Several areas of the project are unfinished in ways that are wired but inert: the pose-adjustment and feature-read-back surface throws or returns defaults, the tag-query mechanism is complete but never invoked, two-bone IK has no call sites, and the crowd and collision control inputs are not usable as shipped.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L369-L406",
+          "version": "repo-lines-v1:sha256:75b2e1478f9040d1ee340e4389a83831b3fb111c78585605742dbcc7a00bcd5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyMzBjNzU5Y2VjMWZkYTQyZDQ2Yzg5M2UzNWZlZTFjMDYyNTQ3MDc4YjhkMDEzMmRhNzBlNjY4ZGM4OGEzMzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0ZGZhNzdmZTAzNjJjNDcyNTYzMDJkMzc3Y2UxZTBiYTc2NDc1MzY1ZjQ3MDM4Y2YwZjNlNzQ3ZjE4MGM0NzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/TagOperationsBurst.cs#L10-L23",
+          "version": "repo-lines-v1:sha256:a889faa93de26b12dc68dc2fe281364df0f2082adba2ab09987709cdf88f28b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyNGM4OWU1NTI2MjA3ZmUxNjZmZDg2YWFkNGQyZWM4NTliMWM1YWU2ZjZlNmM2YzE4OTkyNDRmNmU1YzczYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0NTNlZGVmZmVhNTcwYzczZGRhNWQxM2NlYTM0MTU4ODczMDEyMDE4ZjE3ZWY3MGMwYmMzNzI3YTYzNTU4MGMifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/IK/TwoJointIK.cs",
+          "version": "repo-file-v1:sha256:579584783c7136b1227d8a031f131ab6051acc4c690f5c1566b35944b2e07f5c"
+        }
+      ]
+    },
+    {
+      "id": "claim_e048ec9594414234ad204cc1c89fcd10",
+      "statement": "No MoSynth binary format carries a magic number or version header, so staleness is detected by validating content — principally the skeleton block inside the pose file — and generated databases are always regenerable from source rather than being artefacts to preserve.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L247-L288",
+          "version": "repo-lines-v1:sha256:4d4a389e5d367478ca50b6201b9f889ea114ec340bed25abe2e2ae179f27a22c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjODA1ZDFkM2FhMmQ4NzMxYjk1YTliMzVlM2VhMjhjMzFhOTRhNThlNWIzOTA1MDg3MGZjNzQzOTY3MmU3NWUifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L10-L19",
+          "version": "repo-lines-v1:sha256:24d92e4d714458d095cafea451e8f94b16b6d5b97cb2fbda0e9df4c98cb4340b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjNDg0MmMwM2Y0N2NmYTU5NjQ4YjJjMzJiY2E3NmU0NjY0MzQ5MzhkNTQzZDg0YzVlMGMyZDkzN2I5YzdkMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwMzI5N2Q3Y2ZlZTcyYmJmYzY0MWI4NGRlNWY2YTlmNjZiMjljYWM0NjVlNmJhMjBhYjI4ZDgzM2NlNmQ2OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNGQxZjk1OTk4MWMyZWM1NmFjM2JkMTI4MTc1ODY3NWYxYjg5ZTc1MmQyYWQwZmE1ZjMxMThkNjMzZjRkNGUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-24T17:01:26.052Z"
+  }
+}
