@@ -82,7 +82,7 @@ Integrates a neural motion field into the pipeline via PythonNET:
 - Supporting: `get_knn()`, `get_batched_knn()`, `build_motion_states()`, `load_value_function()`
 
 **Python setup:**
-- The CPython DLL and venv paths are serialized on `MotionFieldConfig` (`pythonDllPath`, `pythonVenvPath`) and consumed by `PythonRuntime.EnsureInitialized`; an empty DLL path falls back to the `PYTHONNET_PYDLL` environment variable
+- The CPython DLL and venv paths are resolved by `PythonRuntime.EnsureInitialized` from the `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` environment variables first, then the serialized `MotionFieldConfig` fields (`pythonDllPath`, `pythonVenvPath`), then — for the DLL only — PythonNET's own `PYTHONNET_PYDLL`. An interpreter's location is a property of the machine, so prefer the environment variables; the serialized fields are why a checked-in asset can name someone else's drive
 - Project modules import from `PythonRuntime.ScriptsFolder` — the repository's `Python/` folder, derived from `Application.dataPath`
 - Python 3.13 is required for PythonNET compatibility
 
@@ -182,7 +182,15 @@ pip install numpy scipy torch
 python Python/MotionField.py
 ```
 
-Then point the `MotionFieldConfig` asset's `pythonDllPath` at the interpreter's `python313.dll` and `pythonVenvPath` at the venv folder.
+Then tell the project where they are, preferably per machine rather than in the asset:
+
+```powershell
+setx MOSYNTH_PYTHON_DLL  "C:/path/to/python313.dll"
+setx MOSYNTH_PYTHON_VENV "C:/path/to/.anim_env"
+```
+
+Restart Unity so it picks the variables up. Failing that, the `MotionFieldConfig` asset's
+`pythonDllPath` and `pythonVenvPath` fields are the fallback.
 
 ### Building for Distribution
 The project uses standard Unity build pipeline:

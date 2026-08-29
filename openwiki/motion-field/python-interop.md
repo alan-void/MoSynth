@@ -41,13 +41,25 @@ enforces first-call-wins.
 
 `EnsureInitialized` is safe to call repeatedly and does three things:
 
-1. Assigns the CPython DLL path, if this is the first call. Both the DLL path and the virtual
-   environment are serialized on `MotionFieldConfig`; an empty DLL path falls back to PythonNET's own
-   `PYTHONNET_PYDLL` environment variable.
+1. Assigns the CPython DLL path, if this is the first call.
 2. Adds the venv's `site-packages`, which is what supplies numpy, scipy and torch.
 3. Appends the repository's `Python/` folder to `sys.path`, idempotently.
 
-Both failure paths are typed and name the fix location — *"Set it on the MotionFieldConfig."*
+Both failure paths are typed and name both places the path could come from.
+
+### Where the two paths come from
+
+An interpreter lives wherever a particular machine put it, so **the path is a property of the
+machine, not of the project**. Resolution order, for each of the two:
+
+| Source | Notes |
+| --- | --- |
+| `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` | how a second machine works without editing a shared asset |
+| `MotionFieldConfig.pythonDllPath` / `.pythonVenvPath` | the serialized fallback |
+| `PYTHONNET_PYDLL` | PythonNET's own, reached only when neither of the above names a DLL |
+
+The serialized fields are kept because an existing setup should not have to change, but they are the
+reason a checked-in asset can name someone else's drive letter. Prefer the environment variables.
 
 **Python 3.13 is required** for PythonNET compatibility.
 
