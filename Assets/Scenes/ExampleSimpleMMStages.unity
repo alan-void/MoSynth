@@ -2059,7 +2059,7 @@ MonoBehaviour:
   trajectoryDirectionFeatureName: FutureDirection
   splineContainer: {fileID: 0}
   speed: 1
-  poseKeypoints: {fileID: 0}
+  poseKeypoints: {fileID: 1970690697}
   activationWindowFrames: 2
 --- !u!4 &1381230479
 Transform:
