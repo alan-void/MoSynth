@@ -11,7 +11,10 @@ Assets/Packages/
 Assets/Samples/
 Assets/Lib/
 
-# --- Nested repos and local scratch (not part of the shipped project) ---
+# --- Nested repos not published from this one ---
+# Assets/LFS is a separate git-lfs repository holding the source animation and
+# retargeting assets; it is kept out of this repo because some of its contents
+# are under third-party copyright. Assets/Local is local scratch.
 Assets/LFS/
 Assets/Local/
 

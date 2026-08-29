@@ -104,3 +104,9 @@ __pycache__/
 
 # Benchmark sweep output
 /[Bb]enchmarks/
+
+# Large-file store. Assets/LFS is its own git-lfs repository holding the source
+# animation and retargeting assets; it is deliberately not published from this
+# repo because some of its contents are under third-party copyright. Ignored
+# here so it can never be picked up as an embedded gitlink.
+/[Aa]ssets/LFS/
