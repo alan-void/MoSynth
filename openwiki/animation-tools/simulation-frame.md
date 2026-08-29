@@ -197,8 +197,25 @@ radians per second.
 `DecomposeRootVelocity` splits bone 0's world velocity into the part the frame already carries —
 including the tangential velocity the frame's yaw imparts at bone 0's offset — and the leftover.
 `RecomposeRootVelocity` is its exact inverse. [Inertialization](../motion-matching/inertialization.md)
-is the only production consumer of the pair, and it needs them because velocities have to follow the
-position back through the frame or the component re-derives the wrong motion.
+needs the pair because velocities have to follow the position back through the frame or the component
+re-derives the wrong motion; nothing about the split is specific to bone 0, and `CharacterSpacePose`
+applies it to every bone.
+
+## The whole pose in the frame
+
+`CharacterSpacePose.Extract` measures **every** bone inside the frame the pose implies: position,
+rotation, and both rates, in one forward pass. Where the character stands and which way it faces are
+exactly what a locomotion model has to be invariant to, so this is the shape a network sees a pose
+in, as opposed to how one is stored.
+
+It is deliberately the C# counterpart of `Python/training_data.py`, and the reason to have one place
+for it is that the failure mode is silent: a mismatch in frame, units or rate convention between the
+data a model was trained on and the data it is given at inference does not throw, it just makes the
+network wrong. The two sides are not bit-identical on the rates — Python differences consecutive
+frame-local poses of a stored database, the C# composes the instantaneous rate implied by the pose's
+own velocity channels — but those channels are themselves finite differences over the same timestep,
+so the two agree to first order and exactly for motion that is rigid within the frame. The test
+suites on both sides are written against the same properties.
 
 ## Degenerate inputs
 

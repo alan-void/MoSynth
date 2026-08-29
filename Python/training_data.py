@@ -35,6 +35,14 @@ them.
 Conventions are the package's own: quaternions xyzw, y-up left-handed with the character
 facing +z, velocities as per-second rates.
 
+The C# counterpart of the frame-local conversion is ``CharacterSpacePose``, which is what a stage
+running a trained model feeds it at inference. Keeping the two in agreement is the point of having
+one named definition on each side: a mismatch in frame, units or rate convention does not throw, it
+just makes the network wrong. The one place the two are not identical by construction is the rates --
+here they are differences of consecutive frame-local poses, there the instantaneous rate implied by a
+pose's own velocity channels -- and since those channels are themselves finite differences over the
+same timestep, the two agree to first order and exactly for motion that is rigid within the frame.
+
 Run it as a script to write an ``.npz`` beside a database::
 
     python training_data.py Assets/StreamingAssets/MMDatabases/MotionMatchingData \\
