@@ -8,7 +8,8 @@ using UnityEngine.Splines;
 namespace MotionMatching
 {
 /// <summary>
-/// Follows a spline at constant speed, looping. The trajectory is read straight off the spline
+/// Follows a spline at constant speed, looping a closed path and stopping at the end of an open one.
+/// The trajectory is read straight off the spline
 /// rather than simulated, which makes this what <see cref="AnimationTools.PathFollowingMetric"/>
 /// drives.
 /// </summary>
@@ -45,9 +46,23 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     /// "do not divide".</summary>
     protected virtual float PathLength => HasPath ? splineContainer.CalculateLength() : 0f;
 
+    /// <summary>Whether the path loops. A seam like <see cref="HasPath"/>: a subclass may follow a
+    /// path that does not live in a <see cref="SplineContainer"/>.</summary>
+    protected virtual bool IsClosed => HasPath && splineContainer.Spline.Closed;
+
     /// <summary>
-    /// Position along the spline, normalized to 0..1 and wrapped. Distances must be divided by the
-    /// spline's length before being added to it.
+    /// Folds a normalized parameter into the path: wrapping a closed one, clamping an open one.
+    /// </summary>
+    /// <remarks>
+    /// Wrapping an open path teleports the predicted trajectory back to the start once the reference
+    /// nears the end, which reads as an instruction to turn around and walk back — so the character
+    /// never reaches the far end and the run can only end by timing out.
+    /// </remarks>
+    protected float Fold(float t) => IsClosed ? math.frac(t) : math.clamp(t, 0f, 1f);
+
+    /// <summary>
+    /// Position along the spline, normalized to 0..1 and folded by <see cref="Fold"/>. Distances must
+    /// be divided by the spline's length before being added to it.
     /// </summary>
     protected float _splineT;
 
@@ -134,14 +149,14 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
 
         for (int i = 0; i < NumberPredictionPos; i++)
         {
-            var t = math.frac(_splineT + _trajectoryPosPredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
+            var t = Fold(_splineT + _trajectoryPosPredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
             float3 predPos = SamplePosition(t);
             _predictedPositions[i] = predPos.xz;
             _predictedDirections[i] = SampleDirection(t, predPos);
         }
 
         _splineT += normalizedSpeed * Time.deltaTime;
-        _splineT = math.frac(_splineT);
+        _splineT = Fold(_splineT);
     }
 
     /// <summary>
@@ -160,8 +175,18 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     /// <returns>A normalized XZ direction.</returns>
     protected virtual float2 SampleDirection(float t, float3 positionAtT)
     {
-        float3 next = SamplePosition(math.frac(t + _directionSampleStep));
-        return math.normalizesafe(new float2(next.x - positionAtT.x, next.z - positionAtT.z), new float2(0f, 1f));
+        var ahead = SamplePosition(Fold(t + _directionSampleStep));
+        var step = new float2(ahead.x - positionAtT.x, ahead.z - positionAtT.z);
+
+        // At the clamped end of an open path the step forward lands back on the same point, so
+        // measure the last one instead of falling through to the arbitrary default direction.
+        if (math.lengthsq(step) < 1e-12f)
+        {
+            var behind = SamplePosition(Fold(t - _directionSampleStep));
+            step = new float2(positionAtT.x - behind.x, positionAtT.z - behind.z);
+        }
+
+        return math.normalizesafe(step, new float2(0f, 1f));
     }
 
     /// <summary>
@@ -175,7 +200,7 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         if (pathLength <= 1e-5f) return _splineT;
 
         var normalizedSpeed = speed / pathLength;
-        return math.frac(_splineT + frames * normalizedSpeed * DatabaseDeltaTime);
+        return Fold(_splineT + frames * normalizedSpeed * DatabaseDeltaTime);
     }
 
     public quaternion GetCurrentRotation()

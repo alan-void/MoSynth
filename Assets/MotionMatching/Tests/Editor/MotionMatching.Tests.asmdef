@@ -1,7 +1,7 @@
 {
     "name": "MotionMatching.Tests",
     "rootNamespace": "",
-    "references": ["UnityEngine.TestRunner", "UnityEditor.TestRunner", "AnimationTools", "AnimationTools.Editor", "MotionMatching", "Unity.Mathematics", "Unity.Collections"],
+    "references": ["UnityEngine.TestRunner", "UnityEditor.TestRunner", "AnimationTools", "AnimationTools.Editor", "MotionMatching", "Unity.Mathematics", "Unity.Collections", "Unity.Splines"],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

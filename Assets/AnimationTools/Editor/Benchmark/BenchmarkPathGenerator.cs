@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 using Unity.Mathematics;
@@ -47,13 +46,16 @@ public static class BenchmarkPathGenerator
         // untitled one keeps that side effect off whatever the user was working in.
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
+        var folder = BenchmarkStarterAssets.PathsFolder;
+        BenchmarkPathAssets.EnsureFolder(folder);
+
         var report = new StringBuilder();
         var created = new List<GameObject>
         {
-            Save("Circle", Circle(4f), report),
-            Save("Oval", Oval(7f, 3f), report),
-            Save("FigureEight", FigureEight(6f), report),
-            Save("SharpCorners", SharpCorners(6f, 4f), report)
+            BenchmarkPathAssets.Save("Circle", Circle(4f), folder, report),
+            BenchmarkPathAssets.Save("Oval", Oval(7f, 3f), folder, report),
+            BenchmarkPathAssets.Save("FigureEight", FigureEight(6f), folder, report),
+            BenchmarkPathAssets.Save("SharpCorners", SharpCorners(6f, 4f), folder, report)
         };
 
         AssetDatabase.SaveAssets();
@@ -134,21 +136,6 @@ public static class BenchmarkPathGenerator
         var spline = new Spline { Closed = true };
         foreach (var point in points) spline.Add(new BezierKnot(point), TangentMode.AutoSmooth);
         return spline;
-    }
-
-    private static GameObject Save(string name, Spline spline, StringBuilder report)
-    {
-        var go = new GameObject(name);
-        var container = go.AddComponent<SplineContainer>();
-        container.Spline = spline;
-
-        var path = $"{BenchmarkStarterAssets.PathsFolder}/{name}.prefab";
-        var prefab = PrefabUtility.SaveAsPrefabAsset(go, path);
-        UnityEngine.Object.DestroyImmediate(go);
-
-        report.AppendLine($"  {name,-14} knots {spline.Count,2}, closed {spline.Closed}, " +
-                          $"length {spline.GetLength():0.00} m -> {path}");
-        return prefab;
     }
 }
 }

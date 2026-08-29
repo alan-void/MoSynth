@@ -27,6 +27,7 @@ public static class BenchmarkStarterAssets
     public const string SourceScene = "Assets/Scenes/ExampleSplines 1.unity";
     public const string RootFolder = "Assets/Benchmarks";
     public const string PathsFolder = RootFolder + "/Paths";
+    public const string RandomPathsFolder = PathsFolder + "/Random";
     public const string MethodsFolder = RootFolder + "/Methods";
     public const string ConfigPath = RootFolder + "/DefaultBenchmark.asset";
 
@@ -70,9 +71,9 @@ public static class BenchmarkStarterAssets
             return null;
         }
 
-        EnsureFolder(RootFolder);
-        EnsureFolder(PathsFolder);
-        EnsureFolder(MethodsFolder);
+        BenchmarkPathAssets.EnsureFolder(RootFolder);
+        BenchmarkPathAssets.EnsureFolder(PathsFolder);
+        BenchmarkPathAssets.EnsureFolder(MethodsFolder);
 
         var scene = EditorSceneManager.OpenScene(SourceScene, OpenSceneMode.Single);
 
@@ -183,15 +184,6 @@ public static class BenchmarkStarterAssets
         }
 
         return null;
-    }
-
-    private static void EnsureFolder(string folder)
-    {
-        if (AssetDatabase.IsValidFolder(folder)) return;
-
-        var parent = Path.GetDirectoryName(folder)!.Replace('\\', '/');
-        EnsureFolder(parent);
-        AssetDatabase.CreateFolder(parent, Path.GetFileName(folder));
     }
 
     private static string Sanitize(string name)

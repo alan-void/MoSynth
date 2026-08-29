@@ -11,6 +11,9 @@ This file provides guidance to AI coding agents (Claude Code, and others reading
 - Do not solve a task with a workaround that makes the code cryptic (hidden coupling, magic values, misusing an existing mechanism because it happens to work). If the clean solution requires touching more code, touch more code.
 - If a broader architectural change would allow meaningfully better code quality than working within the current structure, say so and propose it instead of silently working around the limitation — the user decides whether to take it.
 - Do not write comments in generated code that depend on the context of the conversation that produced them (e.g. referencing the task, a fix, a prior approach, or "why we're changing this now"). Comments should only explain non-obvious WHY that a reader with just the code in front of them would need.
+- Keep that WHY to one or two sentences. A comment is a signpost, not an essay. If the full argument needs a rejected alternative, a measurement, or a critique of a package’s internals to land, that argument belongs in the wiki under `openwiki/`, and the comment carries a one-line pointer to the page instead.
+- Keep `<summary>` to a sentence or two naming what the member does and any non-obvious contract. Use `<remarks>` to point at the wiki page holding the detail, not to hold the detail. A long `<remarks>` block — especially on a private member — means the content is in the wrong place.
+- When a change invalidates something the wiki asserts, update the wiki in the same pass. Stale docs are worse than no docs.
 - Use `var` to declare variables unless an explicit type makes the code clearer (IDEs surface type info well).
 - Naming:
   - Private instance/static fields: `_camelCase` (e.g. `_skeleton`, `_poseSet`)
@@ -193,6 +196,12 @@ A sweep runs every configured method against every path, one character at a time
   splines already wired up in `Assets/Scenes/ExampleSplines 1.unity` into those folders and writes a
   config pointing at them; `MoSynth/Benchmark/Create Standard Paths` adds the parametric suite
   (Circle, Oval, FigureEight, SharpCorners). Both replace the open scene and are re-runnable
+- **Random paths**: `MoSynth/Benchmark/Create Random Paths…` opens a window that writes a seeded
+  batch into `Assets/Benchmarks/Paths/Random`, which the folder scan reaches, so they join the sweep
+  with no config edit. Names carry the seed and slot (`Random_s4821_03_SharpLoop`), and geometry is a
+  pure function of the two, so a report row identifies the exact curve and the same seed rebuilds it.
+  `MoSynth/Benchmark/Delete Random Paths` clears the batch — leaving a stale one in place silently
+  adds its runs to every later sweep
 - **Run, visible**: `MoSynth/Benchmark/Run Sweep`, or the button on the config's inspector. It
   replaces the open scene with an empty one and owns the play session
 - **Run, headless**: `Tools/run-benchmark.ps1` (`-Visible` to watch it). It must not pass `-quit`:
@@ -201,6 +210,9 @@ A sweep runs every configured method against every path, one character at a time
   `settleTime`, then measures at least `lapsRequired` laps of the character's own progress round the
   spline — not a fixed duration, because `MotionFieldSplineControlInput` has no speed model to
   predict a lap time from. A run that cannot finish is reported with `timedOut` set
+- **Open paths** finish at the far end instead: `lapsRequired` is ignored, and `completedLaps` reads
+  as the fraction of the path covered rather than a lap count. Both spline inputs clamp instead of
+  wrapping there — see `SplineControlInput.Fold`
 
 Three metric families, all computed from the recording after the fact so the calculators stay pure
 and unit-tested: path following (`PathFollowingMetricsCalculator`, reused unchanged), motion quality
@@ -303,3 +315,15 @@ Implementer agents need a spec that names the files, the intended design, and th
 - Update `Assets/MotionField/MotionFieldConfig.cs` if adding configurable parameters
 - Run Python linting on any modified `.py` files (PEP8 style preferred)
 
+<!-- OPENWIKI:START -->
+
+## OpenWiki
+
+This repository has a generated `openwiki/` evidence index. It is optional just-in-time context, not required startup reading.
+
+- Treat source code and tests as authoritative. A brief's unknowns and review items are verification gaps, not automatic requirements.
+- Prefer the narrowest quiet validation that proves the changed behavior. Preserve complete failure output.
+
+The scheduled OpenWiki GitHub Actions workflow refreshes the repository wiki. Do not hand-edit generated OpenWiki pages unless explicitly asked; prefer updating source code/docs and letting OpenWiki regenerate.
+
+<!-- OPENWIKI:END -->

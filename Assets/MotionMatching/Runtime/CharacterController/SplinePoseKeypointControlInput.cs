@@ -48,6 +48,9 @@ public class SplinePoseKeypointControlInput : SplineControlInput
 
     protected override float PathLength => poseKeypoints != null ? poseKeypoints.WorldLength : 0f;
 
+    /// <summary>Read off the keypoints, since the base class's container is deliberately null here.</summary>
+    protected override bool IsClosed => poseKeypoints != null && poseKeypoints.closed;
+
     /// <summary>
     /// Always null, and refuses assignment out loud: <c>PathFollowingMetric</c> and the benchmark
     /// driver push a container into every spline input they find, and that must not look like it
