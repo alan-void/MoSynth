@@ -133,6 +133,45 @@ def bone_world_transform(positions: np.ndarray,
     return position, rotation
 
 
+def forward_kinematics(positions: np.ndarray,
+                       rotations: np.ndarray,
+                       parents: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    World position and rotation of *every* bone, for a whole sequence at once.
+
+    :func:`bone_world_transform` walks the chain up from one bone, which is the right shape
+    when a caller wants the reference bone and nothing else. This is the other case: every
+    bone, where walking each chain separately would redo the shared prefix once per leaf.
+    Bones are stored in depth-first order, so a single forward pass sees every parent before
+    its children.
+
+    :param positions: (n, num_bones, 3) parent-local joint positions; slot 0 is the root's
+        world position.
+    :param rotations: (n, num_bones, 4) parent-local joint rotations, xyzw; slot 0 is the
+        root's world rotation.
+    :param parents: (num_bones,) parent index per bone, -1 for the root.
+    :return: ``(positions, rotations)``, shapes (n, num_bones, 3) and (n, num_bones, 4).
+    """
+    positions = np.asarray(positions, dtype=np.float64)
+    rotations = np.asarray(rotations, dtype=np.float64)
+    n_frames, n_bones = positions.shape[0], positions.shape[1]
+
+    world_positions = np.zeros((n_frames, n_bones, 3), dtype=np.float64)
+    world_rotations = np.zeros((n_frames, n_bones, 4), dtype=np.float64)
+    world_positions[:, 0] = positions[:, 0]
+    world_rotations[:, 0] = rotations[:, 0]
+
+    for bone in range(1, n_bones):
+        parent = int(parents[bone])
+        parent_rotation = Rotation.from_quat(world_rotations[:, parent])
+        world_positions[:, bone] = (world_positions[:, parent] +
+                                    parent_rotation.apply(positions[:, bone]))
+        world_rotations[:, bone] = (parent_rotation *
+                                    Rotation.from_quat(rotations[:, bone])).as_quat()
+
+    return world_positions, world_rotations
+
+
 def yaw_quaternion(yaw: np.ndarray) -> np.ndarray:
     """Pure yaw quaternions from headings in radians, xyzw."""
     yaw = np.asarray(yaw, dtype=np.float64)
@@ -235,7 +274,7 @@ def frame_rates(frames: DerivedFrames, frame_time: float) -> FrameRates:
                       root_angular=np.asarray(root_angular, dtype=np.float32))
 
 
-def _clip_ranges(clips, n_poses: int) -> list[tuple[int, int]]:
+def clip_ranges(clips, n_poses: int) -> list[tuple[int, int]]:
     """Clip frame ranges clamped to the arrays actually read, empty ones dropped."""
     if not clips:
         return [(0, n_poses)] if n_poses > 0 else []
@@ -244,7 +283,7 @@ def _clip_ranges(clips, n_poses: int) -> list[tuple[int, int]]:
     return [(start, end) for start, end in ranges if end > start]
 
 
-def _extend_by_one_frame(positions: np.ndarray,
+def extend_by_one_frame(positions: np.ndarray,
                          rotations: np.ndarray,
                          velocities: np.ndarray,
                          angular_velocities: np.ndarray,
@@ -272,7 +311,7 @@ def derive_pose_set_frames(pose_set: PoseSet) -> tuple[DerivedFrames, FrameRates
     Both results are indexed by global pose index, and the rates are aligned with the
     poses rather than lagging them -- rate ``i`` still describes the step out of pose
     ``i``, and at the end of a clip that step lands on the frame reconstructed by
-    :func:`_extend_by_one_frame` instead of on the unrelated first pose of the next
+    :func:`extend_by_one_frame` instead of on the unrelated first pose of the next
     clip.
 
     :param pose_set: a database read by ``pose_set_importer``, which is where the
@@ -299,8 +338,8 @@ def derive_pose_set_frames(pose_set: PoseSet) -> tuple[DerivedFrames, FrameRates
                        root_linear=np.zeros((n_poses, 3), dtype=np.float32),
                        root_angular=np.zeros((n_poses, 3), dtype=np.float32))
 
-    for start, end in _clip_ranges(pose_set.clips, n_poses):
-        clip_positions, clip_rotations = _extend_by_one_frame(
+    for start, end in clip_ranges(pose_set.clips, n_poses):
+        clip_positions, clip_rotations = extend_by_one_frame(
             positions[start:end], rotations[start:end],
             velocities[start:end], angular_velocities[start:end], frame_time)
 

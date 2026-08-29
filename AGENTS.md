@@ -133,10 +133,18 @@ Python/
 ├── MotionField.py                   [neural motion field implementation]
 ├── Pose.py                          [pose data classes]
 ├── Skeleton.py                      [skeleton FK/IK]
+├── Animation.py                     [PoseSet: the Python mirror of the C# pose database]
 ├── action_predictor.py              [animation loading & conversion]
+├── binary_reading.py                [BinaryWriter primitives shared by the format readers]
+├── pose_set_importer.py             [.mmpose reader]
+├── feature_set_importer.py          [.mmfeatures reader: matching feature vectors + schema]
+├── simulation_frame.py              [character frames, FK, and per-frame rates]
+├── gait_phase.py                    [gait phase reconstructed from foot contacts]
+├── training_data.py                 [per-frame arrays a PFNN/LMM model trains on, + .npz]
 ├── motion_field_io.py               [.mffield.npz value function format]
 ├── motion_field_trainer.py          [fitted value iteration]
 ├── motion_field_embedding.py        [UMAP projection for the debug visualizer]
+├── tests/                           [stdlib unittest suites; no Unity or venv extras needed]
 ├── utils/
 │   └── quaternions.py               [quaternion utilities]
 └── debugging/                       [debug scripts, not in builds]
@@ -221,9 +229,16 @@ and unit-tested: path following (`PathFollowingMetricsCalculator`, reused unchan
 inside the Editor: valid for comparing methods within one sweep on one machine, and nothing more.
 
 ### Testing & Validation
+- **C# edit-mode suites**: `MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests` and
+  `MotionMatching.Tests` and writes `Temp/animtools_test_results.txt`, which survives the domain
+  reload a test run causes — so a scripted caller reads results from there, not from the console
+- **Python suites**: `python -m unittest discover -s Python/tests -t Python/tests`. They use only
+  numpy and scipy and build their own fixtures, so they need neither Unity nor a generated database
 - **Editor play mode**: test motion synthesis visually
-- **Python validation**: `Python/test_server.py` (if it exists) or manual import tests
-- **Motion database**: verify animation data loads in `StreamingAssets/MMDatabases/MotionMatchingData`
+- **Motion database**: `MoSynth/Database/Regenerate Motion Matching Databases` rebuilds every
+  `MotionMatchingData` asset's `.mmpose` and `.mmfeatures`. Run it after any change to an extraction
+  format or a feature definition — the files are unversioned, and a stale one is refused rather than
+  silently misread only because each carries a schema block to check against
 
 ## Important Patterns & Conventions
 

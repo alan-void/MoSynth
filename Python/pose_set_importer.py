@@ -5,31 +5,10 @@ from scipy.spatial.transform import Rotation
 
 from Animation import PoseSet
 from Skeleton import Joint, Skeleton
+from binary_reading import read_csharp_string
 
 # Unity is y-up and left-handed, so a character faces +z.
 _CHARACTER_FORWARD = np.array([0.0, 0.0, 1.0], dtype=np.float64)
-
-
-def _read_csharp_string(f) -> str:
-    """
-    Reads a string written by C# BinaryWriter.
-    C# BinaryWriter prefixes strings with a LEB128 (7-bit encoded) length.
-    """
-    count = 0
-    shift = 0
-    while True:
-        b = f.read(1)
-        if not b:
-            return ""
-        b = b[0]
-        count |= (b & 0x7F) << shift
-        shift += 7
-        if not (b & 0x80):
-            break
-
-    if count == 0:
-        return ""
-    return f.read(count).decode('utf-8')
 
 
 def read_skeleton(f) -> tuple[Skeleton, int, np.ndarray]:
@@ -53,7 +32,7 @@ def read_skeleton(f) -> tuple[Skeleton, int, np.ndarray]:
     n_joints = struct.unpack('<I', f.read(4))[0]
 
     for _ in range(n_joints):
-        name = _read_csharp_string(f)
+        name = read_csharp_string(f)
         parent_index = struct.unpack('<i', f.read(4))[0]  # the root's -1, written as 0xFFFFFFFF
         local_offset = struct.unpack('<3f', f.read(12))  # x, y, z
         rest_rotation = struct.unpack('<4f', f.read(16))  # x, y, z, w
@@ -153,7 +132,7 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
         # Read Tags
         tags = []
         for _ in range(n_tags):
-            tag_name = _read_csharp_string(f)
+            tag_name = read_csharp_string(f)
             n_ranges = struct.unpack('<I', f.read(4))[0]
 
             ranges = []
