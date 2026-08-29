@@ -35,7 +35,7 @@ sources:
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-29T23:23:48.822Z
+    at: 2026-08-29T23:38:46.103Z
 ---
 
 # On-disk formats
@@ -149,7 +149,9 @@ covers it under a name that says so, and the test file's own doc comment states 
 
 The redundant second bone count in the pose header has a narrower job: the skeleton block has already
 been reconciled against the live asset, so a disagreement between the file's two counts can only mean
-a **truncated or corrupt write**.
+a **truncated or corrupt write**. Truncation past that point — a header promising more poses than the
+file holds — is caught by the pose reads themselves, which refuse the file and name the pose they ran
+out inside.
 
 One dead end worth knowing: `PoseLayout` declares `public const int PoseFormatVersion = 1`, and it has
 **zero usages anywhere**. `PoseSerializer` writes no version. It is a leftover constant, not a format
@@ -231,12 +233,6 @@ practice — which is at least consistent with the project's stated "validate by
 The manifest's `dtype` and `endianness` fields are hardcoded initialisers rather than derived. Correct
 on every shipped target, but not actually checked at write time.
 
-## A wart
-
-`PoseSerializer.Deserialize` guards against short reads using `NUnit.Framework.Assert` — a test
-framework dependency inside the runtime assembly, and the only guard there is against a truncated
-read mid-stream.
-
 ## Source map
 
 | Concern | File |
@@ -250,7 +246,7 @@ read mid-stream.
 | Python reader | `Python/pose_set_importer.py` |
 
 **Tests.** `PoseSerializerTests` round-trips every channel with per-frame, per-bone distinct values so
-a misaligned read cannot pass by coincidence, and covers all three rejection cases.
+a misaligned read cannot pass by coincidence, and covers all four rejection cases.
 `FeatureSerializerTests` round-trips the demo database and covers the two refusals — a file written
 for another feature configuration, and a truncated one. There are **no** tests for the recording round
 trip, and none checking that the C# and Python `.mmpose` readers agree.

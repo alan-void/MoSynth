@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:9a620aa6f386a5c3b3a6e522ddb4b33d8f13faf33896d267393ee7c4c60641b4",
+  "pageVersion": "sha256:8e172367e4634486539b9247bac88f912d5358e960a1e903602488db3f852050",
   "claims": [
     {
       "id": "claim_329681e9f5624decb6f3f8c4c50d2da1",
@@ -77,8 +77,8 @@
       "statement": "The bone count appears twice in a .mmpose, once in the skeleton block and once in the pose header, and the second copy exists solely to detect a truncated or corrupt write, since the first has already been reconciled against the live asset.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L113-L124",
-          "version": "repo-lines-v1:sha256:3d088fa734a89bc0608aaad448d7880f7e6191f370be269715df182f3b371e7b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmNGZiNWY0MmNhZGFlNTRjNTE2YjJiNjI3YzU4MmE5YTQ3OWQwYmFjZDYxNDBiZDNhMzJjMTQ4MjE4Y2I4ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNjQ3OWNjMjMwNDQwZmQ0MWU4MjI0MjE4Njc5Njk4NTU5ZDI4OTNiZDY3YjQzODBhZmFiODExYjM4YTU1YWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljYmI2ZDMwZjRhNmRlNTVkMDM4NTI2YzY4ZTRmMDVkOTQ1OWVhYTgxMDA1MThmYWQzMDFlZmYwOTE2ZmJjNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMTdmYzc3NzgxY2RjNzAyZGM2ZDkwY2MxZWViMGRhNTE3ZTlmNmRmYjgyZjY0ZTc0Y2FhODI3MmI0YzBiMGIifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L112-L124",
+          "version": "repo-lines-v1:sha256:f368338b2dd73e35b75fbf4e5c6a394921671a4219d6ff41deb1aa11e2957316:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmNGZiNWY0MmNhZGFlNTRjNTE2YjJiNjI3YzU4MmE5YTQ3OWQwYmFjZDYxNDBiZDNhMzJjMTQ4MjE4Y2I4ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljYmI2ZDMwZjRhNmRlNTVkMDM4NTI2YzY4ZTRmMDVkOTQ1OWVhYTgxMDA1MThmYWQzMDFlZmYwOTE2ZmJjNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiMzIyOTExZDE0ZDk4YmUyMTZiMDVkYTY2OTQxZDViYjI1ODk3MjEwZWUwNTY3ZDc3NDc0N2NlZWFjMzhhMGIifQ"
         }
       ]
     },
@@ -184,11 +184,15 @@
     },
     {
       "id": "claim_ba412a8decfe43948ff8c3bd800db8b9",
-      "statement": "PoseSerializer.Deserialize guards against short reads using NUnit.Framework.Assert, placing a test-framework dependency inside the runtime assembly.",
+      "statement": "A .mmpose whose header promises more poses than the file holds is refused by the pose reads themselves, naming the pose they ran out inside; the guard is a plain length check rather than an assertion, since NUnit is a test-framework dependency that does not exist in a player build.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L113-L124",
-          "version": "repo-lines-v1:sha256:3d088fa734a89bc0608aaad448d7880f7e6191f370be269715df182f3b371e7b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmNGZiNWY0MmNhZGFlNTRjNTE2YjJiNjI3YzU4MmE5YTQ3OWQwYmFjZDYxNDBiZDNhMzJjMTQ4MjE4Y2I4ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNjQ3OWNjMjMwNDQwZmQ0MWU4MjI0MjE4Njc5Njk4NTU5ZDI4OTNiZDY3YjQzODBhZmFiODExYjM4YTU1YWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljYmI2ZDMwZjRhNmRlNTVkMDM4NTI2YzY4ZTRmMDVkOTQ1OWVhYTgxMDA1MThmYWQzMDFlZmYwOTE2ZmJjNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMTdmYzc3NzgxY2RjNzAyZGM2ZDkwY2MxZWViMGRhNTE3ZTlmNmRmYjgyZjY0ZTc0Y2FhODI3MmI0YzBiMGIifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSerializer.cs#L133-L150",
+          "version": "repo-lines-v1:sha256:cbbdcae3899ca1e0306d11b2a984aa11842aac416c12d4856635fb009ec457c4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxZTllMjYwYzMwN2ZkNWY0NzQzNDBhMzA2YmIyZjJiYmIxZWY1MWVkNzBmM2UwZjQ5MzQ0OTJiMmE4ZWQzNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjZDhiYTEwZTIxYWU1NDQ1ZWZiODI0YTg3ZTRmMTFmZDQxYjUwMTFjZjdkZTIwMmUwZWVlNDVlMjRkYjA3YTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3ZGNjZGNhYmJhNmNiNTU1Y2IyNGQ1ZmUxM2ExZTcyNTFhZGZkNWJiNzhiMDFhYmE1NjMxZTc5NjQyMWM0MzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliZDU0NzNlZTZlZWYyZjU3NmJlOGJiODU0N2UyZmY1MDRhMmFkMjc2ODM0MjE0MWVjY2RkNjhhZDgwZWVhZjcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseSerializerTests.cs#L167-L188",
+          "version": "repo-lines-v1:sha256:97c165ad6321892a9afc6a1e1307d6eefed77cd8f5c3ef400480a2fc842b3a10:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiZWE0ZmNmN2MyOTUyZjc4YWZhNDMwN2ZkZjg5ZTUzMTJjMzlmOWM2YTY3NzM5NmU1MTNlOWRmM2JiODY0OTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         }
       ]
     },
@@ -273,6 +277,6 @@
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-29T23:23:48.822Z"
+    "at": "2026-08-29T23:38:46.103Z"
   }
 }

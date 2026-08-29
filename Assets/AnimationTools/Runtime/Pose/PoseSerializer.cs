@@ -6,7 +6,6 @@ using System.IO;
 using System.Text;
 using System;
 using System.Runtime.InteropServices;
-using NUnit.Framework;
 
 namespace AnimationTools
 {
@@ -133,6 +132,21 @@ public class PoseSerializer
 
                 poseSet.SetPoseCapacity(nPoses);
                 var frames = poseSet.AppendRawFrames((int)nPoses);
+
+                // A short read is a truncated file -- an interrupted write, or a database from
+                // another rig whose header promised more poses than it holds -- so it is reported
+                // and refused rather than asserted. The header counts have already been reconciled
+                // against the live skeleton, which is what makes truncation the remaining
+                // explanation.
+                bool ReadBlock(byte[] buffer, int byteCount, int poseIndex)
+                {
+                    if (reader.Read(buffer, 0, byteCount) == byteCount) return true;
+
+                    Debug.LogError($"\"{fileName}.mmpose\" ends inside pose {poseIndex} of {nPoses}; " +
+                                   "the file is truncated. Regenerate the databases.");
+                    return false;
+                }
+
                 for (int i = 0; i < nPoses; i++)
                 {
                     var frame = frames[i];
@@ -142,8 +156,7 @@ public class PoseSerializer
                     var angularVelocities = frame.AngularVelocities;
 
                     // --- Read JointLocalPositions ---
-                    var read = reader.Read(float3Buffer, 0, float3BufferSize);
-                    Assert.IsTrue(read == float3BufferSize);
+                    if (!ReadBlock(float3Buffer, float3BufferSize, i)) return false;
                     var positionsSpan = MemoryMarshal.Cast<byte, float>(float3Buffer);
                     for (int j = 0; j < nJoints; j++)
                     {
@@ -155,8 +168,7 @@ public class PoseSerializer
                     }
 
                     // --- Read JointLocalRotations ---
-                    read = reader.Read(quaternionBuffer, 0, quaternionBufferSize);
-                    Assert.IsTrue(read == quaternionBufferSize);
+                    if (!ReadBlock(quaternionBuffer, quaternionBufferSize, i)) return false;
                     Span<float> rotationsSpan = MemoryMarshal.Cast<byte, float>(quaternionBuffer);
                     for (int j = 0; j < nJoints; j++)
                     {
@@ -169,8 +181,7 @@ public class PoseSerializer
                     }
 
                     // --- Read JointLocalVelocities ---
-                    read = reader.Read(float3Buffer, 0, float3BufferSize);
-                    Assert.IsTrue(read == float3BufferSize);
+                    if (!ReadBlock(float3Buffer, float3BufferSize, i)) return false;
                     Span<float> velocitiesSpan = MemoryMarshal.Cast<byte, float>(float3Buffer);
                     for (int j = 0; j < nJoints; j++)
                     {
@@ -182,8 +193,7 @@ public class PoseSerializer
                     }
 
                     // --- Read JointLocalAngularVelocities ---
-                    read = reader.Read(float3Buffer, 0, float3BufferSize);
-                    Assert.IsTrue(read == float3BufferSize);
+                    if (!ReadBlock(float3Buffer, float3BufferSize, i)) return false;
                     Span<float> angularVelocitiesSpan = MemoryMarshal.Cast<byte, float>(float3Buffer);
                     for (int j = 0; j < nJoints; j++)
                     {

@@ -164,5 +164,26 @@ public class PoseSerializerTests
 
         Assert.IsFalse(new PoseSerializer().Deserialize(_directory, "db", reparented, out _));
     }
+
+    /// <summary>
+    /// An interrupted write leaves a file whose header promises more poses than it holds. The
+    /// skeleton block still matches, so nothing upstream catches it and the read itself has to.
+    /// </summary>
+    [Test]
+    public void Deserialize_RejectsATruncatedFile()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+        var written = BuildPoseSet(skeleton);
+        new PoseSerializer().Serialize(written, _directory, "db");
+        written.Dispose();
+
+        var path = Path.Combine(_directory, "db.mmpose");
+        var bytes = File.ReadAllBytes(path);
+        File.WriteAllBytes(path, bytes[..(bytes.Length - 40)]);
+
+        LogAssert.Expect(LogType.Error, new Regex("truncated"));
+
+        Assert.IsFalse(new PoseSerializer().Deserialize(_directory, "db", skeleton, out _));
+    }
 }
 }
