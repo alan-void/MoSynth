@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:0208f74333501a4efb4e5dd8fd360f1d048aeee7427e1d9513c6fe12d20b9548",
+  "pageVersion": "sha256:e8a04a0b239c3269b496c9e72a2d46997ab0dcc20273801c333379febe8ff441",
   "claims": [
     {
       "id": "claim_2689964bd1204431a7eced96edbe9587",
@@ -22,15 +22,15 @@
     },
     {
       "id": "claim_202fd6cda1724895b476a9da4b7e0425",
-      "statement": "training_data deliberately builds neither network's input tensor, only the per-frame quantities underneath both, because the packing is a property of the model rather than of the database; TrainingSet.pose_vector offers one packing for a decompressor target as a convenience.",
+      "statement": "training_data deliberately builds neither network's input tensor, only the per-frame quantities underneath both, because the packing is a property of the model rather than of the database; TrainingSet.pose_vector and TrainingSet.trajectory_window offer one packing and one sampling as conveniences.",
       "evidence": [
         {
-          "resource": "repo://Python/training_data.py#L1-L50",
-          "version": "repo-lines-v1:sha256:423df8a7dd1d49d7bc26069eb2782cef6b9e2f02902422bd391fb86a69af9271:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+          "resource": "repo://Python/training_data.py#L1-L55",
+          "version": "repo-lines-v1:sha256:f58bdfb338e0435a740c518dccc6c752cb386645987a91b63e11ca1f995f5f3b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4Njc4OGRjOTUzMWE3ZjkxOGVkOWYxZDY3ODY5NGFhYTNmZWYzN2UxNjE2MDdiYTQxOWUzZThkMWEwNmJjNzgifQ"
         },
         {
-          "resource": "repo://Python/training_data.py#L92-L200",
-          "version": "repo-lines-v1:sha256:c076f9a1bf8d8620d0d225dbc6f3fca297d7a6aede6d658b787a5b37461c4184:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2MGJmMTI2NzA4NzI1Mjc5YzJhODc2MTY0YjFmNjJiNjEyM2EwOTA3YzQyNTk2ZWY1ZmFjMTJlOWU0NWMwYzI0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwZTY3MTU5ZGEwN2U0ZTQ1ZTYxZTFiZWU2NzVlMzdjMWE0NzdkZDlhNGU0M2NhNGQxNDFlNDYxNWI4ODM1OGU3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2YzFmMDJmZDdlYzFkNDYyYzBjYjgxOGI5NDhmZmU0ZjcxNWIyYzJjNDMyNjMwYzIzMmRmZTM0ZDQyNzQzZmE5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlNzg5NDQ3MmY4YjcyYmZhMGQyODEwNDNmZmVkNWFmOTMyNDUyZDVlMDk3YmEwOTRmMzA2ZDQ4MDY2MTBkNzEyIn0"
+          "resource": "repo://Python/training_data.py#L184-L230",
+          "version": "repo-lines-v1:sha256:6578103a8a543e3422b6a6809a26a965ab62b4e4d35fa5a3b85a283de09975d0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3NTQ0ZmIzYzFmNTkyNmU2YzFlY2RhOGViMWU1OTk0MGI4ZGNkOTYzOTRmZjY1NWNhNDU4NDEwZWYxZGY1NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MjE2MTRmOTMzZDU4YzFjYWY4ODM2YWZkMjgyZWYzMzYzMWJiNDdmNDFkYzg0YjkzNTYxYTllNGI2MjM4OTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiM2JjMDUxYTU2ODQ5Njc4NjE2Y2EzZWIyYzNjNjNhYmM0YzFlNGE1MmE5MjM1NGU4YzIwY2U0Mjg2ZDM1NjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5ZWUxZWZkNGE5ODJhNzYzMTZjM2UxZGMzMTcwNmM1ODFkM2ZhMjJiZDM2ODhiN2RiNzhjM2Y0NTg2ZjA0ZTgifQ"
         }
       ]
     },
@@ -43,8 +43,8 @@
           "version": "repo-lines-v1:sha256:391da9fb0a292c6c41dbb04ba37773cc9848010f0d6ff92d06728f29cf0ffbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZGY1YTQ4ZDZlZjM2MzI2ZTYxMDM0ODIwY2Q4OWJlZTkyNDk0MzBjNzY5OTk3Mjc1YzliZTk0ZDhjMDEyNzgifQ"
         },
         {
-          "resource": "repo://Python/training_data.py#L268-L360",
-          "version": "repo-lines-v1:sha256:50c1aca976641fe11cd1e6d64bb9bbb6fb8a2470accfea44c15f528d7b39273c:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZDFlNWYzN2ZhMGY1NzVjNjY2YmIzYmEyNjAzOTgxYzM3MjliZTM2ODA4NzA5NTg5MWNlY2E5ZjhmZmJmNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliZmQzNWY3NTA2NDc5N2IzZGZiOWI5ZmJmNzhiNjJhZjY1Y2E2YzU2ZWI0YjI3MjAzOTk0NzBkZTg1MTQ0M2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2MmZiOGY5ODk5NGU3ZDBkYmQ3YTNkMTI4NDYxOWQ3ZjNmZTdjMzMyYzNlNGM1NzBjYWFhMzVmM2JjOWUxZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmZTExNTNmMzFjOWRkMmZmM2EwNTA3ZjdjZGU3ZGI3MTg2MjZmZTMwYWY4YmFjYTMzMzdkMzU4NDMzN2Y0ODcifQ"
+          "resource": "repo://Python/training_data.py#L336-L448",
+          "version": "repo-lines-v1:sha256:43bd83f348e39529dda9065e0bfd49322fb4f46397eb00c11ac2d3cfec1120ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhOWQxZTVmMzdmYTBmNTc1YzY2NmJiM2JhMjYwMzk4MWMzNzI5YmUzNjgwODcwOTU4OTFjZWNhOWY4ZmZiZjY1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkNjJmYjhmOTg5OTRlN2QwZGJkN2EzZDEyODQ2MTlkN2YzZmU3YzMzMmMzZTRjNTcwY2FhYTM1ZjNiYzllMWUwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzZmI2M2JjOWUzZGNiYmZiODhkNzc2NTBhZmEyOTQzNjg1MWRmMjdjMmQ2MGFiYWNhYTZmOTA0MTE2YjAxMmJhIn0"
         }
       ]
     },
@@ -57,14 +57,42 @@
           "version": "repo-lines-v1:sha256:391da9fb0a292c6c41dbb04ba37773cc9848010f0d6ff92d06728f29cf0ffbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZGY1YTQ4ZDZlZjM2MzI2ZTYxMDM0ODIwY2Q4OWJlZTkyNDk0MzBjNzY5OTk3Mjc1YzliZTk0ZDhjMDEyNzgifQ"
         },
         {
-          "resource": "repo://Python/training_data.py#L230-L268",
-          "version": "repo-lines-v1:sha256:46d6bd3d894237697c846c40111dcb812f1189c20af3a0ee0e7acc8df42e54ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1OWVlZGY0YWM5OWQwMWE1NjdkYjFmNjk1NzU0NjhhMTkwNzJiOTk2YjkzNjY3MDBkMTVmMTZlZTViMzZjY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZDFlNWYzN2ZhMGY1NzVjNjY2YmIzYmEyNjAzOTgxYzM3MjliZTM2ODA4NzA5NTg5MWNlY2E5ZjhmZmJmNjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NzhmODU1Y2UyNzA0M2I1Mjc1MGNhZTRkYTdiOTcyZjcxODYyNzZhZGYwNTcyNWQ3ODVmMDZhMTllNjdiNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExYTNmOTI0M2QzNGRmZjRiYTJiMjkzMWYzZWQ0MzJiNTM1N2E2ZGM4Y2FkMmQ4YTc2NTljMWIwMzEwMjY3MDQifQ"
+          "resource": "repo://Python/training_data.py#L315-L335",
+          "version": "repo-lines-v1:sha256:efb44d0588825d910d3a26cde1891e94ffb7d5464210e072f088c3ea25518edf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2MjQ1OGQyM2E5NjJhYTQ4ZjNmYjU5ZTAwZWMxMjBlN2NjNWFjNjcwZDI4ZmM3MGMwMThmOTFmOTcxMGNhNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiYzM0MjUzZmM0NmM4NjI1MmFjOTgzZDg0YzY0Y2Y4ZjZkYmI5ODRmOTdlZDY5NTZkYzdjYmYzZDRmMmNlYjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5ZGVmODZlZDRkMDUzOTJmMDQ1NGRkM2I0NzMxMDZiMzMyZWQ3ZGQxMTg5M2MxZDY5NmJiMjFmNzEyMDY3MzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_41b36fb16ea4465f9b7015ef7410f645",
+      "statement": "A trajectory window is the one model input the frame-local arrays cannot supply, because the frame transform is precisely what removes it, so the training set keeps the world frame origin and heading for that purpose alone and TrainingSet.trajectory_window derives the window from them at whatever offsets a model wants.",
+      "evidence": [
+        {
+          "resource": "repo://Python/training_data.py#L96-L150",
+          "version": "repo-lines-v1:sha256:68d394951b7dd770f9f45033eb9828f2cb9777bf2acf98ebbbc90b94617d099a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYmYxMjY3MDg3MjUyNzljMmE4NzYxNjRiMWY2MmI2MTIzYTA5MDdjNDI1OTZlZjVmYWMxMmU5ZTQ1YzBjMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNjE3MWZiZGUxODI4YWY1YWY2YTkwNDZhMTA4YTBiNDVjYTc4ZDRlNjg5NGRlNGNiNmE4NDFlNDY1NmE5ZDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3MzA0ODAzMmQwM2NhYWU5YWJkYmY4ZDRjNWQ1OTYzZGIwOGM1MDk2YmZjZjE1MWNlZTBkMDA2N2NkYzZlZTIifQ"
+        },
+        {
+          "resource": "repo://Python/training_data.py#L223-L274",
+          "version": "repo-lines-v1:sha256:255aff4a69b4e9185219d1c24ede867578af612c3885d60af2340038329921b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNjYzM2YxNTA5ODMyN2FlOTlhOWEzNTQ4MTMwNTJlNTFlMWE2OWI4Yzk2MDZkNDQ4NjlkMGNiNDBhNWU1MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NTU1ZTVjMzIzMDI5ZDAxYWY2MmViZDczOTEwMDdkZDRjMjJhNjZiNGZmNzZkMzY5OWViMTc3MzRiODY4OWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmYjQzMjE3OWUyYmE1MGMwOTRmMDI2MTRlNjY2ZTFhY2M4Nzg5MjE5NWUwYTRkNjcwZGUzNmJiZGQ3MjU3ZWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_533dffb43e484223bf3e0e1da9e0cb93",
+      "statement": "Trajectory window offsets are clamped inside the query frame's own clip rather than wrapped or dropped, so a window near a clip edge repeats its last real sample — the same thing a character standing still would produce — which keeps every frame usable instead of discarding the ends of every clip.",
+      "evidence": [
+        {
+          "resource": "repo://Python/training_data.py#L223-L274",
+          "version": "repo-lines-v1:sha256:255aff4a69b4e9185219d1c24ede867578af612c3885d60af2340038329921b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNjYzM2YxNTA5ODMyN2FlOTlhOWEzNTQ4MTMwNTJlNTFlMWE2OWI4Yzk2MDZkNDQ4NjlkMGNiNDBhNWU1MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NTU1ZTVjMzIzMDI5ZDAxYWY2MmViZDczOTEwMDdkZDRjMjJhNjZiNGZmNzZkMzY5OWViMTc3MzRiODY4OWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmYjQzMjE3OWUyYmE1MGMwOTRmMDI2MTRlNjY2ZTFhY2M4Nzg5MjE5NWUwYTRkNjcwZGUzNmJiZGQ3MjU3ZWUifQ"
+        },
+        {
+          "resource": "repo://Python/tests/test_training_data.py",
+          "version": "repo-file-v1:sha256:502d89b525facd2e638653105fbf1d1129cd7f07368018e7bb254d4aee9e50f7"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-29T23:23:48.822Z"
+    "at": "2026-08-29T23:35:22.182Z"
   }
 }

@@ -10,11 +10,13 @@ sources:
     resource: repo://Python/gait_phase.py
   - id: openwiki-source-030d30d689203655d06f8a6b
     resource: repo://Python/tests/test_gait_phase.py
+  - id: openwiki-source-44aeec7103fbb90f34a34626
+    resource: repo://Python/tests/test_training_data.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-29T23:23:48.822Z
+    at: 2026-08-29T23:35:22.182Z
 ---
 
 # Neural synthesis readiness
@@ -68,7 +70,19 @@ footfalls is reported as having *no measurable cycle* rather than being given a 
 what `phase_rate == 0` marks. See [on-disk formats](on-disk-formats.md) for where the contacts come
 from.
 
-**Trajectory windows that reach into the past.** A trajectory feature's prediction frames may be
+**A trajectory window.** `TrainingSet.trajectory_window(offsets)` samples where the character was
+and will be, around every frame, in that frame's own space — the input a phase-functioned network is
+organised around. It is the one thing a model needs that the frame-local arrays cannot supply, since
+the frame transform is precisely what removes it, so the world frame origin and heading are kept for
+exactly this. Offsets are clamped inside the query frame's own clip rather than wrapped or dropped,
+which keeps every frame usable instead of discarding the ends of every clip.
+
+Two independent checks agree on it: one frame ahead, divided by the timestep, reproduces
+`root_velocity` to float precision, and the divergence between travel and facing over 20 frames comes
+out at a mean of 41° with a median of 13.5° — matching the separately measured property that
+[facing is not the direction of travel](simulation-frame.md) on this database.
+
+**Query horizons that reach into the past.** A trajectory feature's prediction frames may be
 negative. Both the classic matching query and a PFNN-style window need samples either side of the
 query frame; see [feature vectors](../motion-matching/feature-vectors.md) and
 [control inputs](../motion-matching/control-inputs.md) for how each control input answers a past

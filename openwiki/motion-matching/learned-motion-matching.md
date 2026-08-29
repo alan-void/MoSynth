@@ -14,7 +14,7 @@ sources:
     resource: repo://Python/training_data.py
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-29T23:23:48.822Z
+    at: 2026-08-29T23:36:06.985Z
 ---
 
 # Learned motion matching

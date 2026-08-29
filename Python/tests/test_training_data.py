@@ -197,6 +197,88 @@ class RotationRepresentationTests(unittest.TestCase):
                         np.allclose(np.abs((recovered * rotations).sum(axis=1)), 1.0, atol=1e-5))
 
 
+class TrajectoryWindowTests(unittest.TestCase):
+    """
+    A trajectory window is the one thing a model needs that the frame transform removes, so
+    these check it is measured in the query frame and never leaves the query frame's clip.
+    """
+
+    OFFSETS = [-10, -5, 0, 5, 10]
+
+    def test_a_straight_walk_lays_the_window_out_along_the_travel_axis(self):
+        speed = 1.5
+        training_set = training_data.build_training_set(
+            build_pose_set(walking_straight(60, speed), np.zeros(60, dtype=np.float32), [(0, 60)]))
+
+        positions, directions = training_set.trajectory_window(self.OFFSETS)
+
+        # Facing is identity (+z) while travel is +x, so the window runs along local x.
+        step = speed * FRAME_TIME
+        np.testing.assert_allclose(positions[30, :, 0], np.array(self.OFFSETS) * step, atol=1e-4)
+        np.testing.assert_allclose(positions[30, :, 1], 0.0, atol=1e-4)
+        # Nothing turns, so every sample faces the way the query frame does.
+        np.testing.assert_allclose(directions[30], np.tile([0.0, 1.0], (len(self.OFFSETS), 1)),
+                                   atol=1e-4)
+
+    def test_the_window_is_measured_in_the_query_frames_own_space(self):
+        # The same walk started somewhere else and facing somewhere else must produce the
+        # same window -- that invariance is the whole point of measuring it in the frame.
+        speed = 1.5
+        straight = training_data.build_training_set(
+            build_pose_set(walking_straight(60, speed), np.zeros(60, dtype=np.float32), [(0, 60)]))
+
+        yaw = 0.9
+        positions = walking_straight(60, speed, start_x=17.0)
+        rotated = positions.copy()
+        rotated[:, 0] = np.cos(yaw) * positions[:, 0] + np.sin(yaw) * positions[:, 2]
+        rotated[:, 2] = -np.sin(yaw) * positions[:, 0] + np.cos(yaw) * positions[:, 2]
+        turned = training_data.build_training_set(
+            build_pose_set(rotated, np.full(60, yaw, dtype=np.float32), [(0, 60)]))
+
+        np.testing.assert_allclose(turned.trajectory_window(self.OFFSETS)[0][30],
+                                   straight.trajectory_window(self.OFFSETS)[0][30], atol=1e-3)
+
+    def test_a_turn_shows_up_as_the_window_facing_turning(self):
+        n_frames = 60
+        rate = 0.5
+        yaws = np.arange(n_frames, dtype=np.float32) * rate * FRAME_TIME
+        positions = np.stack([np.zeros(n_frames), np.full(n_frames, ROOT_HEIGHT),
+                              np.zeros(n_frames)], axis=1).astype(np.float32)
+        training_set = training_data.build_training_set(
+            build_pose_set(positions, yaws, [(0, n_frames)]))
+
+        _, directions = training_set.trajectory_window([0, 10])
+
+        expected = rate * 10 * FRAME_TIME
+        self.assertAlmostEqual(float(np.arctan2(directions[30, 1, 0], directions[30, 1, 1])),
+                               expected, places=3)
+
+    def test_offsets_are_clamped_inside_the_query_frames_own_clip(self):
+        speed = 1.5
+        first = walking_straight(30, speed, start_x=0.0)
+        second = walking_straight(30, speed, start_x=100.0)
+        training_set = training_data.build_training_set(
+            build_pose_set(np.concatenate([first, second]),
+                           np.zeros(60, dtype=np.float32), [(0, 30), (30, 60)]))
+
+        positions, _ = training_set.trajectory_window([-10, 0, 10])
+
+        # Frame 29 is the last of clip 0; frame 30 is 100 metres away in another animation.
+        self.assertLess(abs(positions[29, 2, 0]), 1.0)
+        # Frame 0 has no past inside its clip, so the window repeats it.
+        np.testing.assert_allclose(positions[0, 0], positions[0, 1], atol=1e-5)
+
+    def test_the_window_is_shaped_by_the_offsets_it_was_asked_for(self):
+        training_set = training_data.build_training_set(
+            build_pose_set(walking_straight(20, 1.0), np.zeros(20, dtype=np.float32), [(0, 20)]))
+
+        positions, directions = training_set.trajectory_window([-4, 0, 4])
+
+        self.assertEqual(positions.shape, (20, 3, 2))
+        self.assertEqual(directions.shape, (20, 3, 2))
+        np.testing.assert_allclose(np.linalg.norm(directions, axis=2), 1.0, atol=1e-5)
+
+
 class RoundTripTests(unittest.TestCase):
     def test_an_npz_reads_back_as_the_same_training_set(self):
         import tempfile
@@ -219,6 +301,8 @@ class RoundTripTests(unittest.TestCase):
         np.testing.assert_allclose(restored.positions, original.positions)
         np.testing.assert_allclose(restored.rotations, original.rotations)
         np.testing.assert_allclose(restored.phase, original.phase)
+        np.testing.assert_allclose(restored.frame_position, original.frame_position)
+        np.testing.assert_allclose(restored.frame_yaw, original.frame_yaw)
         self.assertIsNone(restored.features)
 
 

@@ -14,7 +14,8 @@ So this module does not build either network's input tensor. It builds the share
 underneath both -- every frame of the database, in the frame the character is measured in,
 with the derived quantities that are not stored anywhere -- and leaves the packing to
 whoever is training. :meth:`TrainingSet.pose_vector` offers one such packing for the
-decompressor target, as a convenience rather than as a format.
+decompressor target, and :meth:`TrainingSet.trajectory_window` samples a trajectory at
+whatever offsets a model wants; both are conveniences rather than formats.
 
 What is *derived* here, and why it cannot simply be read out of the ``.mmpose``:
 
@@ -24,6 +25,9 @@ What is *derived* here, and why it cannot simply be read out of the ``.mmpose``:
   same quantity as a joint's velocity within the character frame.
 * Gait phase is not stored at all; it is reconstructed from the foot contacts by
   :mod:`gait_phase`.
+* A trajectory window is where the character was and will be relative to now, which the
+  frame transform is precisely what removes -- so it is derived from the world frames,
+  which are kept for exactly that.
 
 Everything is computed **clip by clip**. Clips sit back to back in one array, so
 differencing across a boundary would report a jump cut as motion. The last frame of each
@@ -116,6 +120,9 @@ class TrainingSet:
     :param phase: (n,) gait phase in [0, 2*pi), from :mod:`gait_phase`.
     :param phase_rate: (n,) rate of change of the unwrapped phase, rad/s. Zero marks a
         clip with no measurable gait cycle.
+    :param frame_position: (n, 3) **world** position of the character frame's origin, on the
+        ground plane. Not model input -- see the note below.
+    :param frame_yaw: (n,) **world** heading of the character frame, in radians. Likewise.
     :param features: (n, feature_size) normalised matching feature vectors, or None when
         no ``.mmfeatures`` was read. This is the query a learned motion matching projector
         maps into.
@@ -127,6 +134,13 @@ class TrainingSet:
     :param feature_counts: (n_features,) samples stored per feature.
     :param n_trajectory_features: how many of the above are trajectory features; the rest
         are pose features, and their first float offset is where the pose block starts.
+
+    :attr:`frame_position` and :attr:`frame_yaw` are the only world-space arrays here, and a
+    model must not take either: where the character stands and which way it faces are exactly
+    what a locomotion model has to be invariant to. They are kept because a trajectory window
+    is where the character was and will be *relative to now*, which cannot be reconstructed
+    from frame-local data -- that information is precisely what the frame transform removed.
+    See :meth:`trajectory_window`.
     """
 
     frame_time: float
@@ -142,6 +156,8 @@ class TrainingSet:
     contacts: np.ndarray
     phase: np.ndarray
     phase_rate: np.ndarray
+    frame_position: np.ndarray
+    frame_yaw: np.ndarray
 
     features: np.ndarray | None = None
     feature_valid: np.ndarray | None = None
@@ -203,6 +219,58 @@ class TrainingSet:
             layout.append((name, offset, count))
             offset += count
         return layout
+
+    def trajectory_window(self, offsets) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Where the character was and will be, around every frame, in that frame's own space.
+
+        This is the input a phase-functioned network is organised around, and the one thing
+        a model needs that cannot be recovered from the frame-local arrays: they have had
+        exactly this information removed. Motion matching's trajectory features are the same
+        idea, but only for the horizons a ``MotionMatchingData`` happens to author, whereas a
+        PFNN-style window is a dense sweep of roughly a second either side.
+
+        Offsets are clamped to the containing clip rather than wrapped or dropped, so a
+        window near a clip edge repeats its last real sample. That is the same thing a
+        character standing still would produce, and it keeps every frame usable instead of
+        discarding the ends of every clip.
+
+        :param offsets: frame offsets relative to the query frame, negative for the past.
+        :return: ``(positions, directions)``, both (n_frames, len(offsets), 2) float32 in the
+            ground plane as (x, z). Positions are metres from the query frame's origin;
+            directions are unit facings.
+        """
+        offsets = np.asarray(offsets, dtype=np.int64)
+        n_frames, n_offsets = self.n_frames, offsets.size
+
+        # Clamp each offset into the clip that owns the query frame.
+        starts = np.zeros(n_frames, dtype=np.int64)
+        ends = np.zeros(n_frames, dtype=np.int64)
+        for start, end in self.clip_ranges:
+            starts[start:end] = start
+            ends[start:end] = end - 1
+
+        sampled = np.arange(n_frames, dtype=np.int64)[:, np.newaxis] + offsets[np.newaxis, :]
+        sampled = np.clip(sampled, starts[:, np.newaxis], ends[:, np.newaxis])
+
+        origin = np.asarray(self.frame_position, dtype=np.float64)[:, [0, 2]]
+        yaw = np.asarray(self.frame_yaw, dtype=np.float64)
+
+        # Rotating a world offset into the query frame is the inverse yaw. Unity is y-up and
+        # left-handed with the character facing +z, so a heading of theta is the direction
+        # (sin theta, cos theta) in (x, z) and the inverse rotation is its transpose.
+        cos, sin = np.cos(yaw)[:, np.newaxis], np.sin(yaw)[:, np.newaxis]
+
+        offset_world = origin[sampled] - origin[:, np.newaxis, :]
+        positions = np.stack([
+            cos * offset_world[..., 0] - sin * offset_world[..., 1],
+            sin * offset_world[..., 0] + cos * offset_world[..., 1],
+        ], axis=-1)
+
+        relative_yaw = yaw[sampled] - yaw[:, np.newaxis]
+        directions = np.stack([np.sin(relative_yaw), np.cos(relative_yaw)], axis=-1)
+
+        return positions.astype(np.float32), directions.astype(np.float32)
 
     def usable(self) -> np.ndarray:
         """
@@ -297,6 +365,8 @@ def build_training_set(pose_set: PoseSet, feature_set: FeatureSet | None = None)
     out_angular = np.zeros((n_frames, n_bones, 3), dtype=np.float32)
     out_root_velocity = np.zeros((n_frames, 3), dtype=np.float32)
     out_root_yaw_rate = np.zeros(n_frames, dtype=np.float32)
+    out_frame_position = np.zeros((n_frames, 3), dtype=np.float32)
+    out_frame_yaw = np.zeros(n_frames, dtype=np.float32)
 
     ranges = clip_ranges(pose_set.clips, n_frames)
     for start, end in ranges:
@@ -322,6 +392,8 @@ def build_training_set(pose_set: PoseSet, feature_set: FeatureSet | None = None)
         out_angular[start:end] = angular
         out_root_velocity[start:end] = rates.linear
         out_root_yaw_rate[start:end] = rates.yaw
+        out_frame_position[start:end] = frames.position[:-1]
+        out_frame_yaw[start:end] = frames.yaw[:-1]
 
     contacts = np.asarray(pose_set.foot_contacts).astype(np.float32)
     phase, phase_rate = gait_phase.pose_set_phase(contacts, ranges, frame_time)
@@ -339,7 +411,9 @@ def build_training_set(pose_set: PoseSet, feature_set: FeatureSet | None = None)
         root_yaw_rate=out_root_yaw_rate,
         contacts=contacts,
         phase=phase,
-        phase_rate=phase_rate)
+        phase_rate=phase_rate,
+        frame_position=out_frame_position,
+        frame_yaw=out_frame_yaw)
 
     if feature_set is not None:
         training_set.features = feature_set.features
@@ -393,6 +467,8 @@ def save_npz(training_set: TrainingSet, path: str) -> None:
         'contacts': training_set.contacts,
         'phase': training_set.phase,
         'phase_rate': training_set.phase_rate,
+        'frame_position': training_set.frame_position,
+        'frame_yaw': training_set.frame_yaw,
     }
 
     if training_set.features is not None:
@@ -427,7 +503,9 @@ def load_npz(path: str) -> TrainingSet:
             root_yaw_rate=data['root_yaw_rate'],
             contacts=data['contacts'],
             phase=data['phase'],
-            phase_rate=data['phase_rate'])
+            phase_rate=data['phase_rate'],
+            frame_position=data['frame_position'],
+            frame_yaw=data['frame_yaw'])
 
         if 'features' in data:
             training_set.features = data['features']
