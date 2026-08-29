@@ -151,28 +151,26 @@ bone 0 and the component must be identity**. If something in between carries a r
 the frame the pose implies is no longer the frame the pose is written under, and the character drifts
 in a way nothing detects.
 
-### Two rough edges in the read-back path
+### The read-back path
 
 `ConstructCurrentPoseFromSkeletonTransforms` refreshes `CurrentPose` from the Transforms at the start
-of each tick, so synthesis starts from where the rig actually is. Two things about it are worth
-knowing before you trust its velocity channels:
+of each tick, so synthesis starts from where the rig actually is. The work is `RigPoseReader.Read`;
+the component only supplies the rig and the timestep.
 
-- **The velocity pass must run before the pose pass.** It differences against the previous tick's
-  values, which are still sitting in the buffer, so it has to read them before the pose pass
-  overwrites them.
-- **The values it writes are not what the channels claim to hold.** It writes per-tick deltas rather
-  than the per-second rates the velocity channels carry, and it uses `Quaternion.eulerAngles` — Euler
-  degrees — for angular velocity, where the channel type specifies axis-times-radians-per-second.
-  So the seeded values are wrong in both unit and encoding, and because `eulerAngles` returns
-  `[0, 360)`, a small negative rotation reads as roughly 359.
+- **The rate pass runs before the pose pass.** It differences against the previous tick's values,
+  which are still sitting in the buffer, so it has to read them before the pose pass overwrites them.
+  That makes `Read` non-idempotent: calling it twice in one tick reports the second call's rates as
+  zero.
+- **The values it writes are what the channels claim to hold** — per-second rates, angular rates as
+  rotation vectors in radians taken the short way round. So a stage that reads the incoming pose sees
+  the same quantities a database frame carries, and
+  `SkeletonData.CharacterSpaceVelocity`, which cross-multiplies angular rate with an offset, gets a
+  rate rather than a number in different units.
+- **A zero-length tick yields a zero rate**, not an infinity. The first tick and a paused editor both
+  hand one over.
 
-This is tolerable only because any stage that replaces the pose overwrites those channels before
-anyone reads them as rates. The source acknowledges the per-tick-delta half of this; the Euler
-encoding is undocumented.
-
-**Where that precondition does not hold.** The component applies the pose regardless of what any
-stage returned — or whether any stage ran — so the seeded values reach the apply step on several
-reachable paths:
+This matters because the component applies the pose regardless of what any stage returned — or
+whether any stage ran — so the read-back values reach the apply step on several reachable paths:
 
 - an empty stage list, or one where every stage is disabled;
 - [`MfConnector`](../motion-field/python-interop.md) returning without a reply, which leaves the
@@ -180,13 +178,12 @@ reachable paths:
 - [`MotionFieldStage`](../motion-field/motion-field-stage.md) after a mid-run exception, which
   disables itself and stops writing while still returning `true`.
 
-**What goes wrong when they do reach it.** `ApplyPoseToSkeletonTransforms` reads those channels as
-per-second rates and multiplies by the timestep again — so a per-tick delta is scaled down by roughly
-a further factor of the frame rate. And the Euler-**degrees** angular channel is handed to a
-scaled-angle-axis conversion that expects **radians**, which is not a small error. The two mistakes
-compound rather than cancelling.
-
-Do not build anything on the seeded velocities.
+> **Historical note.** These channels used to be filled with per-tick deltas, and angular velocity
+> with `Quaternion.eulerAngles` — Euler *degrees*, wrapped into `[0, 360)`, where the channel
+> specifies axis-times-radians-per-second, so a small negative rotation read as roughly 359.
+> `ApplyPoseToSkeletonTransforms` then multiplied by the timestep again and handed the degrees to a
+> scaled-angle-axis conversion expecting radians. Anything written against "do not trust the seeded
+> velocities" predates the fix.
 
 ## Startup and failure
 

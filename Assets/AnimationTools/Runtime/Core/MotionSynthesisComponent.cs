@@ -240,18 +240,8 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         CurrentPose = PoseBuffer.Allocate(PoseLayout, Allocator.Persistent);
         _scratchPose = PoseBuffer.Allocate(PoseLayout, Allocator.Persistent);
 
-        var positions = CurrentPose.Positions;
-        var rotations = CurrentPose.Rotations;
-
-        positions[0] = SkeletonTransforms[0].position;
-        rotations[0] = SkeletonTransforms[0].rotation;
-
-        for (var i = 1; i < SkeletonTransforms.Length; i++)
-        {
-            rotations[i] = SkeletonTransforms[i].localRotation;
-            positions[i] = SkeletonTransforms[i].localPosition;
-        }
         // Velocities, angular velocities and contacts are already zeroed by Allocate.
+        RigPoseReader.Seed(CurrentPose, SkeletonTransforms);
     }
 
     /// <summary>
@@ -259,50 +249,13 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     /// rig actually is rather than from what the pipeline last produced.
     /// </summary>
     /// <remarks>
-    /// The velocity pass must run first: it differences against the previous tick's values, still
-    /// held in the buffer, so it has to read them before the pose pass overwrites them. Note it
-    /// writes per-tick deltas, not the per-second rates the velocity channels normally carry —
-    /// tolerable only because any stage that replaces the pose overwrites them first.
-    /// <para>
-    /// Bone 0 is read in world space and every other bone rotation-only, matching how a pose is
-    /// stored. Since <see cref="ApplyPoseToSkeletonTransforms"/> writes bone 0 frame-locally under
-    /// this component's Transform, the frame derived from the pose built here is that Transform —
-    /// which holds only while everything between bone 0's Transform and this one is identity.
-    /// </para>
+    /// Since <see cref="ApplyPoseToSkeletonTransforms"/> writes bone 0 frame-locally under this
+    /// component's Transform, the frame derived from the pose built here is that Transform — which
+    /// holds only while everything between bone 0's Transform and this one is identity.
     /// </remarks>
     void ConstructCurrentPoseFromSkeletonTransforms()
     {
-        var positions = CurrentPose.Positions;
-        var rotations = CurrentPose.Rotations;
-        var velocities = CurrentPose.Velocities;
-        var angularVelocities = CurrentPose.AngularVelocities;
-
-        var rootPosition = (float3)SkeletonTransforms[0].position;
-        var rootRotation = SkeletonTransforms[0].rotation;
-        angularVelocities[0] = (rootRotation * Quaternion.Inverse(rotations[0])).eulerAngles;
-        velocities[0] = rootPosition - positions[0];
-
-        for (var i = 1; i < SkeletonTransforms.Length; i++)
-        {
-            var inverseLocalRotation = Quaternion.Inverse(rotations[i]);
-            angularVelocities[i] =
-                (SkeletonTransforms[i].localRotation * inverseLocalRotation).eulerAngles;
-            velocities[i] =
-                (float3)SkeletonTransforms[i].localPosition - positions[i];
-        }
-
-        positions[0] = rootPosition;
-        rotations[0] = rootRotation;
-
-        // Every other bone contributes rotation only; their positions stay at the rest offsets
-        // seeded by InitCurrentPose, which is what keeps bone lengths fixed.
-        for (var i = 1; i < SkeletonTransforms.Length; i++)
-        {
-            rotations[i] = SkeletonTransforms[i].localRotation;
-        }
-
-        // Foot contacts are not recoverable from the Transforms alone, so whichever stage owns them
-        // writes them into the pipeline pose instead of them being seeded here.
+        RigPoseReader.Read(CurrentPose, SkeletonTransforms, _animationDeltaTime);
     }
 
     /// <summary>
