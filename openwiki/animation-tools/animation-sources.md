@@ -30,6 +30,10 @@ This is where animation data enters the project: an `AnimationClip` plus the `Sk
 against, baked into the flat float pose format. The layer stops at `PoseSequence` — it knows nothing
 about databases, features or serialization.
 
+> Clips now normally arrive already retargeted onto one shared rig, rather than each BVH bringing its
+> own skeleton. See [the retargeting pipeline](retargeting-pipeline.md) for how a BVH becomes an FBX
+> take before it reaches any of this; `BvhImporter` below remains the direct, single-skeleton route.
+
 | Type | Role |
 | --- | --- |
 | `SkeletonAnimation` | pairs a clip with its skeleton; bakes lazily into a `PoseSequence` |

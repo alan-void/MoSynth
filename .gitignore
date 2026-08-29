@@ -110,3 +110,9 @@ __pycache__/
 # repo because some of its contents are under third-party copyright. Ignored
 # here so it can never be picked up as an embedded gitlink.
 /[Aa]ssets/LFS/
+
+# Machine-local working assets: character models, Mujoco imports and scratch
+# scenes. Roughly 600 MB, not part of the project's source, and some of it is
+# under third-party copyright.
+/[Aa]ssets/Local/
+/[Aa]ssets/Local.meta
