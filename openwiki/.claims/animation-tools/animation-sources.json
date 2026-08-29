@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:4d3d288b0a00da6924658331946b56624441eac61baeb0ddaf619e87189fbf7e",
+  "pageVersion": "sha256:b37e1a80c298247f5f8a89ec74626f3c1b4283b791b3ff7634fb4fb013f15885",
   "claims": [
     {
       "id": "claim_17247bd5de454603bc610632907b8738",
@@ -154,11 +154,11 @@
     },
     {
       "id": "claim_27b8e49fe90c42cb935e7ac1b00ac4aa",
-      "statement": "Assets/Scripts/BioVisionHierarchyToAnimClip.cs is a second, unrelated BVH converter that produces only a standalone .anim with no rig object and uses a different handedness convention from BvhImporter — it flips X for position where BvhImporter negates Z — so the two BVH paths are not interchangeable.",
+      "statement": "Assets/Scripts/Editor/BioVisionHierarchyToAnimClip.cs is a second, unrelated BVH converter that produces only a standalone .anim with no rig object and uses a different handedness convention from BvhImporter — it flips X for position where BvhImporter negates Z — so the two BVH paths are not interchangeable.",
       "evidence": [
         {
-          "resource": "repo://Assets/Scripts/BioVisionHierarchyToAnimClip.cs",
-          "version": "repo-file-v1:sha256:14948aeff835c2a393b1bb0a26c2ddb78e56d4c6f776ac44ab3a4cfc87e648fc"
+          "resource": "repo://Assets/Scripts/Editor/BioVisionHierarchyToAnimClip.cs",
+          "version": "repo-file-v1:sha256:6fc2161ee74fe773486dacbb4e848b40cdf18d901dd42522b99e0c5c672c6423"
         },
         {
           "resource": "repo://Assets/AnimationTools/Editor/Importers/BvhImporter.cs#L215-L226",
@@ -169,6 +169,6 @@
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-24T17:01:26.052Z"
+    "at": "2026-08-29T23:30:04.693Z"
   }
 }

@@ -29,9 +29,6 @@ sources:
   - id: openwiki-source-1110a5319fdf997c0acf8f29
     resource: repo://Python/pose_set_importer.py
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # MoSynth
@@ -65,6 +62,7 @@ explains several placement decisions that otherwise look arbitrary.
 | [The simulation frame](animation-tools/simulation-frame.md) | deriving a character frame; **facing vs. direction of travel** |
 | [Animation sources](animation-tools/animation-sources.md) | clips, baking, BVH import |
 | [The pose database](animation-tools/pose-database.md) | `PoseSet`, extraction, contacts, `IPoseSetSource` |
+| [Neural synthesis readiness](animation-tools/neural-synthesis.md) | what PFNN and learned motion matching need, and what is already here |
 | [On-disk formats](animation-tools/on-disk-formats.md) | the four StreamingAssets artefacts and the byte convention |
 | [Motion recording](animation-tools/motion-recording.md) | capturing a run to a numpy-readable file |
 | [Path following metrics](animation-tools/path-following-metrics.md) | windowed spline projection; trajectory, heading, speed, laps |

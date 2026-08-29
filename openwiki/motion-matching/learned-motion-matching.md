@@ -3,6 +3,18 @@ type: Reference
 title: Learned motion matching
 description: What the repository provides toward replacing the database search with learned networks, and the parked Barracuda experiment that was removed to make room for it.
 tags: [status, roadmap, neural, training-data]
+sources:
+  - id: openwiki-source-13742752b942a8c72fc71381
+    resource: repo://Assets/MotionField/MotionFieldStage.cs
+  - id: openwiki-source-5d4680328f7da95f88649f31
+    resource: repo://Packages/manifest.json
+  - id: openwiki-source-b7a0fd38fcd115e75814f58b
+    resource: repo://Python/feature_set_importer.py
+  - id: openwiki-source-58d35cd9c30979b2ff43e031
+    resource: repo://Python/training_data.py
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-08-29T23:23:48.822Z
 ---
 
 # Learned motion matching
@@ -17,7 +29,9 @@ search with three small networks:
 | **decompressor** | reconstructs a full pose from the latent state |
 
 **None of them exists in this repository.** What does exist is everything they would be trained
-from, which is what this page is about.
+from, which is what this page is about. The parts shared with a phase-functioned network are on
+[neural synthesis readiness](../animation-tools/neural-synthesis.md); this page is the
+LMM-specific half.
 
 ## What is already here
 

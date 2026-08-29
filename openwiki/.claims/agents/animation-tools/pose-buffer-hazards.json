@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:babb2d664a5948f0ce0f129a102027f9a3fa6055174893d9b4a5078772ad72fd",
+  "claims": [
+    {
+      "id": "claim_924eb2b1c313466080b4d40000f3b887",
+      "statement": "PoseBuffer exposes its channels as properties returning a NativeSlice by value, so an indexed assignment through one does not compile; the slice has to be taken into a local first.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseBuffer.cs",
+          "version": "repo-file-v1:sha256:8730807086c61ab61b7582d0a367c891ab2ee1f28bbe00181f081f4b3f7034b4"
+        }
+      ]
+    },
+    {
+      "id": "claim_30d46adffa5a4f788115acecad2ac5db",
+      "statement": "PoseLayout.Build caches per skeleton content hash and channel set, so two builds over the same skeleton return the same instance; that shared instance is what lets PoseBuffer.CopyFrom work between a PoseSet frame and a MotionSynthesisComponent buffer, which require equal layout hashes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayout.cs#L92-L150",
+          "version": "repo-lines-v1:sha256:993b172d30ef07c20ca139365faee8446b918b2372d902650f7471f68a204b8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5NDY3ZDFmZGJiMWRjNjE2YmFiNmQxNDk3NDZjYzgxNzE1MzM2MjllOWEzZmMyNzg1N2I2Nzg4MGI5YzM5NmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1YWI5ZjFjMGYwMmM1MWY5OTFhMDczMzBhZGM2NWY5MjEwNWQzYzFiYTIzYjBmMmQzNTY1MjQ5ZGUzNGQ4ZjcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseLayoutBuilder.cs",
+          "version": "repo-file-v1:sha256:106de247e0af82622508389890415830f5acb343402ad1853c61a7fce24ac121"
+        }
+      ]
+    },
+    {
+      "id": "claim_9bd2262b44814a80b0cb3b54fafee8be",
+      "statement": "A Skeleton is a Transform tree, so every test fixture that builds one creates real GameObjects and must destroy them and call Skeleton.InvalidateAll in TearDown, or the derived-data caches keyed on the dead roots poison later tests.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/TestSkeletons.cs",
+          "version": "repo-file-v1:sha256:087d075cf028eceff5f91bb91ad5e20bb760ffe5e187ac6c6c8634b7562033ed"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Tests/Editor/MmTestData.cs#L44-L55",
+          "version": "repo-lines-v1:sha256:0aeae95278bd1da651ebc9efd90af09f2eab70c1a49c224b0cd89684ed923d63:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiYjYxODlkN2ZmYzkzNjRkNDNmYWZiNTYxMGFiODRkODE3MjRkZWY4MzQ4NzU5MmE3YmU3Zjc0MTAxZjYyZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNThkZjlmNGFiMmRlNmQ5MDcyYjlhNjZhMGY0MjFlZTc4Y2Q5MDA4NTc3OWM1YmNlZjVjZWE2NzY0MGVjZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1ZDFkOWVhODU2ZjY1ZWJjZjhmZjA0YzMzM2E3OGIyN2EzOGY2ZmJhMGU2NDQwMzgxNjUxYzNiMDFhMGU4YjAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-29T23:23:48.822Z"
+  }
+}

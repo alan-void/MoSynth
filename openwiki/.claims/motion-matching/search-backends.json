@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d0246ac90554952875a8ea7dd7c24a0cf2d80a9d0406d2c1d2c2a60f7bc13851",
+  "pageVersion": "sha256:0231e347a37d21caa7efdd095ab35be50c60383e0523735f391c18b4eb7350f5",
   "claims": [
     {
       "id": "claim_7799451bed774aee9c0c0016a6dac5a3",
@@ -89,8 +89,8 @@
       "statement": "The tag mechanism is designed but unwired: SetTagBurst and DisableTagBurst are never scheduled from anywhere and the stage's tag mask is filled all-true at initialisation and never rewritten, so tag queries currently narrow nothing.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/TagOperationsBurst.cs#L10-L23",
-          "version": "repo-lines-v1:sha256:a889faa93de26b12dc68dc2fe281364df0f2082adba2ab09987709cdf88f28b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyNGM4OWU1NTI2MjA3ZmUxNjZmZDg2YWFkNGQyZWM4NTliMWM1YWU2ZjZlNmM2YzE4OTkyNDRmNmU1YzczYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUzNjRiMTkxNzQyYTY1ZmRhMzhlZDE0Nzc2MDQ4MmE3OWFhMzY2OTY1YjE1YmZhZjIwNTRhYzc1MzM0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0NTNlZGVmZmVhNTcwYzczZGRhNWQxM2NlYTM0MTU4ODczMDEyMDE4ZjE3ZWY3MGMwYmMzNzI3YTYzNTU4MGMifQ"
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/TagOperationsBurst.cs#L10-L24",
+          "version": "repo-lines-v1:sha256:6bbce983dbe0612a0081dbd9db58e2be99d522c9055cd8fefcc614adcc1cc2a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyZDczOWIzNmZmYzQ4NmRjMGVjOWY1YzRkMzZhNDg4NmJhNGU5MTVhYzIxYzdlZjRlMzgwMTFlNzlkNjY3NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YTIyMmEyOTIwNDU0NGMwOGQ5MzRhOTQ5YmYxZTQ0NDIwNDI3MTM5Yzc1ZjM1Zjc1ZTgxOGJjYmNmZDY3NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjZjRhOGMzNzM5MzBlNmFmOTI5MDY2Y2FmYTZkNGU1ODIwYzllNjMzOTNiMTQwNTk1NGU5YWQzNjk2MjU1M2IifQ"
         },
         {
           "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L146-L173",
@@ -100,11 +100,11 @@
     },
     {
       "id": "claim_5a262526a00f4dc3aec0751203e84369",
-      "statement": "When a tag query is applied each range is trimmed at its end by the maximum prediction lookahead, because a feature vector encodes the next several frames and the last frames of a range would otherwise let the search pick a pose whose future runs off the tagged region.",
+      "statement": "When a tag query is applied each range is trimmed at both ends — by the maximum prediction lookahead at its end and by the maximum history at its start — because a feature vector encodes the frames around it and the edge frames of a range would otherwise let the search pick a pose whose trajectory runs off the tagged region.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/TagOperationsBurst.cs#L25-L57",
-          "version": "repo-lines-v1:sha256:07b5afa5e6bb72a31eddca8fcc421aa93f06543d828e720b6f2549a10ab213a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NTRlYmJmZDhlZmVhNGQ0OWVjNWM3YTM4Yjg3MTYwNWNlNGYzMGM5NTY3NmQ2ZTU5MTBmYzQ4ZjUwMzQ1MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5OGE4MGE3YTNlZDIwZjgxNWExYmZiOWQ1NTVhYmY2Zjk5MjQxYjczODdmYTk2YTc5MTA0OTNjOWFkYjY4NWUifQ"
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/Burst/TagOperationsBurst.cs#L26-L60",
+          "version": "repo-lines-v1:sha256:072c504e0ec6ce0a52afbb11b538204e8be66730a4ca6c5c516158286de74e47:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4ZTZiZDY1NzUzNDcxMzkxMDlmYmJhODFhNWIxNzNjZWY2ZDA5MDIwNzVmNTlkYjkyZTlkODI4NzYzZmRiYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxMGIzNmFhNzRhNTliY2Y0YTg4MTg1ODM3ZjY1OGFmYWYzNjQ2ZWZmMmJiMTZjMzkyOGQwZTkzMzVlOTQ1ZDIifQ"
         }
       ]
     },
@@ -121,6 +121,6 @@
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-24T17:01:26.052Z"
+    "at": "2026-08-29T23:30:04.693Z"
   }
 }

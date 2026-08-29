@@ -12,6 +12,10 @@ sources:
     resource: repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs
   - id: openwiki-source-2d7a23c484e1299ec007b15d
     resource: repo://Assets/AnimationTools/Runtime/Pose/ChannelTypes.cs
+  - id: openwiki-source-3a703c7ca77d15bdc72d6f48
+    resource: repo://Assets/AnimationTools/Runtime/Pose/RigPoseReader.cs
+  - id: openwiki-source-90f250a0ffb89826b24d0228
+    resource: repo://Assets/AnimationTools/Tests/Editor/RigPoseReaderTests.cs
   - id: openwiki-source-9b84862940b622d8527df945
     resource: repo://Assets/MotionField/MfConnector.cs
   - id: openwiki-source-13742752b942a8c72fc71381
@@ -21,7 +25,7 @@ sources:
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-08-29T23:23:48.822Z
 ---
 
 # The synthesis pipeline

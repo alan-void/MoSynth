@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:97e93032854bde06ca489edfe55496a5d565b0d41fd0de94d3977c348771e514",
+  "claims": [
+    {
+      "id": "claim_8cea482afddf42ceb101c4683a8fbb6f",
+      "statement": "A test run spans a domain reload, so its results cannot return through the call that started it; TestResultDump writes a pass/fail summary to Temp/animtools_test_results.txt, which is what an external caller reads.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/TestResultDump.cs",
+          "version": "repo-file-v1:sha256:92d4c28217adf262404e77462ffdefa25255698e5a9e48d725dd7f914e303cc4"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/RunTestsMenu.cs",
+          "version": "repo-file-v1:sha256:64f18ff93ff14fb03c557ea3840758bf8eacfa5895814ee699fa22ad2a1239c4"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9acc48b702b42cebae824ba496c9c0a",
+      "statement": "MoSynth/Database/Regenerate Motion Matching Databases rebuilds every MotionMatchingData asset in the project, because the generated files are unversioned and a change to an extraction format or a feature definition has to be answered everywhere at once.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Editor/Core/MotionMatchingDatabaseMenu.cs",
+          "version": "repo-file-v1:sha256:6793e32d4eb2be5a3d946959683d13e36537f437d1bbf6009b79b0f2b10a2ca5"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Editor/Core/MotionMatchingDataEditor.cs#L33-L67",
+          "version": "repo-lines-v1:sha256:7dd7ab01b063d2c5c0a4bdd140831c7adc5d3ff674677e175cf3af901fff29c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MDIxMGE3YjQ1YzA5Yzk3NmNkZDYwNzMzZTYwZjEyMTNhMTZlOTMxZDgyYzA1OTcyZWE0YmRlYjM2MzI5ZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiNzU3MDVjMTdmMDgzOWI3NzU4NmVhN2NhMWEwZTI0ZWU1YWNlODA2MjczMGQ5YTIzNjViYTIwMTVlYTYwZDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxMzg3NjVmOTk0MmYwNzU1MTliMjA0ZGIzODA0NzQ3OTY5ZWVlNWM4NzZmNmNjNjljNDQzM2ExNDc2NzNjNmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4ac52fceeb3a40ffae88a779ec1be983",
+      "statement": "The Python test suites use stdlib unittest and build their own fixtures, so they need neither Unity nor a generated database; they must be discovered with the tests directory as its own top level, since there is no __init__.py to make it importable from Python/.",
+      "evidence": [
+        {
+          "resource": "repo://Python/tests/test_gait_phase.py#L1-L20",
+          "version": "repo-lines-v1:sha256:e1ec503d79564819affdccff8e1cfb8bb560a9b959ffa0369514de8f2b351c09:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhMmY4M2RkYmUwNDY2OGM0NTEwYjQxMGQ0YTA5NTBiNjdiOWU1YjFjN2UyOWY5YWUwMDgyNGViZGQwMmRiNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2NWFmZDM1ZmUzOTBhMGEyNGIyMTE1NDI3MTlhYzZhZjNiYTk1NTUwMTcyMTJmMzAyNGE1MzZiYjhlNTdlMzQifQ"
+        },
+        {
+          "resource": "repo://Python/tests/test_training_data.py#L1-L25",
+          "version": "repo-lines-v1:sha256:c543ea7dd323531ef985eb56e6ff1b040f5a3a20c548ab90028177b569ef23a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkMDNlZDc0NjM4YzcyOWUwOTkwODc2MTcyNTJiMTNiNDBkZDZjNmUwNGQ4YTRiMTQ4YjJlMDVhZmZjYjhhY2MifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-29T23:23:48.822Z"
+  }
+}

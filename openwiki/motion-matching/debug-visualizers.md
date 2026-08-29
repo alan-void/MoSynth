@@ -17,9 +17,6 @@ sources:
   - id: openwiki-source-652de6e8eae5cbeaf5f5f4ed
     resource: repo://Assets/MotionMatching/Runtime/Utils/PROFILE.cs
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # Debug visualizers

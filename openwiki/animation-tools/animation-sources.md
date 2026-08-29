@@ -16,12 +16,12 @@ sources:
     resource: repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs
   - id: openwiki-source-3d5c835733aa13f4eeed0f83
     resource: repo://Assets/AnimationTools/Tests/Editor/AnimationClipBakerTests.cs
-  - id: openwiki-source-de96c5aeacc3125110ef502b
-    resource: repo://Assets/Scripts/BioVisionHierarchyToAnimClip.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+  - id: openwiki-source-5cd85933c91658849ca6377d
+    resource: repo://Assets/Scripts/Editor/BioVisionHierarchyToAnimClip.cs
+generated: {by: "claude-code", at: "2026-08-29T23:30:04.693Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-08-29T23:30:04.693Z
 ---
 
 # Animation sources and clip baking
@@ -149,14 +149,15 @@ The details that matter:
 
 ### There is a second, incompatible BVH converter
 
-`Assets/Scripts/BioVisionHierarchyToAnimClip.cs` is an unrelated BVH → `.anim` converter reached from
-`Assets/Convert BVH to AnimationClip`. It is **not** a ScriptedImporter, produces only a standalone
-clip with no rig object, and — critically — **uses a different handedness convention**: it flips X for
-position and mirrors rotation, where `BvhImporter` negates Z.
+`Assets/Scripts/Editor/BioVisionHierarchyToAnimClip.cs` is an unrelated BVH → `.anim` converter
+reached from `Assets/Convert BVH to AnimationClip`. It is **not** a ScriptedImporter, produces only a
+standalone clip with no rig object, and — critically — **uses a different handedness convention**: it
+flips X for position and mirrors rotation, where `BvhImporter` negates Z.
 
-The two paths are not interchangeable. Treat this one as legacy. It also sits outside the
-`AnimationTools` assembly while declaring `namespace AnimationTools`, and is a `MonoBehaviour` with an
-unguarded `using UnityEditor`.
+The two paths are not interchangeable. Treat this one as legacy. It sits outside the `AnimationTools`
+assembly while declaring `namespace AnimationTools`; it used to be a `MonoBehaviour` in the runtime
+assembly with an unguarded `using UnityEditor`, which is why it now lives in an `Editor` folder as a
+static class.
 
 `BvhVisualiser` (in the MotionMatching assembly) is a gizmo consumer of `SkeletonAnimation` that
 rebuilds a bone hierarchy and drives it from baked frames — a direct demonstration of the
@@ -173,7 +174,7 @@ local rotation and nothing else. It skips gizmos for bones named `End Site`, a n
 | Slice window and tags | `Assets/AnimationTools/Runtime/Animation/AnnotatedAnimationClip.cs` |
 | BVH import | `Assets/AnimationTools/Editor/Importers/BvhImporter.cs` |
 | Asset creation | `Assets/AnimationTools/Editor/CreateAnnotatedClipMenu.cs` |
-| Legacy BVH converter | `Assets/Scripts/BioVisionHierarchyToAnimClip.cs` |
+| Legacy BVH converter | `Assets/Scripts/Editor/BioVisionHierarchyToAnimClip.cs` |
 
 **Tests.** `AnimationClipBakerTests` covers acceptance on full and partial coverage, rejection of a
 foreign rig, both halves of the rig-relative path convention, the both-counts diagnostic, and the

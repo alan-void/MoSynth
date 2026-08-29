@@ -8,6 +8,7 @@ okf_version: "0.2"
 
 # Directories
 
+- [agents](agents/)
 - [animation-tools](animation-tools/)
 - [motion-field](motion-field/)
 - [motion-matching](motion-matching/)

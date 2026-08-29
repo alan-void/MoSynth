@@ -1,96 +1,38 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1e7703e86b92a66da1d235039b6cf275e78d9883d3ab759fa48a9220f4ad10cb",
+  "pageVersion": "sha256:4187727f6354901a88cb189c4be7ab8a97915ea3a35e1b927b94b644ba7d3155",
   "claims": [
     {
-      "id": "claim_d4c448ad8df84e0585dc7d689bfbf895",
-      "statement": "Learned Motion Matching is a separate experiment that is not wired into the MoSynthStage pipeline at all: no file anywhere in the repository references its MM namespace, and it shares no type with the live architecture — no stage, no pose buffer, no skeleton, no pose set — driving Transform local position and rotation directly instead.",
+      "id": "claim_5ab2b837fa1646a0bae373cf9500313d",
+      "statement": "Both halves of what a learned motion matching model trains on come out of a generated database with no Unity dependency: feature_set_importer reads the matching feature vectors that are the projector's query, and training_data assembles the pose a decompressor reconstructs.",
       "evidence": [
         {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
-          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+          "resource": "repo://Python/feature_set_importer.py#L1-L30",
+          "version": "repo-lines-v1:sha256:702dcbf19540f2fb00e9a4401f6d7918829a147a0fa88a0ae06b69c59f9a0069:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWExMzk3NWMyNTZlYzgzMjBlMjAxNjA4M2M5NmRmNjM3Y2EzZDM1YmViZGUyMzE0YmVlM2E0NzExYjU2Y2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzYzRmMTVmOTdiMjUyNDI2NTMyYjkzMGU2M2MzMGU3NzYzYTljMmQzMDAzNTExNzhjMTBkZDE4NDczMmFkZTcifQ"
         },
         {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs",
-          "version": "repo-file-v1:sha256:85fceb9f1cd4c5b6909b4ff30fbd7fc041ad7bd1ea786826e694aa3e80b00f7a"
+          "resource": "repo://Python/training_data.py#L1-L50",
+          "version": "repo-lines-v1:sha256:423df8a7dd1d49d7bc26069eb2782cef6b9e2f02902422bd391fb86a69af9271:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
         }
       ]
     },
     {
-      "id": "claim_e435c5fbfd884b0c9d45e246a9554199",
-      "statement": "MM.MotionMatching is a different type in a different assembly from the MotionMatching namespace the rest of this area documents: the folder has no asmdef, so it compiles into Assembly-CSharp.",
+      "id": "claim_d72027d4143f4f49a04b76d74060e00a",
+      "statement": "Nothing in the repository consumes com.unity.barracuda, so a learned model has no inference path inside Unity today; MotionFieldStage is the worked example of running one in Python behind PythonNET instead.",
       "evidence": [
         {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
-          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
-        }
-      ]
-    },
-    {
-      "id": "claim_6980f85686c04c43864e7e3aa1f27090",
-      "statement": "It is the repository's only Unity.Barracuda consumer, and it references UnityEditor from runtime code reached at Awake, so it could not be included in a player build as it stands.",
-      "evidence": [
-        {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
-          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
-        }
-      ]
-    },
-    {
-      "id": "claim_2d2901f57cb24847ae89b0f595162931",
-      "statement": "The approach replaces the database and its brute-force search with three small neural networks — a projector standing in for nearest-neighbour lookup, an autoregressive stepper, and a decompressor reconstructing the pose — over a fifty-six float latent that is twenty-four query features concatenated with thirty-two latent floats.",
-      "evidence": [
-        {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
-          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
-        }
-      ]
-    },
-    {
-      "id": "claim_802709c6f2cd4fbdb91c4ea220600b0a",
-      "statement": "The three networks can be disabled independently, which turns the debug branches into ablation switches: with the projector off the input comes from stored data rather than the user, so the chain can be run decompressor-only, decompressor plus stepper, or complete.",
-      "evidence": [
-        {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
-          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+          "resource": "repo://Packages/manifest.json",
+          "version": "repo-file-v1:sha256:1a86fc786b843d602d45ef481e42a47d5b6078502c400ed95fde1301e7e23ff8"
         },
         {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs",
-          "version": "repo-file-v1:sha256:85fceb9f1cd4c5b6909b4ff30fbd7fc041ad7bd1ea786826e694aa3e80b00f7a"
-        }
-      ]
-    },
-    {
-      "id": "claim_e46a8a94be254f2caada512fcc4b3c36",
-      "statement": "The class carries no Serializable attribute while the driver holds it as a plain public field, so it would not be serialized and would be null when the driver calls into it at Awake — as committed the entry point appears non-functional.",
-      "evidence": [
-        {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs",
-          "version": "repo-file-v1:sha256:85fceb9f1cd4c5b6909b4ff30fbd7fc041ad7bd1ea786826e694aa3e80b00f7a"
-        },
-        {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
-          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
-        }
-      ]
-    },
-    {
-      "id": "claim_477ca773f9cf4203be7acd5c20b950af",
-      "statement": "It uses the legacy Input.GetAxisRaw rather than the Input System asset the rest of the project uses, and hardcodes a sixty hertz step in three separate places rather than reading the frame time.",
-      "evidence": [
-        {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs",
-          "version": "repo-file-v1:sha256:85fceb9f1cd4c5b6909b4ff30fbd7fc041ad7bd1ea786826e694aa3e80b00f7a"
-        },
-        {
-          "resource": "repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs",
-          "version": "repo-file-v1:sha256:ff0119fa5a8488d0d1b157d647567abc67746291e691bae48265ed30b411444c"
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L120-L210",
+          "version": "repo-lines-v1:sha256:f128f0bd58f4f77e64f1e299f08bfb6d085b1abe04fc7859ac7afe5a10f2f33d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5Y2E4OTFiZmY3YWMxZjdjZWFhZTQwZWYwNTEwNjZiZTllZmU0N2I0ZTQyODFlODZjMzE5YmUyYzU1ZWJjZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlkNTk1MWNlYjM1ZWIxMTlkZTVhNDA5YmQ2M2JiMjYzOGM5MmE5NDE3MWM3MDkwMDEwNjQzODYyMjNlMGQ4OTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyYmI2YmQ5MWFiOTIyZjg3MjgzZDYyZjFkY2ZjNzQ0MjJjY2QwMTUyYzUwMGZmMjVjMDdmNDMwZmYyNTliY2EifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-24T17:01:26.052Z"
+    "at": "2026-08-29T23:23:48.822Z"
   }
 }

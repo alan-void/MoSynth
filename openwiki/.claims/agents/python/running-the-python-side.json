@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:a6bec296f60e67f4650eae038a4d22ceef2b03389947470e97d500935969209e",
+  "claims": [
+    {
+      "id": "claim_9818cf7782de446aa5b658b7c14c5154",
+      "statement": "Python modules under Python/ are flat rather than a package and import each other by bare name, so any consumer must put that directory on sys.path; Unity does it in PythonRuntime.EnsureInitialized and each test file does it for itself.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L100-L150",
+          "version": "repo-lines-v1:sha256:6135a59dac2d1fba517362584694cee47758c2dd51d76d6ef7cb25e48ea50bd8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxNjIxZjU1ZGI5YTdmYzVlY2EzYTE2MzczNDQ3YTRiOWM3NzIwZTYyZGVmNGE3MGQyOWIyY2E5OWJmYzVlODMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwMzg0N2M5ZTJhYzczOTNlYjNjZGM4NjNjZjZjYWEwYjQ1NTE4MmZhNWQ0MGJiMjJhOGMyNGM1ZWM4ZDg1ZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkNzAzMGY0NmJlODMwZjFkMjQwOGU2MzU5ZDkyNzkyMjc0OGM4Nzc1ZjI4NTk3OTMyNDdjZTc1MmE1MTVlYjAifQ"
+        },
+        {
+          "resource": "repo://Python/tests/test_gait_phase.py#L1-L20",
+          "version": "repo-lines-v1:sha256:e1ec503d79564819affdccff8e1cfb8bb560a9b959ffa0369514de8f2b351c09:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhMmY4M2RkYmUwNDY2OGM0NTEwYjQxMGQ0YTA5NTBiNjdiOWU1YjFjN2UyOWY5YWUwMDgyNGViZGQwMmRiNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2NWFmZDM1ZmUzOTBhMGEyNGIyMTE1NDI3MTlhYzZhZjNiYTk1NTUwMTcyMTJmMzAyNGE1MzZiYjhlNTdlMzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_19aa3c369d404b239b71a9a59a20f426",
+      "statement": "Module reloading drops the whole project module graph rather than reloading one module, because a per-module importlib.reload leaves dependencies cached and dies on ImportError when a shared module gains a symbol, and because a group of imports issued after one call then sees a single consistent generation of the code.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L118-L165",
+          "version": "repo-lines-v1:sha256:55d3131a12c69f69a1c08c8a058b642fc133a4eaedc85cd1c5f52ca207a7d766:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwMmZjMTFhZWQ1MGVlMzQxYjUzYzE1N2Q0NDU0ZGIwY2RiMGFmODUwYzM5YWNkMTYwYjIxZGJhNGVkMTIyMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4ZjNmYzI1NzY0NmUzNzhmYmEwYWMyNjM4NGRjZjFhMzkyMWE2ZjI5YmZmYjlkN2E3ZWIyM2U2MjUxOGJiMGQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-29T23:23:48.822Z"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:0426e1e31719c264a19d2649abe989e8a98d19ed21557f6bd02ef804b6ad2554",
+  "pageVersion": "sha256:9a620aa6f386a5c3b3a6e522ddb4b33d8f13faf33896d267393ee7c4c60641b4",
   "claims": [
     {
       "id": "claim_329681e9f5624decb6f3f8c4c50d2da1",
@@ -98,11 +98,11 @@
     },
     {
       "id": "claim_028f64814b7b4013be5740e5f25d485c",
-      "statement": "Strings in .mmpose are the one place the no-length-prefix rule does not hold, because C# BinaryWriter prefixes them with a LEB128 7-bit-encoded length that the Python importer must decode by hand; this applies to bone names and tag names.",
+      "statement": "Strings are the one place the no-length-prefix rule does not hold, because C# BinaryWriter prefixes them with a LEB128 7-bit-encoded length; Python decodes it in binary_reading.read_csharp_string, shared by both the .mmpose and .mmfeatures readers.",
       "evidence": [
         {
-          "resource": "repo://Python/pose_set_importer.py#L13-L32",
-          "version": "repo-lines-v1:sha256:42005c07a0ee85305850d77297ce2a6502e344e7f687e35f0da6fb5306bf6949:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ODcxNzQ0ZmFlODkzNzcwYTczNzc5ZGYzODZjYTlmNTA2MTFhY2Y0N2NiYTMxOTNiZDczZTI2YjdlYzI5YzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzMGY5YzBjMmUxMWQ1NjU0ZGE0MmUyMjNmZjU3MGQzZDdmNDFlYzE4MmI2M2QyYzRiMGQyYTNiODkzZGYwNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzODRjNzYwOWQ1NTg2NDA0NzE0YmIyZGQwMmU2MzlmODc1N2JhYTg4Y2Y1Mzc1NGFmNjBkMGE0OGE5ZGYyNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYTMyMTNhNWUwYWI0MjRhNjA2NTZlOWE1ZWUzNzAxNGFkNmFjN2Q0NTRlY2IwMzUzOWM5YWExYzYyNmZlNTAifQ"
+          "resource": "repo://Python/binary_reading.py",
+          "version": "repo-file-v1:sha256:61be0ba44e94c5f10df8082f5279040fa0723fa1caaa366f1baa131552107ca7"
         }
       ]
     },
@@ -170,11 +170,15 @@
     },
     {
       "id": "claim_02818da3b9b04d35bd7670eea3c8626b",
-      "statement": "The .mmfeatures file is kept separate from .mmpose on purpose, because features are one way of indexing poses for search and changing them should not force re-extracting the poses; like the other binary formats it is unversioned, so a stale file is misread rather than detected.",
+      "statement": "The .mmfeatures file is kept separate from .mmpose because features are one way of indexing poses for search and changing them should not force re-extracting the poses; it carries no version header either, and its stand-in is a schema block naming every feature and its width that Deserialize checks against the asset before allocating anything from the header.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L10-L19",
-          "version": "repo-lines-v1:sha256:24d92e4d714458d095cafea451e8f94b16b6d5b97cb2fbda0e9df4c98cb4340b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjNDg0MmMwM2Y0N2NmYTU5NjQ4YjJjMzJiY2E3NmU0NjY0MzQ5MzhkNTQzZDg0YzVlMGMyZDkzN2I5YzdkMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwMzI5N2Q3Y2ZlZTcyYmJmYzY0MWI4NGRlNWY2YTlmNjZiMjljYWM0NjVlNmJhMjBhYjI4ZDgzM2NlNmQ2OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNGQxZjk1OTk4MWMyZWM1NmFjM2JkMTI4MTc1ODY3NWYxYjg5ZTc1MmQyYWQwZmE1ZjMxMThkNjMzZjRkNGUifQ"
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L11-L33",
+          "version": "repo-lines-v1:sha256:1a429563e62372787868dbacb9049b9f962fdd4353a1e162220a26a510b84550:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5OTUyMWJmZmM0YTQ3YjVlZTA1ZWI2MzM0MmNhOGY4NTQ3YmMwYmE5YzRiNmI4OWY4ODIyYzJlZTJkZjg1MzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjOTczZWIzMjgwZWNlMjZjNjRhNzllY2JkMGIzNzRmODM2MWRhN2I3YTRlYThhMGY2NDRmYmM5YTgwMDYyZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzMWM1ZmU5MjQwYmUwNDI1OTJiY2Y4YzU4N2VkNzVjMGJhZTI5OGMxNjBhM2JjNmEyNTAwYWZjNTIyYTJkNWIifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L203-L245",
+          "version": "repo-lines-v1:sha256:eb0aa262f4009d17fba2e52f3579cc48e310db5aa8840fee7f870df57bd6a212:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwNTMzOGUxZjc4ZGJmOTYzMzA5M2U3NjA0YjQzNTRkOTlkOGFiZGZiZTgzNWNkNjA2OGNmMjAyZjEzMjI3ZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlMGIyYjRiMTk4NWFkMmRiZWEzOTA1YTNjYWM4OTgwODdjMmUzMjlmMDg2ZDM2Yjg2MGVkYzljN2VkN2QyMDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkMTkzMWNiZTQxY2UxNTg0MmYxNjhkY2YxZDAyMDQ3MGYyNzU3MmM2NjIyYWNhZjkzM2E0ZWQ0NGE1MWM2MTkifQ"
         }
       ]
     },
@@ -201,10 +205,74 @@
           "version": "repo-lines-v1:sha256:5c72a350994585fcb8116269bbce282804017b195502e0387b8068c77f60e4ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhYWMxZjRiYzQxOTZhMTUwZGFjZTUwMmJjM2FlMmQzNzE1YzU2YTU3MjQzY2Y1ZjcwZjgzYmFkMmUxMjY3OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjNTM2ZWFiMzBiODhiOTYyMjFlYTcwODgxODNlODMwOWQxMzhlNjk1ZDMxYTU1N2ViOTQ4Y2U3ZjQxMDdiNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYjgwZmYzYWFiODU1ZTdhNDY3N2MxMWMxZGJmZTA1N2I2Mjk3ZWU4ODFmNzU4MTEwMzM1NjQ3MTY3ZDFkMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxZDQxYjk3Yzk5Y2M2Zjc0OTZhNjE5MTAzNzY2ODAwNWM5MmRjYzhlZGFhN2NmMzc2NThhMjk2MTMxYmU1YWIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_26600d63dae944a397e37baa0ada7115",
+      "statement": "A .mmfeatures header records the trajectory and pose feature counts so the file describes its own trajectory/pose split, which is what lets a reader outside Unity find the pose block without a MotionMatchingData asset to consult.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L61-L80",
+          "version": "repo-lines-v1:sha256:6592a8d9418ee98798320714cdd5dae4fb5da84494c31f83ca0dfc211504c5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNzhkODkwZTFkNTMwMDFmOTA2NmQyZmRkZWMwYWZhMWQwMTE4NmUyMjQyNzUxMzEyZWFkMWNhNjZmZDhjZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkZmI2MjU5NDA4ODZkZmUyNGZiNGY4YmM4YmJlZDlkZDdiZjJhOTZjNjM0MDE0ZDg1ZjYwZmJmMDgxMGU5ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiYzQxODVkNjhiOThlOGJhOTk3NzRlNzM1ZTNhMDBlNDVlNGI4ZDVjMDkzM2ZlMWEzNjU4NDE0NTU4MjBjYmIifQ"
+        },
+        {
+          "resource": "repo://Python/feature_set_importer.py#L108-L136",
+          "version": "repo-lines-v1:sha256:f0fe1fc10698c41c66df52f21eb9b21ed08026f78fba3ae0e23f1da9f4784727:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0MmE0YTU3YTAzZmFmOTA1MjI4Yjg4MmM2YjRhZTI3NjVhZWJhYWE3YmIyM2U2YTBmMjE4YmRkNmQ0NmExNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljYWNiOTFjYzYyZDU4YTgxOTQzMjhkZjc3MWRhZjE2NGU0NmQyMzFmNjNiNmUxNmYyYjllMDY3NWExZmRiYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5NjVlNTc4NWQ2YmIzYWMzNjdiMjgwZWI4OGUzZDY2MDUwZTllZjRlODlmMTg5YTY0Y2E4ZWMzYjcxNTYzYTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_776a173065704b8c8498edd003f66d21",
+      "statement": "A refused .mmfeatures costs one extraction rather than a database of wrong numbers, because MotionMatchingData.GetOrImportFeatureSet answers a false return by re-extracting the features and writing them back; anything thrown while reading is caught and reported the same way, since a file written for another configuration takes its string lengths and array sizes from the wrong offsets and dies before it runs out of bytes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L128-L152",
+          "version": "repo-lines-v1:sha256:ed217e001e6ff1ead8a4e888baad7656df1fd835792dd668d83b821f9e3e6570:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkOTgzYTE5MjNhZmZkNWUwODdjOGE4ZjdiMmJlZDhlYzU4ODliNGEyYTUxYmJhMmQ5Zjk5NDlkNWU0NzE0YzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhNGM5MGE4NTg5YTBiNzI5NGJkZDcyNjdiMjkxNDdhYzk2MmE5NmEzNTI0NGUwZjAwODhhNDk0ZDg1MDExZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNTI2ZjVlNmY1NWJiMWMwYmMxNmQ5MTU0MjM2YmMwZjZjYTIzZjYyNDNjNDg1MzhhMjUzNTM1YWJlODQ1NDYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs#L131-L155",
+          "version": "repo-lines-v1:sha256:576af3bb90cacb4545a6a7a3de214a2d20ce74539381a236ef69b28d7d67b65d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0Yjg2ODUzNTQ3MzAxOTgxYzAyNTE4YzdiMWZjMGY4ZGI5YjQwMDhmMzZjOWMzNDM2MmYwNjg1OGZjNDhhNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3ZTIxNzU2ZmY2ZGIxYTJmOTY0MGRlNDgwNjBiZGQwMTE5ZjRmMGZmMzM2ZWM2M2MyZGFkZGVmNDllYjdhOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlNjdhMWM4NDFhMzE1NzY2Y2MwMDU1MjA0ZDRjNDE2MTJjYTVlNDgxYmY2YzI1NzM4MjIzMzZiMTY3MGNhZGYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Tests/Editor/FeatureSerializerTests.cs#L96-L150",
+          "version": "repo-lines-v1:sha256:1a7c338db5ede7c897efb6aa331b326fea75148ed714af4167f20987cfb3c10d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1ZTBhZTgyZTViYmMyY2NlYzMxODIyZmU2MTYxMTgwYjU4ZDNkYmVhNDAyNjE0YzIwZDY1ZGZiZjkwNGVjYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxOTI0YmU1ZmZjYzgwMzRmMTZmYjRiMWIwZmFmMTJkMjc5MDhmYTQ2NGFhZjJhYmRmZmIzNDY3Yjc5MzM4ZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2085dc2209d847279def034452a1fb76",
+      "statement": "A .mmfeatures header records the trajectory and pose feature counts so the file describes its own trajectory/pose split, which is what lets a reader outside Unity find the pose block without a MotionMatchingData asset to consult.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L61-L80",
+          "version": "repo-lines-v1:sha256:6592a8d9418ee98798320714cdd5dae4fb5da84494c31f83ca0dfc211504c5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNzhkODkwZTFkNTMwMDFmOTA2NmQyZmRkZWMwYWZhMWQwMTE4NmUyMjQyNzUxMzEyZWFkMWNhNjZmZDhjZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkZmI2MjU5NDA4ODZkZmUyNGZiNGY4YmM4YmJlZDlkZDdiZjJhOTZjNjM0MDE0ZDg1ZjYwZmJmMDgxMGU5ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiYzQxODVkNjhiOThlOGJhOTk3NzRlNzM1ZTNhMDBlNDVlNGI4ZDVjMDkzM2ZlMWEzNjU4NDE0NTU4MjBjYmIifQ"
+        },
+        {
+          "resource": "repo://Python/feature_set_importer.py#L108-L136",
+          "version": "repo-lines-v1:sha256:f0fe1fc10698c41c66df52f21eb9b21ed08026f78fba3ae0e23f1da9f4784727:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0MmE0YTU3YTAzZmFmOTA1MjI4Yjg4MmM2YjRhZTI3NjVhZWJhYWE3YmIyM2U2YTBmMjE4YmRkNmQ0NmExNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljYWNiOTFjYzYyZDU4YTgxOTQzMjhkZjc3MWRhZjE2NGU0NmQyMzFmNjNiNmUxNmYyYjllMDY3NWExZmRiYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5NjVlNTc4NWQ2YmIzYWMzNjdiMjgwZWI4OGUzZDY2MDUwZTllZjRlODlmMTg5YTY0Y2E4ZWMzYjcxNTYzYTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f4a2b8e5929486cade906e841f17750",
+      "statement": "A refused .mmfeatures costs one extraction rather than a database of wrong numbers, because MotionMatchingData.GetOrImportFeatureSet answers a false return by re-extracting the features and writing them back; anything thrown while reading is caught and reported the same way, since a file written for another configuration takes its string lengths and array sizes from the wrong offsets and dies before it runs out of bytes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs#L128-L152",
+          "version": "repo-lines-v1:sha256:ed217e001e6ff1ead8a4e888baad7656df1fd835792dd668d83b821f9e3e6570:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkOTgzYTE5MjNhZmZkNWUwODdjOGE4ZjdiMmJlZDhlYzU4ODliNGEyYTUxYmJhMmQ5Zjk5NDlkNWU0NzE0YzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhNGM5MGE4NTg5YTBiNzI5NGJkZDcyNjdiMjkxNDdhYzk2MmE5NmEzNTI0NGUwZjAwODhhNDk0ZDg1MDExZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNTI2ZjVlNmY1NWJiMWMwYmMxNmQ5MTU0MjM2YmMwZjZjYTIzZjYyNDNjNDg1MzhhMjUzNTM1YWJlODQ1NDYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs#L131-L155",
+          "version": "repo-lines-v1:sha256:576af3bb90cacb4545a6a7a3de214a2d20ce74539381a236ef69b28d7d67b65d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0Yjg2ODUzNTQ3MzAxOTgxYzAyNTE4YzdiMWZjMGY4ZGI5YjQwMDhmMzZjOWMzNDM2MmYwNjg1OGZjNDhhNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3ZTIxNzU2ZmY2ZGIxYTJmOTY0MGRlNDgwNjBiZGQwMTE5ZjRmMGZmMzM2ZWM2M2MyZGFkZGVmNDllYjdhOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlNjdhMWM4NDFhMzE1NzY2Y2MwMDU1MjA0ZDRjNDE2MTJjYTVlNDgxYmY2YzI1NzM4MjIzMzZiMTY3MGNhZGYifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Tests/Editor/FeatureSerializerTests.cs#L96-L150",
+          "version": "repo-lines-v1:sha256:1a7c338db5ede7c897efb6aa331b326fea75148ed714af4167f20987cfb3c10d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1ZTBhZTgyZTViYmMyY2NlYzMxODIyZmU2MTYxMTgwYjU4ZDNkYmVhNDAyNjE0YzIwZDY1ZGZiZjkwNGVjYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxOTI0YmU1ZmZjYzgwMzRmMTZmYjRiMWIwZmFmMTJkMjc5MDhmYTQ2NGFhZjJhYmRmZmIzNDY3Yjc5MzM4ZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-24T17:01:26.052Z"
+    "at": "2026-08-29T23:23:48.822Z"
   }
 }

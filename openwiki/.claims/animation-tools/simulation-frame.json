@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:20a5209d07b242960e3a3651639acb986b67bf45e253ee9c661b63336f7dedbf",
+  "pageVersion": "sha256:747a838c39b3c212ff43dd61cdfc62667a39cceaccd41eeed9684a2c9c2a2707",
   "claims": [
     {
       "id": "claim_8c28891be78c4f6eac453e2a79448b21",
@@ -203,10 +203,28 @@
           "version": "repo-lines-v1:sha256:e615ca246a8308f407ae1e1572eaa0026400a67fd38aa51a751470353b1d2e1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0NjRkNTkzNTU5ZTU4MzhhZTI2ZjBkNGM5ZmI5OWRiNTkwN2Q1NGNkNmIxNzlhMDVjNzQ3MGJiOWU3MWExMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliNDk0MjIxYzlmZWUwYTJmY2I4N2NmZDIwMWM3NDZkZjFjYTdmNjA3NTc0ZjZhZDE1YjkxMWRmY2FlNDNhYTEifQ"
         }
       ]
+    },
+    {
+      "id": "claim_31feec084f3941249c269c5358338ffb",
+      "statement": "Nothing about the frame-motion split in DecomposeRootVelocity is specific to bone 0, and CharacterSpacePose applies it to every bone to measure a whole pose inside the frame that pose implies, in one forward pass that rewrites its output arrays in place rather than allocating.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/CharacterSpacePose.cs#L31-L141",
+          "version": "repo-lines-v1:sha256:0890805e624b3b6adbd0e30aeef86a9dbcb4e5eea39a2abc15cb5b4ae037ab7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTExLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NTAwNDg0NTFiOWRkZTc4ZDY1NjZlMWI3YzY2MjJjNTY0NzBhZWZiNzg1ZGQ2NGE0OTBiMzhiYzUyMGQwNzVlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4ZmI4MTQ2OWU3OGZlZmQ5NWY5ZmNkZjc1OGZiMjlkNjBlOGEzODU2OTgwMTc5YjY4Y2U5NDBlODlhYTYxYzJlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L104-L140",
+          "version": "repo-lines-v1:sha256:505a5806a671e6b75043e80336eb7c915afbb85dcddc2588b65ed975ba91e457:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0YTNmZTM4OTk5NzUzYWQwZDEyYzNhM2EzODlkZDA1MzZlYTdlNjBlNGM5ZmQ5NTY4NTM5NGEyNDMxNDM4MDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyMDYxZTlhZTBiYWJlM2I0ZDk4OTVlMjRhNTViOGI2ODMyOGIzMDM5MGNmNGFkYTU1ZDQzY2VjMzFkMjgxYzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0ODcyYWUyNzcwNjViYzMwYmZlNTQ3YzQzZGRmODU0NDg5MzYxM2FjN2IzOWZlMmNiOTY3ZWViOTk3ZWVhYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2N2FjZmJmYjQyOWRjZDRmZTRkNDkwNmJjNzJjMDM1MjNjNDc2NmE0ZDliOWIwZmY1N2ZhY2M0ZTk0NzNmYTQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/CharacterSpacePoseTests.cs",
+          "version": "repo-file-v1:sha256:09eb7218d57b417aef40cc44287ecf07e13bfbda22d136615dac1da1bbe45e47"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-24T17:01:26.052Z"
+    "at": "2026-08-29T23:23:48.822Z"
   }
 }

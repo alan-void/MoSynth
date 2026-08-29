@@ -23,9 +23,6 @@ sources:
   - id: openwiki-source-a1c21aa9e5c5e3bd36ff227c
     resource: repo://Assets/Scripts/JointLivePlotter.cs
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # Motion recording

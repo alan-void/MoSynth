@@ -4,6 +4,10 @@ title: Feature vectors and query masking
 description: How an authored feature configuration becomes a fixed-width float vector per frame, and why an inactive query channel is weight-masked rather than filled.
 tags: [features, query, normalisation, motion-matching]
 sources:
+  - id: openwiki-source-9cb39479f08cf519691c343e
+    resource: repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs
+  - id: openwiki-source-629ac99460661dd6ffff6e3c
+    resource: repo://Assets/AnimationTools/Tests/Editor/PoseSetTests.cs
   - id: openwiki-source-28684d61d3dab2bdc41d31f4
     resource: repo://Assets/MotionMatching/Editor/Core/MotionMatchingDataEditor.cs
   - id: openwiki-source-60a37e788745b5c0c6e5eb05
@@ -18,12 +22,20 @@ sources:
     resource: repo://Assets/MotionMatching/Runtime/Features/MmFeatureLayout.cs
   - id: openwiki-source-c6f33af525c79b0bf9fb187d
     resource: repo://Assets/MotionMatching/Runtime/Features/MmFeatureLayoutBuilder.cs
+  - id: openwiki-source-7fbb6d04d54254ce3a869b51
+    resource: repo://Assets/MotionMatching/Runtime/Features/PoseFeatureChannel.cs
   - id: openwiki-source-aa542d59a533db81cc11c9fb
     resource: repo://Assets/MotionMatching/Runtime/Features/TrajectoryFeatureChannel.cs
+  - id: openwiki-source-68bd8cb3d0139ef5eb77babd
+    resource: repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs
+  - id: openwiki-source-685bd1ee47759cc8a6f7c96d
+    resource: repo://Assets/MotionMatching/Tests/Editor/MotionMatchingDataTests.cs
+  - id: openwiki-source-eeb3239c6a6c1fa34253ac27
+    resource: repo://Assets/MotionMatching/Tests/Editor/PoseFeatureChannelTests.cs
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-08-29T23:23:48.822Z
 ---
 
 # Feature vectors and query masking

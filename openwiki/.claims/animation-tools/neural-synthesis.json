@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:0208f74333501a4efb4e5dd8fd360f1d048aeee7427e1d9513c6fe12d20b9548",
+  "claims": [
+    {
+      "id": "claim_2689964bd1204431a7eced96edbe9587",
+      "statement": "Gait phase is not stored in any database and is reconstructed from the foot contacts: pi per footfall, linear between footfalls, and per clip so no stride is interpolated across a boundary. A clip with fewer than two footfalls is reported as having no measurable cycle rather than being given a fabricated one, which a zero phase rate marks.",
+      "evidence": [
+        {
+          "resource": "repo://Python/gait_phase.py#L1-L40",
+          "version": "repo-lines-v1:sha256:0ee0919becfecc05c058281bc776fd5ab228b7de9148b9561e14e8aa1586c5e6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkN2QxZWRkNjE5NTBjNzMzYTFlNDRlNmI3MTQxY2I5ODgxNzJiOGIzMjE2NjZmMzJjZmY2YTNhMDlkZWQ4ODEifQ"
+        },
+        {
+          "resource": "repo://Python/gait_phase.py#L94-L168",
+          "version": "repo-lines-v1:sha256:0a293cd6b71831e024916cd131ccc25836e30f1714179e5f39ab8d86c53c5b13:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxODljODAyZDQ4N2VmYzQxZjZjMDM4YTg4ZGJiNWU3YjZjMDkyNmQ3NGFhZDE2ZDcwYTliYjhjZTJhMzMwOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmZTQ4YmE4YWRmM2MzMTk1ZTQ3NDQ0ZjFjZjA0ODFmMGM3NjgwM2QxMDUxNDM1ZDEwZGUyZDQxNjZiMGZhMDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg0NjBiYjhkNGViYmE3ZmE0N2ZlN2ExM2VjODQyODVjZDA3ODlhMTRkYjJiMTg2NjJkZmI4NmI1MzJmMDVhMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://Python/tests/test_gait_phase.py",
+          "version": "repo-file-v1:sha256:6011487f104b0a1f68ba9747aa212bbe77e5576d22c8dacb20f3d448226c6eaf"
+        }
+      ]
+    },
+    {
+      "id": "claim_202fd6cda1724895b476a9da4b7e0425",
+      "statement": "training_data deliberately builds neither network's input tensor, only the per-frame quantities underneath both, because the packing is a property of the model rather than of the database; TrainingSet.pose_vector offers one packing for a decompressor target as a convenience.",
+      "evidence": [
+        {
+          "resource": "repo://Python/training_data.py#L1-L50",
+          "version": "repo-lines-v1:sha256:423df8a7dd1d49d7bc26069eb2782cef6b9e2f02902422bd391fb86a69af9271:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        },
+        {
+          "resource": "repo://Python/training_data.py#L92-L200",
+          "version": "repo-lines-v1:sha256:c076f9a1bf8d8620d0d225dbc6f3fca297d7a6aede6d658b787a5b37461c4184:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2MGJmMTI2NzA4NzI1Mjc5YzJhODc2MTY0YjFmNjJiNjEyM2EwOTA3YzQyNTk2ZWY1ZmFjMTJlOWU0NWMwYzI0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwZTY3MTU5ZGEwN2U0ZTQ1ZTYxZTFiZWU2NzVlMzdjMWE0NzdkZDlhNGU0M2NhNGQxNDFlNDYxNWI4ODM1OGU3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2YzFmMDJmZDdlYzFkNDYyYzBjYjgxOGI5NDhmZmU0ZjcxNWIyYzJjNDMyNjMwYzIzMmRmZTM0ZDQyNzQzZmE5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlNzg5NDQ3MmY4YjcyYmZhMGQyODEwNDNmZmVkNWFmOTMyNDUyZDVlMDk3YmEwOTRmMzA2ZDQ4MDY2MTBkNzEyIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d8a3afbdff84c8dadb734032cb18e04",
+      "statement": "The character-frame conversion has one named definition per side — training_data.build_training_set for training and CharacterSpacePose.Extract for inference — because a disagreement between them about frame, units or rate convention does not throw and shows up only as bad motion.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/CharacterSpacePose.cs#L7-L30",
+          "version": "repo-lines-v1:sha256:391da9fb0a292c6c41dbb04ba37773cc9848010f0d6ff92d06728f29cf0ffbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZGY1YTQ4ZDZlZjM2MzI2ZTYxMDM0ODIwY2Q4OWJlZTkyNDk0MzBjNzY5OTk3Mjc1YzliZTk0ZDhjMDEyNzgifQ"
+        },
+        {
+          "resource": "repo://Python/training_data.py#L268-L360",
+          "version": "repo-lines-v1:sha256:50c1aca976641fe11cd1e6d64bb9bbb6fb8a2470accfea44c15f528d7b39273c:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZDFlNWYzN2ZhMGY1NzVjNjY2YmIzYmEyNjAzOTgxYzM3MjliZTM2ODA4NzA5NTg5MWNlY2E5ZjhmZmJmNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliZmQzNWY3NTA2NDc5N2IzZGZiOWI5ZmJmNzhiNjJhZjY1Y2E2YzU2ZWI0YjI3MjAzOTk0NzBkZTg1MTQ0M2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2MmZiOGY5ODk5NGU3ZDBkYmQ3YTNkMTI4NDYxOWQ3ZjNmZTdjMzMyYzNlNGM1NzBjYWFhMzVmM2JjOWUxZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmZTExNTNmMzFjOWRkMmZmM2EwNTA3ZjdjZGU3ZGI3MTg2MjZmZTMwYWY4YmFjYTMzMzdkMzU4NDMzN2Y0ODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3f6f7075d1ec4b65beb7a0ed74219c08",
+      "statement": "The two sides' rates are not identical by construction: Python differences consecutive frame-local poses of a stored database while the C# composes the instantaneous rate implied by a pose's own velocity channels, and since those channels are themselves finite differences over the same timestep the two agree to first order and exactly for motion rigid within the frame.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/CharacterSpacePose.cs#L7-L30",
+          "version": "repo-lines-v1:sha256:391da9fb0a292c6c41dbb04ba37773cc9848010f0d6ff92d06728f29cf0ffbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZGY1YTQ4ZDZlZjM2MzI2ZTYxMDM0ODIwY2Q4OWJlZTkyNDk0MzBjNzY5OTk3Mjc1YzliZTk0ZDhjMDEyNzgifQ"
+        },
+        {
+          "resource": "repo://Python/training_data.py#L230-L268",
+          "version": "repo-lines-v1:sha256:46d6bd3d894237697c846c40111dcb812f1189c20af3a0ee0e7acc8df42e54ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1OWVlZGY0YWM5OWQwMWE1NjdkYjFmNjk1NzU0NjhhMTkwNzJiOTk2YjkzNjY3MDBkMTVmMTZlZTViMzZjY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZDFlNWYzN2ZhMGY1NzVjNjY2YmIzYmEyNjAzOTgxYzM3MjliZTM2ODA4NzA5NTg5MWNlY2E5ZjhmZmJmNjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4NzhmODU1Y2UyNzA0M2I1Mjc1MGNhZTRkYTdiOTcyZjcxODYyNzZhZGYwNTcyNWQ3ODVmMDZhMTllNjdiNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExYTNmOTI0M2QzNGRmZjRiYTJiMjkzMWYzZWQ0MzJiNTM1N2E2ZGM4Y2FkMmQ4YTc2NTljMWIwMzEwMjY3MDQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-29T23:23:48.822Z"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:91cddf8cb824b5c7d96dc5efcc21e18fed7730f7c5b4837fce82afbe2654ed84",
+  "pageVersion": "sha256:146416966531cbc52cb37f6a48c2c4c97f065d23288a09dc6b91b729daf15dcd",
   "claims": [
     {
       "id": "claim_9a9892898b414938b24e09bea97be954",
@@ -79,12 +79,12 @@
       "statement": "Every stored pose has a velocity including the last of a clip, because the extractor samples one frame beyond what it stores; stepping the last pose by its own stored rates inverts that exactly, which is what lets a derived rate exist for every stored frame rather than for all but the last, and keeps rates aligned with the poses rather than lagging them.",
       "evidence": [
         {
-          "resource": "repo://Python/simulation_frame.py#L247-L265",
-          "version": "repo-lines-v1:sha256:72744a3f57fad5049083d788554a603e80beda3fce6c530811fb44a08df09345:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZWIyNGMyZGQzOGFlNGNhMzZlZDJkNTk3NDYyYTY5M2VhZDU1NGZkOTlmN2Q5ZGM5MzhhMDdjMGU5N2Q3ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjZjU4YTA0OTVkZGFkNjI0MDVmMWNjNDJiM2JkMGI0YzY2ZWFiOWZiMDVkYjFlNzc2NTIzNmZiYzRmYjY4NGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3ZjMwNDA0YWMzMmNlZDk4YmRjNjQ5ODMzNjNhOTljNmFhYTFmYTIzNjQ4ZTg2MWIyMzdlNjhjM2E1ZGMwOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxN2ZkZGFkOGMyZmNhYmNkMjY4ZDZiMTJjNGE5NmMzYTA5YTdjNGM5M2I2YzE4ZGI3ZWYzYzcwZmE2YzY2MDQifQ"
+          "resource": "repo://Python/simulation_frame.py#L286-L306",
+          "version": "repo-lines-v1:sha256:0ee1dac64c2577405209edc1c1df74feca03431531d804256da5b6a0ab39d76e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4Y2NiZGJlZWM1MmZjZjBhNTZlOWY1MWY0M2YyNzdiNTc5NjNjMDQ2YTYyMzRjMmE2ZTY5ZWQ4YzU5NjBkNjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3ZjMwNDA0YWMzMmNlZDk4YmRjNjQ5ODMzNjNhOTljNmFhYTFmYTIzNjQ4ZTg2MWIyMzdlNjhjM2E1ZGMwOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4NTc5ZDZjM2M0NGU4YWE0YzY3YzM1OTE4MmI5MTMyZmYxMjU1M2U4YTJlOTA5YmE2ZGI2YmJjODlkMzA1NTUifQ"
         },
         {
-          "resource": "repo://Python/simulation_frame.py#L268-L316",
-          "version": "repo-lines-v1:sha256:dab25dad1ab37a268c9a9e453e35265c932c80195d283cc9e91ad57c6f9050a9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5ZGFkYzE5OWQ4MmU4ZmY4NjIxNjU0ZTBjMTE5NjU1ZmVjNGM3ZWMyNzUyYjlmNzgwZTc3MWMyY2MwNjQ2YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiYjI3MDg3ZDRiNThjZmJjMTJmZDQ4N2VmMWUwOTcyYjc4Y2M1ZjM2NDg5ZTYwMjUxNzE2MWZjYmNjNjIwNDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzNWU1MjJkZGUxNmFmODA1MzI3MGRmZTNkZGIyODRjY2RiZTQ1YTJhNWQwZjM3MTczYjFmNzU4NzZmODU3NTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://Python/simulation_frame.py#L307-L355",
+          "version": "repo-lines-v1:sha256:bc5ed8aa1d0491c15a144c1a0ed9fbc93c8f5f95648096ef016bb579313a4d99:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5ZGFkYzE5OWQ4MmU4ZmY4NjIxNjU0ZTBjMTE5NjU1ZmVjNGM3ZWMyNzUyYjlmNzgwZTc3MWMyY2MwNjQ2YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiYjI3MDg3ZDRiNThjZmJjMTJmZDQ4N2VmMWUwOTcyYjc4Y2M1ZjM2NDg5ZTYwMjUxNzE2MWZjYmNjNjIwNDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzNWU1MjJkZGUxNmFmODA1MzI3MGRmZTNkZGIyODRjY2RiZTQ1YTJhNWQwZjM3MTczYjFmNzU4NzZmODU3NTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -121,6 +121,6 @@
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-24T17:01:26.052Z"
+    "at": "2026-08-29T23:30:04.693Z"
   }
 }

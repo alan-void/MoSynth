@@ -20,10 +20,10 @@ sources:
     resource: repo://Assets/MotionMatching/Runtime/Core/MotionMatchingSearch/MotionMatchingSearch.cs
   - id: openwiki-source-f84c8bceda0edfaac6926af8
     resource: repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-08-29T23:30:04.693Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-08-29T23:30:04.693Z
 ---
 
 # Search backends
@@ -130,9 +130,9 @@ the stage allocates the mask all-true at `Init` and never rewrites it. The mecha
 inert.
 
 The one piece of reasoning worth preserving from it: when a tag query *is* applied, each range is
-**trimmed at its end by the maximum prediction lookahead**, because a feature vector encodes the next
-several frames, so the last frames of a range have no valid trajectory and would let the search pick
-a pose whose future runs off the tagged region.
+**trimmed at both ends** — by the maximum prediction lookahead at its end and the maximum history at
+its start — because a feature vector encodes the frames around it, so the edge frames of a range have
+no valid trajectory and would let the search pick a pose whose trajectory runs off the tagged region.
 
 This connects to a matching dead end upstream: nothing writes tags during extraction either. See
 [the pose database](../animation-tools/pose-database.md).

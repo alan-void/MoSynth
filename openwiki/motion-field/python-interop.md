@@ -13,9 +13,6 @@ sources:
   - id: openwiki-source-0d9ae15ae536e3580049e519
     resource: repo://Python/test_server.py
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # Reaching Python

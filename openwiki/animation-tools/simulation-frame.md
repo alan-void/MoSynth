@@ -8,12 +8,16 @@ sources:
     resource: repo://Assets/AnimationTools/Editor/Benchmark/SynthesisBenchmarkDriver.cs
   - id: openwiki-source-d6aed5b3fb13baa7a3775151
     resource: repo://Assets/AnimationTools/Runtime/Evaluation/SplinePathDirection.cs
+  - id: openwiki-source-992698fe95f5805c47be92d1
+    resource: repo://Assets/AnimationTools/Runtime/Pose/CharacterSpacePose.cs
   - id: openwiki-source-9cb39479f08cf519691c343e
     resource: repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs
   - id: openwiki-source-2cab5ee24d405d8240d13641
     resource: repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs
   - id: openwiki-source-54f745ff7f6016dea0150c17
     resource: repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs
+  - id: openwiki-source-3a5f4df4d217487d5e3b3a66
+    resource: repo://Assets/AnimationTools/Tests/Editor/CharacterSpacePoseTests.cs
   - id: openwiki-source-cd6059ad9d963983d95938af
     resource: repo://Assets/AnimationTools/Tests/Editor/SimulationFrameTests.cs
   - id: openwiki-source-5c5de1c38fc74b789911f4ea
@@ -31,7 +35,7 @@ sources:
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-08-29T23:23:48.822Z
 ---
 
 # The simulation frame, facing and travel

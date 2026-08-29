@@ -22,12 +22,20 @@ sources:
     resource: repo://Assets/MotionField/MotionFieldConfig.cs
   - id: openwiki-source-52cb746a5d4a6e2a9f9396cd
     resource: repo://Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs
+  - id: openwiki-source-68bd8cb3d0139ef5eb77babd
+    resource: repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs
+  - id: openwiki-source-3e08b9fa4adc34050a83a175
+    resource: repo://Assets/MotionMatching/Tests/Editor/FeatureSerializerTests.cs
+  - id: openwiki-source-93b271bb01f2503c507c34ed
+    resource: repo://Python/binary_reading.py
+  - id: openwiki-source-b7a0fd38fcd115e75814f58b
+    resource: repo://Python/feature_set_importer.py
   - id: openwiki-source-1110a5319fdf997c0acf8f29
     resource: repo://Python/pose_set_importer.py
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-08-29T23:23:48.822Z
 ---
 
 # On-disk formats

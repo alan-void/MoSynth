@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:3d2599d839bd36bf3ec94c94d7302f07bfc31bca4d1fcf45186dcf73a09fbb38",
+  "pageVersion": "sha256:6a1b09f2412ad2e043ab5b72521c027a415bafb922ffb62e86ec0b7c2569536d",
   "claims": [
     {
       "id": "claim_04540207790f42d2b269354f4688f493",
@@ -131,10 +131,52 @@
           "version": "repo-file-v1:sha256:767588329ef93fb397ab68bb13b3a9da1b4c15d3ba6262a67afc8048914f3167"
         }
       ]
+    },
+    {
+      "id": "claim_bb179f491bae40d090d1577c77574928",
+      "statement": "A trajectory feature's prediction frames may be negative, which samples the past rather than the future; MotionMatchingData reports how far the configuration reaches each way as MaximumFramesPrediction and MaximumFramesHistory, each scanning every entry rather than assuming the list is sorted.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs#L66-L102",
+          "version": "repo-lines-v1:sha256:5c59097ffa3a2f96ea61fbeba4f43744f740105a7d58c5acc66762c69498ab0b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxODhmYWI2OTNmMjk0NjQxMTI3OTkxOWFlNDExMDQwYTM2OWMxOWQ1YzVkNjk1NmEwMTM1ZjNlODUxNDkyZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3NzIxZDhjODM0ZjRhMDFjYzNiNGFhMDYwMTA0OWIxMjZmNTlkNWIwZjBkNzVmOGMxZWU1OTEyYmQxNTZmNmMifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Tests/Editor/MotionMatchingDataTests.cs",
+          "version": "repo-file-v1:sha256:e26b5bdf691c4ee2eefdf4ed41aa1cd6232d8cf73facc462850d4504ee1d2aea"
+        }
+      ]
+    },
+    {
+      "id": "claim_b2e8832bd52e4d419825fb5b3599184b",
+      "statement": "A pose is excluded from the searchable database when its sampling window would leave its own clip at either end, not just the end, because a feature vector sampling outside its clip describes a transition that never happened.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs#L215-L235",
+          "version": "repo-lines-v1:sha256:76a874d913514a546bd365fd882b2d86bb50cdfdb2424899c142d75cfee2f0a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExN2Q4ZDdlMTU1MTgyODU3NmVhODRkNmE1Yjg3MzQ2NjQ1OTcwMjI2YzhhMWMxZDkyZmEwY2I4YTNmNmNjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmZDlkOWJlMWEzMWJhOWM3N2E4NTg1MmY2ZGEwMzZkNjIwMWMwNmJjZDE5MDZlZDg0YmY2NGJlYWM3YmFmNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViYzI0YjRiYTUwNzRhY2U2NWMzZmRmZTk3OGNlMGQxNGM2NTE4NmEzMDliZGRmMGEyZTRlMzBjMDdlZWQyMWIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/PoseSetTests.cs",
+          "version": "repo-file-v1:sha256:22931983391a482b7f856e2a9b066ad31ef25d2aed561636c93fe962e78093d1"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d9b5cba4fc543dfae72ec94d752b5bb",
+      "statement": "The pose velocity feature differences a joint against the next frame within the containing clip, because clips are stored back to back in one array and differencing across a boundary reports the jump cut as joint velocity.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Features/PoseFeatureChannel.cs#L38-L82",
+          "version": "repo-lines-v1:sha256:943caf2b7e17a01f4cbdfc719212946c583447ee437f978f2d6d7e16d4efc7c9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhMjBjMzVjZmYyN2UyNWI3MzBjNjIyYTc2OGUyNjRlZDM5NDUxZWIyMGUxZmViMDI3YjcwZjU5YjI0ZmYyMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljOWM0YWZjMDM3ZmJhMDMzYTRhMDgxN2M4NDg4ODgzMzJhNTA5ZWI5ZjU0NDZjYmU1NzU5NjRkZTc1NTcwNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwMjc0ODVkZDVhZmYxM2MxMGYzNTkxNzUxNmQwYjk5YzFjNWMxOWU4N2JhOTA0MjgyYjdkNzBiYTIxM2U5NjIifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Tests/Editor/PoseFeatureChannelTests.cs",
+          "version": "repo-file-v1:sha256:fd0c6e5aefcf9aa0fc52b69b3dfe6ac0372741ee0c1ad5790381adafe7dd70b9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-24T17:01:26.052Z"
+    "at": "2026-08-29T23:23:48.822Z"
   }
 }
