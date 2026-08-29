@@ -7,7 +7,15 @@ using System.Linq;
 
 namespace AnimationTools
 {
-    public class BioVisionHierarchyToAnimClip : MonoBehaviour
+    /// <summary>
+    /// Converts a selected <c>.bvh</c> file into an <see cref="AnimationClip"/> asset, from the
+    /// Assets context menu.
+    /// </summary>
+    /// <remarks>
+    /// Editor-only, and in an Editor folder for that reason: it reaches for <c>AssetDatabase</c>
+    /// and <c>Selection</c>, which do not exist in a player.
+    /// </remarks>
+    public static class BioVisionHierarchyToAnimClip
     {
         // --- CONFIGURATION ---
         // Set this to 0.01f to convert Centimeters (BVH standard) to Meters (Unity standard).

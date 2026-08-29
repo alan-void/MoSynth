@@ -81,7 +81,7 @@ explains several placement decisions that otherwise look arbitrary.
 | [Spline pose keypoints](motion-matching/spline-pose-keypoints.md) | a path that carries authored poses and facing |
 | [Inertialization](motion-matching/inertialization.md) | smoothing jumps by decaying offsets |
 | [Debug visualizers](motion-matching/debug-visualizers.md) | looking at a database, a pose set, or the pipeline's output |
-| [Learned Motion Matching](motion-matching/learned-motion-matching.md) | a parked neural experiment, **not** part of the pipeline |
+| [Learned motion matching](motion-matching/learned-motion-matching.md) | what the database already provides toward it, and what is still missing |
 
 ### [`motion-field/`](motion-field/motion-field-stage.md) — synthesis by learned value
 
@@ -150,7 +150,6 @@ pages rather than hidden:
 - The **crowd and collision control inputs** are not usable as shipped.
 - The **tag-query mechanism** is complete and never invoked.
 - **`TwoJointIK`** has no call sites; foot planting is not wired up.
-- **Learned Motion Matching** is a parked experiment referenced by nothing.
 - `responsiveness` and `quality` on the matching stage currently have no runtime effect.
 
 Synthesis methods here are **not finalised**, so recorded benchmark numbers compare methods against

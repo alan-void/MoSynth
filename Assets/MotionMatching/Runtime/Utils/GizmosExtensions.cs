@@ -1,9 +1,12 @@
+// Gizmo drawing goes through UnityEditor.Handles, so the whole file -- its using directives
+// included -- is editor-only. The guard has to start above them: a `using UnityEditor` outside it
+// fails to resolve in a player build even when nothing below is compiled.
+#if UNITY_EDITOR
 using System;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
-#if UNITY_EDITOR
 namespace MotionMatching
 {
     public static class GizmosExtensions

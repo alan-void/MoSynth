@@ -1,6 +1,8 @@
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using XCharts.Runtime;
 
 public class JointLivePlotter : MonoBehaviour
@@ -154,27 +156,27 @@ public class JointLivePlotter : MonoBehaviour
 
     public void RebuildCharts()
     {
-        bool isEditMode = !Application.isPlaying;
-
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
             var child = transform.GetChild(i);
             if (child == chartTemplate.transform) continue;
-            if (isEditMode)
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
             {
+                // Outside play mode this is reached from inspector callbacks, where destroying a
+                // child immediately is refused, so it has to wait for the next editor tick.
                 EditorApplication.delayCall += () =>
                 {
-                    if (this == null) return; 
+                    if (this == null) return;
                     if (child.gameObject != null)
                     {
                         DestroyImmediate(child.gameObject);
                     }
                 };
+                continue;
             }
-            else
-            {
-                Destroy(child.gameObject);
-            }
+#endif
+            Destroy(child.gameObject);
         }
         
         spawnedCharts.Clear();

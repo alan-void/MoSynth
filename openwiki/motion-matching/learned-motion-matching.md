@@ -1,106 +1,84 @@
 ---
 type: Reference
-title: Learned Motion Matching (parked experiment)
-description: A self-contained neural reimplementation that is not part of the live pipeline, kept for reference — what it does and why it will not run as committed.
-tags: [experiment, barracuda, legacy, status]
-sources:
-  - id: openwiki-source-92d29d96fc61a044af5a807c
-    resource: repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/Gameplay.cs
-  - id: openwiki-source-322ec7da662c5b191cff726f
-    resource: repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+title: Learned motion matching
+description: What the repository provides toward replacing the database search with learned networks, and the parked Barracuda experiment that was removed to make room for it.
+tags: [status, roadmap, neural, training-data]
 ---
 
-# Learned Motion Matching (parked experiment)
+# Learned motion matching
 
-> **This is not part of the synthesis pipeline.** It shares no type with the live architecture — no
-> `MoSynthStage`, no `MotionSynthesisComponent`, no `PoseBuffer`, no `Skeleton`, no `PoseSet`. It
-> drives Transform local position and rotation directly on a rig it discovers through an `Animator`.
-> Nothing anywhere in the repository references it.
+Holden et al.'s *Learned Motion Matching* replaces the animation database and its brute-force
+search with three small networks:
 
-Five files under `Assets/Scripts/Learned Motion Matching/Scripts/`, ~1,386 lines, namespace `MM`. All
-of them date to March 2026; every other file described in this wiki was touched in August.
+| Network | Role |
+| --- | --- |
+| **projector** | stands in for the nearest-neighbour lookup — query vector to the nearest database point, in latent space |
+| **stepper** | advances the latent state autoregressively, so the search does not run every frame |
+| **decompressor** | reconstructs a full pose from the latent state |
 
-## Read the name carefully
+**None of them exists in this repository.** What does exist is everything they would be trained
+from, which is what this page is about.
 
-`MM.MotionMatching` is **a different type in a different assembly** from the `MotionMatching`
-namespace the rest of this section documents. The folder has **no asmdef**, so it compiles into
-`Assembly-CSharp` — which is also why the rest of the wiki's taxonomy, built on asmdef boundaries,
-does not otherwise reach it.
+## What is already here
 
-It is also:
+The query the projector maps from is the motion matching **feature vector**, unchanged — the same
+floats [the search](matching-stage.md) compares today. The pose the decompressor reconstructs is
+every joint of a database frame in the character frame. Both come out of the generated database:
 
-- **The repository's only `Unity.Barracuda` consumer.** `AGENTS.md` lists Barracuda as a key
-  dependency, and that is true *only* of this isolated track.
-- **Dependent on `UnityEditor` from runtime code**, reached from `Awake` via
-  `AnimationUtility.GetAnimationClips` and `AssetDatabase.GetAssetPath`. So it **could not be included
-  in a player build as it stands** — Editor-only by accident of its dependencies rather than by
-  design.
+- `Assets/StreamingAssets/MMDatabases/<name>/<name>.mmfeatures` holds the feature vectors, their
+  normalisation statistics, and a schema block naming every feature and its width. It is readable
+  without Unity — see [on-disk formats](../animation-tools/on-disk-formats.md) and
+  `Python/feature_set_importer.py`.
+- `Python/training_data.py` assembles the rest: every joint's position, rotation, velocity and
+  angular velocity **in the character frame**, the frame's own travel and turn rate, the foot
+  contacts, and a gait phase reconstructed from them. One `.npz` per database.
 
-## What it does
+None of that is packed into either network's input tensor, deliberately. A decompressor target and
+a PFNN input want the same quantities in different arrangements, and the arrangement is a property
+of the model, not of the database.
 
-It is an implementation of Holden et al.'s *Learned Motion Matching*: replace the database and its
-brute-force search with three small neural networks.
+Two things the feature layer gained specifically for this:
 
-| Network | Role | Tensor |
-| --- | --- | --- |
-| **projector** | stands in for the nearest-neighbour lookup — query to nearest point in latent space | 24 → 56 |
-| **stepper** | autoregressive velocity predictor, advancing the latent state | 56 → 56 |
-| **decompressor** | reconstructs a full pose from the latent state | 56 → joints × 15 |
+- **A trajectory feature may sample the past**, through a negative prediction frame. The classic
+  matching query and a PFNN-style trajectory window both need samples either side of the query
+  frame. See [feature vectors](feature-vectors.md).
+- **A `.mmfeatures` refuses to be read against a configuration it was not written for**, rather
+  than being read off the wrong offsets. Training on a stale database is the quiet failure that
+  costs the most.
 
-The 56-float latent is `x ‖ z` — **24 query feature floats plus 32 latent floats** — and every
-normalise/denormalise loop branches on that boundary.
+## What is missing
 
-The 24-float query is assembled as three trajectory points (9), hips velocity (3), then right and
-left foot position and velocity (12).
+- The three networks, and their training loops.
+- Inference in Unity. `com.unity.barracuda` 3.0.2 is still in the manifest but nothing consumes it,
+  and it is a deprecated package on Unity 6.
+- A `MoSynthStage` to run them. The seam is ready — see
+  [the synthesis pipeline](../animation-tools/synthesis-pipeline.md) — and `MotionFieldStage` is the
+  worked example of a stage whose model lives in Python behind PythonNET.
 
-Per frame: run the projector every `projectorFreq` frames (default 20) to re-seed the latent state,
-run the stepper every frame to integrate it, run the decompressor every frame to produce a pose. Each
-joint gets 15 floats — 3 position plus a 6D rotation representation, Gram–Schmidt orthonormalised
-into a rotation matrix and converted to a quaternion.
+## The removed experiment
 
-The data pipeline is Editor-only, driven by an "Extract data from animator" inspector button, and
-writes plain text files next to the prefab.
+Five files under `Assets/Scripts/Learned Motion Matching/Scripts/`, about 1,386 lines in namespace
+`MM`, were a self-contained neural reimplementation dating to March 2026. They were **deleted**, not
+merely parked. Recover them from git history if the reference is wanted.
 
-## The three toggles are ablation switches
+The reasons, in order of weight:
 
-`enableProjector`, `enableStepper` and `enableDecompressor` are not leftovers. With the projector off,
-the latent is filled directly from stored data rather than from the user; with the stepper off, the
-query comes from stored data too. So the chain can be run decompressor-only, decompressor + stepper,
-or complete — which is the experiment.
+1. **`MM.MotionMatching` is a different type in a different assembly from the `MotionMatching`
+   namespace the rest of this section documents.** For anyone implementing the real thing, that
+   collision is a trap rather than a reference.
+2. It **called `UnityEditor` from runtime code** in `Assembly-CSharp` — `AnimationUtility` and
+   `AssetDatabase`, reached from `Awake` — so it could not be included in a player build.
+3. It **could not run as committed**: `MM.MotionMatching` carried no `[Serializable]`, while its
+   driver held it as a plain public field, so it would have been `null` when `Awake` called
+   `mm.Build`.
+4. It shared no type with the live architecture — no `MoSynthStage`, `MotionSynthesisComponent`,
+   `PoseBuffer`, `Skeleton` or `PoseSet` — and nothing anywhere referenced it.
 
-## Why it will not run as committed
+For the record, its shape was: a 24-float query (three trajectory points, hips velocity, then each
+foot's position and velocity), a 32-float latent, a 56-float `x ‖ z` state, and a decompressor
+emitting 15 floats per joint (3 position plus a 6D rotation, Gram–Schmidt orthonormalised). The
+three `enable*` toggles on the driver were ablation switches, not leftovers: with the projector off
+the latent came from stored data, with the stepper off so did the query, so the chain could be run
+decompressor-only, decompressor + stepper, or complete.
 
-`MM.MotionMatching` carries **no `[Serializable]` attribute**, while the driver holds it as a plain
-`public MM.MotionMatching mm` field. So it will not serialize, and it will be `null` when the driver
-calls `mm.Build(gameObject)` at `Awake`.
-
-That is a static reading of the code, not a tested one. But combined with the March timestamps and
-the total absence of references, treat the entry point as broken and verify against the source before
-assuming any of it is live.
-
-## Other divergences from the rest of the project
-
-- Uses the **legacy `Input.GetAxisRaw`**, not the Input System asset everything else uses.
-- Hardcodes a **60 Hz step in three separate places** rather than reading a frame time, with a
-  commented-out frame limiter at the top of the update.
-- Numerous magic numbers with no derivation: 24, 56, joints × 15, `projectorFreq = 20`.
-- Debug input is live in the main loop — a key press advances the chosen clip.
-- All three models read their output tensor by the hardcoded name `"y"`.
-
-## Related artefact
-
-`External/lmm-v0.3.0.zip` sits alongside the other vendored payloads.
-
-## Source map
-
-| File | Lines | Role |
-| --- | --- | --- |
-| `MotionMatching.cs` | 1,205 | the whole implementation — data pipeline, inference, pose reconstruction |
-| `Gameplay.cs` | ~90 | the only MonoBehaviour; drives it, exposes the three toggles |
-| `MMInput.cs` | ~23 | serialized input smoothing parameters |
-| `MMInspector.cs` | ~24 | the extract-data button |
-| `AnimationData.cs` | ~60 | an unrelated EditorWindow dumping curve bindings |
+`External/lmm-v0.3.0.zip` sits alongside the other vendored payloads and was left in place.

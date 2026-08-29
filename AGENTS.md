@@ -26,7 +26,7 @@ This file provides guidance to AI coding agents (Claude Code, and others reading
 - **Unity**: 6000.4.4f1 (LTS)
 - **Language**: C# / Python (CPython 3.13 via PythonNET)
 - **Key Dependencies**: 
-  - Barracuda (3.0.2) - neural network inference in Unity
+  - Barracuda (3.0.2) - in the manifest for neural network inference in Unity, but nothing consumes it today; it is deprecated on Unity 6
   - Mathematics, Collections, Jobs (for performance)
   - PyThonNET - C#/Python interoperability
   - Scipy, NumPy, PyTorch (Python side)
