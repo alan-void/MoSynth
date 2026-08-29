@@ -93,7 +93,9 @@ lose. Verify each against the source and document it with its reasoning intact:
 - Do not document vendored code. `External/`, `Assets/Packages/`,
   `Assets/Samples/`, and `Assets/Lib/` are excluded in `.openwikiignore` and are
   not part of this system.
-- Do not document `Assets/Local/` or `Assets/LFS/` — local scratch and data.
+- Do not document `Assets/Local/` or `Assets/LFS/`. `Assets/Local/` is local
+  scratch; `Assets/LFS/` is a separate git-lfs repository of source assets kept
+  out of this repo because some of its contents are under third-party copyright.
 
 ## Relationship to existing docs
 
@@ -114,3 +116,50 @@ but knows nothing about this project's specific choices. Prefer plain prose over
 bullet fragments when explaining a mechanism. Be direct about known rough edges,
 limitations, and TODOs rather than presenting the system as finished — several
 areas are actively in flux, and synthesis methods are not finalised.
+
+## How the wiki is organised
+
+The wiki serves two audiences with deliberately different styles.
+
+**Human-centered pages** — every top-level domain except `agents/`:
+
+- Written for a developer getting to grips with the project. Concept-first,
+  plain language, clear and concise, easy to grasp.
+- Explain what each system is for and how it behaves at runtime before naming
+  files and symbols. Prefer a short Mermaid diagram over a long paragraph when
+  it genuinely clarifies a flow or lifecycle.
+- No exhaustive inventories, no wall-of-detail invariant lists — link to the
+  matching `agents/` page for that depth.
+
+**`agents/` — AI coding agent reference:**
+
+- A deliberate, user-mandated section (not a generic catch-all): dense,
+  operational, evidence-heavy material that helps AI coding agents work on this
+  repository safely and effectively.
+- Organised as **one subfolder per subsystem** (e.g. `agents/animation-tools/`,
+  `agents/motion-matching/`, `agents/motion-field/`, `agents/python/`,
+  `agents/tooling/`), mirroring the human domains where sensible.
+- Content style: exact invariants and rules with the precise APIs involved,
+  known hazards and traps (including "do NOT fix this" notes), editing and
+  verification workflows, per-subsystem internals, exact file/symbol references.
+- It is fine — expected — for `agents/` pages to overlap topically with human
+  pages; they differ in depth and audience, and each human page should link to
+  its `agents/` counterpart where one exists.
+- The section does not exist yet. It is built incrementally: create the
+  subfolder the first time there is something operational worth keeping, rather
+  than restructuring the existing pages up front.
+
+## Ownership and when to edit
+
+- `agents/` is **owned by the coding agents**. They write to it freely, without
+  asking, whenever they learn something operational worth keeping.
+- Every other section is human-facing and should read like documentation, not
+  like agent notes.
+- The wiki is updated as part of finishing a task, and the wiki change is
+  committed alongside the code change. A behaviour change that leaves its page
+  stale is not finished.
+- Any agent asked to organise, refresh, or restructure the wiki follows these
+  same guidelines and the comment-placement rules in root `AGENTS.md`.
+
+Root `AGENTS.md` stays the canonical short agent brief; the `agents/` wiki
+section carries the deep detail behind it.

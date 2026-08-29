@@ -319,11 +319,19 @@ Implementer agents need a spec that names the files, the intended design, and th
 
 ## OpenWiki
 
-This repository has a generated `openwiki/` evidence index. It is optional just-in-time context, not required startup reading.
+`openwiki/` serves two audiences, and the split decides who owns what.
 
-- Treat source code and tests as authoritative. A brief's unknowns and review items are verification gaps, not automatic requirements.
+- **`openwiki/agents/` is yours.** It exists for the detailed, operational material you need to work here efficiently: exact invariants, hazards and "do NOT fix this" notes, editing and verification workflows, per-subsystem internals. Organise it as one subfolder per subsystem. Write to it freely — you do not need permission. The section does not exist yet; create the subfolder the first time you have something operational worth keeping.
+- **Everything else is for human readers.** Concept-first, plain language, explaining what a system is for and how it behaves before naming files and symbols. No exhaustive inventories — link to the matching `agents/` page for that depth.
+
+Working rules:
+
+- **Update the wiki as part of finishing a task, and commit the wiki change with the code.** A behaviour change that leaves its page stale is not finished. There is no "only when asked" restriction.
+- Use the OpenWiki MCP lifecycle rather than editing blind: `openwiki_begin` at the repo root, `openwiki_inspect_claims` before materially editing an existing factual page, `openwiki_resolve_claims` for new or changed propositions, `openwiki_finish` at the end. Do not hand-edit Claims sidecars, indexes, logs, provenance, run metadata, or the scheduled workflow.
+- Treat source code as authoritative. A page's unknowns and review items are verification gaps, not automatic requirements.
 - Prefer the narrowest quiet validation that proves the changed behavior. Preserve complete failure output.
+- These rules bind any agent asked to organise, refresh, or restructure the wiki, not just agents changing code.
 
-The scheduled OpenWiki GitHub Actions workflow refreshes the repository wiki. Do not hand-edit generated OpenWiki pages unless explicitly asked; prefer updating source code/docs and letting OpenWiki regenerate.
+It is still optional just-in-time context, not required startup reading. Full brief: [`openwiki/INSTRUCTIONS.md`](openwiki/INSTRUCTIONS.md).
 
 <!-- OPENWIKI:END -->
