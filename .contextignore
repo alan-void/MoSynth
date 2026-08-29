@@ -1,0 +1,31 @@
+# Files excluded from claude-context semantic indexing.
+# .gitignore is honored automatically; these are additional.
+
+# Jupyter notebooks: mostly serialized cell output, not source
+*.ipynb
+.ipynb_checkpoints/
+
+# Unity sidecar/serialized assets - no meaningful source content
+*.meta
+*.asset
+*.unity
+*.prefab
+*.controller
+*.mat
+*.anim
+
+# Vendored third-party source: ~1000 files that crowd out project code in search results
+External/
+
+# Unity generated directories (also gitignored, listed for safety)
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+
+# Python caches
+__pycache__/
+*.pyc
