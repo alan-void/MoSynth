@@ -13,9 +13,6 @@ sources:
   - id: openwiki-source-556de75b4b36254c0d3e2158
     resource: repo://Python/MotionField.py
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # The motion field stage

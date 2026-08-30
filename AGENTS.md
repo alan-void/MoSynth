@@ -82,7 +82,7 @@ Integrates a neural motion field into the pipeline via PythonNET:
 - Supporting: `get_knn()`, `get_batched_knn()`, `build_motion_states()`, `load_value_function()`
 
 **Python setup:**
-- The CPython DLL and venv paths are resolved by `PythonRuntime.EnsureInitialized` from the `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` environment variables first, then the serialized `MotionFieldConfig` fields (`pythonDllPath`, `pythonVenvPath`), then — for the DLL only — PythonNET's own `PYTHONNET_PYDLL`. An interpreter's location is a property of the machine, so prefer the environment variables; the serialized fields are why a checked-in asset can name someone else's drive
+- The CPython DLL and venv paths belong to a machine, not to the project, so they live outside its assets. `PythonRuntime.EnsureInitialized` resolves them from the `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` environment variables first, then from `PythonPathSettings` — `UserSettings/MoSynthPython.json`, which is gitignored and edited under **Project Settings → MoSynth → Python** — then, for the DLL only, PythonNET's own `PYTHONNET_PYDLL`. The variables win because they are the only source that reaches a machine with no project folder to read
 - Project modules import from `PythonRuntime.ScriptsFolder` — the repository's `Python/` folder, derived from `Application.dataPath`
 - Python 3.13 is required for PythonNET compatibility
 
@@ -115,7 +115,10 @@ Assets/
 ├── MotionField/
 │   ├── MotionFieldStage.cs          [stage implementing neural field]
 │   ├── MfConnector.cs               [data connector for field]
-│   └── MotionFieldConfig.cs         [serializable config: clips, skeleton, hyperparameters]
+│   ├── MotionFieldConfig.cs         [serializable config: clips, skeleton, hyperparameters]
+│   ├── PythonRuntime.cs             [shared CPython bootstrap and module reloading]
+│   ├── PythonPathSettings.cs        [per-user interpreter paths in UserSettings/MoSynthPython.json]
+│   └── Editor/PythonSettingsProvider.cs [Project Settings → MoSynth → Python, and Verify Setup]
 ├── MotionMatching/
 │   ├── Runtime/Core/
 │   │   ├── MotionMatchingStage.cs   [database search stage]
@@ -182,15 +185,22 @@ pip install numpy scipy torch
 python Python/MotionField.py
 ```
 
-Then tell the project where they are, preferably per machine rather than in the asset:
+Then tell the project where they are, in **Project Settings → MoSynth → Python**. That writes
+`UserSettings/MoSynthPython.json`, which is gitignored, so the paths never travel to another machine.
+`MoSynth/Python/Verify Setup` (also a button on that page) starts the interpreter and logs the
+version and the numpy/torch it found, which is the quickest way to tell a wrong path from a missing
+package.
+
+For a build agent, or any machine with no project folder to read, the environment variables override
+the settings file:
 
 ```powershell
 setx MOSYNTH_PYTHON_DLL  "C:/path/to/python313.dll"
 setx MOSYNTH_PYTHON_VENV "C:/path/to/.anim_env"
 ```
 
-Restart Unity so it picks the variables up. Failing that, the `MotionFieldConfig` asset's
-`pythonDllPath` and `pythonVenvPath` fields are the fallback.
+Restart Unity so it picks the variables up. Either way the interpreter is chosen once per process, so
+a path changed mid-session takes effect at the next domain reload.
 
 ### Building for Distribution
 The project uses standard Unity build pipeline:
@@ -351,7 +361,7 @@ Working rules:
 
 - **Update the wiki as part of finishing a task, and commit the wiki change with the code.** A behaviour change that leaves its page stale is not finished. There is no "only when asked" restriction.
 - Use the OpenWiki MCP lifecycle rather than editing blind: `openwiki_begin` at the repo root, `openwiki_inspect_claims` before materially editing an existing factual page, `openwiki_resolve_claims` for new or changed propositions, `openwiki_finish` at the end. Do not hand-edit Claims sidecars, indexes, logs, provenance, run metadata, or the scheduled workflow.
-- **`openwiki_finish` rewrites the block between the `OPENWIKI:BEGIN`/`END` markers in this file with its own default text, discarding this policy.** Check `git diff AGENTS.md` after every finish and restore the section if it was replaced.
+- **`openwiki_finish` rewrites the block between the `OPENWIKI:START`/`END` markers in this file with its own default text, discarding this policy.** Check `git diff AGENTS.md` after every finish and restore the section if it was replaced.
 - Treat source code as authoritative. A page's unknowns and review items are verification gaps, not automatic requirements.
 - Prefer the narrowest quiet validation that proves the changed behavior. Preserve complete failure output.
 - These rules bind any agent asked to organise, refresh, or restructure the wiki, not just agents changing code.

@@ -12,9 +12,6 @@ sources:
     resource: repo://Python/feature_set_importer.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-29T23:36:06.985Z
 ---
 
 # Learned motion matching

@@ -36,19 +36,6 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
     public SkeletonBone rightContactBone = new();
 
-    // Both paths describe a machine, not a project, so the MOSYNTH_PYTHON_* environment variables
-    // take precedence -- see PythonRuntime. These fields are the fallback for a machine that sets
-    // neither, and are the reason a checked-in asset can still name someone else's drive.
-    [Header("Python Runtime")]
-    [Tooltip("Full path to the CPython shared library, e.g. .../python313.dll. Overridden by the " +
-             "MOSYNTH_PYTHON_DLL environment variable; with neither set, pythonnet falls back to " +
-             "PYTHONNET_PYDLL.")]
-    public string pythonDllPath = "";
-
-    [Tooltip("Virtual environment whose site-packages holds numpy, scipy and torch. Overridden by " +
-             "the MOSYNTH_PYTHON_VENV environment variable.")]
-    public string pythonVenvPath = "";
-
     [Header("Motion Field")]
     [Tooltip("Neighbours considered per step. Also the number of candidate actions, since each " +
              "action emphasises one neighbour.")]

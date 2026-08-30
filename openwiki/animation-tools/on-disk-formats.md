@@ -33,9 +33,6 @@ sources:
   - id: openwiki-source-1110a5319fdf997c0acf8f29
     resource: repo://Python/pose_set_importer.py
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-29T23:38:46.103Z
 ---
 
 # On-disk formats

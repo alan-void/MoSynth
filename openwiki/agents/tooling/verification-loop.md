@@ -17,9 +17,6 @@ sources:
   - id: openwiki-source-44aeec7103fbb90f34a34626
     resource: repo://Python/tests/test_training_data.py
 generated: {by: "claude-code", at: "2026-08-29T23:23:48.822Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-29T23:23:48.822Z
 ---
 
 # Verifying a change
@@ -98,7 +95,7 @@ generated database. Use the project venv (see [running the Python side](../pytho
 
 ## `openwiki_finish` overwrites part of AGENTS.md
 
-The lifecycle rewrites the block between the `<!-- OPENWIKI:BEGIN -->` / `<!-- OPENWIKI:END -->`
+The lifecycle rewrites the block between the `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`
 markers in root `AGENTS.md` with its own default text. That block currently holds the project's
 two-audience wiki policy — including the statement that this `agents/` section belongs to the coding
 agents — and the default text replaces it with the opposite advice.

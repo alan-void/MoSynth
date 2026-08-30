@@ -4,14 +4,18 @@ title: Running the Python side
 description: Which interpreter to use, how the flat module layout constrains imports, the scipy shapes that bite, and how to read a generated database from a shell.
 tags: [agents, python, numpy, scipy, workflow]
 sources:
+  - id: openwiki-source-ea70eb6c045047448e446296
+    resource: repo://.gitignore
+  - id: openwiki-source-bb2245a2b5dfe4579dd20049
+    resource: repo://Assets/MotionField/PythonPathSettings.cs
   - id: openwiki-source-839acd5f9c92d76d722dddc3
     resource: repo://Assets/MotionField/PythonRuntime.cs
   - id: openwiki-source-030d30d689203655d06f8a6b
     resource: repo://Python/tests/test_gait_phase.py
-generated: {by: "claude-code", at: "2026-08-29T23:23:48.822Z"}
+generated: {by: "claude-code", at: "2026-08-30T13:08:18.116Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-29T23:23:48.822Z
+    at: 2026-08-30T13:08:18.116Z
 ---
 
 # Running the Python side
@@ -22,15 +26,19 @@ verified:
 usually not it. Resolution order, and the same one `PythonRuntime.EnsureInitialized` uses:
 
 1. `MOSYNTH_PYTHON_VENV` / `MOSYNTH_PYTHON_DLL`
-2. `MotionFieldConfig.pythonVenvPath` / `.pythonDllPath` — the serialized fallback, and the reason a
-   checked-in asset can name someone else's drive letter
+2. `UserSettings/MoSynthPython.json`, which *Project Settings → MoSynth → Python* writes
 3. `PYTHONNET_PYDLL`, for the DLL only
 
-Read the config asset when neither variable is set:
+So find the venv the same way the Editor does — the variables first, then the file:
 
 ```bash
-grep -n "pythonVenvPath\|pythonDllPath" Assets/Animation/MotionField/MotionFieldConfig.asset
+echo "$MOSYNTH_PYTHON_VENV"
+cat UserSettings/MoSynthPython.json
 ```
+
+That file is gitignored and per user, so **on a fresh clone it does not exist** and neither path is
+set until someone fills the settings page in. Paths were serialized on `MotionFieldConfig` until
+they moved here; do not reach for the asset, it no longer carries them.
 
 Run through `<venv>/Scripts/python.exe` directly rather than activating; activation does not survive
 between tool calls.

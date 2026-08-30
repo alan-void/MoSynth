@@ -494,7 +494,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         EditorApplication.LockReloadAssemblies();
         try
         {
-            PythonRuntime.EnsureInitialized(config.pythonDllPath, config.pythonVenvPath);
+            PythonRuntime.EnsureInitialized();
 
             // Marshalled into Python as a callable. Training is synchronous on the main thread, so
             // this fires on the main thread too and may touch the editor UI directly.
@@ -562,7 +562,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         EditorApplication.LockReloadAssemblies();
         try
         {
-            PythonRuntime.EnsureInitialized(config.pythonDllPath, config.pythonVenvPath);
+            PythonRuntime.EnsureInitialized();
 
             Action<string, double> report = (stage, fraction) =>
                 EditorUtility.DisplayProgressBar("Embedding Motion Field", stage, (float)fraction);

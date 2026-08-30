@@ -11,9 +11,6 @@ sources:
   - id: openwiki-source-13742752b942a8c72fc71381
     resource: repo://Assets/MotionField/MotionFieldStage.cs
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # Config, training and the staleness contract

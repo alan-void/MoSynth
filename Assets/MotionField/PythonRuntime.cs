@@ -15,19 +15,32 @@ namespace MotionField
 public static class PythonRuntime
 {
     /// <summary>
-    /// Environment variable naming the CPython shared library, checked before the serialized path.
+    /// Environment variable naming the CPython shared library, checked before
+    /// <see cref="PythonPathSettings"/>.
     /// </summary>
     /// <remarks>
     /// An interpreter lives wherever a particular machine put it, so the path is a property of the
-    /// machine, not of the project. Serializing it into an asset checks one developer's layout into
-    /// the repository and breaks it for everyone else; these two variables are how a second machine
-    /// works without editing a shared asset. The serialized paths are kept as the fallback so an
-    /// existing setup keeps working untouched.
+    /// machine, not of the project. The variable wins over the settings file because it is the only
+    /// one of the two that reaches a machine with no project folder to read -- a build agent, or a
+    /// player.
     /// </remarks>
     public const string PythonDllVariable = "MOSYNTH_PYTHON_DLL";
 
     /// <summary>Environment variable naming the virtual environment. See <see cref="PythonDllVariable"/>.</summary>
     public const string PythonVenvVariable = "MOSYNTH_PYTHON_VENV";
+
+    /// <summary>Where a resolved path came from, which is what the settings UI reports.</summary>
+    public enum PathSource
+    {
+        /// <summary>Neither source names one.</summary>
+        Unset,
+
+        /// <summary>The <see cref="PythonDllVariable"/> / <see cref="PythonVenvVariable"/> variable.</summary>
+        Environment,
+
+        /// <summary><see cref="PythonPathSettings"/>.</summary>
+        Settings
+    }
 
     private static bool _pythonDllAssigned;
     private static string _scriptsFolder;
@@ -37,45 +50,54 @@ public static class PythonRuntime
         _scriptsFolder ??= Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Python"));
 
     /// <summary>
-    /// The CPython shared library that will actually be used: <see cref="PythonDllVariable"/> if it
-    /// is set, otherwise <paramref name="configuredPath"/>. Empty means neither is set, and
-    /// pythonnet falls back to PYTHONNET_PYDLL on its own.
+    /// The CPython shared library that will actually be used. Empty means neither source names one,
+    /// and pythonnet falls back to PYTHONNET_PYDLL on its own.
     /// </summary>
-    public static string ResolvePythonDll(string configuredPath) =>
-        Resolve(PythonDllVariable, configuredPath);
+    public static string ResolvePythonDll(out PathSource source) =>
+        Resolve(PythonDllVariable, PythonPathSettings.Current.pythonDllPath, out source);
+
+    /// <inheritdoc cref="ResolvePythonDll(out PathSource)"/>
+    public static string ResolvePythonDll() => ResolvePythonDll(out _);
 
     /// <summary>
-    /// The virtual environment that will actually be used: <see cref="PythonVenvVariable"/> if it is
-    /// set, otherwise <paramref name="configuredPath"/>. Empty means the interpreter's own
-    /// site-packages.
+    /// The virtual environment that will actually be used. Empty means neither source names one,
+    /// and only the interpreter's own site-packages is importable.
     /// </summary>
-    public static string ResolveVenv(string configuredPath) =>
-        Resolve(PythonVenvVariable, configuredPath);
+    public static string ResolveVenv(out PathSource source) =>
+        Resolve(PythonVenvVariable, PythonPathSettings.Current.pythonVenvPath, out source);
 
-    private static string Resolve(string variable, string configuredPath)
+    /// <inheritdoc cref="ResolveVenv(out PathSource)"/>
+    public static string ResolveVenv() => ResolveVenv(out _);
+
+    /// <summary>
+    /// Picks between the environment variable and the settings file, treating a blank value in
+    /// either as absent.
+    /// </summary>
+    public static string Resolve(string variable, string settingsPath, out PathSource source)
     {
         var fromEnvironment = Environment.GetEnvironmentVariable(variable);
-        return string.IsNullOrWhiteSpace(fromEnvironment) ? configuredPath ?? "" : fromEnvironment;
+        if (!string.IsNullOrWhiteSpace(fromEnvironment))
+        {
+            source = PathSource.Environment;
+            return fromEnvironment;
+        }
+
+        source = string.IsNullOrWhiteSpace(settingsPath) ? PathSource.Unset : PathSource.Settings;
+        return settingsPath ?? "";
     }
 
     /// <summary>
-    /// Start CPython if it is not already running and make the project's Python modules importable.
-    /// Safe to call repeatedly.
+    /// Start CPython if it is not already running and make the project's Python modules importable,
+    /// using the paths this machine is configured with. Safe to call repeatedly.
     /// </summary>
-    /// <param name="pythonDllPath">
-    /// Full path to the CPython shared library, or empty. Only meaningful on the very first call of
-    /// the process -- pythonnet throws if it is changed after the interpreter starts.
-    /// <see cref="PythonDllVariable"/> overrides it, and with neither set pythonnet falls back to
-    /// the PYTHONNET_PYDLL environment variable.
-    /// </param>
-    /// <param name="venvPath">
-    /// Virtual environment supplying numpy / scipy / torch, or empty.
-    /// <see cref="PythonVenvVariable"/> overrides it.
-    /// </param>
-    public static void EnsureInitialized(string pythonDllPath, string venvPath)
+    /// <remarks>
+    /// Only the first call of the process can choose the interpreter -- pythonnet throws if the DLL
+    /// is changed after the engine starts -- so changing the paths needs a domain reload.
+    /// </remarks>
+    public static void EnsureInitialized()
     {
-        pythonDllPath = ResolvePythonDll(pythonDllPath);
-        venvPath = ResolveVenv(venvPath);
+        var pythonDllPath = ResolvePythonDll();
+        var venvPath = ResolveVenv();
 
         if (!PythonEngine.IsInitialized)
         {
@@ -84,8 +106,9 @@ public static class PythonRuntime
                 if (!File.Exists(pythonDllPath))
                 {
                     throw new FileNotFoundException(
-                        $"Python DLL not found at '{pythonDllPath}'. Set {PythonDllVariable} for this " +
-                        "machine, or the path on the MotionFieldConfig.",
+                        $"Python DLL not found at '{pythonDllPath}'. Set it in " +
+                        $"Project Settings > MoSynth > Python, or in the {PythonDllVariable} " +
+                        "environment variable.",
                         pythonDllPath);
                 }
 
@@ -104,8 +127,9 @@ public static class PythonRuntime
                 if (!Directory.Exists(sitePackages))
                 {
                     throw new DirectoryNotFoundException(
-                        $"No site-packages under '{venvPath}'. Set {PythonVenvVariable} for this " +
-                        "machine, or the venv path on the MotionFieldConfig.");
+                        $"No site-packages under '{venvPath}'. Set it in " +
+                        $"Project Settings > MoSynth > Python, or in the {PythonVenvVariable} " +
+                        "environment variable.");
                 }
 
                 dynamic site = Py.Import("site");

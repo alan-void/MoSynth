@@ -133,7 +133,7 @@ public class MotionFieldStage : MoSynthStage, IDisposable
 
         try
         {
-            PythonRuntime.EnsureInitialized(config.pythonDllPath, config.pythonVenvPath);
+            PythonRuntime.EnsureInitialized();
 
             using (Py.GIL())
             {

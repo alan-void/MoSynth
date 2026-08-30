@@ -29,8 +29,6 @@ MonoBehaviour:
     skeleton:
       root: {fileID: 0}
     bone: {fileID: 0}
-  pythonDllPath: C:\Users\amana\AppData\Local\Python\pythoncore-3.13-64\python313.dll
-  pythonVenvPath: D:\iitbpg\MoSynth\AnimationTech\.anim_env
   kNeighbors: 15
   tugRatio: 0.1
   posWeight: 1

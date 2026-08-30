@@ -4,15 +4,24 @@ title: Reaching Python
 description: Two mutually exclusive transports to the motion field — an embedded CPython interpreter and an out-of-process ZeroMQ socket — and the constraints each imposes.
 tags: [pythonnet, interop, threading, zeromq]
 sources:
+  - id: openwiki-source-ea70eb6c045047448e446296
+    resource: repo://.gitignore
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
+  - id: openwiki-source-892f0ec3df6304d13cc047ec
+    resource: repo://Assets/MotionField/Editor/PythonSettingsProvider.cs
   - id: openwiki-source-9b84862940b622d8527df945
     resource: repo://Assets/MotionField/MfConnector.cs
+  - id: openwiki-source-bb2245a2b5dfe4579dd20049
+    resource: repo://Assets/MotionField/PythonPathSettings.cs
   - id: openwiki-source-839acd5f9c92d76d722dddc3
     resource: repo://Assets/MotionField/PythonRuntime.cs
   - id: openwiki-source-0d9ae15ae536e3580049e519
     resource: repo://Python/test_server.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-08-30T13:08:18.116Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-08-30T13:08:18.116Z
 ---
 
 # Reaching Python
@@ -47,16 +56,29 @@ Both failure paths are typed and name both places the path could come from.
 ### Where the two paths come from
 
 An interpreter lives wherever a particular machine put it, so **the path is a property of the
-machine, not of the project**. Resolution order, for each of the two:
+machine, not of the project**, and neither path is stored in an asset. Resolution order, for each of
+the two:
 
 | Source | Notes |
 | --- | --- |
-| `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` | how a second machine works without editing a shared asset |
-| `MotionFieldConfig.pythonDllPath` / `.pythonVenvPath` | the serialized fallback |
+| `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` | wins, because it is the only source that reaches a machine with no project folder to read |
+| `PythonPathSettings` — `UserSettings/MoSynthPython.json` | what *Project Settings → MoSynth → Python* edits |
 | `PYTHONNET_PYDLL` | PythonNET's own, reached only when neither of the above names a DLL |
 
-The serialized fields are kept because an existing setup should not have to change, but they are the
-reason a checked-in asset can name someone else's drive letter. Prefer the environment variables.
+`UserSettings/` is gitignored by the standard Unity `.gitignore`, so the settings file never travels
+to another machine — which is the whole point. Both paths used to be serialized on
+`MotionFieldConfig`, and that is precisely how a checked-in asset came to name someone else's drive
+letter. The file is plain JSON rather than a `ScriptableSingleton` asset so that shell and Python
+tooling can read the same venv the Editor uses.
+
+Anything unparseable in that file reads as two empty paths rather than throwing: it is hand-editable,
+and a typo in it should surface as a message about where Python is, not as an exception out of an
+unrelated caller.
+
+*Project Settings → MoSynth → Python* shows, per path, which of the two sources is actually supplying
+it and whether the target exists. `MoSynth/Python/Verify Setup` — also a button on that page — starts
+the interpreter and logs its version alongside the numpy and torch it found, which separates a wrong
+path from a missing package.
 
 **Python 3.13 is required** for PythonNET compatibility.
 
