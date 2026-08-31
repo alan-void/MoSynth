@@ -3,6 +3,7 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Splines;
 
 namespace AnimationTools.Editor
 {
@@ -32,6 +33,7 @@ public static class RandomBenchmarkPathGenerator
         int count,
         float smoothRatio,
         float closedRatio,
+        float walkRatio,
         RandomPathSettings settings,
         bool clearExisting)
     {
@@ -48,17 +50,19 @@ public static class RandomBenchmarkPathGenerator
         var created = new List<GameObject>();
         for (var index = 0; index < count; index++)
         {
-            var kind = RandomPathShapes.KindForIndex(index, count, smoothRatio, closedRatio);
-            var spline = RandomPathShapes.Generate(kind, seed, index, settings);
+            var kind = RandomPathShapes.KindForIndex(index, count, smoothRatio, closedRatio, walkRatio);
+            var spline = RandomPathShapes.Generate(kind, seed, index, settings, out var rejection);
             if (spline == null)
             {
-                Debug.LogError($"[Benchmark] No {kind} candidate for seed {seed} slot {index} met the " +
-                               "path settings; skipping it rather than writing a path nothing can follow. " +
-                               "Loosen the minimum turn radius or widen the extents.");
+                Debug.LogError($"[Benchmark] Every {kind} candidate for seed {seed} slot {index} was " +
+                               $"turned down -- the last because {rejection}. Skipping the slot rather " +
+                               "than writing a path the settings say is unusable; widen the extents, " +
+                               "lower the knot count, or relax the minimum corner separation.");
                 continue;
             }
 
-            created.Add(BenchmarkPathAssets.Save(NameFor(seed, index, kind), spline, folder, report));
+            created.Add(BenchmarkPathAssets.Save(NameFor(seed, index, kind), spline, folder, report,
+                Describe(kind, spline)));
         }
 
         AssetDatabase.SaveAssets();
@@ -66,6 +70,19 @@ public static class RandomBenchmarkPathGenerator
         Debug.Log($"[Benchmark] {created.Count} random path(s) for seed {seed} written to {folder}:\n{report}");
         return created;
     }
+
+    /// <summary>
+    /// The shape figure worth seeing for the family, appended to the path's line in the report.
+    /// </summary>
+    /// <remarks>
+    /// Nothing constrains how tightly a smooth path turns any more, so the log is where that number
+    /// surfaces. On a linear-tangent path a corner is a curvature singularity, which would make the
+    /// same number meaningless noise, so the corner angle stands in for it.
+    /// </remarks>
+    private static string Describe(RandomPathKind kind, Spline spline) =>
+        RandomPathShapes.IsSmooth(kind)
+            ? $"tightest turn {RandomPathShapes.MinTurnRadius(spline, RandomPathShapes.SampleSpacingMeters):0.00} m"
+            : $"sharpest corner {RandomPathShapes.MaxTurnAngleDegrees(spline):0} deg";
 
     /// <summary>
     /// Removes the whole random paths folder. Deleting through the AssetDatabase rather than the file

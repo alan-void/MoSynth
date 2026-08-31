@@ -32,6 +32,8 @@ sources:
     resource: repo://Assets/AnimationTools/Runtime/Benchmark/SynthesisCostMetricsResult.cs
   - id: openwiki-source-102332f0c8186b273774e522
     resource: repo://Assets/AnimationTools/Runtime/Evaluation/SplineProjector.cs
+  - id: openwiki-source-bcdc84423195ac552312e1fe
+    resource: repo://Assets/AnimationTools/Runtime/Utils/SplineFold.cs
   - id: openwiki-source-1c4feddebb99d6bb6efffd0f
     resource: repo://Assets/AnimationTools/Tests/Editor/MotionQualityMetricsCalculatorTests.cs
   - id: openwiki-source-eb8c72ed20ac6079d2988204
@@ -42,10 +44,10 @@ sources:
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs
   - id: openwiki-source-0005a5fab5e50ca368e2a4f7
     resource: repo://Tools/run-benchmark.ps1
-generated: {by: "claude-code", at: "2026-08-29T17:49:23.831Z"}
+generated: {by: "claude-code", at: "2026-08-31T18:45:35.579Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-29T17:49:23.831Z
+    at: 2026-08-31T18:48:12.901Z
 ---
 
 # Benchmarking synthesis methods
@@ -239,29 +241,32 @@ set it is scored on. `MoSynth > Benchmark > Create Random Paths…` widens the s
 the property that makes it worth having: that you can say afterwards what the method was asked to do.
 
 A path's geometry is a pure function of its kind, seed and slot, and the name carries the last two —
-`Random_s4821_03_SharpLoop`. A `results.csv` row therefore identifies the exact curve, and the same
+`Random_s4821_03_SharpWalk`. A `results.csv` row therefore identifies the exact curve, and the same
 seed rebuilds it. The seed is sub-hashed **per slot** rather than drawn from one stream shared across
 the batch, so changing the mix does not disturb the paths that keep their kind; with a shared stream
 every prefab after the first change would silently differ.
 
-Four families, mixed by two ratios:
+Six families: three shapes, each drawn once with rounded turns and once with corners.
 
-| Kind | Shape | Demand |
+| Shape | Construction | Demand |
 | --- | --- | --- |
-| `SmoothLoop` | radius perturbed around a circle at sorted angles, auto-smoothed | sustained turning at varying curvature |
-| `SharpLoop` | the same construction with linear tangents and a wider radial swing | repeated corners with a run-up between them |
-| `SmoothLine` | an open corridor advancing along one axis with a lateral wobble | no repeated geometry to settle into |
-| `SharpLine` | the same corridor with linear tangents | corners with no second lap to recover on |
+| `Loop` | radius perturbed around a circle at sorted angles; closed | sustained turning, and a second lap to recover on |
+| `Line` | an open corridor advancing along one axis with a lateral wobble | no repeated geometry to settle into |
+| `Walk` | an open path that turns by a random amount at every knot | no repeated geometry *and* no global containment |
+
+`Smooth` families are auto-smoothed; `Sharp` families use linear tangents, so the spline *is* its
+knot polygon, and swing harder. A batch is partitioned by three nested ratios: smooth against sharp,
+then within each, loops against the rest, then walks against the corridors — so the walk share is a
+share of *what does not loop*, and each ratio stays independently meaningful.
+
+**Two dials, and they mean different things.** The extent is how big a path is: a loop's radius, and
+for the open shapes a per-knot step sized to give the same total length as a loop of that extent — so
+runs stay comparable in duration whatever the shape. The knot-count range is separately how
+*convoluted* a path of that size gets.
 
 **Why the closed families are built in polar form.** Knots at strictly increasing angles with a
 positive radius give a star-shaped — therefore simple — knot polygon, which is a proof rather than a
 test for the linear-tangent family, where the spline *is* its polygon.
-
-**Why the wobble amplitude is derived rather than chosen.** Treating the radial wobble as a sinusoid
-of wavelength `2πR/n` puts peak curvature near `1/R + a·n²/R²`, so the knot count enters squared. A
-naive "wobble is 25% of the radius" at `R = 6, n = 8` implies a **0.37 m** turn radius — nothing can
-follow it. The amplitude is capped at `R(R − r_min) / (r_min·n²)` instead; at `R = 6, n = 6,
-r_min = 1.5` that is 0.5 m, about 8%, visibly non-circular and still followable.
 
 **Why open paths are corridors, not unclosed rings.** Dropping the closed flag on a ring leaves the
 start and end one segment apart, so "reached the far end" becomes indistinguishable from "back at the
@@ -269,16 +274,41 @@ start" and the pure-pursuit lookahead near the end points across the gap. Advanc
 along one axis also makes the polyline the graph of a function of that axis, so it cannot cross
 itself at all.
 
-**Rejection, not hope.** The curvature formula only sizes the draw. Each candidate is redrawn until
-it clears the minimum turn radius (smooth) or the minimum corner separation and turn angle (sharp),
-and a slot that cannot be satisfied is skipped with an error rather than written as a path nothing
-can follow. Over 200 seeds none of the four families exhausts its attempts.
+**Why the walk is the awkward one.** Being contained by nothing is the point of it — a method that
+has settled into "orbit" or "go roughly straight" is never asked for anything else by the other four
+families. The cost is that it is the one shape with no construction-level argument against crossing
+itself. It leans entirely on the rejection loop, and what makes those retries converge rather than
+exhaust is that each relaxation shrinks its per-knot heading cap, straightening the walk.
+
+**No minimum turn radius, on purpose.** An earlier version held the smooth families to one and sized
+their wobble from it. It was dropped: the sharp families never had such a bound, and how well a
+method follows a demanding curve is the measurement rather than a defect. The knot count is the dial
+that decides how tight a path gets, and it is left free.
+
+**Rejection, not hope.** Every candidate is redrawn until it stops crowding itself; the sharp
+families must additionally clear a minimum corner separation and a per-shape turn-angle cap. A slot
+that cannot be satisfied is skipped with an error naming *the predicate that rejected the last
+candidate, with its measured value* — a user-settable knot range makes unsatisfiable settings easy to
+ask for, and 20 knots inside a 5 m extent leaves the sharp families 0.5 m between corners, which is a
+far more useful thing to be told than that generation failed. Over 200 seeds none of the six families
+exhausts its attempts at the default settings.
+
+**What replaced the turn-radius check.** Since nothing rejects a tight curve any more, the generation
+log reports one per path: the tightest turn radius for a smooth family, and the sharpest corner angle
+for a sharp one, where a circumradius would be meaningless — a linear-tangent corner is a genuine
+curvature singularity. So a path that demands a 0.8 m turn still gets written, and you can see that
+it does.
 
 **Why the clearance test is not just a crossing test.** `SplineProjector` already survives a clean
 crossing — `FigureEight` self-intersects and is a standard path. The case that breaks it is two
 branches running close and parallel, where the windowed search can slide onto the wrong one and the
 lap tracker reads the resulting parameter jump as a seam crossing, manufacturing a lap the character
 never ran. So candidates are rejected for *approaching* themselves, not only for crossing.
+
+Points close together *along* the path are exempt, being legitimately close in space, and the
+exemption follows from the clearance rather than being a separate number: the tightest U-turn whose
+two arms sit exactly the clearance apart has half of it as its radius, so its arc is a little over
+`π` times the clearance.
 
 Random paths are written to `Assets/Benchmarks/Paths/Random`. The driver's folder scan recurses, so a
 batch joins every later sweep with no config edit — which cuts both ways: a batch left behind from an

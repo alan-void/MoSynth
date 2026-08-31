@@ -5,24 +5,40 @@ using Random = Unity.Mathematics.Random;
 
 namespace AnimationTools.Editor
 {
-/// <summary>The four random path families. Closedness and tangent mode both follow from the kind.</summary>
+/// <summary>How a random path is laid out in the plane, independent of whether its turns are rounded or cornered.</summary>
+public enum RandomPathShape
+{
+    /// <summary>A closed ring about the origin.</summary>
+    Loop,
+
+    /// <summary>An open corridor advancing along +X.</summary>
+    Line,
+
+    /// <summary>An open path that turns freely and is bounded by nothing.</summary>
+    Walk
+}
+
+/// <summary>The six random path families: each shape with rounded turns, and again with corners.</summary>
 public enum RandomPathKind
 {
     SmoothLoop,
-    SharpLoop,
     SmoothLine,
-    SharpLine
+    SmoothWalk,
+    SharpLoop,
+    SharpLine,
+    SharpWalk
 }
 
-/// <summary>Bounds a generated path has to satisfy to be worth benchmarking on.</summary>
+/// <summary>Size and separation bounds a generated path is drawn within.</summary>
 public struct RandomPathSettings
 {
-    /// <summary>Smallest and largest base radius (loops) or step spacing scale (lines), in meters.</summary>
+    /// <summary>Smallest and largest overall path size, in meters: a ring's radius, and the length an open path is scaled to match.</summary>
     public float extentMin;
     public float extentMax;
 
-    /// <summary>Tightest turn a smooth path may demand, in meters. Below this no locomotion clip can follow it.</summary>
-    public float minTurnRadius;
+    /// <summary>Fewest and most control points a path may be built from.</summary>
+    public int knotCountMin;
+    public int knotCountMax;
 
     /// <summary>Shortest straight between two corners of a sharp path, in meters.</summary>
     public float minSegmentLength;
@@ -34,7 +50,8 @@ public struct RandomPathSettings
     {
         extentMin = 5f,
         extentMax = 9f,
-        minTurnRadius = 1.5f,
+        knotCountMin = 5,
+        knotCountMax = 12,
         minSegmentLength = 2f,
         minSelfClearance = 1f
     };
@@ -42,7 +59,7 @@ public struct RandomPathSettings
 
 /// <summary>
 /// Generates the random benchmark path families, and the geometric predicates that decide whether a
-/// candidate is followable. Pure: nothing here touches the AssetDatabase or a scene.
+/// candidate is usable. Pure: nothing here touches the AssetDatabase or a scene.
 /// </summary>
 /// <remarks>
 /// Geometry is a pure function of <c>(kind, seed, index)</c>, which is what lets a prefab name carry
@@ -54,31 +71,62 @@ public static class RandomPathShapes
     /// <summary>Polyline resolution for every sampled predicate, in meters.</summary>
     public const float SampleSpacingMeters = 0.25f;
 
+    /// <summary>Fewest knots any shape can be built from; a two-knot loop is a degenerate there-and-back.</summary>
+    public const int MinKnotCount = 3;
+
     private const int MaxAttempts = 32;
     private const int MaxRelaxations = 3;
     private const float RelaxationFactor = 0.8f;
 
     private const float SharpLoopMaxTurnDegrees = 140f;
-    private const float SharpLineMaxTurnDegrees = 120f;
+    private const float SharpOpenMaxTurnDegrees = 120f;
+
+    // Radial swing of a ring, as a fraction of its radius.
+    private const float SmoothRingSwingMin = 0.06f;
+    private const float SmoothRingSwingMax = 0.22f;
+    private const float SharpRingSwingMin = 0.25f;
+    private const float SharpRingSwingMax = 0.55f;
+
+    // Lateral swing of a corridor, as a fraction of its step.
+    private const float SmoothCorridorSwingMin = 0.15f;
+    private const float SmoothCorridorSwingMax = 0.45f;
+    private const float SharpCorridorSwingMin = 0.35f;
+    private const float SharpCorridorSwingMax = 0.87f;
+
+    // Largest heading change a walk may make at one knot.
+    private const float SmoothWalkTurnDegrees = 45f;
+    private const float SharpWalkTurnDegrees = 100f;
 
     /// <summary>
     /// The path for one slot of a batch, or null if no candidate met the settings. Drawing from a
-    /// stream seeded on <paramref name="seed"/> and <paramref name="index"/> together — rather than
-    /// one stream shared across the batch — is what keeps a path's geometry independent of how many
+    /// stream seeded on <paramref name="seed"/> and <paramref name="index"/> together -- rather than
+    /// one stream shared across the batch -- is what keeps a path's geometry independent of how many
     /// other paths were generated alongside it, or of what kind they were.
     /// </summary>
-    public static Spline Generate(RandomPathKind kind, int seed, int index, in RandomPathSettings settings)
+    public static Spline Generate(RandomPathKind kind, int seed, int index, in RandomPathSettings settings) =>
+        Generate(kind, seed, index, settings, out _);
+
+    /// <summary>
+    /// As <see cref="Generate(RandomPathKind,int,int,in RandomPathSettings)"/>, also reporting why the
+    /// last candidate was turned down. An unsatisfiable combination of settings is easy to ask for --
+    /// twenty knots inside a five meter extent leaves the sharp families no room between corners -- so
+    /// naming the predicate that failed is what tells the caller which setting to move.
+    /// </summary>
+    public static Spline Generate(RandomPathKind kind, int seed, int index, in RandomPathSettings settings,
+        out string rejection)
     {
         var rng = Random.CreateFromIndex(math.hash(new uint2((uint)seed, (uint)index)));
 
         // Retrying from the same stream keeps the attempt count itself deterministic.
+        rejection = "no candidate was built";
         var wobbleScale = 1f;
         for (var relaxation = 0; relaxation <= MaxRelaxations; relaxation++)
         {
             for (var attempt = 0; attempt < MaxAttempts; attempt++)
             {
                 var spline = Build(kind, ref rng, settings, wobbleScale);
-                if (IsAcceptable(spline, kind, settings)) return spline;
+                rejection = Rejection(spline, kind, settings);
+                if (rejection == null) return spline;
             }
 
             wobbleScale *= RelaxationFactor;
@@ -89,102 +137,130 @@ public static class RandomPathShapes
 
     /// <summary>Which family the slot at <paramref name="index"/> belongs to.</summary>
     /// <remarks>
-    /// A partition rather than a draw, so a kind is a pure function of the ratios and the slot. It
-    /// also groups the folder: all the smooth loops, then the smooth lines, and so on.
+    /// A partition rather than a draw, so a kind is a pure function of the ratios and the slot. The
+    /// two levels nest: the batch splits into smooth and sharp, and each of those into loops, then
+    /// corridors, then walks -- so <paramref name="walkRatio"/> is a share of what does not loop, and
+    /// each ratio stays independently meaningful. Emitting in that order also groups the folder.
     /// </remarks>
-    public static RandomPathKind KindForIndex(int index, int count, float smoothRatio, float closedRatio)
+    public static RandomPathKind KindForIndex(int index, int count, float smoothRatio, float closedRatio,
+        float walkRatio)
     {
         var smoothCount = (int)math.round(count * math.saturate(smoothRatio));
         var isSmooth = index < smoothCount;
 
-        var familyCount = isSmooth ? smoothCount : count - smoothCount;
-        var familyIndex = isSmooth ? index : index - smoothCount;
-        var closedCount = (int)math.round(familyCount * math.saturate(closedRatio));
-        var isClosed = familyIndex < closedCount;
+        var blockCount = isSmooth ? smoothCount : count - smoothCount;
+        var blockIndex = isSmooth ? index : index - smoothCount;
 
-        if (isSmooth) return isClosed ? RandomPathKind.SmoothLoop : RandomPathKind.SmoothLine;
-        return isClosed ? RandomPathKind.SharpLoop : RandomPathKind.SharpLine;
+        var loopCount = (int)math.round(blockCount * math.saturate(closedRatio));
+        var openCount = blockCount - loopCount;
+        var walkCount = (int)math.round(openCount * math.saturate(walkRatio));
+        var lineCount = openCount - walkCount;
+
+        var shape = blockIndex < loopCount ? RandomPathShape.Loop
+            : blockIndex < loopCount + lineCount ? RandomPathShape.Line
+            : RandomPathShape.Walk;
+
+        return KindFor(isSmooth, shape);
     }
 
-    public static bool IsClosed(RandomPathKind kind) =>
-        kind is RandomPathKind.SmoothLoop or RandomPathKind.SharpLoop;
+    public static RandomPathKind KindFor(bool smooth, RandomPathShape shape) => shape switch
+    {
+        RandomPathShape.Loop => smooth ? RandomPathKind.SmoothLoop : RandomPathKind.SharpLoop,
+        RandomPathShape.Line => smooth ? RandomPathKind.SmoothLine : RandomPathKind.SharpLine,
+        _ => smooth ? RandomPathKind.SmoothWalk : RandomPathKind.SharpWalk
+    };
+
+    public static RandomPathShape ShapeOf(RandomPathKind kind) => kind switch
+    {
+        RandomPathKind.SmoothLoop or RandomPathKind.SharpLoop => RandomPathShape.Loop,
+        RandomPathKind.SmoothLine or RandomPathKind.SharpLine => RandomPathShape.Line,
+        _ => RandomPathShape.Walk
+    };
+
+    /// <summary>Whether the family is auto-smoothed. A sharp family's spline is exactly its knot polygon.</summary>
+    public static bool IsSmooth(RandomPathKind kind) =>
+        kind is RandomPathKind.SmoothLoop or RandomPathKind.SmoothLine or RandomPathKind.SmoothWalk;
+
+    public static bool IsClosed(RandomPathKind kind) => ShapeOf(kind) == RandomPathShape.Loop;
 
     private static Spline Build(RandomPathKind kind, ref Random rng, in RandomPathSettings settings, float wobbleScale)
     {
-        return kind switch
+        var smooth = IsSmooth(kind);
+        var shape = ShapeOf(kind);
+        var knotCount = rng.NextInt(KnotCountMin(settings), KnotCountMax(settings) + 1);
+        var extent = rng.NextFloat(settings.extentMin, settings.extentMax);
+
+        var points = shape switch
         {
-            RandomPathKind.SmoothLoop => SmoothLoop(ref rng, settings, wobbleScale),
-            RandomPathKind.SharpLoop => SharpLoop(ref rng, settings, wobbleScale),
-            RandomPathKind.SmoothLine => SmoothLine(ref rng, settings, wobbleScale),
-            _ => SharpLine(ref rng, settings, wobbleScale)
+            RandomPathShape.Loop => Ring(ref rng, knotCount, extent, smooth, wobbleScale),
+            RandomPathShape.Line => Corridor(ref rng, knotCount, StepFor(extent, knotCount), smooth, wobbleScale),
+            _ => Walk(ref rng, knotCount, StepFor(extent, knotCount), smooth, wobbleScale)
         };
+
+        return FromPoints(points, smooth ? TangentMode.AutoSmooth : TangentMode.Linear,
+            closed: shape == RandomPathShape.Loop);
     }
 
-    private static bool IsAcceptable(Spline spline, RandomPathKind kind, in RandomPathSettings settings)
+    /// <summary>Why the candidate is unusable, or null if it is fine.</summary>
+    private static string Rejection(Spline spline, RandomPathKind kind, in RandomPathSettings settings)
     {
-        if (SelfIntersects(spline, SampleSpacingMeters, settings.minSelfClearance, settings.minTurnRadius)) return false;
+        if (SelfIntersects(spline, SampleSpacingMeters, settings.minSelfClearance))
+            return $"it crosses or comes within {settings.minSelfClearance:0.00} m of itself";
 
-        if (kind is RandomPathKind.SmoothLoop or RandomPathKind.SmoothLine)
-            return MinTurnRadius(spline, SampleSpacingMeters) >= settings.minTurnRadius;
+        // Nothing bounds how tightly a smooth path may turn. The sharp families never had such a bound
+        // either, and how well a method follows a demanding curve is the measurement, not a defect --
+        // so the generator reports the tightest turn it drew instead of rejecting it.
+        if (IsSmooth(kind)) return null;
 
         // A corner is a curvature singularity by construction, so the demand on the sharp families is
         // instead that corners stay far enough apart to be separable and never become a reversal.
-        if (MinSegmentLength(spline) < settings.minSegmentLength) return false;
+        var separation = MinSegmentLength(spline);
+        if (separation < settings.minSegmentLength)
+        {
+            return $"corners {separation:0.00} m apart are below the {settings.minSegmentLength:0.00} m minimum";
+        }
 
-        var cap = kind == RandomPathKind.SharpLoop ? SharpLoopMaxTurnDegrees : SharpLineMaxTurnDegrees;
-        return MaxTurnAngleDegrees(spline) <= cap;
+        var cap = ShapeOf(kind) == RandomPathShape.Loop ? SharpLoopMaxTurnDegrees : SharpOpenMaxTurnDegrees;
+        var turn = MaxTurnAngleDegrees(spline);
+        return turn > cap ? $"a {turn:0} deg turn exceeds the {cap:0} deg maximum" : null;
     }
 
-    // ---- Closed families -------------------------------------------------------------------
+    private static int KnotCountMin(in RandomPathSettings settings) =>
+        math.max(MinKnotCount, settings.knotCountMin);
+
+    private static int KnotCountMax(in RandomPathSettings settings) =>
+        math.max(KnotCountMin(settings), settings.knotCountMax);
+
+    /// <summary>
+    /// Step length giving an open path the same total length as a ring of the same extent, so the
+    /// extent means one thing -- how big the path is -- across all six families, and a sweep's runs
+    /// stay comparable in duration.
+    /// </summary>
+    private static float StepFor(float extent, int knotCount) => 2f * math.PI * extent / knotCount;
+
+    // ---- Shapes ----------------------------------------------------------------------------
 
     /// <summary>
     /// Knots at strictly increasing angles around the origin with a perturbed radius, so the knot
     /// polygon is star-shaped and therefore simple.
     /// </summary>
-    /// <remarks>
-    /// The wobble amplitude is derived from the minimum turn radius rather than chosen as a fraction
-    /// of the radius: modelling the wobble as a sinusoid of wavelength 2*pi*R/n gives a peak curvature
-    /// of roughly 1/R + a*n^2/R^2, so the n^2 makes a "percentage of radius" amplitude unfollowable at
-    /// even moderate knot counts. This only sizes the draw — the curvature test is the guarantee.
-    /// </remarks>
-    private static Spline SmoothLoop(ref Random rng, in RandomPathSettings settings, float wobbleScale)
+    private static float3[] Ring(ref Random rng, int knotCount, float radius, bool smooth, float wobbleScale)
     {
-        var n = rng.NextInt(5, 9);
-        var radius = rng.NextFloat(settings.extentMin, settings.extentMax);
+        var swing = wobbleScale * (smooth
+            ? rng.NextFloat(SmoothRingSwingMin, SmoothRingSwingMax)
+            : rng.NextFloat(SharpRingSwingMin, SharpRingSwingMax));
 
-        var maxAmplitude = radius * (radius - settings.minTurnRadius) / (settings.minTurnRadius * n * n);
-        var amplitude = rng.NextFloat(0.35f * maxAmplitude, 0.90f * maxAmplitude) * wobbleScale;
-
-        var points = new float3[n];
-        for (var i = 0; i < n; i++)
+        var points = new float3[knotCount];
+        for (var i = 0; i < knotCount; i++)
         {
-            var angle = 2f * math.PI * i / n + rng.NextFloat(-1f, 1f) * (0.6f * math.PI / n);
-            var r = radius + amplitude * rng.NextFloat(-1f, 1f);
-            points[i] = new float3(r * math.cos(angle), 0f, r * math.sin(angle));
-        }
-
-        return FromPoints(points, TangentMode.AutoSmooth, closed: true);
-    }
-
-    /// <summary>The same star-shaped construction with a wider radial swing and linear tangents, so the spline is exactly its knot polygon.</summary>
-    private static Spline SharpLoop(ref Random rng, in RandomPathSettings settings, float wobbleScale)
-    {
-        var n = rng.NextInt(4, 9);
-        var radius = rng.NextFloat(settings.extentMin, settings.extentMax);
-        var swing = rng.NextFloat(0.25f, 0.55f) * wobbleScale;
-
-        var points = new float3[n];
-        for (var i = 0; i < n; i++)
-        {
-            var angle = 2f * math.PI * i / n + rng.NextFloat(-1f, 1f) * (0.6f * math.PI / n);
+            // Angular jitter below the nominal gap leaves the angles strictly increasing.
+            var angle = 2f * math.PI * i / knotCount + rng.NextFloat(-1f, 1f) * (0.6f * math.PI / knotCount);
             var r = radius * (1f + swing * rng.NextFloat(-1f, 1f));
             points[i] = new float3(r * math.cos(angle), 0f, r * math.sin(angle));
         }
 
-        return FromPoints(points, TangentMode.Linear, closed: true);
+        return points;
     }
-
-    // ---- Open families ---------------------------------------------------------------------
 
     /// <summary>
     /// A corridor advancing along +X with a lateral wobble.
@@ -195,39 +271,62 @@ public static class RandomPathShapes
     /// lookahead near the end would point across the gap. Because X strictly increases, the polyline
     /// is the graph of a function of X and so cannot cross itself.
     /// </remarks>
-    private static Spline SmoothLine(ref Random rng, in RandomPathSettings settings, float wobbleScale)
+    private static float3[] Corridor(ref Random rng, int knotCount, float step, bool smooth, float wobbleScale)
     {
-        var n = rng.NextInt(6, 11);
-        var step = rng.NextFloat(3.5f, 5.5f);
+        var amplitude = step * wobbleScale * (smooth
+            ? rng.NextFloat(SmoothCorridorSwingMin, SmoothCorridorSwingMax)
+            : rng.NextFloat(SharpCorridorSwingMin, SharpCorridorSwingMax));
 
-        // Peak curvature of a lateral sinusoid of wavelength 2*step is about pi^2*A/step^2.
-        var maxAmplitude = step * step / (math.PI * math.PI * settings.minTurnRadius);
-        var amplitude = rng.NextFloat(0.35f, 0.90f) * maxAmplitude * wobbleScale;
-
-        return FromPoints(Corridor(ref rng, n, step, amplitude), TangentMode.AutoSmooth, closed: false);
-    }
-
-    /// <summary>The same corridor with linear tangents; the amplitude cap keeps each corner under about 120 degrees.</summary>
-    private static Spline SharpLine(ref Random rng, in RandomPathSettings settings, float wobbleScale)
-    {
-        var n = rng.NextInt(5, 10);
-        var step = rng.NextFloat(3.5f, 6f);
-        var amplitude = rng.NextFloat(0.40f, 1f) * (0.87f * step) * wobbleScale;
-
-        return FromPoints(Corridor(ref rng, n, step, amplitude), TangentMode.Linear, closed: false);
-    }
-
-    /// <summary>Jitter under half the step keeps X strictly increasing, which is what rules out self-intersection.</summary>
-    private static float3[] Corridor(ref Random rng, int n, float step, float amplitude)
-    {
-        var points = new float3[n];
-        for (var i = 0; i < n; i++)
+        var points = new float3[knotCount];
+        for (var i = 0; i < knotCount; i++)
         {
+            // Jitter under half the step is what keeps X strictly increasing.
             var x = i * step + rng.NextFloat(-1f, 1f) * 0.25f * step;
             var z = rng.NextFloat(-amplitude, amplitude);
             points[i] = new float3(x, 0f, z);
         }
 
+        return points;
+    }
+
+    /// <summary>
+    /// A path that turns by a random amount at every knot, contained by nothing, so it neither orbits
+    /// nor marches along an axis.
+    /// </summary>
+    /// <remarks>
+    /// Unlike the ring and the corridor this has no construction-level simplicity argument -- a
+    /// wanderer really can cross itself -- so it leans entirely on the rejection loop. Relaxation
+    /// shrinks the heading cap, which straightens the walk, and is what makes the retries converge.
+    /// </remarks>
+    private static float3[] Walk(ref Random rng, int knotCount, float step, bool smooth, float wobbleScale)
+    {
+        var turnCap = math.radians(smooth ? SmoothWalkTurnDegrees : SharpWalkTurnDegrees) * wobbleScale;
+        var heading = rng.NextFloat(0f, 2f * math.PI);
+
+        var points = new float3[knotCount];
+        for (var i = 1; i < knotCount; i++)
+        {
+            heading += rng.NextFloat(-turnCap, turnCap);
+            var length = step * rng.NextFloat(0.8f, 1.2f);
+            points[i] = points[i - 1] + new float3(length * math.cos(heading), 0f, length * math.sin(heading));
+        }
+
+        return Recentre(points);
+    }
+
+    /// <summary>Shifts a drifting path so its bounding box is centred on the origin, where the other shapes already sit.</summary>
+    private static float3[] Recentre(float3[] points)
+    {
+        var min = points[0];
+        var max = points[0];
+        foreach (var point in points)
+        {
+            min = math.min(min, point);
+            max = math.max(max, point);
+        }
+
+        var centre = 0.5f * (min + max);
+        for (var i = 0; i < points.Length; i++) points[i] -= centre;
         return points;
     }
 
@@ -242,8 +341,9 @@ public static class RandomPathShapes
 
     /// <summary>
     /// Tightest turn anywhere on the path, in meters, as the smallest circumradius over a polyline
-    /// sampled at <paramref name="sampleSpacingMeters"/>. Meaningless on a linear-tangent spline,
-    /// where a corner is a genuine curvature singularity.
+    /// sampled at <paramref name="sampleSpacingMeters"/>. Diagnostic rather than enforced: nothing
+    /// rejects a candidate for turning tightly, and on a linear-tangent spline a corner is a genuine
+    /// curvature singularity, so the figure only means anything for the smooth families.
     /// </summary>
     public static float MinTurnRadius(Spline spline, float sampleSpacingMeters)
     {
@@ -317,10 +417,12 @@ public static class RandomPathShapes
     /// <remarks>
     /// The clearance half is the one that matters in practice: <see cref="SplineProjector"/> already
     /// survives a clean crossing, but two branches running close and parallel let its windowed search
-    /// slide onto the wrong one, which a lap counter then reads as a seam crossing. Pairs nearer than
-    /// a minimum-radius U-turn along the path are exempt, since those are legitimately close in space.
+    /// slide onto the wrong one, which a lap counter then reads as a seam crossing. Pairs near each
+    /// other along the path are exempt, being legitimately close in space: the tightest U-turn whose
+    /// arms are exactly the clearance apart has half that as its radius, so its arc is a little over
+    /// pi times the clearance.
     /// </remarks>
-    public static bool SelfIntersects(Spline spline, float sampleSpacingMeters, float minClearanceMeters, float minTurnRadiusMeters)
+    public static bool SelfIntersects(Spline spline, float sampleSpacingMeters, float minClearanceMeters)
     {
         var samples = Sample(spline, sampleSpacingMeters);
         var count = samples.Count;
@@ -329,7 +431,7 @@ public static class RandomPathShapes
         var closed = spline.Closed;
         var segments = closed ? count : count - 1;
         var spacing = spline.GetLength() / segments;
-        var exemptArcLength = math.PI * minTurnRadiusMeters;
+        var exemptArcLength = math.PI * minClearanceMeters;
 
         for (var i = 0; i < segments; i++)
         {

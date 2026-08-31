@@ -17,12 +17,18 @@ public class RandomBenchmarkPathWindow : EditorWindow
     /// <summary>Slots are named with a two-digit index, which is also all a report row needs to stay readable.</summary>
     private const int MaxCount = 99;
 
+    /// <summary>A loop needs three knots to be a polygon; two would be a there-and-back.</summary>
+    private const int MinKnots = RandomPathShapes.MinKnotCount;
+
+    private const int MaxKnots = 30;
+
     [SerializeField] private int seed = 1;
-    [SerializeField] private int count = 8;
+    [SerializeField] private int count = 12;
     [SerializeField] private float smoothRatio = 0.5f;
-    [SerializeField] private float closedRatio = 0.5f;
+    [SerializeField] private float closedRatio = 0.34f;
+    [SerializeField] private float walkRatio = 0.5f;
     [SerializeField] private Vector2 extent = new(5f, 9f);
-    [SerializeField] private float minTurnRadius = 1.5f;
+    [SerializeField] private Vector2Int knots = new(5, 12);
     [SerializeField] private bool clearExisting = true;
 
     private Vector2 _scroll;
@@ -79,17 +85,21 @@ public class RandomBenchmarkPathWindow : EditorWindow
             new GUIContent("Smooth ratio", "Share of the batch with rounded turns; the rest have sharp corners."), smoothRatio, 0f, 1f);
         closedRatio = EditorGUILayout.Slider(
             new GUIContent("Closed ratio", "Share of each family that loops. Open paths finish at the far end instead of counting laps."), closedRatio, 0f, 1f);
+        walkRatio = EditorGUILayout.Slider(
+            new GUIContent("Walk ratio", "Share of what does not loop that wanders freely rather than running down a corridor."), walkRatio, 0f, 1f);
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Shape", EditorStyles.boldLabel);
 
-        extent.x = EditorGUILayout.FloatField(new GUIContent("Extent min (m)", "Smallest base radius or step scale."), extent.x);
-        extent.y = EditorGUILayout.FloatField(new GUIContent("Extent max (m)", "Largest base radius or step scale."), extent.y);
-        extent.x = Mathf.Max(minTurnRadius * 2f, extent.x);
+        extent.x = EditorGUILayout.FloatField(new GUIContent("Extent min (m)", "Smallest overall path size: a loop's radius, and the length an open path is scaled to match."), extent.x);
+        extent.y = EditorGUILayout.FloatField(new GUIContent("Extent max (m)", "Largest overall path size."), extent.y);
+        extent.x = Mathf.Max(1f, extent.x);
         extent.y = Mathf.Max(extent.x, extent.y);
 
-        minTurnRadius = Mathf.Max(0.25f, EditorGUILayout.FloatField(
-            new GUIContent("Min turn radius (m)", "Tightest turn a smooth path may demand. Candidates below it are rejected and redrawn."), minTurnRadius));
+        knots.x = EditorGUILayout.IntField(new GUIContent("Knots min", "Fewest control points a path may be built from. More knots inside the same extent means a more convoluted path."), knots.x);
+        knots.y = EditorGUILayout.IntField(new GUIContent("Knots max", "Most control points a path may be built from."), knots.y);
+        knots.x = Mathf.Clamp(knots.x, MinKnots, MaxKnots);
+        knots.y = Mathf.Clamp(knots.y, knots.x, MaxKnots);
 
         EditorGUILayout.Space();
         clearExisting = EditorGUILayout.Toggle(
@@ -121,18 +131,19 @@ public class RandomBenchmarkPathWindow : EditorWindow
         var preview = new System.Text.StringBuilder();
         for (var index = 0; index < count; index++)
         {
-            var kind = RandomPathShapes.KindForIndex(index, count, smoothRatio, closedRatio);
+            var kind = RandomPathShapes.KindForIndex(index, count, smoothRatio, closedRatio, walkRatio);
             preview.AppendLine(RandomBenchmarkPathGenerator.NameFor(seed, index, kind));
         }
 
         EditorGUILayout.SelectableLabel(preview.ToString(),
             EditorStyles.textArea, GUILayout.Height(Mathf.Min(160f, 16f * count + 8f)));
 
-        // A big loop can outlast the config's per-run limit, which surfaces as a timeout rather than
-        // as anything that looks like a path problem.
-        var longestLap = 2f * Mathf.PI * extent.y;
+        // A big path can outlast the config's per-run limit, which surfaces as a timeout rather than
+        // as anything that looks like a path problem. Open paths are scaled to the same length as a
+        // loop of the same extent, so one figure covers every kind.
+        var longest = 2f * Mathf.PI * extent.y;
         EditorGUILayout.HelpBox(
-            $"Longest loop is roughly {longestLap:0} m, about {longestLap:0} s per lap at 1 m/s. " +
+            $"Longest path is roughly {longest:0} m, about {longest:0} s to cover at 1 m/s. " +
             "Check that against the benchmark config's Max Run Seconds and Laps Required.",
             MessageType.None);
     }
@@ -145,9 +156,11 @@ public class RandomBenchmarkPathWindow : EditorWindow
         var settings = RandomPathSettings.Default;
         settings.extentMin = extent.x;
         settings.extentMax = extent.y;
-        settings.minTurnRadius = minTurnRadius;
+        settings.knotCountMin = knots.x;
+        settings.knotCountMax = knots.y;
 
-        var created = RandomBenchmarkPathGenerator.Create(seed, count, smoothRatio, closedRatio, settings, clearExisting);
+        var created = RandomBenchmarkPathGenerator.Create(
+            seed, count, smoothRatio, closedRatio, walkRatio, settings, clearExisting);
         if (created.Count > 0) EditorGUIUtility.PingObject(created[0]);
     }
 }

@@ -22,13 +22,15 @@ internal static class BenchmarkPathAssets
     }
 
     /// <summary>
-    /// Saves a spline as a path prefab and appends one line describing it to <paramref name="report"/>.
+    /// Saves a spline as a path prefab and appends one line describing it to <paramref name="report"/>,
+    /// with <paramref name="note"/> as an extra detail the generator wants on that line.
     /// </summary>
     /// <remarks>
     /// Overwrites any prefab already at the name rather than making a numbered sibling: overwriting in
     /// place keeps the asset's GUID, so a config already pointing at it survives a regeneration.
     /// </remarks>
-    internal static GameObject Save(string name, Spline spline, string folder, StringBuilder report)
+    internal static GameObject Save(string name, Spline spline, string folder, StringBuilder report,
+        string note = null)
     {
         var go = new GameObject(name);
         var container = go.AddComponent<SplineContainer>();
@@ -38,8 +40,9 @@ internal static class BenchmarkPathAssets
         var prefab = PrefabUtility.SaveAsPrefabAsset(go, path);
         Object.DestroyImmediate(go);
 
-        report.AppendLine($"  {name,-14} knots {spline.Count,2}, closed {spline.Closed}, " +
-                          $"length {spline.GetLength():0.00} m -> {path}");
+        var detail = string.IsNullOrEmpty(note) ? "" : ", " + note;
+        report.AppendLine($"  {name,-24} knots {spline.Count,2}, closed {spline.Closed}, " +
+                          $"length {spline.GetLength():0.00} m{detail} -> {path}");
         return prefab;
     }
 }

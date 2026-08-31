@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:53d2be1c2a0816b918f6fad4934d00a847930d4ee1f9ed435c75561636e1f564",
+  "pageVersion": "sha256:176bbfea405d4ceab9c2698ef64b7688518659e6d337a1224aa498454b32bea9",
   "claims": [
     {
       "id": "claim_b8a9a1dddf404034b6dbbffd8ef0cca5",
@@ -227,12 +227,12 @@
       "statement": "A random benchmark path's geometry is a pure function of its kind, seed and slot, and the seed and slot are carried in the prefab name, so a report row identifies the exact curve it was measured on and the same seed rebuilds it; the per-slot sub-seed rather than one stream shared across the batch is what keeps a path independent of how many others were generated beside it.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L60-L88",
-          "version": "repo-lines-v1:sha256:dcff24de532b74acb5ff468e940e57a4dba174b8ee9dc0b356147ec268bbe8d7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwMTIxZGE2YzM0NWUzYjBjOWE2NTNhYzM2NTBhMjU3NzE1MGYyOGQ0NWQxNTE0YzVkMzVhODFhMDY4YzY1ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1ZjJiMWYxZTNhZmE3NmZhYTU0Yjg0OGI4MDAxNTMyMGFiNGY5MGNiYTY1MGEyNGYwOTkzZmQ2NDViNzQ2YTYifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L99-L135",
+          "version": "repo-lines-v1:sha256:93040a37cd34feebfeb0b33370eec8e3fa6cb11a1594f269e8dea9af7f97c779:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NWMzY2IxMThiYWIwMjI5OGI5MGM1N2U1MWI0NjdlNzBkM2U4YmVlZjM1NGY4NzgyZjVkN2Q0Yzk0ZjBiNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1NGVhY2ZiY2I5Yjc0Y2VhNjUxNTIyMDk2ZjA4MWYxMDNkMmU1MWE5Mjk3MWE2YTU1NzliNTE1NmMyODU3YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzZWRlYzc3YzlmOTJlYjFjNDJlNGU4NDIwNGQ4YjI2YjdiOWFhM2E2OTRiMmNjMmNkMWRkMDdhOTcxMDhkODEifQ"
         },
         {
-          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomBenchmarkPathGenerator.cs#L9-L25",
-          "version": "repo-lines-v1:sha256:0450c8dd27f4c379a625a4a6a46b3fe9da9ca0db9bc8bcd16b207e4cf3f2d71a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyMmNjNzlmMmQxYTgyMmMyMDZjZWNmY2E0MzQ2YTZiMzJmYzc5NzRiNDc0ZmVkNTRiMDBhMjE3NTY5NDUwZGEifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomBenchmarkPathGenerator.cs#L20-L25",
+          "version": "repo-lines-v1:sha256:a8ed713a43f71d38d1a42241b20d55698d7e6ff37dcc26770482502fb66f7063:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTZmYjA4ZmRhMWFjYjk1N2I2MTE2YmQzNzgxMWExZmU0MWEwMTYxMWMwNjMxZWRiZjc4NmQ2ODg5YTI3YTU1YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjA4MjFhMzdmNTY5Mjc4MTgwMjcyMzQ1ODhlNDI3Y2Y0MzhmMmMzYzJkNTlkYjUzNzFkNWI4ODlkOWNiYmFhMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTAzZmY1MDgyMjY1YWY0ODA1YzliMjJiZGIyM2I3MDJlOGU3ODhmODkxYmYwMGU2Mjk4NzA2ODczOWY3NTA0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWJlNWY2NGQ1ODAyM2E0ZDdjNTU5M2Q0MWQ3M2E2NTMzZGExOGIwMTJlODc2OWY5N2Q3OTRlZDZhYmMyYmIyZiJ9"
         }
       ]
     },
@@ -245,28 +245,28 @@
           "version": "repo-lines-v1:sha256:7deffbca7311421ab2c70cfb287e8e6b243e42e673bb359f3a2bf93034e230a7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwMWU5NmNkMjQ0NWU3NjRjOTg3YmVjOGQ2MDM1OTZjMTNlNjY1YTMzMDU1MTA2MzFhMWFkZjI4OWU2OTJkZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4N2QxNDE3MzBhNTYyNWFlNTYwZTFmODgwZjUxZTU5YzAyMjkwNzIxOWVmMTM4ZDZkMmM5NTJiOGQ0MWIyZTcifQ"
         },
         {
-          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomBenchmarkPathGenerator.cs#L27-L79",
-          "version": "repo-lines-v1:sha256:daf7545c1c4f58b89bc2ecb05acc55acd7805805e28f4c64866f3913c2813cd1:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZThiNTQ5MjgxNDg0N2I4OTE0Y2MyYWI4ZjAzM2Y1MDhkZjA5ZWIwZWViOTM1NmEwNjNhZTcwNTJmNTJiYzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjZTM5ODg1MjQwMTFiN2RkNWZjMWNiYmI0Y2JkYTViMzMwYTBkMmRmYjQ5MzU4YzcyYzlkMTAxYWRhNTNlZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomBenchmarkPathGenerator.cs#L27-L96",
+          "version": "repo-lines-v1:sha256:8a8469d9df41de6618fd0723bd0252c4fd5b8abe1aa46d7caee98173acb37f29:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4YTFmN2RlMWZjN2Y0MDA5MjI4YjYzM2MwMDdhYmUyMDJjNDJmNjM1ZDc5NjFmNDczZWU5Nzg3ZmRmOTQ5NzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         }
       ]
     },
     {
       "id": "claim_1c3a4c1dee614775bf3819f16d2bece3",
-      "statement": "A random path candidate is rejected and redrawn unless it clears a minimum turn radius (smooth families) or a minimum corner separation and turn angle (sharp families), because a path no locomotion clip can follow measures nothing; on exhaustion the generator skips the slot rather than writing a path that fails its own contract.",
+      "statement": "No random path family is held to a minimum turn radius: the smooth families are treated like the sharp ones, which never had such a bound, on the grounds that how well a method follows a demanding curve is the measurement rather than a defect — so a candidate is rejected only for crowding itself, and additionally, in the sharp families, for corners closer than a minimum separation or a turn beyond a per-shape angle cap.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L60-L135",
-          "version": "repo-lines-v1:sha256:b0c10dcb2594faab2fc02d4215e836b0be48b4ac4ccdd2cb81ba9f2b5663093c:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0NzU4ODRiYWFhY2E2MjdjYjAxNmZhNGM0ZTE1M2E5NjFmZjUwZjY2NTMxYTZlZDFmODYwZjQ4NWJjNDZhMGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwMTIxZGE2YzM0NWUzYjBjOWE2NTNhYzM2NTBhMjU3NzE1MGYyOGQ0NWQxNTE0YzVkMzVhODFhMDY4YzY1ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1NzllZDU4NzI4MmI4ZDI5ZmI1YmJmMWUyODVmMjY5Y2MzMTNmYTIzNWNjMTdkMjdjZDk1NTQwMGVhNmUyNmIifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L204-L226",
+          "version": "repo-lines-v1:sha256:17f4060b476b0255f24900f67e41f9302586d874b7553ebea6b533b47f97ebe3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YWE1YzEzOWVlYWViNTU4NThiYTE1YjEzMTgwYTBhNjEwOWI0MGViMTM3OTZjMzlmYzdlYmNhNWRjYTJlOGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkMWYyMjEyNThkMGY1YzA4NTQxMGVjYWQ4MDU2ZGU5NGZjMDczMGE2ZjE0ZTJmZTg3Y2E4Y2Y5OTFkMWQ2OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlY2ZkNGI5ZWYzYTA0NDk2MjhkZmI3YjBhZTEwMGMwYWM4YmVhNmRiOGU0NjJjM2IxYzU1MzQ2NWZhMTM2NGQifQ"
         }
       ]
     },
     {
       "id": "claim_1dc102303b5d4fc0b2b8aade6cdb4bc2",
-      "statement": "Random paths are rejected for approaching themselves closer than a clearance bound, not merely for crossing: the windowed spline projection already survives a clean crossing, but two branches running close and parallel let its search slide onto the wrong one, which the lap tracker then reads as a seam crossing and turns into a phantom lap.",
+      "statement": "Random paths are rejected for approaching themselves closer than a clearance bound, not merely for crossing: the windowed spline projection already survives a clean crossing, but two branches running close and parallel let its search slide onto the wrong one, which the lap tracker then reads as a seam crossing and turns into a phantom lap; pairs near each other along the path are exempt, the exemption being derived from the clearance itself, since the tightest U-turn whose arms sit exactly that far apart has half of it as its radius.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L313-L355",
-          "version": "repo-lines-v1:sha256:13cbe0b61b346b623c01a1b99e0dcdb1249473771dac988051da6b6662967699:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMwMzRjMDc0Y2QzZGE5N2Q2NjIyMzFmOWJiZDFhNDZlNzYwYmViNDA1ZjkyMDI2OWI2NzkwOTgzNmMxODU1NWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjNmZlNDZlZGZkYzdkZTFkYjIzZmQyOTI2YWU1MGFiOWYxZDY5MmRmZmQxMThlM2QzOTMxOTQxZmI3NWFmM2EifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L413-L457",
+          "version": "repo-lines-v1:sha256:ab36730ac5cadcd66136faea071adc5d0d4406bc8fef272d14e6c979deb90837:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMwMzRjMDc0Y2QzZGE5N2Q2NjIyMzFmOWJiZDFhNDZlNzYwYmViNDA1ZjkyMDI2OWI2NzkwOTgzNmMxODU1NWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjNmZlNDZlZGZkYzdkZTFkYjIzZmQyOTI2YWU1MGFiOWYxZDY5MmRmZmQxMThlM2QzOTMxOTQxZmI3NWFmM2EifQ"
         },
         {
           "resource": "repo://Assets/AnimationTools/Runtime/Evaluation/SplineProjector.cs#L6-L28",
@@ -276,25 +276,29 @@
     },
     {
       "id": "claim_e0f2589123624463af154f9918daac02",
-      "statement": "Open random paths are generated as a corridor advancing monotonically along one axis rather than as an unclosed ring, because a ring's start and end sit one segment apart, which would make reaching the far end geometrically indistinguishable from being back at the start and would point a pure-pursuit lookahead across the gap; the monotone axis also makes the polyline the graph of a function and so incapable of self-intersection.",
+      "statement": "Open random corridors advance monotonically along one axis rather than being an unclosed ring, because a ring's start and end sit one segment apart, which would make reaching the far end geometrically indistinguishable from being back at the start and would point a pure-pursuit lookahead across the gap; the monotone axis also makes the polyline the graph of a function and so incapable of self-intersection.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L186-L232",
-          "version": "repo-lines-v1:sha256:e4a273560375933babbae8643d712d71bc1a51ee0538a258f5b667810ac3bd1c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiYjJhMWFiYTU1MGNmNDFmMDlmZTY3NTJlMmJkNjM4Yzk2ZjgyYjFjOGY2NDg4ZWNkMTdhODZjOGRhYjJlNWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlNDVlYzE5MTU2YzAzMDBmM2E3N2Y3YzU5MmMzNDNkMDM0M2VlYjhhNTI3YzljYWM3MTMwM2FjMWRmYTIxNDkifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L263-L290",
+          "version": "repo-lines-v1:sha256:babcba988bf948398498774cf393d41c871f5f5a46ddfac8d208fefe43c649eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzM2RkZjQ5NjA4OWE5OTcxN2Y2M2I0MmZkYzRmZjFmZTg4MjI5NTU5YzEwYjA1MDQ0YjkxMGUxMTVjOGMwMzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhMTUwYWRjYTExMTBlMzg0NTRjOTIwM2Y4MDU5ZmIwM2FmM2JhZGU1YjNmYjBkY2JiZDIxMDQ4ZTA2Yzc1MjQifQ"
         }
       ]
     },
     {
       "id": "claim_a1ccfdb8d01849ba8fccf876ba1581e8",
-      "statement": "The constant-speed spline follower clamps its normalized path parameter on an open spline instead of wrapping it, through a Fold helper over a virtual IsClosed seam; wrapping teleported the predicted trajectory back to the path's start about one prediction horizon before the reference reached the end, so the character was steered into a return leg, never reached the far end, and the run could only finish by timing out.",
+      "statement": "The constant-speed spline follower clamps its normalized path parameter on an open spline instead of wrapping it, through a Fold helper over a virtual IsClosed seam that delegates to a shared SplineFold utility; wrapping teleported the predicted trajectory back to the path's start about one prediction horizon before the reference reached the end, so the character was steered into a return leg, never reached the far end, and the run could only finish by timing out.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L45-L62",
-          "version": "repo-lines-v1:sha256:54aa33c133e1e3f69154fa2e057cecde9673d07171a77c39baf7ffa5540fe693:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4YTI0YmRhMDZlMjg0NzViMTAwMDUwNmIzNDRkODYzYmYzMDNkZjQ2MTFkYjI0N2FhNzhlY2M2NjAzNjczNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0ZDliMmQ1MzIwMjRkM2VjNjUzMjdjYTY4NjU2NDZkYzEyYWYxOWIxMWM2NTAwZGZjYmI5YTg1NDI0NmM0NzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjMWQxNTJhYzRkY2M3MTYxMzc4NzQ3ODY3MzAxNzI1OWYwNmNkZTdlZTIzNjY4MjU1MjliYTViZTczOWQ1NTAifQ"
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L54-L66",
+          "version": "repo-lines-v1:sha256:d88a93f2f42193204cee56a9f06d37c2f818a30604611829cf1f6614e359d44a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYTgyYjExNjY0MWU5ZjY0YjMyMDkwYWFjYzUzN2JjNzllZGIyMzVmZWVlMjY1N2E2YTAyZDJlNzhmY2E3YmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyYzBjOGUzNmQyZDNjMjlhZThkYTU2NDZiZjAyOWRmMmRmNDkzNjIyNWVlM2M2Yjg4NTE1YTkwYjRlMGY5Y2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzZjYyNDM0YzA1Y2EzYTQzODkzOGY2NzQzY2IxZGIzMjkxYTg4YTE3MGFmZjA4ZDNhYjlhYjVlOTIxMzZjNTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzNGIwNjRjMjI2ZGIyMzA3M2UzN2M4MWEyOGVmY2I1ODY0YTJmNzRhYTQ1MmE0NDg0OTc5NmIwZTUwODhhMjQifQ"
         },
         {
           "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs#L145-L190",
-          "version": "repo-lines-v1:sha256:33583827e6e7560ff46fd324c667c5a745d99cf9e7df7dc22f93b3a51d23f22c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxYTI3NWVkYTRkMDUxNzUwODI5YWM1ODI3ZTNjZjA0OTgzZDhlZDEyMmIzNDE4ZWU3ZGQyY2I4MGEyNzM5NGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1ZTI1MmFlZWE2ZmM1ZDA3ZjRlN2Y0MzQ5NTczMmUxMmZhYTI3ZWJlNGNhYTZlYjNlZjJmZjczMzZkYzQyMGYifQ"
+          "version": "repo-lines-v1:sha256:4289b20618ad874be92042239ff461c661ccb3daa10cf007bfa54d908621dbb1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YjdhZDdmMzY0MjI0YjEzZTY0NDUxMjk4NWFlMDBlN2IzMjU2ZGMwNzJkNWUzNTg2YzY0MjE2OGMzY2I0YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1ZDdjZGJmYTE5NDkyOTU0NzExYWFhMzA4Zjc3OTUyM2Q1YWI2Mjk5OTY4YWFiYmUzMTIxMzUxZjU1NDE2N2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3ZjQ1NzNiOGQyOGJmMTFmMWZkNGZmNmZhY2ViZDYzNWM1YjUxNmUwMWQzMDBmMzYxYzdiNjNiZmFhOWIzYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Utils/SplineFold.cs",
+          "version": "repo-file-v1:sha256:da776b1b8d16ad8127db23c1ea258fbba3dd516ae83f4ada34ed6216c02797cd"
         }
       ]
     },
@@ -311,10 +315,80 @@
           "version": "repo-lines-v1:sha256:286854f521eb53287f3b1c850ada3d86b76b493aae70cf3ccdfa84f2620511e6:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ODI2Y2Y5ZDg2MjI4ODMxNzMxNzQ3ZmFjNWJjNGNiNmFlMTc2MTQ4NzhhMzUwOTdiMTc5ZmRhZTdjMjE1ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4YjZlMGFhMmE0MDBhZTY5OGE5OWFmNjhjZjMyNjMwMjNlYzU3MGI5NmZjMTYxNGRiM2EzMWM0NjJjYzM2OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxNTc5ZGQwNTVmYWQ3N2JkYmVjYjdmZDhhOTU0MDZlMjQ0N2U5YTRkMDMyYWUzOTNmMDhkZTMzOTFkNTk2YWMifQ"
         }
       ]
+    },
+    {
+      "id": "claim_b9c27e47ae3b4068a9b1057241713ab6",
+      "statement": "Because nothing rejects a random path for turning tightly any more, the generation log reports each path's tightest turn radius for the smooth families and its sharpest corner angle for the sharp ones, where a circumradius would be meaningless because a linear-tangent corner is a genuine curvature singularity.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomBenchmarkPathGenerator.cs#L74-L86",
+          "version": "repo-lines-v1:sha256:f2c6fff4b33e6cf93f16a1c9640ac7526ae0609402223fa7fe3150c77590fc06:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkMTE0Yzc2NDhiOWI5MzgyZmM5ZWM1YWQzOWM4MmQzMDFiMTNjZWExZjk0ODRhZTEyZDQ1YTZkNDEyMTgxOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3MjNjOTk2YjUwY2FkZGM0ODE4YTcwMWViNDMzM2FkOTM1ODAzM2NlMjNlOTNhZTA5ZWNjNTExN2VhYzI3MWQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L342-L348",
+          "version": "repo-lines-v1:sha256:f2e1b9d4ab9727f714da5d166dbe805b30126c48c44249da53ea70f0458cb45b:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODBiZDViZjU4MjNlMGJjZTVkYmFkNjYwMDBlN2ZmZmQ2NjdmZTkyYjRhNjVlYWY5ZmZiMTExMmVmZGI4MjNlMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTIwNTJlZDFmNTIzMzg0NzJkZDNiNTU0YzZkYjA2MTY2ZjhhNjVmYzA1ZmJiMTc5ZDQ4NTRkMWRiNmM0MmUyYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWQ2NTNhYTE3N2ViYjM2YmM4NzQwYWVlMjRiOWQzODJjMjIyMzI3M2NlMGViYTkwZGZhNDYzM2U0OGZiMmUyMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_154c469785ec45bfa4b7b6b7e15761d3",
+      "statement": "The random path families are the product of three shapes — a closed ring, an open corridor, and an open walk that no global construction contains — with two turn styles, auto-smoothed or linear-tangent, giving six kinds; a batch is partitioned into them by nested ratios, so the walk share is a share of what does not loop.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L8-L30",
+          "version": "repo-lines-v1:sha256:ac327d0edb3dc136c52947aedd7c8fc96a43c07359e66d89a7cf16d06bd894c4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0NTgxMmQ2Y2UyMWQ5OWJkN2JiNTlmOWE3OWIyMzIwNjdlNDFhY2Y0MzcyZWVjMzQ5OTYzZmVjYmY1NmNlNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1NTIxOWVkMmEyYmEwNzQzNjA5ZmM4Yjk0YzYxNDhjMDExMDU0MzNmOTEyODY4MGM0NjAwNzAwMTkzZGQwMTYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L137-L172",
+          "version": "repo-lines-v1:sha256:9281d57c08a734b10bfeb31fff0ddf691fe0cb48e7694be31dd223d5c6da9e8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkODI0MjAzMWNkMDNiN2E0YzIzMDM5Y2I2MGQxOWIyYjg0MzI1NzE4N2E2NzY3YWQ0ZWRkNGUzYjYzNjM4ZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxZGExYWU5MDdiZmE5OGI3Yzg0YTBkZDg3ZmRmMmRjZmEyMDMyNWE0MGNhYzM1Zjc3MjlkM2NkYmYwOWMyZjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8b0ae2c5f94c4d46b2c4d0ef580ba81e",
+      "statement": "The random walk has no construction-level argument against self-intersection, unlike the ring's star-shaped knot polygon and the corridor's monotone axis, so it depends entirely on the rejection loop; each relaxation shrinks its per-knot heading cap, which straightens the walk and is what makes the retries converge rather than exhaust.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L292-L316",
+          "version": "repo-lines-v1:sha256:f588484845c538592f1ea68a8659261466fe4b2445d226364dc31417ff1f7514:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4MTE0YTg1NDI0ZGU0NWZjYzU0MDQ3OTcxZWUxMTBkNDIyMDMxZjVhYTBkMGEyYjg0OWQ4Zjc4N2FlNDU1NjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJiMzc1MGRiYzIzYjdlNmQ0OTkwN2YzNmIwY2U3ZDI1NWIwNjJkOTEzMTRhYzE1OTk4YzEyNDFmYmFiMTM0MjcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L115-L135",
+          "version": "repo-lines-v1:sha256:c66adc4bbcf3cc00e2e0eb7b6379ec09dc62e3b18319ab829a555cf03ac480da:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNmZjOTJkNTk2NTQxN2ZjNTg4YjAyZjM4ZDZjMTJmMjFhYzEwODUxYWEyOGM1ZGZhZDlkODY4ZGQwY2RmNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NWMzY2IxMThiYWIwMjI5OGI5MGM1N2U1MWI0NjdlNzBkM2U4YmVlZjM1NGY4NzgyZjVkN2Q0Yzk0ZjBiNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljNGUxOWM0M2RlYjgzMThkZGRiM2Y2MTQ2MGY1NWEyYmVmMjc2YmI4YmQ4NDNkYjczZWE2NzRlMjg0NTkyMmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzZWRlYzc3YzlmOTJlYjFjNDJlNGU4NDIwNGQ4YjI2YjdiOWFhM2E2OTRiMmNjMmNkMWRkMDdhOTcxMDhkODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bfca5abe0c5c4a22b3f55f75312feb51",
+      "statement": "A random path's extent means one thing across all six families — how big the path is — with open families taking a per-knot step that gives them the same total length as a ring of that extent, so runs in a sweep stay comparable in duration; the knot-count range is then the separate dial that decides how convoluted a path of that size becomes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L186-L200",
+          "version": "repo-lines-v1:sha256:5b060f690b867337bca961f8e8d11606b886de6f386738a77eacfb8051551ac0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2OGRhNjdmM2QyNTM0ZWIwMDVlMzkxYTk3MzlkZmRjMDcwYjc5NmJlN2RjZjVjMzc3MzU4NmQwOTA0NmMyMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMjg4MGQzYTMxN2ZlYjQ3M2VhZWJmOGU1YjBiNTBjODRhNzFiOWExODNjMTZkOGJhMzA1ZTM5YmUyYzMzN2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczOTVkMTQzNGNmYmI3YzdlM2E2M2I2YWEzZTVhMTQzZDgwN2E5YTRhN2QxZGY5MjUyNWFiMmM0YTRiNDdmMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkMWYyMjEyNThkMGY1YzA4NTQxMGVjYWQ4MDU2ZGU5NGZjMDczMGE2ZjE0ZTJmZTg3Y2E4Y2Y5OTFkMWQ2OGMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L234-L239",
+          "version": "repo-lines-v1:sha256:8b19916ed6fdb42ab1807b5c29e10624ef219b01ba53688ee8341341b85e9a6d:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzNiZjJlNGNlYzNmNmY0NDZjNDAzZjIwODUzNTQ1ZDE1OWJkMTFiMDIxZGRiMDhkNjFiOTgwNzYyMThkM2FjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWRiOGRlNjU0ZDU3OTFiNTJmNDNhMGI2YjgwZjkzNjk2ZWZhOGU0ZjExYWFjNDg3ZjhjMTM1NGVlYzExZjJjMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjI4NTdmYmQ2YjQ1YTE3MzhiZTljMjdlYTM3ODJiMGRhMWZlY2Q1ZTBlNTU0MmE4MWNlY2NlOTBkYmVjMDQ3ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c39f5a26e1e84707b78fe21f1bd7f201",
+      "statement": "When every candidate for a slot is turned down the generator reports the predicate that rejected the last one, with its measured value, because a user-settable knot range makes unsatisfiable settings easy to ask for — a high knot count inside a small extent leaves the sharp families no room between corners — and the failing predicate is what names the setting to move.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomPathShapes.cs#L108-L135",
+          "version": "repo-lines-v1:sha256:5abaa94d76ca4319d32cb980a6b327b09496ce26598bc67e840697c594f1eced:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NWMzY2IxMThiYWIwMjI5OGI5MGM1N2U1MWI0NjdlNzBkM2U4YmVlZjM1NGY4NzgyZjVkN2Q0Yzk0ZjBiNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhZDg3ZDUxZDliZjQ4NTA5NTFiZDQyOTZiOTc2MWFkMDZkNDllODQyNzY1NTIwNDNhMzdlNTk3YmM0NTM3MjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzZWRlYzc3YzlmOTJlYjFjNDJlNGU4NDIwNGQ4YjI2YjdiOWFhM2E2OTRiMmNjMmNkMWRkMDdhOTcxMDhkODEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Benchmark/RandomBenchmarkPathGenerator.cs#L50-L66",
+          "version": "repo-lines-v1:sha256:65882681c0dd3ff01198609f70f4a0f79b6e24f8d354918bddd91c0263f5cad5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5ZmFiMmVkMDFhMDFlMzMwZTNkNDI1ZjA0MGQzM2RhNzJmYzcxY2Y2Nzc2NDQ0ZTA1N2M1YjRiZWNiZGEyZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3MmYwMTczNzQ4OTJiYmQ1ZGI4N2ZjNmQ1Mzg1NWUyZDIxODg1ZWM4MGY3MTc1NGE2NDI3OTNhYTRiMDdjYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0YzQ3ZDcwMjdiZGE2NDE3ODlhOGE5Y2ZlYjFiNDUyOTZhOGI1NGIzODZjMTc1OTFhM2JmZWJmZGFkMjFlNmQifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-29T17:49:23.831Z"
+    "at": "2026-08-31T18:48:12.901Z"
   }
 }
