@@ -4,10 +4,20 @@ title: Neural synthesis readiness
 description: What a learned motion model needs from this repository before it can be trained or run, which of those pieces exist, and the failure modes the shared definitions are there to prevent.
 tags: [neural, pfnn, learned-motion-matching, training-data, roadmap]
 sources:
+  - id: openwiki-source-1ac38bf24a91b1612cc25f91
+    resource: repo://Assets/AnimationTools/Runtime/Animation/GaitPhaseComponent.cs
   - id: openwiki-source-992698fe95f5805c47be92d1
     resource: repo://Assets/AnimationTools/Runtime/Pose/CharacterSpacePose.cs
+  - id: openwiki-source-bc9dba9080266f6f57eee14f
+    resource: repo://Assets/AnimationTools/Tests/Editor/CharacterSpacePoseApplyTests.cs
+  - id: openwiki-source-e3854efddedde038431e9a6b
+    resource: repo://Assets/Pfnn/Editor/PfnnAgreementCheck.cs
   - id: openwiki-source-a0893a8625fe95808c0bf2c1
     resource: repo://Python/gait_phase.py
+  - id: openwiki-source-7b0683a5c5354cf2858d671c
+    resource: repo://Python/pfnn_agreement.py
+  - id: openwiki-source-4e55c713faf28eac207e9a7c
+    resource: repo://Python/pfnn_dataset.py
   - id: openwiki-source-030d30d689203655d06f8a6b
     resource: repo://Python/tests/test_gait_phase.py
   - id: openwiki-source-44aeec7103fbb90f34a34626
@@ -16,15 +26,17 @@ sources:
     resource: repo://Python/training_data.py
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-29T23:35:22.182Z
+    at: 2026-08-31T11:48:44.020Z
+generated: {by: "claude-code", at: "2026-08-31T11:48:44.020Z"}
 ---
 
 # Neural synthesis readiness
 
 Two learned methods are the stated direction for this project: a **phase-functioned neural network**
-(PFNN) and **learned motion matching** (LMM). Neither exists here. This page is about the layer
-underneath both — what a learned method needs from a motion database, and which of those pieces are
-in place.
+(PFNN) and **learned motion matching** (LMM). PFNN now exists — see [the PFNN stage](../pfnn/pfnn-stage.md)
+and [training and checkpoints](../pfnn/training-and-checkpoints.md); LMM does not. This page is about
+the layer underneath both — what a learned method needs from a motion database, and which of those
+pieces are in place.
 
 The methods differ in their inputs, but they want the same *quantities*:
 
@@ -46,9 +58,11 @@ are written against the same properties:
 | Quantity | Training (Python) | Inference (C#) |
 | --- | --- | --- |
 | Joints in the character frame | `training_data.build_training_set` | `CharacterSpacePose.Extract` |
+| A predicted pose written back | — | `CharacterSpacePose.Apply` |
 | The character frame itself | `simulation_frame.derive_frames` | [`SimulationFrame`](simulation-frame.md) |
 | The pose read off a live rig | — | `RigPoseReader.Read` |
 | Matching feature vectors | `feature_set_importer.read_feature_set` | `FeatureSerializer` |
+| The two-axis rotation form | `training_data.rotations_to_6d` / `rotations_from_6d` | `PfnnStage.RotationFrom6D` |
 
 The rates are the one place the two are not identical by construction: Python differences
 consecutive frame-local poses of a stored database, the C# composes the instantaneous rate implied by
@@ -64,11 +78,20 @@ contacts; and a gait phase. It builds neither network's input tensor — the pac
 the model, not of the database — though `TrainingSet.pose_vector` offers one for a decompressor
 target.
 
-**Gait phase.** Not stored anywhere, and reconstructed from the foot contacts by
-`Python/gait_phase.py`: π per footfall, linear between, per clip. A clip with fewer than two
+**Gait phase.** Reconstructed from the foot contacts by `Python/gait_phase.py`: π per footfall,
+linear between, per clip. A clip with fewer than two
 footfalls is reported as having *no measurable cycle* rather than being given a made-up one, which is
 what `phase_rate == 0` marks. See [on-disk formats](on-disk-formats.md) for where the contacts come
 from.
+
+**Phase you can look at and correct.** A clip now carries its footfalls as a
+[clip component](animation-sources.md), detected from the clip itself and editable, with a timeline
+in the inspector showing the phase, the contacts behind it, and the two ways the phase is known to
+go wrong. This is authoring only so far — **the anchors do not reach the database yet**, so training
+still reconstructs phase from baked contacts. Two defects the tool makes visible: on the untrimmed
+`walk1_subject1` clip the first footfall is at frame 132, so 4.4 s of standing was being given 2.87
+invented gait cycles; and every missed contact clusters where root speed exceeds 1.6 m/s, each one
+making the phase jump a whole cycle instead of half.
 
 **A trajectory window.** `TrainingSet.trajectory_window(offsets)` samples where the character was
 and will be, around every frame, in that frame's own space — the input a phase-functioned network is
@@ -93,20 +116,34 @@ byte, by decision. Each instead carries a block describing what it is — a skel
 feature schema block — that the reader checks before using the file. Training on a stale database is
 the quiet failure that costs the most.
 
-**A pipeline seam.** [`MoSynthStage`](synthesis-pipeline.md) is where a model would run, and
-[`MotionFieldStage`](../motion-field/motion-field-stage.md) is the worked example of a stage whose
-model lives in Python behind PythonNET. To make the character move, a stage writes the frame's own
+**A pipeline seam.** [`MoSynthStage`](synthesis-pipeline.md) is where a model runs;
+[`PfnnStage`](../pfnn/pfnn-stage.md) and [`MotionFieldStage`](../motion-field/motion-field-stage.md)
+are both stages whose model lives in Python behind PythonNET. To make the character move, a stage writes the frame's own
 motion into bone 0's velocity channels through `SimulationFrame.RecomposeRootVelocity`; the component
 reads it straight back out through `ComputeVelocity`.
 
-## What is missing
+## What was missing, and what filled it
 
-- **The models**, and their training loops.
-- **Inference inside Unity.** `com.unity.barracuda` 3.0.2 is still in the manifest, nothing consumes
-  it, and it is deprecated on Unity 6. Running the model in Python behind PythonNET, as the motion
-  field does, is the path that needs no new dependency.
-- **Writing a predicted pose back.** There is no shared inverse of `CharacterSpacePose.Extract`;
-  `MotionFieldStage` writes its pose channel by channel from the Python arrays. A second consumer is
-  the point at which that should become one named thing.
-- **A cross-language agreement test.** The two definitions are tested against the same properties,
-  but nothing compares actual numbers produced by both.
+The four gaps this page originally listed have been closed by the PFNN work, except for the one
+noted below:
+
+- **The models and their training loops.** PFNN has both — `Python/pfnn_dataset.py` packs the
+  vectors, `pfnn_model.py` is the network, `pfnn_trainer.py` fits it, `pfnn_io.py` stores it. LMM
+  still has neither.
+- **Inference inside Unity.** `PfnnStage` runs the model in Python behind PythonNET, which is the
+  path that needed no new dependency. `com.unity.barracuda` 3.0.2 is still in the manifest, still
+  unused, and still deprecated on Unity 6.
+- **Writing a predicted pose back.** `CharacterSpacePose.Apply` is now the named inverse of
+  `Extract`: it takes a pose measured in a character frame and writes it into a `PoseBuffer`, with
+  bones below the root keeping their rest offsets so a prediction cannot stretch one. An edit-mode
+  test asserts the round trip. `MotionFieldStage` still writes its pose channel by channel and could
+  be moved onto it.
+- **A cross-language agreement test.** `MoSynth/Pfnn/Check Training Agreement` compares the numbers
+  the two definitions actually produce. It is a diagnostic rather than a unit test, because it needs
+  a generated database and a live interpreter. Measured on the demo database: positions agree to
+  1.8×10⁻⁶ m, rotations to 0.079° at worst and 0.0026° on average, with the residual concentrated
+  at the deepest joints — float32-versus-float64 accumulation down the chain, not a disagreement
+  about the definition.
+
+Still missing: **learned motion matching**, and a shared home for the two-axis rotation conversion,
+which currently exists once in Python and once in `PfnnStage`.

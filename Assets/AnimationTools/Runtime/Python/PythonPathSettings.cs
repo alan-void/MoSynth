@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 
-namespace MotionField
+namespace AnimationTools
 {
 /// <summary>Where a machine keeps its CPython library and the virtual environment to import from.</summary>
 [Serializable]

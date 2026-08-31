@@ -3,7 +3,7 @@ using System.IO;
 using Python.Runtime;
 using UnityEngine;
 
-namespace MotionField
+namespace AnimationTools
 {
 /// <summary>
 /// Shared CPython bootstrap for everything on the MotionField side.

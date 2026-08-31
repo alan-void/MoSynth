@@ -33,9 +33,6 @@ sources:
   - id: openwiki-source-68bd8cb3d0139ef5eb77babd
     resource: repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-29T23:23:48.822Z
 ---
 
 # The simulation frame, facing and travel

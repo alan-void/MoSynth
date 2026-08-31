@@ -10,18 +10,30 @@ sources:
     resource: repo://Assets/AnimationTools/Editor/Importers/BvhImporter.cs
   - id: openwiki-source-2e0d28f6a1ee99e6e464a576
     resource: repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs
+  - id: openwiki-source-d9244dc06fc73f4e2315c8ed
+    resource: repo://Assets/AnimationTools/Runtime/Animation/AnimationClipComponent.cs
   - id: openwiki-source-81d1a220d914a0173e6778bb
     resource: repo://Assets/AnimationTools/Runtime/Animation/AnnotatedAnimationClip.cs
+  - id: openwiki-source-0b35dfb45ac00c6c6916b1e0
+    resource: repo://Assets/AnimationTools/Runtime/Animation/GaitPhase.cs
+  - id: openwiki-source-1ac38bf24a91b1612cc25f91
+    resource: repo://Assets/AnimationTools/Runtime/Animation/GaitPhaseComponent.cs
   - id: openwiki-source-e1ad0ab569ae74b451c3418f
     resource: repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs
+  - id: openwiki-source-3448451e765fedad3f169713
+    resource: repo://Assets/AnimationTools/Runtime/Pose/PoseExtractor.cs
+  - id: openwiki-source-9cb39479f08cf519691c343e
+    resource: repo://Assets/AnimationTools/Runtime/Pose/PoseSet.cs
   - id: openwiki-source-3d5c835733aa13f4eeed0f83
     resource: repo://Assets/AnimationTools/Tests/Editor/AnimationClipBakerTests.cs
+  - id: openwiki-source-593d3333db07e2608e4170c1
+    resource: repo://Assets/AnimationTools/Tests/Editor/GaitPhaseTests.cs
   - id: openwiki-source-5cd85933c91658849ca6377d
     resource: repo://Assets/Scripts/Editor/BioVisionHierarchyToAnimClip.cs
-generated: {by: "claude-code", at: "2026-08-29T23:30:04.693Z"}
+generated: {by: "claude-code", at: "2026-08-31T11:48:44.020Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-29T23:30:04.693Z
+    at: 2026-08-31T11:48:44.020Z
 ---
 
 # Animation sources and clip baking
@@ -37,7 +49,7 @@ about databases, features or serialization.
 | Type | Role |
 | --- | --- |
 | `SkeletonAnimation` | pairs a clip with its skeleton; bakes lazily into a `PoseSequence` |
-| `AnnotatedAnimationClip` | adds a `[startFrame, endFrame)` slice and a tag struct |
+| `AnnotatedAnimationClip` | adds a `[startFrame, endFrame)` slice and a list of clip components |
 | `AnimationClipBaker` | validates and bakes; the only code that samples a clip |
 | `BvhImporter` | a `ScriptedImporter` turning `.bvh` into a rig plus a clip sub-asset |
 
@@ -171,7 +183,9 @@ local rotation and nothing else. It skips gizmos for bones named `End Site`, a n
 | --- | --- |
 | Validation and baking | `Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs` |
 | Clip + skeleton pairing, lazy bake | `Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs` |
-| Slice window and tags | `Assets/AnimationTools/Runtime/Animation/AnnotatedAnimationClip.cs` |
+| Slice window and components | `Assets/AnimationTools/Runtime/Animation/AnnotatedAnimationClip.cs` |
+| The component base | `Assets/AnimationTools/Runtime/Animation/AnimationClipComponent.cs` |
+| Gait phase | `Assets/AnimationTools/Runtime/Animation/GaitPhase.cs`, `GaitPhaseComponent.cs` |
 | BVH import | `Assets/AnimationTools/Editor/Importers/BvhImporter.cs` |
 | Asset creation | `Assets/AnimationTools/Editor/CreateAnnotatedClipMenu.cs` |
 | Legacy BVH converter | `Assets/Scripts/Editor/BioVisionHierarchyToAnimClip.cs` |
@@ -180,4 +194,58 @@ local rotation and nothing else. It skips gizmos for bones named `End Site`, a n
 foreign rig, both halves of the rig-relative path convention, the both-counts diagnostic, and the
 "nothing to check" case.
 
-Downstream, baked frames feed [the pose database](pose-database.md).
+## Clip components
+
+A clip carries a `[SerializeReference]` list of **components** — annotation about the clip that the
+clip's own curves cannot supply. This is the same seam `MoSynthStage` and `BenchmarkOverride` use, so
+a component is a plain `[Serializable]` class with a parameterless constructor, it gets a type
+dropdown in the inspector for free, and subclasses may live in any assembly that references
+`AnimationTools`.
+
+The list replaces a mechanism that never worked. `AnnotatedAnimationClip` declared a `Tag` struct but
+had no field of that type, `PoseSet.AddTag` was private with no callers, and the `.mmpose` tag block
+was therefore always empty — the format could *read* tags that nothing could ever *write*. Tags are
+the natural second component; the dead code is left in place until one exists.
+
+One hazard worth knowing before adding a component type: a managed reference is keyed in YAML by its
+**(class, namespace, assembly)** triple. Renaming the type, moving its namespace, or moving its file
+into another assembly orphans every authored instance and drops the data on the next save.
+`[FormerlySerializedAs]` renames fields, not types; `[MovedFrom]` is the right tool and is not yet
+used anywhere in this repository.
+
+### Gait phase
+
+The first component. It stores a clip's **footfalls** — which frame each foot was planted on — and
+the settings used to find them. [Gait phase](neural-synthesis.md) is what a phase-functioned network
+is organised around, and it was previously reconstructed only at training time, in Python, from
+contacts baked with one global threshold. Nothing could see it and nothing could correct it.
+
+Anchors are stored rather than a baked phase curve: a few hundred markers say the same thing as
+thousands of floats, they are the direct input to the phase rule, and they are what a person would
+correct. Both known defects in the shipped clips are anchor-level — contacts missed where the
+character moves fast, and phase invented across a standing intro that has no anchors at all.
+
+`GaitPhase` turns anchors into phase using the same rule as `Python/gait_phase.py`: half a cycle per
+alternating footfall, a whole cycle when the same foot falls twice running (which is what a missed
+contact looks like), linear between, zeroed on a right footfall. **It deliberately differs in one
+place**: Python extrapolates outward from the first and last anchor "so a clip has no flat ends",
+while this holds the phase and reports a rate of zero. Extrapolation invents gait — on the untrimmed
+`walk1_subject1` clip the first real footfall is at frame 132, and the 4.4 s of standing before it
+was being given 2.87 complete cycles the character never walked.
+
+Detection settings live on the clip rather than on a database config, because one threshold cannot
+serve two clips at different speeds: `walk1_subject5` travels at 1.27 m/s against
+`walk1_subject1`'s 0.675 m/s.
+
+**The clip-side and bake-side contact measurements do not agree, and the gap is unexplained.** A
+clip's baked poses carry no velocity channels, so the component differences consecutive
+character-space toe positions, where `PoseExtractor.ExtractPoseContacts` composes the per-bone
+velocity channels. At the same 0.15 m/s threshold the component reports a foot planted far more
+often — duty 0.40/0.36 against 0.22/0.17 on `walk1_subject5`, and 0.57/0.56 against 0.51/0.49 on
+`walk1_subject1` — and finds half as many missed contacts. Differencing the composed position is the
+more direct measure of whether a toe moved, so this is a reason to distrust the bake-time contacts;
+why the composition inflates the speed has not been established.
+
+Downstream, baked frames feed [the pose database](pose-database.md). The footfalls do **not** reach
+it yet: the database still derives its own contacts, and Python still reconstructs phase from them.
+Feeding the anchors through is the step that would change what a network trains on.

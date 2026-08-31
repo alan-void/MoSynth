@@ -1,7 +1,7 @@
 {
-    "name": "MotionField.Tests",
+    "name": "Pfnn.Tests",
     "rootNamespace": "",
-    "references": ["UnityEngine.TestRunner", "UnityEditor.TestRunner", "MotionField", "AnimationTools", "Unity.Mathematics"],
+    "references": ["UnityEngine.TestRunner", "UnityEditor.TestRunner", "Pfnn", "Pfnn.Editor", "AnimationTools", "AnimationTools.Tests", "Unity.Mathematics"],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

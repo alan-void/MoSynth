@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:5c8df90183806a2961cc0d077fa94a9a839d9ab390c293867d6e383da0f44e01",
+  "pageVersion": "sha256:506f599df01691e8e1b4e248982032d683862df300cbf9ac6ef18a160e1b8633",
   "claims": [
     {
       "id": "claim_8a195cdcd62546a29b6c66af20f03896",
       "statement": "The CPython interpreter is process-wide and can only be configured once, so both the runtime stage and the editor trainer must initialise through one shared bootstrap rather than each calling PythonEngine.Initialize with their own paths — pythonnet throws if the DLL path changes after the interpreter starts, which is why a path changed mid-session only takes effect at the next domain reload.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L8-L30",
-          "version": "repo-lines-v1:sha256:c94471db672f970c5b6abbb5d1a33468f73ffe50ed537f1e6232ad24ce297072:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMjlhMjc2ZTcwMWE0MmY0ZTcxMjNhMTEwODBiZjE4MWQ0ZGU1MGEwOTE2MzY0MjljNTA3ZTIwMWQ5ZWYzYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMmUxZjMyYjUxZWY3MzJjYTdkOGY5ZjIxMWRhZTFmYTZkMzFkNWRlYjEyYmMxY2JmNWI4YzkwNDI3OTA3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMzg0ODgxMDk3Nzk5ZTAxNmU5MjIwN2RmOTIxOWZlMmFmMTlmNmY0NWU2NmE2ODI2OTc5OWMxZTcxYjQwZDgifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L8-L30",
+          "version": "repo-lines-v1:sha256:c94471db672f970c5b6abbb5d1a33468f73ffe50ed537f1e6232ad24ce297072:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMjlhMjc2ZTcwMWE0MmY0ZTcxMjNhMTEwODBiZjE4MWQ0ZGU1MGEwOTE2MzY0MjljNTA3ZTIwMWQ5ZWYzYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMzg0ODgxMDk3Nzk5ZTAxNmU5MjIwN2RmOTIxOWZlMmFmMTlmNmY0NWU2NmE2ODI2OTc5OWMxZTcxYjQwZDgifQ"
         },
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L89-L120",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L89-L120",
           "version": "repo-lines-v1:sha256:427556c1641de9aa9209193ae7a24433946212f33a4db86bffa4a6a59bf570de:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5NWQxNjk2OTQ1ZGNkZmJlOGIxOGVhZDcxMTEyOGYwNWQwMmNmZjdlMDZhMGU1NzM1OTY5ZmY0MmI0ODM4M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZTMwMjAwMzRiODg2YzZhNjcxZmQwNDA1MzgzZjQ0MmU4NWIzOTNjN2JkODM0M2ZjMmY4Y2E4MjMxMTU4MjkifQ"
         }
       ]
@@ -21,16 +21,12 @@
       "statement": "Neither Python path is stored in a project asset: PythonRuntime resolves each from its MOSYNTH_PYTHON_* environment variable first and otherwise from PythonPathSettings, with PYTHONNET_PYDLL reached only for the DLL when neither names one, and Python 3.13 is required for PythonNET compatibility.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L52-L87",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L52-L87",
           "version": "repo-lines-v1:sha256:72f8d09d88a425ad55d2c9a1bb5c2777573130732d318809ce074ea658097aea:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhNDBmY2QwZmFlZDZkNDdjNDM4NGE2YWU3ZWVjY2M1NDQxMTBkODJiMWUwZmFkOTIwZDRiODg3YzVlNDI5NWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxMjI1NzY2MzA0Mzk4MjdlZmFiYzg1ZTM4Y2I2M2JhOGMyMDc1ZjM4NDA5NDNlZDYyNGRjOTFjZTNlYWE0MzIifQ"
         },
         {
-          "resource": "repo://Assets/MotionField/PythonPathSettings.cs#L25-L50",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs#L25-L50",
           "version": "repo-lines-v1:sha256:813304d2e03415a0783a190e190285869aef36393439c2dd4236e97b4a2a478f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyZTQ2ZWNmMjY2YjI2YzQ4MzVlOTJkNmQ0Yjc5NjY1NzQ3MmQwZTRiMzZkNTE3NmI1MGExNTM4ZDE0MjMwZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0Njc2ODc1NTBiYzA5MjhjYWFlYjI1NDk5YzYzZjgzYTYwNzQyYzZjMTYwMGRmZTBiYmI4YmIxMjc0MjU1OTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NjE2Y2QwODU2ZjcwY2U3MDAyMDIyY2QzNzhlYjhkMGFiN2E2Zjk5NzZiMmRjY2I4M2I2MjUwYWMzMzU4YjMifQ"
-        },
-        {
-          "resource": "repo://AGENTS.md#L84-L87",
-          "version": "repo-lines-v1:sha256:7a5f4ffe168b1b21aa70668b0fd7b57343062fea053b1a0ab76f24fa53639a4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGYyYjNlMThkMThkNmIwMWM5ZTEzODliYmM0NDNlOTdkZDk0M2Y5ZGVhYWYyMmNhNDY5Y2Y5ZmM2MGExZmQ4NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU2OWNhYjFhYWFmMDc1ODZkZWI5NDYxMjUzOWU2MmQ5NzAzOWZkNThlYmFjZmJlYjczMmVhZDFmOGVmMzc0MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTMxMWU5ZDg4NzdkMDc2ODY2ODkwYTQwODAxMGMzNjY3ZWI0YmYyYjI1YzMxZjE0NmYzZmM5YTY2YzMzY2ZhOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTk1N2RhOWVhOTQ4Nzc2ZTM3OWJiNzEzZGU3MTIwOTAxNzEyODE2YzAxNDI5MDVkNjVmOTVlY2IxNWQ1MmFkYSJ9"
         }
       ]
     },
@@ -39,8 +35,8 @@
       "statement": "Module reloading drops the whole project module graph rather than using importlib.reload, because reloading one module leaves its dependencies cached — so reloading a module after adding a symbol to a shared one re-runs the new import against the old dependency and dies, making edits to a shared module effectively impossible without restarting the editor.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L100-L126",
-          "version": "repo-lines-v1:sha256:5396cf91eb04a1434402934476878b26109bddbaaa867b240868bf277ffb5cee:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5ZGMyNmQ0Y2U1MGNmMTdkMjA3NjcyYjg5MDM0Y2QyMDc2ZmM2N2QyNDc1MzRkOWNhY2Y1NWQwNTJjNTA3ZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMmY0YmUxYWY0NTBhMTViOWQ4ODJhYjEzYjYyN2NmMDdjNzc5MTdlYzA4NjgwM2U4NDVhNjM5ZTdiM2JkODgifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L100-L126",
+          "version": "repo-lines-v1:sha256:35272e64fc6aeb109c05a866919efcbfc8081f472956f6db234ea3dc41492e2a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhOWZjOTBkZjA4ZDVhMTI3MGViZjQ1YjBmYmEwNzU1OWRlZGI5N2QzMzE0MzY5MDg3Mjc4Zjc4NzgxMWZmN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhZDhmNDg2NzhiZmZkNTQ3OTFiODk1NGIxNTA2MTJhYzNlMTQ0NzIwMzViNzg5NTg4YzdkZjUwOTVhNjhkMjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNThjYzkzNzhlZTdhZWNiYmIyMGRiMzJhYzQ0OTI3MzM5YjE1NTZlZmJhOWYwYzNjZDRkMDJmYTFkMzdkMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwNjE4ODljMDNhMTA0MzUyZjEwN2VhZGE4NTkyZmU2YWRiN2RjMTliYTllNmMzNmE4NzhjZDBkMTZjYjVkOGMifQ"
         }
       ]
     },
@@ -49,8 +45,8 @@
       "statement": "Dropping the module graph wholesale also means a group of imports issued after one call sees a single consistent generation of the code, where reloading module by module can leave two modules holding different class objects for the same class.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L100-L126",
-          "version": "repo-lines-v1:sha256:5396cf91eb04a1434402934476878b26109bddbaaa867b240868bf277ffb5cee:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5ZGMyNmQ0Y2U1MGNmMTdkMjA3NjcyYjg5MDM0Y2QyMDc2ZmM2N2QyNDc1MzRkOWNhY2Y1NWQwNTJjNTA3ZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMmY0YmUxYWY0NTBhMTViOWQ4ODJhYjEzYjYyN2NmMDdjNzc5MTdlYzA4NjgwM2U4NDVhNjM5ZTdiM2JkODgifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L100-L126",
+          "version": "repo-lines-v1:sha256:35272e64fc6aeb109c05a866919efcbfc8081f472956f6db234ea3dc41492e2a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhOWZjOTBkZjA4ZDVhMTI3MGViZjQ1YjBmYmEwNzU1OWRlZGI5N2QzMzE0MzY5MDg3Mjc4Zjc4NzgxMWZmN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhZDhmNDg2NzhiZmZkNTQ3OTFiODk1NGIxNTA2MTJhYzNlMTQ0NzIwMzViNzg5NTg4YzdkZjUwOTVhNjhkMjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNThjYzkzNzhlZTdhZWNiYmIyMGRiMzJhYzQ0OTI3MzM5YjE1NTZlZmJhOWYwYzNjZDRkMDJmYTFkMzdkMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwNjE4ODljMDNhMTA0MzUyZjEwN2VhZGE4NTkyZmU2YWRiN2RjMTliYTllNmMzNmE4NzhjZDBkMTZjYjVkOGMifQ"
         }
       ]
     },
@@ -59,8 +55,8 @@
       "statement": "The module-invalidation script is embedded as source rather than kept as a file in the scripts folder, because a module that purges the project's modules should not be one of the modules it purges.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L128-L147",
-          "version": "repo-lines-v1:sha256:9b62125d52e12d944d114c715adf36014c85a311f9dca2fafa2527d5ccee84a6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0MDRkYmJhMDA1OTE1ZTQ0YWJjNDQ4NDY1ODA1NGEwNjVmZWE1ZTA3YjVkMGFlMTY2ZjZmMWM4ZTVlMjRiMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZWM3YTgyYjNjOTNlZTcwZDMzY2E5NTkxZDA1M2E2YzFlZjc2NmY4OTYxOGIyZDA1NDkyZDNjMzFiMjM5ZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1MzhkMWEyNzAzMzEzMjZhOTFjZmY0NTRkOTdhMDViNmJiZjk3M2E4ZmM5NjA0M2E5MTMwNTc4OTkzZDYwN2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L128-L147",
+          "version": "repo-lines-v1:sha256:35cb7705b571ef388cf0c66a9b1c310ed55c6eb658f5e5d5018961fba2f6788e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3YjUzNmM4NjQ5ZWQxNDYwZDU3MjE3ZTVjYzBiMmVkNjEyNDdmMmUwMDE0MjI2NGZhN2EwMjFiY2Q4MDU5OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwMjVlNDFlOWY4YTdlN2ZiNTg4OTllMDJmOGQ2ZWY1NTEyMmQxOTYwNzE0NjViYTE3OTFjNjcxMDNmMjMyMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmZGFmOWYzMWY2NjA2NzI4OTllOWIzMTMyMjgwZjc1ZmI2YjRmNGNmOTA3MjU1ZjY3MDNlNWYwNTVkOTcwMzIifQ"
         }
       ]
     },
@@ -121,11 +117,11 @@
       "statement": "The environment variables outrank the settings file because they are the only source that reaches a machine with no project folder to read, such as a build agent or a player.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L17-L30",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L17-L30",
           "version": "repo-lines-v1:sha256:07d7e008900cce8658507a43a19df18c7870df3220e588131bc9c64a28a96b1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMjlhMjc2ZTcwMWE0MmY0ZTcxMjNhMTEwODBiZjE4MWQ0ZGU1MGEwOTE2MzY0MjljNTA3ZTIwMWQ5ZWYzYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExMGVmY2Q5NGQyNTU5OWNjYzVhMmVjYTI4YjgwMTlhYzBhMTgzMGNhNmI0MGIxMzdmNDVlMjUyYmU2ODY3MmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMzg0ODgxMDk3Nzk5ZTAxNmU5MjIwN2RmOTIxOWZlMmFmMTlmNmY0NWU2NmE2ODI2OTc5OWMxZTcxYjQwZDgifQ"
         },
         {
-          "resource": "repo://Assets/MotionField/PythonPathSettings.cs#L25-L36",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs#L25-L36",
           "version": "repo-lines-v1:sha256:74e1a0db1821fd4cc62e7a270d9e44d1eea026db52a93f21a00d7a0e1e1c1568:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0Njc2ODc1NTBiYzA5MjhjYWFlYjI1NDk5YzYzZjgzYTYwNzQyYzZjMTYwMGRmZTBiYmI4YmIxMjc0MjU1OTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhYzY2N2Y4NWUxYTcxMzk4MWJjNDJkZDczMjNlMjJiOTk0YzRkNDMzOWI3MjlhM2E5ZmY3ODJhODM0ZTUzYjkifQ"
         }
       ]
@@ -135,7 +131,7 @@
       "statement": "The per-user Python paths live in UserSettings/MoSynthPython.json, which the standard Unity .gitignore excludes, so a machine-specific interpreter location can never travel to another machine the way the previously serialized MotionFieldConfig fields did.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonPathSettings.cs#L25-L50",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs#L25-L50",
           "version": "repo-lines-v1:sha256:813304d2e03415a0783a190e190285869aef36393439c2dd4236e97b4a2a478f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyZTQ2ZWNmMjY2YjI2YzQ4MzVlOTJkNmQ0Yjc5NjY1NzQ3MmQwZTRiMzZkNTE3NmI1MGExNTM4ZDE0MjMwZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0Njc2ODc1NTBiYzA5MjhjYWFlYjI1NDk5YzYzZjgzYTYwNzQyYzZjMTYwMGRmZTBiYmI4YmIxMjc0MjU1OTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NjE2Y2QwODU2ZjcwY2U3MDAyMDIyY2QzNzhlYjhkMGFiN2E2Zjk5NzZiMmRjY2I4M2I2MjUwYWMzMzU4YjMifQ"
         },
         {
@@ -149,7 +145,7 @@
       "statement": "The settings are plain JSON rather than a ScriptableSingleton asset so that shell and Python tooling outside Unity can read the same virtual environment the Editor uses.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonPathSettings.cs#L25-L50",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs#L25-L50",
           "version": "repo-lines-v1:sha256:813304d2e03415a0783a190e190285869aef36393439c2dd4236e97b4a2a478f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyZTQ2ZWNmMjY2YjI2YzQ4MzVlOTJkNmQ0Yjc5NjY1NzQ3MmQwZTRiMzZkNTE3NmI1MGExNTM4ZDE0MjMwZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0Njc2ODc1NTBiYzA5MjhjYWFlYjI1NDk5YzYzZjgzYTYwNzQyYzZjMTYwMGRmZTBiYmI4YmIxMjc0MjU1OTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NjE2Y2QwODU2ZjcwY2U3MDAyMDIyY2QzNzhlYjhkMGFiN2E2Zjk5NzZiMmRjY2I4M2I2MjUwYWMzMzU4YjMifQ"
         }
       ]
@@ -159,7 +155,7 @@
       "statement": "An unparseable or unreadable settings file resolves to two empty paths rather than throwing, because the file is hand-editable and a typo in it should surface as a message about where Python is rather than as an exception out of an unrelated caller.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonPathSettings.cs#L84-L118",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs#L84-L118",
           "version": "repo-lines-v1:sha256:40f34dad40008864c13c01b61d26a4935c87fd91b368ba6e27e63e7071681226:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3MjQwMmZlNDcwYTVhNTViNmE3MzhjYmE2Mjc1MDc3OTMxMDEzZjg3Y2NhZWZlNjcwMGU5MzRlNTk0NjAzZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         }
       ]
@@ -169,18 +165,32 @@
       "statement": "Project Settings → MoSynth → Python reports, per path, which of the two sources is actually supplying it and whether the target exists, and its Verify Setup action starts the interpreter and logs the Python version alongside the numpy and torch it found, separating a wrong path from a missing package.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/Editor/PythonSettingsProvider.cs#L79-L117",
-          "version": "repo-lines-v1:sha256:002f7e7c67ac7e439d74351ab529c41c3d335af084412b8ac6f2293d3da9366e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkNDY3ZWNmMjIwODk1NzljYmRiMjk1ODJmODljYjFlMTQwNGE2NDBlZGFkODgzNmY2ZWI4ZDY0MDVkY2ZhZGEifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/Python/PythonSettingsProvider.cs#L29-L82",
+          "version": "repo-lines-v1:sha256:f7165a39e5cf01b0956fc4506bfec784c204f095e8b3556f7c7e9154d387b4a3:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkYTRjYjY2Zjg0Yzg2OTliM2Q2YTk4NzIxODVlMjA4OGYzMWVlZDk3Y2ExOGI2MDAwM2ExODBiZDc1NmExNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGViNDgwZTFmMTk4YzQ4MWU5NmZkZGI1Nzc3ODc3YTU0MzhlNDQ5YTllNDM0NGNiYWUwYzU3NGFkZTU3OTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzY2I3ZTg1Y2NkMjJiMGMwYjIxNTMzYjEyMjdhZDk0OTZlYThhNWNmMWYxMjNlMGQyY2VmNzQ5Y2E5ZjMyZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlMzMzMjQ0NjllMDc3N2I3ZWQ0NzljZDg4MDA0ZTI5YTc0NGIzYWI4ZWUwZDczZTY2NjM1MjM1YTNhZWM2YmEifQ"
         },
         {
-          "resource": "repo://Assets/MotionField/Editor/PythonSettingsProvider.cs#L119-L156",
-          "version": "repo-lines-v1:sha256:2253d2526291db774f3fcaa8db84bdac351ef7b6d0382c7f497b1aaea36b87a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1NDYzYjkyZTYyODAwOTlmZDZjMzlhYWFkMWYyYmJiOGJlOGY1MGViNjYzYmQ3Mzg0OWIyNDM5MTFkOGZkOTIifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/Python/PythonSettingsProvider.cs#L83-L161",
+          "version": "repo-lines-v1:sha256:892800e9503b84b51b17d76602c58d5f3513e4638e0862a89c893fb2fbaff9e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZjNlMjE5NDkzYjJhNmQ3MjliOTZkNjBhODM4ZjYxMDVmYjI2Zjg0ZGZjMTlmMTEyZTRhOTkwZjA4MTVmZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4ZjczYTYzNzk5MjkxODNmNjBjYzI2ZTBkYzY5ZmQyYjNkMDc0NDljMGE0YTNiNjQzNGE2NzkyMzFmNTRjM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e937b077e10e4f89b8f5ae5fe8db9bfd",
+      "statement": "The CPython bootstrap and its per-user path settings live in the AnimationTools assembly rather than in MotionField, because more than one synthesis method now reaches Python through them and MotionField is not a dependency of the others.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L1-L20",
+          "version": "repo-lines-v1:sha256:dde09f920bbf8c9f1b5a0a096128385517ae89af0a5279eeb69671f6cf31ba9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1YWJhNDRlYzhmZWMzNGY3OWM0ZmRjMmM1YmM1ZmUwODA1ZjgwMDE2NmEwZWY2ZTg1MDg5ZWMwOGNhMGY4MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGViNDgwZTFmMTk4YzQ4MWU5NmZkZGI1Nzc3ODc3YTU0MzhlNDQ5YTllNDM0NGNiYWUwYzU3NGFkZTU3OTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkZGU3ZGUxODRhNGM2NDYwOTMyNmI1Y2FkOWI1M2I5NDdmMjMzN2IyMTI3NWExZmNkNTAyZWU5ZmVjOGZmNzEifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/Pfnn.asmdef",
+          "version": "repo-file-v1:sha256:1bd8674e35307c20f651ee648ccf15795757251aae6c478142d04de79f40dc4b"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-30T13:08:18.116Z"
+    "at": "2026-08-30T16:14:31.508Z"
   }
 }

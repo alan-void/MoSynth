@@ -92,6 +92,31 @@ def rotations_to_6d(rotations: np.ndarray) -> np.ndarray:
         .astype(np.float32)
 
 
+def rotations_from_6d(six: np.ndarray) -> np.ndarray:
+    """
+    The inverse of :func:`rotations_to_6d`, for reading a network's prediction back.
+
+    A regressed pair of columns is not orthonormal, so this re-derives a valid rotation from it by
+    Gram-Schmidt: the first column is normalised, the second has its component along the first
+    removed, and the third is their cross product. That is the projection Zhou et al. define, and
+    it is what makes the representation usable as a network *output* rather than only as a target.
+
+    :param six: (..., 6) two concatenated columns.
+    :return: (..., 4) quaternions, xyzw, canonical with w >= 0.
+    """
+    six = np.asarray(six, dtype=np.float64)
+    flat = six.reshape(-1, 6)
+
+    column0 = flat[:, :3] / np.linalg.norm(flat[:, :3], axis=1, keepdims=True)
+    second = flat[:, 3:] - np.sum(column0 * flat[:, 3:], axis=1, keepdims=True) * column0
+    column1 = second / np.linalg.norm(second, axis=1, keepdims=True)
+    column2 = np.cross(column0, column1)
+
+    matrices = np.stack([column0, column1, column2], axis=2)
+    quaternions = Rotation.from_matrix(matrices).as_quat()
+    return canonical_quaternions(quaternions).reshape(six.shape[:-1] + (4,)).astype(np.float32)
+
+
 @dataclass
 class TrainingSet:
     """

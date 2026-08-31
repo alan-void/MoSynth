@@ -1,10 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using AnimationTools;
 using UnityEngine;
 using Unity.Mathematics;
 
-namespace MotionMatching
+namespace AnimationTools
 {
     /* Thanks to: https://theorangeduck.com/page/spring-roll-call */
     public static class Spring

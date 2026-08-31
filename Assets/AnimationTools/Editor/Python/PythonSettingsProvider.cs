@@ -4,7 +4,7 @@ using Python.Runtime;
 using UnityEditor;
 using UnityEngine;
 
-namespace MotionField.Editor
+namespace AnimationTools.Editor
 {
 /// <summary>
 /// <c>Project Settings &gt; MoSynth &gt; Python</c>: the CPython library and virtual environment

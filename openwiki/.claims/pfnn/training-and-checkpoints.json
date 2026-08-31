@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:bb5c63e63402f666040fb4183b308fe8519c922151fa93cbeee867bfec28bae0",
+  "claims": [
+    {
+      "id": "claim_cf1499b2d2274e769a0a1dc21877cd6c",
+      "statement": "Which bones a PFNN predicts is authored on PfnnConfig as a sparse name-keyed exclusion list drawn as the skeleton hierarchy, not derived by a name heuristic in the training or inference path; the finger-and-leaf heuristic exists only behind an editor button that writes its answer into the asset.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnConfig.cs#L60-L100",
+          "version": "repo-lines-v1:sha256:887f8435672de6e09fb01dd3f30f61549652c0c825616a68028858165629a004:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4YTk5MzkyYTZkODhkZWY3Nzk0MTc5NjY1MTQ4NDAwNTM1ZWJlMWE3NzVhNTU3MzM3N2UxMzliMjNjZTQwYTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMzY4MzZhOWYxNjBhM2NlOTE3ZTZjOWQxOTY0ZDE4MDMxMThkMTRmYmNlYTE5MzYzZjYxZjE0ZTE5YjhjNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3Nzg1NDg0OTgxOGZlYzc0OWQzZWE0NDkzNTcyMGRhYTE4ZDJlM2Q5Njc0MmUyMzQ4YWM3NTU5ZjQxYzhmNjUifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/Editor/PfnnDefaultBoneSelection.cs",
+          "version": "repo-file-v1:sha256:34c88ff024b1af0a348c8fa62a1cc0663e4e92020cc55d16b3a622a7296d59d8"
+        }
+      ]
+    },
+    {
+      "id": "claim_66a9d5b06f5e4c9cb0eaa06cc6e22205",
+      "statement": "Excluding a bone excludes its whole subtree, and select_bones refuses a selection that is not closed under parent, because the network predicts rotations and a rotation has no frame to be applied in when its parent is not predicted.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pfnn_dataset.py#L56-L92",
+          "version": "repo-lines-v1:sha256:3ee87b1d68550b6f762b74caf468a24c379dc115aff0aaa6183bfccba1e3ee84:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmODczZThlZDA1N2RiZmM5ZGJkZTA3NWI1ZTQ3MmU5NWE3MjMzZmJjODBiYzY4NDI3OTJhMmQyMWJiZmNmZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjODg4NjVmMjRkZmI3NWIxNGUyZGY0YjczOGU1NGQ4OGE2Y2ViNTVhNDcxZThhZDU4ZTc0YzI0YjczNTk3ZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5Y2ZlMjRhNWMxMGU4ZDM1YjQ1OGFkMmJjNzAxN2JiMDlkM2NjNjZlZGRiZDNkYTY3MTA5MDYzZTUwNWJkNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1ODUyMjgxODM3ZDkxZmI3ZjZmZmQ3YmQ0MTNiMjYxYzBlNDk0NmVkOTI3NmY1MTMxNGNlZTZhN2ZkNWEwN2UifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/Editor/PfnnConfigEditor.cs#L215-L245",
+          "version": "repo-lines-v1:sha256:04b865bfb160498880c047cfd8ab408de508790e36d6ae2a7ba1eaacf52eaab0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNTFiZmFiY2ZiNmQ4OWZkOWY0ZTNiN2JjNGExNzRmZDkwYzk5ODE4NmU0ZmRlMmM4ZmEzNGU2ZDVjMjkzYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxOWIzZDZhMGQ3ZjNlZWMxOGFjYmVmMWY5YWE2MjNlYjI0MzEzNTMwMTNmYWEzZWYzZjViZWMzM2VmN2IzZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2OGU0ZjQ3MTU0ZTNmNDlkOWI5ODljODZjMjFiOGM2ZDQ3MDQxYWUwOWIwNTI4ZGFkZGEwMTdmZDAzMDdmZjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f34c38ccaf054067866ffe42d6b26d23",
+      "statement": "The PFNN target predicts 6D rotations rather than joint positions, deviating from Holden et al., because PoseBuffer is rotation-based and the repository has no IK solver; joint positions come back from forward kinematics instead, which also makes it impossible for a prediction to violate a bone length.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pfnn_dataset.py#L1-L30",
+          "version": "repo-lines-v1:sha256:fc9c20e8eb29e505fb21b7a462acea31da4d6f611da13e6fb6b30b36e24a8754:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NWQ0NTg5ZTkxY2M4Y2I5NzQ4ODlkYWIwMWRlMTVkYjE1NzRjYTEwZWVjNzI5MGExMDliZjU4OGM5NGUwMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyYmI5Zjg4ZTIwZDk3MzA2NmRjNDU4ZDVjMTk0YmUwYWRhMDAwMDFkYzMyYzUyNGQxNDYwNzM1NDJkYzk5MTYifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L305-L370",
+          "version": "repo-lines-v1:sha256:90e02972a8df1f1515b22e3cc7ee064a08e1f0db622e840d9a40c68d6cb9fcfb:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YTVlN2M2MWQwZjBiOWM0ZDAzOGI3YTQxNDdhN2EyOTVkNTI4ZjU1OGVlOWVlMTM1NjNkZWU2NzJkMDg0OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmN2U2MzIwMTY5ZDZmMjY1NzlmNzUyN2Q5ZDM2ZTU4ZDI0NTMyMTk4OWEzNzNiOGE5NzJhMTk3YWM2OTIzOWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxYWM1NWI5Y2YyZjY1NDM0M2YzYTI0NTdlNmI1MDhlNzhjODNjYTY1ZTBmY2JhNDVjMWVmYzU5ZjE0NTM3OTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzNDY5N2YwNjQ4N2U4MGU1N2FkMjY2Y2QxMDlhZGY0OGIzM2NiNDc4N2U0OWIyMWI5NGZmYjJhZmE2ZjkwMzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0ddbdc81ec464dea92638957a0fe47b2",
+      "statement": "The PFNN root-delta target is read out of TrainingSet.trajectory_window at offset +1 rather than re-derived from root_velocity, so there is one definition of where the character goes next and it is the one two independent checks were run against.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pfnn_dataset.py#L196-L250",
+          "version": "repo-lines-v1:sha256:faab45c19dae13f33ea26e75720d04b5b9d501eee9f359add733a31baf3318aa:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0M2VhMWJjOWY5YzIwNWU2Yjk1NWQ1MjAwMDRjNDhjOWI0YjA4ZGEzZmQwMGNiOTRhNjNmOTdhOTJhYzk4MjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyNDE0ZDQ1ZDA0ZjI1ZDIyMjVkMjRjYzVmNjM0MjNhN2UzM2JmMWMxMzk2NzQ2NjYzNWNlMmRkOTc1NGY1NjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkYzQ2M2YzOTg2NzRiNWE2ZDQwOTYyMWVhNzQxZWI4MTBlMWIyMWM0ODJkY2NlOWM1M2E0NGFjYTg4Mzc5YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliNGM4YzAwMzhiMmUyMDM5MTJjZjFmZWJjZWNmODlkYWM5NjAyNDJkZmQwOWE3M2MzZjY3MTQ3MjU3MDgyZjgifQ"
+        },
+        {
+          "resource": "repo://Python/training_data.py#L248-L299",
+          "version": "repo-lines-v1:sha256:70a05aa0f04ec2de81d8a4c81396a1e2e76a00259ce229d52a11b6ff369ed722:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MGRmOWRjOGY2YTYxOTI0NzNhNjZlODU2NTQ3NGZjNDAwNDA3YTAzMDMwOTdmYzU4MTIxMWE1Y2Q2MzIzOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllYmExOWE5ZjgzYzA1YjY0YTMzYjc3YTJlYzJiZDQ2ODYyOWQyYzdhZTc3ZmY2ODk0NmRhM2VhNmZlYWRkZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxNWRiMWI0NmExOGRjNGNhOWE4YTQ0YzNjYjM4NjA0ZDc2MjI4NTY5YzQxZWQwYTg2MzNjY2M5NGVhMmY4NzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_682faf1f5f744a42ace94af035783cfb",
+      "statement": "PFNN training additionally excludes frames whose phase_rate is zero, because TrainingSet.usable checks only the matching feature vector while a phase-functioned network is meaningless on a clip with no measurable gait cycle.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pfnn_dataset.py#L180-L200",
+          "version": "repo-lines-v1:sha256:48da68295b63b4b034bf6c337317bf214e56261e27240d77771a718afa76bc74:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5MGNiMDk4ODQyYTM2YzljZGFiZDgwOGI2OGIyNmQwYjBmYmI1ZmI0YjNmZjVmNWQzOGYyMzY3MmZmMTQxMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmODczZThlZDA1N2RiZmM5ZGJkZTA3NWI1ZTQ3MmU5NWE3MjMzZmJjODBiYzY4NDI3OTJhMmQyMWJiZmNmZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxOWQwMmUwYzMwYjM2NzIyMjVkOWVjZDBkM2ZiZWJkNzU1NTQ0ZDRmMGU2YmQxYWFmZDEzYmQ2M2UwYmJkNTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhNjZiZTA4YjUxN2VkMDhjNjI1NDkzODM4YWQ4M2I5NTcxNTcxMTMzZjEwZmYyMzE2ZDNiODBlNTNjODQ5MTkifQ"
+        },
+        {
+          "resource": "repo://Python/training_data.py#L300-L312",
+          "version": "repo-lines-v1:sha256:a7e0f2247656d3965adc163fc8d16ff4d5d8f20196b6f833fcd9a132e0286f2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwMTQzMWIyMDY0ODEzYjczZWMwMzc4ZTkzMDA4YzM4ZTRmZWM5ZDRhZDg1ZDFiZTZmZmE3ZmFiNmE5OWVhM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljM2EwM2E0YTFkMGY1MzM3ZDk0NmYzYjBhYzk2NTZlMmI2ZmNhOWYzMjQ4YjY2MTE3ZTg3ZDkzOGZkZjg2ZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2Y2FhMDVhODEyNGE0NWZkZTI2Yzk2MjQ5NzFhMzZkMjRiOGVmN2YzNTdmZWQxYjlmZjI4NDc4YmNmNTI3YjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9519018a1d984bcbb9c8e3ad15213e74",
+      "statement": "The phase-functioned layer blends the four control points' outputs rather than their weight matrices, which is exact because the spline is a linear combination and a layer is linear in its weights, and avoids materialising a per-sample weight matrix for every item in the batch.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pfnn_model.py#L1-L110",
+          "version": "repo-lines-v1:sha256:4a7efb54adc0838388e59436a244797513c393e128ff6cbe9605a762352668c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhMzAzZWNkZDRhNGQxMGYxOWM3M2ZkNDJmZDEyNDM3ZmQzMzU0YTgyNjgxNjA1ZGE1MjU1YTk3YTM5MDY4ZGJiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJkYzFhYzZlNTJmN2M0ZDQzNjU5MThmZGQ0NzdhOGUxNWZiZGZjYjkyOWUzZTc1MGEwNjRmOWMxNDYwMWQyOTI3In0"
+        },
+        {
+          "resource": "repo://Python/tests/test_pfnn_model.py",
+          "version": "repo-file-v1:sha256:98adf96d4b6bce51019129e320e15d57fffe1bae4459969530460b7792a4bf4c"
+        }
+      ]
+    },
+    {
+      "id": "claim_d0c07c43e978411ba09094882a937025",
+      "statement": "The .pfnn.npz checkpoint stores the bone names it predicts rather than bone indices, and the stage refuses a checkpoint whose names are missing from the rig or resolve out of order, because an index is only meaningful against one database while a name can be checked against the live skeleton.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pfnn_io.py#L1-L60",
+          "version": "repo-lines-v1:sha256:abeb7849ec61dd95bd41289cc6f1d5fbf62928fd396f5452c591646a72b78601:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAwY2YyNzA5NjRkNDRhMTNkZmFjODc1MmIwOWZjYzQzNWIwZjE5YjMxNmFiY2Y4MWE3YWE2NGJiMTIyZDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzZGQxYTRlZDNhN2VhZTNjYzcyMjdlNTJmZTIwNDk2NDgxYWYxODgyN2MwZmU0YjRmODU1MWEzM2MzOGY4MzIifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnBoneSelection.cs#L36-L98",
+          "version": "repo-lines-v1:sha256:49967b0c1c370079eccb0ba076d2d6e8fb54528783e97cdaa1a93ccd5a10ddfc:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3YTY4Nzg3ZTM4NjFjOWQ1NDVmNmI3YWMxMTI5M2JhNTRkYWQ3MThhMDU5N2M5MzZhOTc0MmZlZDljYjNhOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlMWNlYTA0Yzc3ODY1MDRkNmNiOGExYjZkOGRiYzQzMmNiMThmNTBjYWU2OTRlZTRkMmJlOGNmMTkxNDY5MDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_97f10a8f85fb43e4b582b5c0d786672e",
+      "statement": "PFNN validation holds out a contiguous tail of frames rather than a random subset, because neighbouring animation frames are near-duplicate poses and a random split would put copies of the validation set into training.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pfnn_trainer.py#L1-L100",
+          "version": "repo-lines-v1:sha256:72f8e1d93db09d8318246003ce340ff971150544bba9381dc285b7ceae2291f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhMzAzZWNkZDRhNGQxMGYxOWM3M2ZkNDJmZDEyNDM3ZmQzMzU0YTgyNjgxNjA1ZGE1MjU1YTk3YTM5MDY4ZGJiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxYTdhZDkwYWU1YWVlNDIwYTc1M2Y1ZWM1OGFlNDIyNDA1NWM0ZTM4OTUwYzA5NzU0N2E3NWU1NDQxYzZkM2Q1IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlYjY2OGI1ZTMxZGQ3MDRjMjczMGUyZGFjMDE4OTc1Njk4MWUxOTVmNDgyNjFhZjIzYTEyNDdkZDljOGY3NDZiIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_ce29db251bda4c5d914665ec732f2011",
+      "statement": "PfnnConfig carries hasPoseDatabase and hasTrained flags that any inspector edit clears and that regenerating the database also clears for training, so whether an artefact still matches the config is answered in the inspector rather than at load time with the character already in play mode.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnConfig.cs#L118-L145",
+          "version": "repo-lines-v1:sha256:269a495356ead4e61804686afcd4a31d3e8155329aff68c648474dbb3bc3649f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZTNiNjdiNjJhZGVhOTQyOTc3MjI5MTdmNTBmYmY4YzViYmYxNzQ1N2M4YzhmMjA5N2M5YWMyNDhiY2QwZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyNDg5YmEyOTUxYmZjYzk2ZWY5OGZjMWU5ZjFmMDgxN2E3OWRlNmZiNjJkNzUzMDQyYjY2OTI2MmY4YmUxNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1YjI3Zjk2NmM3MjUyNTI1MmRkOTg5YWIwOThhMzk2NWU5Y2VhZGYzYWFhZDY4ZGYzYWJlNjJiNDE1NjZhMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODYxNGZhYTJlMDExNTU2ZjAxOGYyOWQ4ZTY4ZWE0Nzk0MWEwMTQ3M2MxMGRkZWExMzE0YzRlYmI2NGRkNGQifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/Editor/PfnnConfigEditor.cs#L90-L155",
+          "version": "repo-lines-v1:sha256:bc30e98e9ddc6f2c1bf52ab2a7571363a03e743f5c00b1e0e8f67fdfa6f0e956:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyYzUwZjY5MGZjYzFhMDZiZjFlNjBhYmRjODBkYmZmMDNkZTJhMmExNGM4NzAyMjc3NmJkNzhjZWI4NDkxZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGI2MzQwZTU4N2NkZmNkNTFmZjRkMzY2MzJmMWYzYzBjYTU1ZDZiNmY1MGE0N2Q2YmNjNzQwM2RjYzMwNjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1MmJjZDcxZmY5OTU2MzJkYTVhYzAyNjZmMjQ5ZWFhYjY1YmZiNTZjZDUwNWY0MjdlODZhZWIyYmY4YTljY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYTBiODRmMGUxYWQ2MzFkYjM3ZDZmMDc3ZjIzMDk3MjM3MmJlMWFiOTUyZDdjMTFlNDA4MTBjNzNhNDZmNDAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-30T16:03:03.865Z"
+  }
+}

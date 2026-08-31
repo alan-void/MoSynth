@@ -16,7 +16,7 @@ sources:
     resource: repo://Python/tests/test_gait_phase.py
   - id: openwiki-source-44aeec7103fbb90f34a34626
     resource: repo://Python/tests/test_training_data.py
-generated: {by: "claude-code", at: "2026-08-29T23:23:48.822Z"}
+generated: {by: "claude-code", at: "2026-08-30T16:03:03.865Z"}
 ---
 
 # Verifying a change
@@ -55,13 +55,19 @@ generation is loaded.
 
 ## Running the edit-mode tests
 
-`MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests` and `MotionMatching.Tests`.
+`MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests`, `MotionMatching.Tests` and
+`Pfnn.Tests`.
+
+That list is hardcoded as `Filter.assemblyNames` in
+`Assets/AnimationTools/Tests/Editor/TestResultDump.cs`. **A new test assembly must be added to it or
+its tests silently do not run** — the count comes back unchanged and nothing says why. The same list
+is why an assembly that is deleted has to be removed from it.
 
 The run spans a domain reload, so results cannot come back through the menu call. `TestResultDump`
 writes them to `Temp/animtools_test_results.txt` instead:
 
 ```
-passed=211 failed=0 skipped=0
+passed=236 failed=0 skipped=0
 FAIL <full test name>: <message>
 ```
 

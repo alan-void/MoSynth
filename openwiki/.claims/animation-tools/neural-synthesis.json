@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e8a04a0b239c3269b496c9e72a2d46997ab0dcc20273801c333379febe8ff441",
+  "pageVersion": "sha256:d66d977c0438002f8c227d0005590367d860957fc47ced051229338fb74e1e77",
   "claims": [
     {
       "id": "claim_2689964bd1204431a7eced96edbe9587",
-      "statement": "Gait phase is not stored in any database and is reconstructed from the foot contacts: pi per footfall, linear between footfalls, and per clip so no stride is interpolated across a boundary. A clip with fewer than two footfalls is reported as having no measurable cycle rather than being given a fabricated one, which a zero phase rate marks.",
+      "statement": "Gait phase is not stored in any generated database and is reconstructed from the foot contacts: pi per footfall, linear between footfalls, and per clip so no stride is interpolated across a boundary. A clip with fewer than two footfalls is reported as having no measurable cycle rather than being given a fabricated one, which a zero phase rate marks.",
       "evidence": [
         {
           "resource": "repo://Python/gait_phase.py#L1-L40",
@@ -22,15 +22,15 @@
     },
     {
       "id": "claim_202fd6cda1724895b476a9da4b7e0425",
-      "statement": "training_data deliberately builds neither network's input tensor, only the per-frame quantities underneath both, because the packing is a property of the model rather than of the database; TrainingSet.pose_vector and TrainingSet.trajectory_window offer one packing and one sampling as conveniences.",
+      "statement": "training_data deliberately builds neither network's input tensor, only the per-frame quantities underneath both, because the packing is a property of the model rather than of the database; the PFNN packing therefore lives in pfnn_dataset rather than in training_data.",
       "evidence": [
         {
           "resource": "repo://Python/training_data.py#L1-L55",
-          "version": "repo-lines-v1:sha256:f58bdfb338e0435a740c518dccc6c752cb386645987a91b63e11ca1f995f5f3b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4Njc4OGRjOTUzMWE3ZjkxOGVkOWYxZDY3ODY5NGFhYTNmZWYzN2UxNjE2MDdiYTQxOWUzZThkMWEwNmJjNzgifQ"
+          "version": "repo-lines-v1:sha256:302df164afe03076d6ab54f04c8cc431a17834b91da24778fa898e411470e895:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NWQ0NTg5ZTkxY2M4Y2I5NzQ4ODlkYWIwMWRlMTVkYjE1NzRjYTEwZWVjNzI5MGExMDliZjU4OGM5NGUwMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkOTZkODJkNmQwYzMyMDY5NTZmYzA1MzkxMTkwMDgyNGE0NDVjMTZlMTFiN2QyYzk3YThhYWNiYTE3MzljNzUifQ"
         },
         {
-          "resource": "repo://Python/training_data.py#L184-L230",
-          "version": "repo-lines-v1:sha256:6578103a8a543e3422b6a6809a26a965ab62b4e4d35fa5a3b85a283de09975d0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3NTQ0ZmIzYzFmNTkyNmU2YzFlY2RhOGViMWU1OTk0MGI4ZGNkOTYzOTRmZjY1NWNhNDU4NDEwZWYxZGY1NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MjE2MTRmOTMzZDU4YzFjYWY4ODM2YWZkMjgyZWYzMzYzMWJiNDdmNDFkYzg0YjkzNTYxYTllNGI2MjM4OTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiM2JjMDUxYTU2ODQ5Njc4NjE2Y2EzZWIyYzNjNjNhYmM0YzFlNGE1MmE5MjM1NGU4YzIwY2U0Mjg2ZDM1NjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5ZWUxZWZkNGE5ODJhNzYzMTZjM2UxZGMzMTcwNmM1ODFkM2ZhMjJiZDM2ODhiN2RiNzhjM2Y0NTg2ZjA0ZTgifQ"
+          "resource": "repo://Python/pfnn_dataset.py#L1-L30",
+          "version": "repo-lines-v1:sha256:fc9c20e8eb29e505fb21b7a462acea31da4d6f611da13e6fb6b30b36e24a8754:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NWQ0NTg5ZTkxY2M4Y2I5NzQ4ODlkYWIwMWRlMTVkYjE1NzRjYTEwZWVjNzI5MGExMDliZjU4OGM5NGUwMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyYmI5Zjg4ZTIwZDk3MzA2NmRjNDU4ZDVjMTk0YmUwYWRhMDAwMDFkYzMyYzUyNGQxNDYwNzM1NDJkYzk5MTYifQ"
         }
       ]
     },
@@ -40,11 +40,11 @@
       "evidence": [
         {
           "resource": "repo://Assets/AnimationTools/Runtime/Pose/CharacterSpacePose.cs#L7-L30",
-          "version": "repo-lines-v1:sha256:391da9fb0a292c6c41dbb04ba37773cc9848010f0d6ff92d06728f29cf0ffbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZGY1YTQ4ZDZlZjM2MzI2ZTYxMDM0ODIwY2Q4OWJlZTkyNDk0MzBjNzY5OTk3Mjc1YzliZTk0ZDhjMDEyNzgifQ"
+          "version": "repo-lines-v1:sha256:7a100a836ceb11acf80a86ca3d5df039cb278478bf48ec7939cb730fa033ac10:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYjI5NWFhNzliYjE0NjlmNTY4NWNkZDI2MGMzZGE5NjFlMzk5YTgyYmVjNGQzN2QzMTg1MWZhMmJjZTNiNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3NzE0ZDAwOThmOWNmNTBkNzIzYWRjMDRkOTdiNjliZDBkMmM4ZjQxMjkxNzliMzhlNzdjMTg1OGFmYTRlODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1MTMzMmYyM2UwOGY2NDg3MDQ4Zjk0ZTZmYWQ5MGExZjUzN2JkNDM1YTFiY2I1OTU2NDE4M2ZiMmI5NWU4NzkifQ"
         },
         {
-          "resource": "repo://Python/training_data.py#L336-L448",
-          "version": "repo-lines-v1:sha256:43bd83f348e39529dda9065e0bfd49322fb4f46397eb00c11ac2d3cfec1120ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhOWQxZTVmMzdmYTBmNTc1YzY2NmJiM2JhMjYwMzk4MWMzNzI5YmUzNjgwODcwOTU4OTFjZWNhOWY4ZmZiZjY1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkNjJmYjhmOTg5OTRlN2QwZGJkN2EzZDEyODQ2MTlkN2YzZmU3YzMzMmMzZTRjNTcwY2FhYTM1ZjNiYzllMWUwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzZmI2M2JjOWUzZGNiYmZiODhkNzc2NTBhZmEyOTQzNjg1MWRmMjdjMmQ2MGFiYWNhYTZmOTA0MTE2YjAxMmJhIn0"
+          "resource": "repo://Python/training_data.py#L361-L458",
+          "version": "repo-lines-v1:sha256:89297db0d4ea26ba80d8e528a71f2e480f6fd7c9181c70e6e3f1a8dcea2d7419:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4OGMzZWI4YjJmYmI4OTJjZTczMTQ2ZjFjNWE4OGQ3OWIyN2ZhYTQyN2RiN2UzYWI0OWY3ODE0ZjRmZDkwZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmZjAyMWI1YTI2NTQ1NzI5MWMyN2E2OGI3OTBhOGY1YWEwZTRkZjFhYmIwOGJiNGQwYzllZjRmZGIzM2IyNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhMzE5ZWMyNDdkODkwYWQzNTgyNTA1MjBkZGE5YjQ1ZGFmYzRhZGY1YzUxNzIxNDY3NzAyZDhhYTljMGYwZWQifQ"
         }
       ]
     },
@@ -54,11 +54,11 @@
       "evidence": [
         {
           "resource": "repo://Assets/AnimationTools/Runtime/Pose/CharacterSpacePose.cs#L7-L30",
-          "version": "repo-lines-v1:sha256:391da9fb0a292c6c41dbb04ba37773cc9848010f0d6ff92d06728f29cf0ffbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZGY1YTQ4ZDZlZjM2MzI2ZTYxMDM0ODIwY2Q4OWJlZTkyNDk0MzBjNzY5OTk3Mjc1YzliZTk0ZDhjMDEyNzgifQ"
+          "version": "repo-lines-v1:sha256:7a100a836ceb11acf80a86ca3d5df039cb278478bf48ec7939cb730fa033ac10:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YzhmMjYwM2UzNmU1ODU4ODFlMDljMzljNGMyZWFlOTExYWY4MjJlNTgzOWQ5NGQ4YTlmZjIxNTJmYmU0NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYjI5NWFhNzliYjE0NjlmNTY4NWNkZDI2MGMzZGE5NjFlMzk5YTgyYmVjNGQzN2QzMTg1MWZhMmJjZTNiNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3NzE0ZDAwOThmOWNmNTBkNzIzYWRjMDRkOTdiNjliZDBkMmM4ZjQxMjkxNzliMzhlNzdjMTg1OGFmYTRlODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1MTMzMmYyM2UwOGY2NDg3MDQ4Zjk0ZTZmYWQ5MGExZjUzN2JkNDM1YTFiY2I1OTU2NDE4M2ZiMmI5NWU4NzkifQ"
         },
         {
-          "resource": "repo://Python/training_data.py#L315-L335",
-          "version": "repo-lines-v1:sha256:efb44d0588825d910d3a26cde1891e94ffb7d5464210e072f088c3ea25518edf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2MjQ1OGQyM2E5NjJhYTQ4ZjNmYjU5ZTAwZWMxMjBlN2NjNWFjNjcwZDI4ZmM3MGMwMThmOTFmOTcxMGNhNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiYzM0MjUzZmM0NmM4NjI1MmFjOTgzZDg0YzY0Y2Y4ZjZkYmI5ODRmOTdlZDY5NTZkYzdjYmYzZDRmMmNlYjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5ZGVmODZlZDRkMDUzOTJmMDQ1NGRkM2I0NzMxMDZiMzMyZWQ3ZGQxMTg5M2MxZDY5NmJiMjFmNzEyMDY3MzgifQ"
+          "resource": "repo://Python/training_data.py#L340-L360",
+          "version": "repo-lines-v1:sha256:74861af2650c5dfd61142afd4ee2c5c1e78461112a8f5dd4f272377dc065aefe:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MGRkNzNkZjZiMTY1MmQyM2Q3NWQyZTgxZDc1MWExMmJkODQ1Y2Q5NWVmOWEzZjcxMzFlZmRhNzFkMzY4ZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjODY3NTIyNjMwZWU3MzA5NGI3YTI3ZjNhZGYxMGQ2NDE4Yzg1M2UzZTEyMjc0NjM1MmE0Njk5NDM0NDgzZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkZmZjYWNkM2FhYzNhZjRiYjA2NWZkZDQxZTk2Mjk0N2E0Mjc0YThlN2EzYjFhYzRmMjA3YWY5MmJlN2RkMzgifQ"
         }
       ]
     },
@@ -67,12 +67,12 @@
       "statement": "A trajectory window is the one model input the frame-local arrays cannot supply, because the frame transform is precisely what removes it, so the training set keeps the world frame origin and heading for that purpose alone and TrainingSet.trajectory_window derives the window from them at whatever offsets a model wants.",
       "evidence": [
         {
-          "resource": "repo://Python/training_data.py#L96-L150",
-          "version": "repo-lines-v1:sha256:68d394951b7dd770f9f45033eb9828f2cb9777bf2acf98ebbbc90b94617d099a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYmYxMjY3MDg3MjUyNzljMmE4NzYxNjRiMWY2MmI2MTIzYTA5MDdjNDI1OTZlZjVmYWMxMmU5ZTQ1YzBjMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNjE3MWZiZGUxODI4YWY1YWY2YTkwNDZhMTA4YTBiNDVjYTc4ZDRlNjg5NGRlNGNiNmE4NDFlNDY1NmE5ZDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3MzA0ODAzMmQwM2NhYWU5YWJkYmY4ZDRjNWQ1OTYzZGIwOGM1MDk2YmZjZjE1MWNlZTBkMDA2N2NkYzZlZTIifQ"
+          "resource": "repo://Python/training_data.py#L121-L175",
+          "version": "repo-lines-v1:sha256:6f8c066c0f54cf0abc8901031810709c36897e0f43d1e7d621e163b182855b49:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMzMyZjUxNDVjMDJmMzkyMTY5MWU3MWY1OTc1MmQ0NmI3ODI1NjZjOWEzZDFjM2ZhMzcwYjczMGYxZmJhNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0OWM5NDM0ZDgwOGFjM2Q5MmI1NTZmZjYxNDg4MGViNTY0MDA2ODk0YmZhZmIzNGVmMzk1YmZlNjk4MDY3YTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmN2ZjZmRhMjcyNzE3MmFiNmQwMDc3NjMxYmIyNmQxY2E0ZTgwOTQ4MzBkMWFjMzk2ZjY4N2QzZGVkM2MzNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxZGZjZDZkZjk4OWRmOGNmYjBlMjlkOTBjNjM2OWMwYmNmYWE0YWZlYTgzZDYyNzZhNGRiYzg5YWNhMjEyNjEifQ"
         },
         {
-          "resource": "repo://Python/training_data.py#L223-L274",
-          "version": "repo-lines-v1:sha256:255aff4a69b4e9185219d1c24ede867578af612c3885d60af2340038329921b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNjYzM2YxNTA5ODMyN2FlOTlhOWEzNTQ4MTMwNTJlNTFlMWE2OWI4Yzk2MDZkNDQ4NjlkMGNiNDBhNWU1MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NTU1ZTVjMzIzMDI5ZDAxYWY2MmViZDczOTEwMDdkZDRjMjJhNjZiNGZmNzZkMzY5OWViMTc3MzRiODY4OWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmYjQzMjE3OWUyYmE1MGMwOTRmMDI2MTRlNjY2ZTFhY2M4Nzg5MjE5NWUwYTRkNjcwZGUzNmJiZGQ3MjU3ZWUifQ"
+          "resource": "repo://Python/training_data.py#L248-L299",
+          "version": "repo-lines-v1:sha256:70a05aa0f04ec2de81d8a4c81396a1e2e76a00259ce229d52a11b6ff369ed722:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MGRmOWRjOGY2YTYxOTI0NzNhNjZlODU2NTQ3NGZjNDAwNDA3YTAzMDMwOTdmYzU4MTIxMWE1Y2Q2MzIzOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllYmExOWE5ZjgzYzA1YjY0YTMzYjc3YTJlYzJiZDQ2ODYyOWQyYzdhZTc3ZmY2ODk0NmRhM2VhNmZlYWRkZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxNWRiMWI0NmExOGRjNGNhOWE4YTQ0YzNjYjM4NjA0ZDc2MjI4NTY5YzQxZWQwYTg2MzNjY2M5NGVhMmY4NzkifQ"
         }
       ]
     },
@@ -81,18 +81,60 @@
       "statement": "Trajectory window offsets are clamped inside the query frame's own clip rather than wrapped or dropped, so a window near a clip edge repeats its last real sample — the same thing a character standing still would produce — which keeps every frame usable instead of discarding the ends of every clip.",
       "evidence": [
         {
-          "resource": "repo://Python/training_data.py#L223-L274",
-          "version": "repo-lines-v1:sha256:255aff4a69b4e9185219d1c24ede867578af612c3885d60af2340038329921b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNjYzM2YxNTA5ODMyN2FlOTlhOWEzNTQ4MTMwNTJlNTFlMWE2OWI4Yzk2MDZkNDQ4NjlkMGNiNDBhNWU1MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NTU1ZTVjMzIzMDI5ZDAxYWY2MmViZDczOTEwMDdkZDRjMjJhNjZiNGZmNzZkMzY5OWViMTc3MzRiODY4OWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmYjQzMjE3OWUyYmE1MGMwOTRmMDI2MTRlNjY2ZTFhY2M4Nzg5MjE5NWUwYTRkNjcwZGUzNmJiZGQ3MjU3ZWUifQ"
+          "resource": "repo://Python/training_data.py#L248-L299",
+          "version": "repo-lines-v1:sha256:70a05aa0f04ec2de81d8a4c81396a1e2e76a00259ce229d52a11b6ff369ed722:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MGRmOWRjOGY2YTYxOTI0NzNhNjZlODU2NTQ3NGZjNDAwNDA3YTAzMDMwOTdmYzU4MTIxMWE1Y2Q2MzIzOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllYmExOWE5ZjgzYzA1YjY0YTMzYjc3YTJlYzJiZDQ2ODYyOWQyYzdhZTc3ZmY2ODk0NmRhM2VhNmZlYWRkZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxNWRiMWI0NmExOGRjNGNhOWE4YTQ0YzNjYjM4NjA0ZDc2MjI4NTY5YzQxZWQwYTg2MzNjY2M5NGVhMmY4NzkifQ"
         },
         {
           "resource": "repo://Python/tests/test_training_data.py",
           "version": "repo-file-v1:sha256:502d89b525facd2e638653105fbf1d1129cd7f07368018e7bb254d4aee9e50f7"
         }
       ]
+    },
+    {
+      "id": "claim_0aa114a9d28f451ebb094077027ca0f0",
+      "statement": "CharacterSpacePose.Apply is the named inverse of Extract, taking a pose given in a character frame and writing it into a PoseBuffer; bones below the root keep their rest offsets because only their rotations are written, so a predicted pose cannot stretch a bone the way a prediction made directly in positions can.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/CharacterSpacePose.cs#L104-L232",
+          "version": "repo-lines-v1:sha256:cd6c7f057386b0f046cabb4e628bcca44e44fa4feac7991dbec96b7a0ce96838:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzYjMyMTg5MWIzOTkwMzg0MDBjYWFlN2UyMDYwMGFkNzY3MDgxZGEyOWQ1OGVkMWFkZjEzOTE3OWE0MzMyYmMzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNDkzMGYyYTk3ZjU1ZTExZjU5MTBkODNmMjMzYWQxMTQzOTlmYzE0MDM3YzQzOGEzOWZhYjIwNDUzNGNhOTJkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjNzU0ZWJiZmQ4ZWZlYTRkNDllYzVjN2EzOGI4NzE2MDVjZTRmMzBjOTU2NzZkNmU1OTEwZmM0OGY1MDM0NTEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5ODgzNDQxYmYzZWFiMDMyNzRmY2M2ZjFmM2EwY2ZiYzBiY2MyM2IzNzA0OGNmMGZhM2RmYjA2Y2VhNWI2YmZiIn0"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/CharacterSpacePoseApplyTests.cs",
+          "version": "repo-file-v1:sha256:ebda162cbfc76963411f490eaac72b075f96293f6713341a4aab90087ebe18d8"
+        }
+      ]
+    },
+    {
+      "id": "claim_6f8786c903b343df827b8530d571fd7a",
+      "statement": "The cross-language agreement between the two character-frame definitions is now measured rather than only asserted by matching properties: MoSynth/Pfnn/Check Training Agreement runs the same database frames through CharacterSpacePose.Extract and training_data.build_training_set and reports the deviation, with the residual concentrated at the deepest joints because C# composes forward kinematics in float32 and Python in float64.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/Editor/PfnnAgreementCheck.cs",
+          "version": "repo-file-v1:sha256:5476140007851fea8499bb6b5a671c36faa4524125e908553c747065d0aec8c5"
+        },
+        {
+          "resource": "repo://Python/pfnn_agreement.py",
+          "version": "repo-file-v1:sha256:8cf4a89fe8f2d91e7ed60ab0b689b38a43250f7814aa5be3ad5afdbefa625c66"
+        }
+      ]
+    },
+    {
+      "id": "claim_c01d6e4033df404986690d95dbbdb396",
+      "statement": "Footfall anchors are now authorable per clip as a gait phase clip component, but they do not yet reach the generated database: extraction still derives its own contacts and Python still reconstructs phase from them, so the component changes what a person can see and correct rather than what a network trains on.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/GaitPhaseComponent.cs#L1-L50",
+          "version": "repo-lines-v1:sha256:89e80bd796f0f55a123d8755a3c86f858dfff7a0de40f1310ab7c435a3e612e6:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzNTc1MDlmYjNhNmNhYmY4ZjNkYTBhNDRlOTVlN2Y3ZGZlZjg2ZGE4YTZmMDU1ZDdjOTEzYTJjN2QyMzkyM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlNmM4YmQ1ZjAxMWM4OTQyYjM3ZGYzNGQ4NGE3MTdlNDhlZmJiMjAyNGUxOTYzNDQ2OTgwYmUxNmJlZjI0ZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlMWY5YTU5ODIwNzc3NGRjZDY0NTc1YWEwNDZmYTM3ZmUyM2MwZTkyOTBiYzFiY2QzMDQ4ZWQ0ZjY2NjM0YTgifQ"
+        },
+        {
+          "resource": "repo://Python/training_data.py#L361-L458",
+          "version": "repo-lines-v1:sha256:89297db0d4ea26ba80d8e528a71f2e480f6fd7c9181c70e6e3f1a8dcea2d7419:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4OGMzZWI4YjJmYmI4OTJjZTczMTQ2ZjFjNWE4OGQ3OWIyN2ZhYTQyN2RiN2UzYWI0OWY3ODE0ZjRmZDkwZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmZjAyMWI1YTI2NTQ1NzI5MWMyN2E2OGI3OTBhOGY1YWEwZTRkZjFhYmIwOGJiNGQwYzllZjRmZGIzM2IyNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhMzE5ZWMyNDdkODkwYWQzNTgyNTA1MjBkZGE5YjQ1ZGFmYzRhZGY1YzUxNzIxNDY3NzAyZDhhYTljMGYwZWQifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-29T23:35:22.182Z"
+    "at": "2026-08-31T11:48:44.020Z"
   }
 }

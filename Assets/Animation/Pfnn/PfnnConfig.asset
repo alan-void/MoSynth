@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c6e72a7a48fe234eb37522d8844916b, type: 3}
+  m_Name: PfnnConfig
+  m_EditorClassIdentifier: 
+  animationClips:
+  - {fileID: 11400000, guid: 83f13ab2065eeee41b3cbf97abcf0914, type: 2}
+  skeleton:
+    root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  contactVelocityThreshold: 0.15
+  leftContactBone:
+    skeleton:
+      root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    bone: {fileID: 1322346492617891832, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  rightContactBone:
+    skeleton:
+      root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    bone: {fileID: -4253216979514265273, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  windowRadiusFrames: 30
+  windowStrideFrames: 5
+  hiddenUnits: 256
+  dropout: 0.3
+  excludedBones:
+  - Model:LeftToeEnd_end
+  - Model:RightToeEnd_end
+  - Model:LeftHandThumb1
+  - Model:LeftHandThumb2
+  - Model:LeftHandThumb3
+  - Model:LeftHandThumb4
+  - Model:LeftHandThumb4_end
+  - Model:LeftInHandIndex
+  - Model:LeftHandIndex1
+  - Model:LeftHandIndex2
+  - Model:LeftHandIndex3
+  - Model:LeftHandIndex4
+  - Model:LeftHandIndex4_end
+  - Model:LeftInHandMiddle
+  - Model:LeftHandMiddle1
+  - Model:LeftHandMiddle2
+  - Model:LeftHandMiddle3
+  - Model:LeftHandMiddle4
+  - Model:LeftHandMiddle4_end
+  - Model:LeftInHandPinky
+  - Model:LeftHandPinky1
+  - Model:LeftHandPinky2
+  - Model:LeftHandPinky3
+  - Model:LeftHandPinky4
+  - Model:LeftHandPinky4_end
+  - Model:LeftInHandRing
+  - Model:LeftHandRing1
+  - Model:LeftHandRing2
+  - Model:LeftHandRing3
+  - Model:LeftHandRing4
+  - Model:LeftHandRing4_end
+  - Model:Head_end
+  - Model:RightHandThumb1
+  - Model:RightHandThumb2
+  - Model:RightHandThumb3
+  - Model:RightHandThumb4
+  - Model:RightHandThumb4_end
+  - Model:RightInHandIndex
+  - Model:RightHandIndex1
+  - Model:RightHandIndex2
+  - Model:RightHandIndex3
+  - Model:RightHandIndex4
+  - Model:RightHandIndex4_end
+  - Model:RightInHandMiddle
+  - Model:RightHandMiddle1
+  - Model:RightHandMiddle2
+  - Model:RightHandMiddle3
+  - Model:RightHandMiddle4
+  - Model:RightHandMiddle4_end
+  - Model:RightInHandPinky
+  - Model:RightHandPinky1
+  - Model:RightHandPinky2
+  - Model:RightHandPinky3
+  - Model:RightHandPinky4
+  - Model:RightHandPinky4_end
+  - Model:RightInHandRing
+  - Model:RightHandRing1
+  - Model:RightHandRing2
+  - Model:RightHandRing3
+  - Model:RightHandRing4
+  - Model:RightHandRing4_end
+  epochs: 150
+  batchSize: 32
+  learningRate: 0.0001
+  weightDecay: 0.0025
+  validationFraction: 0.1
+  seed: 42
+  device: 0
+  hasPoseDatabase: 1
+  hasTrained: 1

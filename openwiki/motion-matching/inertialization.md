@@ -120,7 +120,7 @@ fold the cosine rule is degenerate. Every `acos` argument is clamped.
 | --- | --- |
 | The stage, offsets, frame-space root blend | `Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs` |
 | Two-bone IK (unused) | `Assets/MotionMatching/Runtime/IK/TwoJointIK.cs` |
-| Spring family | `Assets/MotionMatching/Runtime/Utils/Spring.cs` |
+| Spring family | `Assets/AnimationTools/Runtime/Utils/Spring.cs` |
 
 **Tests.** None directly. The frame-space machinery it depends on is covered by `SimulationFrameTests`,
 including the decompose/recompose inverse and the tangential-velocity term.

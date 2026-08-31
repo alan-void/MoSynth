@@ -23,12 +23,43 @@ public class AnnotatedAnimationClip : SkeletonAnimation
     [Min(0)] [Tooltip("End frame of the animation clip. 0 indexing, exclusive.")]
     public int endFrame;
 
+    /// <summary>
+    /// Annotation attached to this clip — see <see cref="AnimationClipComponent"/>.
+    /// </summary>
+    /// <remarks>
+    /// Initialised here rather than seeded by the creation menu, because
+    /// <c>[CreateAssetMenu]</c> makes assets without going through it.
+    /// </remarks>
+    [SerializeReference] [SubclassSelector]
+    public List<AnimationClipComponent> components = new();
+
     /// Number of frames in the [startFrame, endFrame) slice, clamped defensively — a serialized
     /// endFrame can exceed the animation's frame count until OnValidate re-runs.
     public new int FrameCount => !HasClip ? 0 : Math.Max(0, Math.Min(endFrame, base.FrameCount) - startFrame);
 
     /// Frame view offset by startFrame. Never Dispose the returned buffer.
     public new PoseBuffer GetFrame(int frameIndex) => PoseSequence.GetFrame(startFrame + frameIndex);
+
+    /// <summary>
+    /// The first component of type <typeparamref name="T"/>, or null. Entries deserialize as null
+    /// when their type was renamed or removed, so this skips them.
+    /// </summary>
+    public T GetComponent<T>() where T : AnimationClipComponent
+    {
+        foreach (var component in components)
+        {
+            if (component is T match) return match;
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc cref="GetComponent{T}"/>
+    public bool TryGetComponent<T>(out T component) where T : AnimationClipComponent
+    {
+        component = GetComponent<T>();
+        return component != null;
+    }
 
     protected override void OnValidate()
     {
@@ -42,6 +73,13 @@ public class AnnotatedAnimationClip : SkeletonAnimation
 
         if (endFrame >= base.FrameCount)
             endFrame = base.FrameCount;
+
+        // After the clamp, so a component that indexes into the clip sees the range it will
+        // actually be asked about.
+        foreach (var component in components)
+        {
+            component?.OnValidate(this);
+        }
     }
 
     /// <summary>

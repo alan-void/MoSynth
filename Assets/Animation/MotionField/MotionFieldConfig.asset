@@ -25,10 +25,6 @@ MonoBehaviour:
     skeleton:
       root: {fileID: -731917433974300366, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
     bone: {fileID: -4253216979514265273, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-  simulationFrameBone:
-    skeleton:
-      root: {fileID: 0}
-    bone: {fileID: 0}
   kNeighbors: 15
   tugRatio: 0.1
   posWeight: 1
@@ -47,5 +43,5 @@ MonoBehaviour:
   umapMinDist: 0.1
   umapComponents: 3
   umapSeed: 42
-  hasPoseDatabase: 1
-  hasTrained: 1
+  hasPoseDatabase: 0
+  hasTrained: 0

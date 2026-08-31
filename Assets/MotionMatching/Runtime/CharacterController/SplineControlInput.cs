@@ -56,14 +56,10 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     protected virtual bool IsClosed => HasPath && splineContainer.Spline.Closed;
 
     /// <summary>
-    /// Folds a normalized parameter into the path: wrapping a closed one, clamping an open one.
+    /// Folds a normalized parameter into the path, against this input's own <see cref="IsClosed"/>.
+    /// See <see cref="SplineFold"/> for why an open path clamps.
     /// </summary>
-    /// <remarks>
-    /// Wrapping an open path teleports the predicted trajectory back to the start once the reference
-    /// nears the end, which reads as an instruction to turn around and walk back — so the character
-    /// never reaches the far end and the run can only end by timing out.
-    /// </remarks>
-    protected float Fold(float t) => IsClosed ? math.frac(t) : math.clamp(t, 0f, 1f);
+    protected float Fold(float t) => SplineFold.Normalized(t, IsClosed);
 
     /// <summary>
     /// Position along the spline, normalized to 0..1 and folded by <see cref="Fold"/>. Distances must

@@ -102,6 +102,131 @@ public static class CharacterSpacePose
     }
 
     /// <summary>
+    /// Writes a pose given in a character frame back into <paramref name="pose"/> — the inverse of
+    /// <see cref="Extract"/>.
+    /// </summary>
+    /// <remarks>
+    /// This is how a stage running a learned model returns its prediction. The model works in the
+    /// character frame and knows nothing about the storage convention, so the conversion has to
+    /// live in one named place rather than being open-coded per stage: two stages writing a pose
+    /// slightly differently is the same silent-disagreement failure <see cref="Extract"/> exists to
+    /// prevent, only on the way out.
+    /// <para>
+    /// Bones below the root keep their rest offsets, because only their rotations are written. A
+    /// predicted pose therefore cannot stretch a bone, which a prediction made directly in
+    /// positions can and does.
+    /// </para>
+    /// <para>
+    /// The frame is a parameter rather than something read back off the pose: the caller is
+    /// deciding where the character has moved to, and the frame's own velocity written into bone 0
+    /// is what <see cref="MotionSynthesisComponent"/> reads to advance the transform.
+    /// </para>
+    /// </remarks>
+    /// <param name="pose">Destination. Must use the full pose layout over <paramref name="skeleton"/>.</param>
+    /// <param name="skeleton">The bone hierarchy, in the pose's own depth-first order.</param>
+    /// <param name="framePosition">Where the character frame sits, in world space.</param>
+    /// <param name="frameRotation">The frame's ground-projected, yaw-only rotation.</param>
+    /// <param name="frameLinearVelocity">The frame's own travel, in frame space, metres per second.</param>
+    /// <param name="frameYawRate">The frame's own turn, radians per second.</param>
+    /// <param name="positions">
+    /// In: one frame-local position per bone. Out: the same array holding world positions — it is
+    /// rewritten in place, as <see cref="Extract"/>'s outputs are, so neither direction allocates.
+    /// </param>
+    /// <param name="rotations">As <paramref name="positions"/>, for rotations.</param>
+    /// <param name="velocities">
+    /// One frame-local linear rate per bone, or an uncreated array to leave the pose's rate
+    /// channels alone. Rewritten in place like the others.
+    /// </param>
+    /// <param name="angularVelocities">
+    /// As <paramref name="velocities"/>. Uncreated unless <paramref name="velocities"/> is too.
+    /// </param>
+    public static void Apply(PoseBuffer pose, in SkeletonData skeleton,
+        float3 framePosition, quaternion frameRotation, float3 frameLinearVelocity,
+        float frameYawRate, NativeArray<float3> positions, NativeArray<quaternion> rotations,
+        NativeArray<float3> velocities = default, NativeArray<float3> angularVelocities = default)
+    {
+        var boneCount = skeleton.BoneCount;
+        Debug.Assert(positions.Length == boneCount && rotations.Length == boneCount,
+            "Position and rotation arrays must have one element per bone.");
+
+        var wantRates = velocities.IsCreated && angularVelocities.IsCreated;
+        Debug.Assert(velocities.IsCreated == angularVelocities.IsCreated,
+            "Linear and angular rates are applied together or not at all.");
+        Debug.Assert(!wantRates ||
+                     (velocities.Length == boneCount && angularVelocities.Length == boneCount),
+            "Rate arrays must have one element per bone.");
+
+        for (var i = 0; i < boneCount; i++)
+        {
+            var worldPosition = SimulationFrame.FromFrameLocal(positions[i], framePosition, frameRotation);
+            positions[i] = worldPosition;
+            rotations[i] = SimulationFrame.FromFrameLocal(rotations[i], frameRotation);
+
+            if (!wantRates) continue;
+
+            // The exact inverse of the split Extract takes: give the frame's own motion back.
+            SimulationFrame.RecomposeRootVelocity(framePosition, frameRotation, frameLinearVelocity,
+                frameYawRate, worldPosition, velocities[i], angularVelocities[i],
+                out var linear, out var angular);
+            velocities[i] = linear;
+            angularVelocities[i] = angular;
+        }
+
+        WriteLocalPose(pose, skeleton, positions, rotations);
+        if (wantRates) WriteLocalRates(pose, skeleton, rotations, velocities, angularVelocities);
+    }
+
+    /// <summary>
+    /// Turns world positions and rotations into what a pose stores: bone 0 in world space, every
+    /// other bone its rest offset and a parent-local rotation.
+    /// </summary>
+    private static void WriteLocalPose(PoseBuffer pose, in SkeletonData skeleton,
+        NativeArray<float3> worldPositions, NativeArray<quaternion> worldRotations)
+    {
+        var localPositions = pose.Positions;
+        var localRotations = pose.Rotations;
+
+        localPositions[0] = worldPositions[0];
+        localRotations[0] = worldRotations[0];
+
+        for (var i = 1; i < skeleton.BoneCount; i++)
+        {
+            var parent = skeleton.ParentIndices[i];
+            localRotations[i] = math.mul(math.inverse(worldRotations[parent]), worldRotations[i]);
+            localPositions[i] = skeleton.RestLocalPositions[i];
+        }
+    }
+
+    /// <summary>
+    /// The backward pass matching <see cref="WorldRates"/>: undoes the rigid-body transfer bone by
+    /// bone, each one's parent already resolved because bones are stored depth-first.
+    /// </summary>
+    private static void WriteLocalRates(PoseBuffer pose, in SkeletonData skeleton,
+        NativeArray<quaternion> worldRotations, NativeArray<float3> velocities,
+        NativeArray<float3> angularVelocities)
+    {
+        var localVelocities = pose.Velocities;
+        var localAngularVelocities = pose.AngularVelocities;
+
+        // Bone 0's channels are world, which is what Extract reads them as.
+        localVelocities[0] = velocities[0];
+        localAngularVelocities[0] = angularVelocities[0];
+
+        for (var i = 1; i < skeleton.BoneCount; i++)
+        {
+            var parent = skeleton.ParentIndices[i];
+            var parentRotation = worldRotations[parent];
+            var inverseParentRotation = math.inverse(parentRotation);
+            var offset = math.rotate(parentRotation, skeleton.RestLocalPositions[i]);
+
+            localAngularVelocities[i] = math.rotate(inverseParentRotation,
+                angularVelocities[i] - angularVelocities[parent]);
+            localVelocities[i] = math.rotate(inverseParentRotation,
+                velocities[i] - velocities[parent] - math.cross(angularVelocities[parent], offset));
+        }
+    }
+
+    /// <summary>
     /// World linear and angular rate of every bone, in one forward pass over the hierarchy.
     /// </summary>
     /// <remarks>

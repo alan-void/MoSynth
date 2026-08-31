@@ -64,6 +64,25 @@ Poses are packed into flat arrays for efficiency with Python interop:
 - **Python classes**: `Pose` (immutable), `PoseDelta` (velocity), `Skeleton` (FK/IK)
 - `action_predictor.get_pose_arrays` unpacks a synthesized pose back down to plain per-bone arrays (no frame slots — C# derives its own frame from bone 0) for the PythonNET boundary
 
+### PfnnStage
+
+A phase-functioned neural network (Holden et al. 2017) as a `MoSynthStage`, running the model in
+Python behind PythonNET.
+
+- **C# side** (`Assets/Pfnn/`): `PfnnStage` assembles the trajectory window, joints and gait phase
+  each tick, calls one stateless Python `step`, converts the predicted 6D rotations, and writes the
+  pose through `CharacterSpacePose.Apply`. The stage owns the state — phase, joints and the
+  trajectory history ring — because a PFNN's state is a pose Unity has to write anyway
+- **Python side** (`Python/pfnn_*.py`): `pfnn_dataset` packs vectors, `pfnn_model` is the network,
+  `pfnn_trainer` fits it, `pfnn_io` stores it, `pfnn_runtime` runs it
+- **Which bones it predicts is authored on `PfnnConfig`**, as a sparse name-keyed exclusion list
+  drawn as the skeleton hierarchy. Excluding a bone excludes its subtree, because the network
+  predicts rotations and a rotation needs its parent's frame. The heuristic behind the
+  "Exclude Fingers And Leaves" button lives only in that button
+- Only the **future** half of the trajectory window comes from the control input; the past half is
+  the character's own history, which is what training used
+- Full detail: `openwiki/pfnn/`
+
 ### MotionFieldStage (Current Feature Branch)
 
 Integrates a neural motion field into the pipeline via PythonNET:
@@ -82,7 +101,7 @@ Integrates a neural motion field into the pipeline via PythonNET:
 - Supporting: `get_knn()`, `get_batched_knn()`, `build_motion_states()`, `load_value_function()`
 
 **Python setup:**
-- The CPython DLL and venv paths belong to a machine, not to the project, so they live outside its assets. `PythonRuntime.EnsureInitialized` resolves them from the `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` environment variables first, then from `PythonPathSettings` — `UserSettings/MoSynthPython.json`, which is gitignored and edited under **Project Settings → MoSynth → Python** — then, for the DLL only, PythonNET's own `PYTHONNET_PYDLL`. The variables win because they are the only source that reaches a machine with no project folder to read
+- The CPython DLL and venv paths belong to a machine, not to the project, so they live outside its assets. `PythonRuntime.EnsureInitialized` resolves them from the `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` environment variables first, then from `PythonPathSettings` — `UserSettings/MoSynthPython.json`, which is gitignored and edited under **Project Settings → MoSynth → Python** — then, for the DLL only, PythonNET's own `PYTHONNET_PYDLL`. The variables win because they are the only source that reaches a machine with no project folder to read. Both types live in `AnimationTools` (namespace `AnimationTools`), not in `MotionField`, because more than one synthesis method now needs them
 - Project modules import from `PythonRuntime.ScriptsFolder` — the repository's `Python/` folder, derived from `Application.dataPath`
 - Python 3.13 is required for PythonNET compatibility
 
@@ -102,9 +121,19 @@ Assets/
 │   │   ├── SkeletonRigBuilder.cs    [materializes Skeleton as GameObject hierarchy]
 │   │   ├── SkeletonData.cs          [unmanaged, Burst-compatible mirror of a Skeleton's hierarchy]
 │   │   └── ISkeletonProvider.cs     [interface for skeleton access]
+│   ├── Runtime/Animation/
+│   │   ├── AnnotatedAnimationClip.cs [a clip + skeleton, a frame slice, and a clip component list]
+│   │   ├── AnimationClipComponent.cs [base for polymorphic per-clip annotation]
+│   │   ├── GaitPhaseComponent.cs    [footfall anchors + how they were detected]
+│   │   └── GaitPhase.cs             [footfalls -> phase; the C# half of Python/gait_phase.py]
 │   ├── Runtime/Pose/
 │   │   ├── PoseBuffer.cs            [mutable pose in motion synthesis]
+│   │   ├── CharacterSpacePose.cs    [Extract/Apply: a pose measured in, and written back from, its character frame]
 │   │   └── PoseFK.cs                [forward kinematics]
+│   ├── Runtime/Python/
+│   │   ├── PythonRuntime.cs         [shared CPython bootstrap and module reloading]
+│   │   └── PythonPathSettings.cs    [per-user interpreter paths in UserSettings/MoSynthPython.json]
+│   ├── Editor/Python/PythonSettingsProvider.cs [Project Settings → MoSynth → Python, and Verify Setup]
 │   ├── Runtime/Benchmark/           [sweep config, lap tracking, motion-quality & cost metrics]
 │   ├── Runtime/Evaluation/          [PathFollowingMetric(sCalculator): in-scene A/B tool + pure metrics]
 │   ├── Runtime/Recording/           [MotionRecorder, channels, manifest, reader]
@@ -115,10 +144,14 @@ Assets/
 ├── MotionField/
 │   ├── MotionFieldStage.cs          [stage implementing neural field]
 │   ├── MfConnector.cs               [data connector for field]
-│   ├── MotionFieldConfig.cs         [serializable config: clips, skeleton, hyperparameters]
-│   ├── PythonRuntime.cs             [shared CPython bootstrap and module reloading]
-│   ├── PythonPathSettings.cs        [per-user interpreter paths in UserSettings/MoSynthPython.json]
-│   └── Editor/PythonSettingsProvider.cs [Project Settings → MoSynth → Python, and Verify Setup]
+│   └── MotionFieldConfig.cs         [serializable config: clips, skeleton, hyperparameters]
+├── Pfnn/
+│   ├── PfnnStage.cs                 [phase-functioned network stage; owns phase, joints, trajectory history]
+│   ├── PfnnConfig.cs                [clips, skeleton, predicted-bone selection, network + training settings]
+│   ├── PfnnBoneSelection.cs         [marshals the selection to Python; binds a checkpoint's bone names to a rig]
+│   ├── PfnnTrajectory.cs            [history ring buffer and the ground-plane frame transform]
+│   ├── PfnnControlInput.cs          [steering contract; + spline and direction inputs]
+│   └── Editor/                      [config inspector, training, default bone selection, agreement check]
 ├── MotionMatching/
 │   ├── Runtime/Core/
 │   │   ├── MotionMatchingStage.cs   [database search stage]
@@ -130,7 +163,8 @@ Assets/
 │   ├── ExampleSimpleMMStages.unity  [demo scene with motion matching]
 │   └── (animation/scene test assets)
 └── Animation/
-    └── MotionMatching/              [animation database assets]
+    ├── MotionMatching/              [animation database assets]
+    └── Pfnn/                        [PfnnConfig asset]
 
 Python/
 ├── MotionField.py                   [neural motion field implementation]
@@ -144,6 +178,12 @@ Python/
 ├── simulation_frame.py              [character frames, FK, and per-frame rates]
 ├── gait_phase.py                    [gait phase reconstructed from foot contacts]
 ├── training_data.py                 [per-frame arrays a PFNN/LMM model trains on, + .npz]
+├── pfnn_dataset.py                  [bone selection and the PFNN input/output vector layouts]
+├── pfnn_model.py                    [the phase function and the network it drives]
+├── pfnn_io.py                       [.pfnn.npz checkpoint format; numpy only]
+├── pfnn_trainer.py                  [training loop and the Unity entry point]
+├── pfnn_runtime.py                  [stateless inference policy, + an offline rollout]
+├── pfnn_agreement.py                [compares the C# and Python character-frame definitions]
 ├── motion_field_io.py               [.mffield.npz value function format]
 ├── motion_field_trainer.py          [fitted value iteration]
 ├── motion_field_embedding.py        [UMAP projection for the debug visualizer]
@@ -226,6 +266,12 @@ A sweep runs every configured method against every path, one character at a time
   batch into `Assets/Benchmarks/Paths/Random`, which the folder scan reaches, so they join the sweep
   with no config edit. Names carry the seed and slot (`Random_s4821_03_SharpLoop`), and geometry is a
   pure function of the two, so a report row identifies the exact curve and the same seed rebuilds it.
+  Six families: each of three shapes — a closed `Loop`, an open `Line` corridor, and an open `Walk`
+  that is contained by nothing — with rounded turns or with corners. The knot-count range is the dial
+  that decides how convoluted a path is; the extent means overall size in every family, open paths
+  being scaled to the same length as a loop of that extent. **Nothing enforces a minimum turn
+  radius** — how well a method follows a demanding curve is the measurement — so the generation log
+  reports the tightest turn (smooth) or sharpest corner (sharp) per path instead.
   `MoSynth/Benchmark/Delete Random Paths` clears the batch — leaving a stale one in place silently
   adds its runs to every later sweep
 - **Run, visible**: `MoSynth/Benchmark/Run Sweep`, or the button on the config's inspector. It
@@ -247,12 +293,20 @@ and unit-tested: path following (`PathFollowingMetricsCalculator`, reused unchan
 inside the Editor: valid for comparing methods within one sweep on one machine, and nothing more.
 
 ### Testing & Validation
-- **C# edit-mode suites**: `MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests` and
-  `MotionMatching.Tests` and writes `Temp/animtools_test_results.txt`, which survives the domain
-  reload a test run causes — so a scripted caller reads results from there, not from the console
+- **C# edit-mode suites**: `MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests`,
+  `MotionMatching.Tests` and `Pfnn.Tests` and writes `Temp/animtools_test_results.txt`, which
+  survives the domain reload a test run causes — so a scripted caller reads results from there, not
+  from the console. That assembly list is hardcoded in `TestResultDump`; a new test assembly must be
+  added to it or its tests silently do not run
 - **Python suites**: `python -m unittest discover -s Python/tests -t Python/tests`. They use only
   numpy and scipy and build their own fixtures, so they need neither Unity nor a generated database
 - **Editor play mode**: test motion synthesis visually
+- **PFNN**: train from the config's inspector, or standalone —
+  `python Python/pfnn_trainer.py <database-folder> <name> --out out.pfnn.npz`. Judge a checkpoint
+  before wiring a character with `python Python/pfnn_runtime.py <checkpoint> --database <folder>
+  --name <name> --rollout 300`, which runs the model against its own predictions.
+  `MoSynth/Pfnn/Check Training Agreement` compares the C# and Python character-frame definitions on
+  the same frames — the check that the model is run on the arrays it was trained on
 - **Motion database**: `MoSynth/Database/Regenerate Motion Matching Databases` rebuilds every
   `MotionMatchingData` asset's `.mmpose` and `.mmfeatures`. Run it after any change to an extraction
   format or a feature definition — the files are unversioned, and a stale one is refused rather than
@@ -281,6 +335,24 @@ When adding a new `MoSynthStage`:
 - **Two invariants nothing enforces at compile time:**
   1. A `Skeleton`'s rest pose is read live off its Transforms, so it must point at an ASSET rig (imported FBX or prefab), never a live scene rig — a skeleton over an animated scene rig reports the current pose as the rest pose and silently corrupts FK. `MotionSynthesisComponent` serializes its own `Skeleton` field — assigned to the rig's root bone from the FBX asset, since the field's drawer refuses scene objects — and binds it to the scene rig via `SkeletonBoneOverrides`
   2. Everything under a skeleton's root Transform becomes a bone, so a rig must have nothing but bones beneath its skeleton root — a mesh node, IK helper, or attachment point there would shift every index after it
+
+### Clip components
+
+- `AnnotatedAnimationClip` carries a `[SerializeReference] [SubclassSelector] List<AnimationClipComponent>`.
+  Annotation a clip's curves cannot supply is added by declaring a component type, not by adding
+  another field to the clip. Same seam as `MoSynthStage`: `[Serializable]`, parameterless ctor,
+  public mutable fields, and subclasses in any assembly referencing `AnimationTools` are offered
+  with no registration
+- **A managed reference is keyed in YAML by its (class, namespace, assembly) triple.** Renaming a
+  component type, moving its namespace, or moving its file to another assembly orphans every
+  authored instance and drops the data on the next save. `[FormerlySerializedAs]` renames fields,
+  not types — `[MovedFrom]` is the tool, and is not yet used anywhere here
+- `GaitPhaseComponent` is the first one: a clip's footfall anchors plus the per-clip settings they
+  were detected with. `GaitPhase` turns anchors into phase by the same rule as
+  `Python/gait_phase.py`, except that it refuses to extrapolate past the outer anchors — see
+  `openwiki/animation-tools/animation-sources.md`. The anchors do **not** reach the database yet
+- The `Tag` struct, `PoseSet.AddTag` and the `.mmpose` tag block are a dead subsystem: nothing can
+  author a tag. A tags component is the natural replacement; the dead code is left until one exists
 
 ### `SkeletonAnimation` has one source of truth
 - A `SkeletonAnimation` (and its `AnnotatedAnimationClip` subclass) stores a clip and a `Skeleton`, and nothing else about where the bones are. There is no separate rig field: a second reference could disagree with the skeleton, and did — an earlier `GameObject` → `Transform` change orphaned every asset's rig

@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: walk1_subject5
   m_EditorClassIdentifier: MotionMatching::MotionMatching.AnimationData
   clip: {fileID: 2929084023613851485, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-  rig: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   skeleton:
     root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   rootMotionBone:
@@ -22,3 +21,361 @@ MonoBehaviour:
     bone: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   startFrame: 100
   endFrame: 2800
+  components:
+  - rid: 5432756900224041273
+  references:
+    version: 2
+    RefIds:
+    - rid: 5432756900224041273
+      type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        footfalls:
+        - frame: 2
+          foot: 1
+        - frame: 20
+          foot: 0
+        - frame: 32
+          foot: 1
+        - frame: 53
+          foot: 0
+        - frame: 76
+          foot: 1
+        - frame: 89
+          foot: 0
+        - frame: 105
+          foot: 1
+        - frame: 116
+          foot: 0
+        - frame: 129
+          foot: 1
+        - frame: 140
+          foot: 0
+        - frame: 160
+          foot: 1
+        - frame: 175
+          foot: 0
+        - frame: 189
+          foot: 1
+        - frame: 200
+          foot: 0
+        - frame: 211
+          foot: 1
+        - frame: 225
+          foot: 0
+        - frame: 241
+          foot: 1
+        - frame: 258
+          foot: 0
+        - frame: 270
+          foot: 1
+        - frame: 284
+          foot: 0
+        - frame: 303
+          foot: 1
+        - frame: 321
+          foot: 0
+        - frame: 339
+          foot: 1
+        - frame: 352
+          foot: 0
+        - frame: 364
+          foot: 1
+        - frame: 379
+          foot: 0
+        - frame: 398
+          foot: 1
+        - frame: 415
+          foot: 0
+        - frame: 429
+          foot: 1
+        - frame: 448
+          foot: 0
+        - frame: 466
+          foot: 1
+        - frame: 479
+          foot: 0
+        - frame: 489
+          foot: 1
+        - frame: 505
+          foot: 0
+        - frame: 515
+          foot: 1
+        - frame: 534
+          foot: 0
+        - frame: 549
+          foot: 1
+        - frame: 561
+          foot: 0
+        - frame: 578
+          foot: 1
+        - frame: 591
+          foot: 0
+        - frame: 605
+          foot: 1
+        - frame: 623
+          foot: 0
+        - frame: 645
+          foot: 1
+        - frame: 664
+          foot: 0
+        - frame: 681
+          foot: 1
+        - frame: 693
+          foot: 0
+        - frame: 708
+          foot: 1
+        - frame: 726
+          foot: 0
+        - frame: 743
+          foot: 1
+        - frame: 754
+          foot: 0
+        - frame: 771
+          foot: 1
+        - frame: 788
+          foot: 0
+        - frame: 814
+          foot: 0
+        - frame: 826
+          foot: 1
+        - frame: 839
+          foot: 0
+        - frame: 859
+          foot: 1
+        - frame: 872
+          foot: 0
+        - frame: 885
+          foot: 1
+        - frame: 894
+          foot: 0
+        - frame: 908
+          foot: 1
+        - frame: 925
+          foot: 0
+        - frame: 943
+          foot: 1
+        - frame: 960
+          foot: 0
+        - frame: 974
+          foot: 1
+        - frame: 987
+          foot: 0
+        - frame: 1005
+          foot: 1
+        - frame: 1020
+          foot: 0
+        - frame: 1036
+          foot: 1
+        - frame: 1047
+          foot: 0
+        - frame: 1059
+          foot: 1
+        - frame: 1070
+          foot: 0
+        - frame: 1090
+          foot: 1
+        - frame: 1103
+          foot: 0
+        - frame: 1120
+          foot: 1
+        - frame: 1136
+          foot: 0
+        - frame: 1152
+          foot: 1
+        - frame: 1170
+          foot: 0
+        - frame: 1186
+          foot: 1
+        - frame: 1198
+          foot: 0
+        - frame: 1214
+          foot: 1
+        - frame: 1228
+          foot: 0
+        - frame: 1244
+          foot: 1
+        - frame: 1257
+          foot: 0
+        - frame: 1274
+          foot: 1
+        - frame: 1286
+          foot: 0
+        - frame: 1303
+          foot: 1
+        - frame: 1319
+          foot: 0
+        - frame: 1335
+          foot: 1
+        - frame: 1351
+          foot: 0
+        - frame: 1366
+          foot: 1
+        - frame: 1384
+          foot: 0
+        - frame: 1398
+          foot: 1
+        - frame: 1415
+          foot: 0
+        - frame: 1429
+          foot: 1
+        - frame: 1444
+          foot: 0
+        - frame: 1458
+          foot: 1
+        - frame: 1474
+          foot: 0
+        - frame: 1491
+          foot: 1
+        - frame: 1506
+          foot: 0
+        - frame: 1520
+          foot: 1
+        - frame: 1535
+          foot: 0
+        - frame: 1551
+          foot: 1
+        - frame: 1568
+          foot: 0
+        - frame: 1587
+          foot: 1
+        - frame: 1599
+          foot: 0
+        - frame: 1615
+          foot: 1
+        - frame: 1629
+          foot: 0
+        - frame: 1642
+          foot: 1
+        - frame: 1658
+          foot: 0
+        - frame: 1675
+          foot: 1
+        - frame: 1691
+          foot: 0
+        - frame: 1720
+          foot: 0
+        - frame: 1733
+          foot: 1
+        - frame: 1747
+          foot: 0
+        - frame: 1763
+          foot: 1
+        - frame: 1775
+          foot: 0
+        - frame: 1790
+          foot: 1
+        - frame: 1804
+          foot: 0
+        - frame: 1835
+          foot: 0
+        - frame: 1853
+          foot: 1
+        - frame: 1863
+          foot: 0
+        - frame: 1875
+          foot: 1
+        - frame: 1893
+          foot: 0
+        - frame: 1903
+          foot: 1
+        - frame: 1922
+          foot: 0
+        - frame: 1938
+          foot: 1
+        - frame: 1951
+          foot: 0
+        - frame: 1967
+          foot: 1
+        - frame: 1979
+          foot: 0
+        - frame: 1994
+          foot: 1
+        - frame: 2011
+          foot: 0
+        - frame: 2019
+          foot: 1
+        - frame: 2036
+          foot: 0
+        - frame: 2051
+          foot: 1
+        - frame: 2065
+          foot: 0
+        - frame: 2087
+          foot: 0
+        - frame: 2103
+          foot: 1
+        - frame: 2118
+          foot: 0
+        - frame: 2145
+          foot: 0
+        - frame: 2157
+          foot: 1
+        - frame: 2173
+          foot: 0
+        - frame: 2189
+          foot: 1
+        - frame: 2213
+          foot: 1
+        - frame: 2223
+          foot: 0
+        - frame: 2244
+          foot: 1
+        - frame: 2253
+          foot: 0
+        - frame: 2272
+          foot: 1
+        - frame: 2284
+          foot: 0
+        - frame: 2311
+          foot: 0
+        - frame: 2324
+          foot: 1
+        - frame: 2339
+          foot: 0
+        - frame: 2351
+          foot: 1
+        - frame: 2362
+          foot: 0
+        - frame: 2381
+          foot: 1
+        - frame: 2398
+          foot: 0
+        - frame: 2421
+          foot: 0
+        - frame: 2440
+          foot: 1
+        - frame: 2454
+          foot: 0
+        - frame: 2481
+          foot: 0
+        - frame: 2493
+          foot: 1
+        - frame: 2512
+          foot: 0
+        - frame: 2528
+          foot: 1
+        - frame: 2540
+          foot: 0
+        - frame: 2552
+          foot: 1
+        - frame: 2561
+          foot: 0
+        - frame: 2579
+          foot: 1
+        - frame: 2607
+          foot: 1
+        - frame: 2616
+          foot: 0
+        - frame: 2630
+          foot: 1
+        - frame: 2644
+          foot: 0
+        - frame: 2672
+          foot: 0
+        - frame: 2683
+          foot: 1
+        leftContactBoneName: 
+        rightContactBoneName: 
+        contactVelocityThreshold: 0.15
+        smoothingRadius: 6

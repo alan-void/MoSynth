@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:248967bc33121f4814d1dcff11846623c753888fe6d3da462ffe773dc044a479",
+  "pageVersion": "sha256:377700971cdac4dc11c78409c38ee67b2774c813bc2aa96b50b5001fd39d5feb",
   "claims": [
     {
       "id": "claim_9818cf7782de446aa5b658b7c14c5154",
       "statement": "Python modules under Python/ are flat rather than a package and import each other by bare name, so any consumer must put that directory on sys.path; Unity does it in PythonRuntime.EnsureInitialized and each test file does it for itself.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L122-L152",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L122-L152",
           "version": "repo-lines-v1:sha256:a3ded1bcaa5c013f54bf6f7268ae87bf77b61f4df347158d5852003de22973c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkODlkNjZhYjhiZjIzYjBjMWExZjZhZjFkMWUyZjVhY2MwODc5NGJhZjA0OTQ2MTExZDYzOWZmYjdlZGFlMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5ODYwN2UyOGIyNzMyYWI4ZTJiMDhmNjQyODM0MDgyZjk1YThkYjZhNTI1OWRlNmQwODE4MjRlYWZhMzVhZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmYWU5ZTNmN2RlMTFhMzYyYjg4OTk1NzBlOTY2YmUwMmZhMDlkY2FlYmMzMDM2NWVlZWNhYzVjZjM5MmQ0NjEifQ"
         },
         {
@@ -21,8 +21,8 @@
       "statement": "Module reloading drops the whole project module graph rather than reloading one module, because a per-module importlib.reload leaves dependencies cached and dies on ImportError when a shared module gains a symbol, and because a group of imports issued after one call then sees a single consistent generation of the code.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonRuntime.cs#L118-L165",
-          "version": "repo-lines-v1:sha256:55d3131a12c69f69a1c08c8a058b642fc133a4eaedc85cd1c5f52ca207a7d766:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjljODBiZGQwZjU1NzE1ZWFkOTQ0ZDhkYjZkODhjMDQ5MDBkZTZhMzg3YTA3NDY4NGM0NDdkYjAzZmE3MDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwMmZjMTFhZWQ1MGVlMzQxYjUzYzE1N2Q0NDU0ZGIwY2RiMGFmODUwYzM5YWNkMTYwYjIxZGJhNGVkMTIyMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4ZjNmYzI1NzY0NmUzNzhmYmEwYWMyNjM4NGRjZjFhMzkyMWE2ZjI5YmZmYjlkN2E3ZWIyM2U2MjUxOGJiMGQifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs#L118-L165",
+          "version": "repo-lines-v1:sha256:d8d45777bb113dd80317a70c29ca33753efd481ea26d72669eca80ab432a611c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5Y2E4OTFiZmY3YWMxZjdjZWFhZTQwZWYwNTEwNjZiZTllZmU0N2I0ZTQyODFlODZjMzE5YmUyYzU1ZWJjZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwODk5YjM0OTBlOGRhYWJlMDk5MmNlMmY0ZjhiM2ExMmY5YTA5YzgyYTI0NmViYmEwZWJiNmI0ZDA3MThkZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmRjMjJlZGI5YjZmMjc4OTE0MmZjMDU4NTBmMjUyMDQzNTA1YzZlNjcyODhjZDUzN2RiMzgwOWVmNWVhYjYifQ"
         }
       ]
     },
@@ -31,7 +31,7 @@
       "statement": "On a fresh clone neither Python path is set, because the settings file is gitignored and per user, so a shell looking for the venv must read the environment variables and UserSettings/MoSynthPython.json rather than the MotionFieldConfig asset, which no longer carries them.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/PythonPathSettings.cs#L25-L50",
+          "resource": "repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs#L25-L50",
           "version": "repo-lines-v1:sha256:813304d2e03415a0783a190e190285869aef36393439c2dd4236e97b4a2a478f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyZTQ2ZWNmMjY2YjI2YzQ4MzVlOTJkNmQ0Yjc5NjY1NzQ3MmQwZTRiMzZkNTE3NmI1MGExNTM4ZDE0MjMwZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0Njc2ODc1NTBiYzA5MjhjYWFlYjI1NDk5YzYzZjgzYTYwNzQyYzZjMTYwMGRmZTBiYmI4YmIxMjc0MjU1OTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NjE2Y2QwODU2ZjcwY2U3MDAyMDIyY2QzNzhlYjhkMGFiN2E2Zjk5NzZiMmRjY2I4M2I2MjUwYWMzMzU4YjMifQ"
         },
         {
@@ -43,6 +43,6 @@
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-30T13:08:18.116Z"
+    "at": "2026-08-30T16:12:55.820Z"
   }
 }

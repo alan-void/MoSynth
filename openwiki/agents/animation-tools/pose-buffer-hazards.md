@@ -15,9 +15,6 @@ sources:
   - id: openwiki-source-5c14bcca1cea98bfb51c8d09
     resource: repo://Assets/MotionMatching/Tests/Editor/MmTestData.cs
 generated: {by: "claude-code", at: "2026-08-29T23:23:48.822Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-29T23:23:48.822Z
 ---
 
 # Editing pose code without breaking it

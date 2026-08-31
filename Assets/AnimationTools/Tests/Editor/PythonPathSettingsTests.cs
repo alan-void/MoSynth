@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework;
 
-namespace MotionField.Tests
+namespace AnimationTools.Tests
 {
 public class PythonPathSettingsTests
 {

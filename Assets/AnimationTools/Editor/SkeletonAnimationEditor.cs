@@ -222,6 +222,25 @@ namespace AnimationTools.Editor
             return new GUIContent("Skeleton Animation Preview");
         }
 
+        /// <summary>
+        /// Moves the preview playhead onto a clip frame and pauses, so a subclass can drive the
+        /// pose from its own timeline UI.
+        /// </summary>
+        /// <param name="frameIndex">
+        /// A frame of the <em>whole</em> clip. The preview does not apply an
+        /// <see cref="AnnotatedAnimationClip"/>'s start/end slice, so a caller working in sliced
+        /// frames must add the start frame itself.
+        /// </param>
+        protected void SeekToFrame(int frameIndex)
+        {
+            if (!CanPreview) return;
+
+            _isPlaying = false;
+            _currentTime = Mathf.Clamp(frameIndex, 0, _skeletonAnimation.FrameCount - 1) *
+                           _skeletonAnimation.FrameTime;
+            Repaint();
+        }
+
         public override void OnPreviewSettings()
         {
             GUIStyle buttonStyle = new GUIStyle(EditorStyles.toolbarButton);

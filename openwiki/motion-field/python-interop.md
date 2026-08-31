@@ -6,22 +6,22 @@ tags: [pythonnet, interop, threading, zeromq]
 sources:
   - id: openwiki-source-ea70eb6c045047448e446296
     resource: repo://.gitignore
-  - id: openwiki-source-8037e2358a2c4f9b2c722a11
-    resource: repo://AGENTS.md
-  - id: openwiki-source-892f0ec3df6304d13cc047ec
-    resource: repo://Assets/MotionField/Editor/PythonSettingsProvider.cs
+  - id: openwiki-source-a1e6b086e5f3518f36fb9e1d
+    resource: repo://Assets/AnimationTools/Editor/Python/PythonSettingsProvider.cs
+  - id: openwiki-source-51bcadd56f350b558690d51e
+    resource: repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs
+  - id: openwiki-source-fd8b7d29f1e6a937c4ae1988
+    resource: repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs
   - id: openwiki-source-9b84862940b622d8527df945
     resource: repo://Assets/MotionField/MfConnector.cs
-  - id: openwiki-source-bb2245a2b5dfe4579dd20049
-    resource: repo://Assets/MotionField/PythonPathSettings.cs
-  - id: openwiki-source-839acd5f9c92d76d722dddc3
-    resource: repo://Assets/MotionField/PythonRuntime.cs
+  - id: openwiki-source-294df467cafa1e9e013c5118
+    resource: repo://Assets/Pfnn/Pfnn.asmdef
   - id: openwiki-source-0d9ae15ae536e3580049e519
     resource: repo://Python/test_server.py
 generated: {by: "claude-code", at: "2026-08-30T13:08:18.116Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-30T13:08:18.116Z
+    at: 2026-08-30T16:14:31.508Z
 ---
 
 # Reaching Python
@@ -171,7 +171,7 @@ Treat `test_server.py` as the written record of the **reply schema** and nothing
 
 | Concern | File |
 | --- | --- |
-| Interpreter bootstrap, module invalidation | `Assets/MotionField/PythonRuntime.cs` |
+| Interpreter bootstrap, module invalidation | `Assets/AnimationTools/Runtime/Python/PythonRuntime.cs` |
 | Out-of-process transport | `Assets/MotionField/MfConnector.cs` |
 | Python-side counterpart | `Python/action_predictor.py`, `Python/test_server.py` |
 

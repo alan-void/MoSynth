@@ -14,7 +14,7 @@ namespace AnimationTools.Tests
 /// A skeleton is a Transform tree, so each fixture creates real GameObjects. Every suite that
 /// builds one must call <see cref="DestroyAll"/> from its <c>[TearDown]</c>.
 /// </remarks>
-static class TestSkeletons
+public static class TestSkeletons
 {
     public const int RootId = 1;
     public const int SpineId = 2;

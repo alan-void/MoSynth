@@ -6,16 +6,16 @@ tags: [agents, python, numpy, scipy, workflow]
 sources:
   - id: openwiki-source-ea70eb6c045047448e446296
     resource: repo://.gitignore
-  - id: openwiki-source-bb2245a2b5dfe4579dd20049
-    resource: repo://Assets/MotionField/PythonPathSettings.cs
-  - id: openwiki-source-839acd5f9c92d76d722dddc3
-    resource: repo://Assets/MotionField/PythonRuntime.cs
+  - id: openwiki-source-51bcadd56f350b558690d51e
+    resource: repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs
+  - id: openwiki-source-fd8b7d29f1e6a937c4ae1988
+    resource: repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs
   - id: openwiki-source-030d30d689203655d06f8a6b
     resource: repo://Python/tests/test_gait_phase.py
 generated: {by: "claude-code", at: "2026-08-30T13:08:18.116Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-30T13:08:18.116Z
+    at: 2026-08-30T16:12:55.820Z
 ---
 
 # Running the Python side

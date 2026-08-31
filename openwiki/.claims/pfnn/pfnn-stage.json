@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2ad29d789fd09c00192737ceb697e7ce3a061e9aff8c1d9debd84e28a3261b0f",
+  "claims": [
+    {
+      "id": "claim_af0fa0a1031d410d9728a71c9ffcfaf1",
+      "statement": "PfnnStage runs a phase-functioned network in Python behind PythonNET rather than inside Unity, because that is the path needing no new dependency: Barracuda remains in the manifest, unused and deprecated on Unity 6.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L1-L100",
+          "version": "repo-lines-v1:sha256:51770cbc95ac7d9dfba9f824641a2b928b838b40f0a346210091edc2ede050e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMzU3NTA5ZmIzYTZjYWJmOGYzZGEwYTQ0ZTk1ZTdmN2RmZWY4NmRhOGE2ZjA1NWQ3YzkxM2EyYzdkMjM5MjNjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ZmQ3MjYwYjFlM2JkNmU0MDQwNTRmYTBkNjc1MGMwMGJhNzc1MzNiMDE2ZTNjYWEzMTIwODM5YjY0YzQ4YzRhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1YjgwNjEwOTcwODAyZTI0MDVhYzc2N2U4MDhhNDczZjZlMjA2NmU0MDJlMjZlZjRmNTFlNDAyNmVmNDVlYjJmIn0"
+        },
+        {
+          "resource": "repo://Packages/manifest.json",
+          "version": "repo-file-v1:sha256:1a86fc786b843d602d45ef481e42a47d5b6078502c400ed95fde1301e7e23ff8"
+        }
+      ]
+    },
+    {
+      "id": "claim_1e74e12f2da94e8db6882aaea3dc7f79",
+      "statement": "The past half of the stage's trajectory window comes from the character's own movement history ring rather than from the control input, because training sampled the path the character really took either side of the query frame; only the future half is a wish the controller supplies.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnTrajectory.cs",
+          "version": "repo-file-v1:sha256:638bc986c060154f142bc4a57aed5b02fbb3dee683437adb3ec74f2504dda73b"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L262-L305",
+          "version": "repo-lines-v1:sha256:bab8aa72e8291659a435f01f08141a1e8fa4a4c7bcc5bdeaa324ebd931d16813:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYWUzYzk5ZWFhNzZjZmIyM2ZhZmM0YWMxZmYxYjk5ZDlmZTMyMDIxMzAyNWQ2OGFlYjAxZjE1YjUxOTU5NTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YTVlN2M2MWQwZjBiOWM0ZDAzOGI3YTQxNDdhN2EyOTVkNTI4ZjU1OGVlOWVlMTM1NjNkZWU2NzJkMDg0OTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGUwZDIzMmYzYWZiMzE2MWY0ZDAzYTk2N2M5NjA2OGIzMDdlNmFjZTAwNmI1NzY2ODkyNzk1OThlYmU4MDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMDA5NDg0NmMyNTQ3MDkzZWU0ZTc3M2Q3NmFlNjMyZjE0NWM2ZjAwY2MxMDFjZmNhYmQzNjE2MmMwNGFlY2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1e72f77643a64b2890b82a17f6494f7d",
+      "statement": "PfnnStage owns the model's state — gait phase, previous joints and trajectory history — while the Python policy is stateless, the opposite of MotionFieldStage, because a PFNN's state is a pose Unity must write into a PoseBuffer anyway whereas a motion field's state is a database index.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L59-L95",
+          "version": "repo-lines-v1:sha256:560b6c93bdbf35283318dd6f522341da09c56322640ca33a12889778b85bd677:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxY2NjMzM5ZjM2MzljZjRhYTEyMWE4ZGM5OGI1ZmQ5YmFmZWFhNzBlZTdiN2M1NmYzMzZiZDY0OGQxN2I1OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5NDE3NTI3NWI0OTkwYTk2ODRiZmZiYWQ4OWExMWE1ZWQ4NGYwMzBkN2YwMzczY2QyMGZkY2IxZDg5M2U2MTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2MzAyMzFjZTIxODhiNGNhMGFjODg1OWI0MGEwYTI5MWI1ZjFiMjc2ZjNmMDY4OWM3MmMzZjkyMmU1M2IwOTcifQ"
+        },
+        {
+          "resource": "repo://Python/pfnn_runtime.py#L1-L50",
+          "version": "repo-lines-v1:sha256:e47dca4cef25691313a5accd0d98959cda975ad4b8905e4807b34df3db08e629:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYzU4MzUwZThmNThlZjZhNjEzYWJjMGI1NTZlMGIzM2FkMzUwNmVlMTg4OTFhNGVkN2VkMjgwZjNiNDI0MmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2YjY5YTk2MDMwNDdmNjQ5NTZkZDNlMmQ2MmQxNjRhZWY1ZmY0OGQ5YjE3NmViNjM1NTZiMWNlM2RhOGM1ODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a0b77f61ab1f4ca49cb48c5fc234125a",
+      "statement": "The stage writes its pose in a frame at the origin and expresses the predicted root delta as bone 0's velocity channels, because MotionSynthesisComponent re-anchors bone 0 against the frame the pose implies and then accumulates the travel onto its own Transform, so an absolute frame would be applied twice.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L216-L262",
+          "version": "repo-lines-v1:sha256:29912ec5cec2fb0f491cd2500765bba83600d7e403dccb4e233eff9ac7066b03:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYWUzYzk5ZWFhNzZjZmIyM2ZhZmM0YWMxZmYxYjk5ZDlmZTMyMDIxMzAyNWQ2OGFlYjAxZjE1YjUxOTU5NTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0ZGU5MjE2NjUyNTkyOTQzNzZjNzcxMzk3MjJiMDI0OTllMjU2ZTBlYWQxNDI4ODFjMWViNzY3NzUzZGI0OTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2ZmZlNjVhYzhmZDA1MjE0NmI0MTkxMTBhZjA5NWY3NzA1YTA5Yjc0ZDgxNmM1ZjdiYWQyMGZlOWE1YzQzMzcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L260-L300",
+          "version": "repo-lines-v1:sha256:6f322ef748726c01811cbc44bffa686fa02d284d8556836528f8365d9631c29b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1OTMyYTc5ZTNiOTMwODk2NGQ3YmUzZmJlY2ExMDJkMzEyNjkxNDFjODgwMmRhNDgyMGIyZDRmYmRiYzQ4ZWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhYzIwMDAxODg1NjcxYmUxYTFmYmM2Yjk0Y2M0Nzk0MzY0NTY2YzJjYTgzYzM5MTlhY2ZkYjFlYmQzMTViNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwN2U3NGFjMTdiYTU1ZTk3OGNhMzY1YzdiYzI1YTgxZWQwYTM3NTNiM2E5N2NlZTUzZTNhYTU2NjA4MjRiZjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b0c2660be9c0479d868ca999f2e7b1bc",
+      "statement": "PfnnStage clamps the predicted phase increment to be non-negative, because gait_phase builds phase as a monotone unwrapped angle so every training target was non-negative, and a negative step would run the gait cycle backwards irrecoverably.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L246-L262",
+          "version": "repo-lines-v1:sha256:be21e9972a8dc2532bb9f03842a727dcbbe2c10c337b83b61076986673a1f69d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhMTQyNDU4MDRhOWVhN2Y5OWZlNzMzNjI5YmZjMmFhMDdlOGU0ZGNkMWE3ZjU0OTQ1NWJjYzRlMzVjODYzMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYWUzYzk5ZWFhNzZjZmIyM2ZhZmM0YWMxZmYxYjk5ZDlmZTMyMDIxMzAyNWQ2OGFlYjAxZjE1YjUxOTU5NTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2NWJmMWQ3NmVmNjNhMmE3MTVkZmMxNDA2NzM2Y2U2NTJmZGM1NDdhYzU2M2MxZDY2YjlmNTE5OTA5YTE3YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2ZmZlNjVhYzhmZDA1MjE0NmI0MTkxMTBhZjA5NWY3NzA1YTA5Yjc0ZDgxNmM1ZjdiYWQyMGZlOWE1YzQzMzcifQ"
+        },
+        {
+          "resource": "repo://Python/gait_phase.py#L94-L142",
+          "version": "repo-lines-v1:sha256:ed76647276fc361cf9a7395cbb145879491d514605cae6c262349d28c10ff73e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxODljODAyZDQ4N2VmYzQxZjZjMDM4YTg4ZGJiNWU3YjZjMDkyNmQ3NGFhZDE2ZDcwYTliYjhjZTJhMzMwOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg0NjBiYjhkNGViYmE3ZmE0N2ZlN2ExM2VjODQyODVjZDA3ODlhMTRkYjJiMTg2NjJkZmI4NmI1MzJmMDVhMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3NWVmMWY4ZGY1ZjdjYWJhMTMxYTQ3YWRlYTFkM2JkMWZlZDRjMDE3NzE2MjBkZmZjMDM3ZjIwNDYwZjNkNDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3bb444eee11d4851a2d450b38fd30ff5",
+      "statement": "PFNN needs a control-input hierarchy of its own rather than reusing MotionMatchingControlInput, because every motion matching control input resolves its prediction horizons out of a MotionMatchingData during Start and therefore cannot run on a character without a motion matching stage.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnControlInput.cs",
+          "version": "repo-file-v1:sha256:3b9e0d9c21be2eed874ee2e26aa47cf4fd27f31624d61bb43bd6975aadc756cb"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L41-L60",
+          "version": "repo-lines-v1:sha256:091dc5ef44eefc46d052cc1134f0cfa4e7a644a2eb13f7cb459fb6c3ff7eb814:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2Zjg4ZjJjZjc2MThmZDk2MWY0OWQwN2Q1ZThmYTMyZDUyZjQwNWFlNDU4N2M4NWM5ZTU3ODYxMzM0MmEwN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGViNDgwZTFmMTk4YzQ4MWU5NmZkZGI1Nzc3ODc3YTU0MzhlNDQ5YTllNDM0NGNiYWUwYzU3NGFkZTU3OTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0MjQxMmU5YmNlNjM2MDRmMjE2YTNlZjVjZGFkNzdjNGFjYTQ4OWUyMjcyM2NhYzliNDMxNjBiMjMyZjQ0NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOTIzMjg3N2FjYzM1YmI2ODBlNzRjMmRmN2FjMjdkMDk0MTk4NDJmMjFiZmI3YWM5NTBmMjRlYzY0YmM1OTYifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-30T16:03:03.865Z"
+  }
+}

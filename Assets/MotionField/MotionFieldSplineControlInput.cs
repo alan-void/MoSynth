@@ -85,15 +85,8 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
 
         var nearestDistance = spline.ConvertIndexUnit(
             nearestT, PathIndexUnit.Normalized, PathIndexUnit.Distance);
-        var targetDistance = nearestDistance + lookaheadDistance;
-        if (spline.Closed)
-        {
-            targetDistance %= length;
-        }
-        else
-        {
-            targetDistance = math.min(targetDistance, length);
-        }
+        var targetDistance = SplineFold.Distance(
+            nearestDistance + lookaheadDistance, length, spline.Closed);
 
         var targetT = spline.ConvertIndexUnit(
             targetDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized);

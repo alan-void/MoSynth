@@ -28,7 +28,7 @@ sources:
     resource: repo://Assets/Scripts/Learned%20Motion%20Matching/Scripts/MotionMatching.cs
   - id: openwiki-source-1110a5319fdf997c0acf8f29
     resource: repo://Python/pose_set_importer.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-08-30T16:03:03.865Z"}
 ---
 
 # MoSynth
@@ -62,7 +62,7 @@ explains several placement decisions that otherwise look arbitrary.
 | [The simulation frame](animation-tools/simulation-frame.md) | deriving a character frame; **facing vs. direction of travel** |
 | [Animation sources](animation-tools/animation-sources.md) | clips, baking, BVH import |
 | [The pose database](animation-tools/pose-database.md) | `PoseSet`, extraction, contacts, `IPoseSetSource` |
-| [Neural synthesis readiness](animation-tools/neural-synthesis.md) | what PFNN and learned motion matching need, and what is already here |
+| [Neural synthesis readiness](animation-tools/neural-synthesis.md) | what a learned method needs from the database, and which pieces exist |
 | [On-disk formats](animation-tools/on-disk-formats.md) | the four StreamingAssets artefacts and the byte convention |
 | [Motion recording](animation-tools/motion-recording.md) | capturing a run to a numpy-readable file |
 | [Path following metrics](animation-tools/path-following-metrics.md) | windowed spline projection; trajectory, heading, speed, laps |
@@ -89,6 +89,13 @@ explains several placement decisions that otherwise look arbitrary.
 | [Reaching Python](motion-field/python-interop.md) | the embedded interpreter and the ZeroMQ alternative |
 | [Config, training and staleness](motion-field/config-and-training.md) | the artefact chain and the two flags |
 | [The pose manifold](motion-field/pose-manifold-embedding.md) | projecting the field to 3D to watch a policy |
+
+### [`pfnn/`](pfnn/pfnn-stage.md) — synthesis by learned pose
+
+| Page | Covers |
+| --- | --- |
+| [The PFNN stage](pfnn/pfnn-stage.md) | what the network is shown each tick, and how a prediction becomes movement |
+| [Training and checkpoints](pfnn/training-and-checkpoints.md) | which bones it covers, how the vectors are packed, what the checkpoint holds |
 
 ### [`python/`](python/pose-data-bridge.md) — the CPython runtime
 

@@ -50,7 +50,7 @@ exhaustive list:
 - `Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs`
 - `Assets/AnimationTools/Runtime/State/StateSequence.cs`
 - `Assets/MotionField/MotionFieldVisualizer.cs`
-- `Assets/MotionField/PythonRuntime.cs`
+- `Assets/AnimationTools/Runtime/Python/PythonRuntime.cs`
 
 `Assets/AnimationTools/Tests/Editor/` and `Assets/MotionMatching/Tests/Editor/`
 encode expected behaviour and are good evidence for invariants.
