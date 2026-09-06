@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:651f1ebe8bc7c9e53b7b29c86600c915116cdffd7e268d0f35e05898bce5b270",
+  "pageVersion": "sha256:2b5a32173231461f71bf43a4bf72cd59f06485d48e56be53a57799a3d01502db",
   "claims": [
     {
       "id": "claim_31015872ba13458ebe5c369a0da163ea",
@@ -39,8 +39,8 @@
           "version": "repo-lines-v1:sha256:7eae437dba8ae8e66867086049ea518888e4e14484ca0b687f80fe390279f49a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNTZkYjc1NmY4MzI4N2RkZTM3NGZkOWQzYmNhOWY2YjFhYWFjYTdhZjQwZjQ0ZmI5YjBjODQzOTUxNGQxNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2MjkxODMyZTY1YjM3YjQ2YjNlNzFjNjA5MDVlZmNkZTdkY2E2NzIxNjFmNDQ5NDg1OTE0MTM2OGJmM2NjMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4MzVkODI4NDEzMzlhYWFiMWE5MTJlZWUxY2NmYmRiMGUzMWJiNmM1ZTJlMTAzZjZjZmVjZjBlNGRiMmE1ODIifQ"
         },
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L186-L211",
-          "version": "repo-lines-v1:sha256:bd2d69555069ef467782a227d175bcc8133938a1e9b794013bd8b2df01fb8d84:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MDNlMzQ3OTcxN2Y2NThmODk1YjU3ZWVjOTBjMGQwZTE5MTQzNWI3M2NkNjRmZjIxODU3ZjQyZjRhN2UyZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYTRkMWIyODVkMzBhZTk2NWQxMmM1ZGFhNzY4OTNkNTAyOTMyZDdkZGVlOWJjNmU0ZmM4MjhhMzNhZTk5MjUifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L186-L212",
+          "version": "repo-lines-v1:sha256:19a11fe4c15e81770f928cf13bb8a67a9b45553bcd252f4761c379f9444beb8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MDNlMzQ3OTcxN2Y2NThmODk1YjU3ZWVjOTBjMGQwZTE5MTQzNWI3M2NkNjRmZjIxODU3ZjQyZjRhN2UyZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYTRkMWIyODVkMzBhZTk2NWQxMmM1ZGFhNzY4OTNkNTAyOTMyZDdkZGVlOWJjNmU0ZmM4MjhhMzNhZTk5MjUifQ"
         }
       ]
     },
@@ -109,8 +109,8 @@
       "statement": "The finished pose is re-anchored under the component's Transform rather than written in absolute world space, so a pose from anywhere in a database lands on the character, and the Transform is then advanced by the frame's own velocity so the character accumulates movement instead of being teleported each tick.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L261-L295",
-          "version": "repo-lines-v1:sha256:77ef9ae8431ee8ea6e23613a769bf9f2e5861c0dc61df906312e6c61bbbdcdc9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxMWY5MTI3YjUxMjFmMDc1YzY5ZTc4ZWVlYTNhZTFjNjc1ODhmNGYwZTA1Nzk5YTg5MGE2OWQ1YWQwM2VkZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMjdjZDlkM2UwOTM1MzBiZTI1MGNiN2M1MWJiODI0MzhmNDc5MjllOTI5OGI5MjFhMDIwYTZlNTJhM2QwNjkifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L262-L297",
+          "version": "repo-lines-v1:sha256:a21a8d4171bd1e8f842b53aa3adf7c2f71a88db45435c6e6cadd4470b2497200:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxMWY5MTI3YjUxMjFmMDc1YzY5ZTc4ZWVlYTNhZTFjNjc1ODhmNGYwZTA1Nzk5YTg5MGE2OWQ1YWQwM2VkZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZjNiZWQ1MWYyZTMzZjE0MWU4YTU5OTExY2U3YjhlOGNhZGQwNmQwMzE1YmE0MWU3MTc0NGQ4MWU1NjcxODcifQ"
         }
       ]
     },
@@ -172,21 +172,25 @@
     },
     {
       "id": "claim_7c6e888d3db141d58fd798ac6f70716f",
-      "statement": "The component's root-adjustment and feature-read-back surface is unimplemented and is kept explicit because it is the contract the crowd and collision control inputs were written against; finishing it means routing to the Transform and to the matching stage's query vector rather than adding state, since both facts already have owners. Only the four methods throw NotImplementedException — the four Root properties silently return default.",
+      "statement": "The component's root motion state is routed rather than stored: RootPosition and RootRotation read its own Transform, and RootVelocity and RootAngularVelocity are re-derived each tick from the pose read off the rig. Only SetPosAdjustment, SetRotAdjustment, GetMainPositionFeature and GetEnvironmentFeature still throw NotImplementedException, kept because they are the contract the crowd and collision control inputs were written against.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L321-L360",
-          "version": "repo-lines-v1:sha256:92fc6da67ae989e19bb2853c758533e0e778d7ff167e094a8eeee758b8aa1f70:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3NmNjYTNlMmNiMGYyNjNhNWMyZTA3MGRhZDRhNTNlMGE4NDE3MTJkMjU4YzM3NmJkYTEyM2U2MDJhZDEyMTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L330-L402",
+          "version": "repo-lines-v1:sha256:d195dc16804ae2331eacc3e0955204637567f49c87542febd9e687e983591f31:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NjU2NmU5NmQxYjFkNmUyZGY5YmUzMDJjNTA4YTk1YzQ4YmE0NTBhNTg3MTI2ODE1NzJjNmI0OTc1MzlhNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5YzIwZmQ5OWNlY2U2ZGY5ZTJlNDczMjhhYjc2MWU2NTM5YzAxMWNiNDZiY2JkYjQ4OTE4YmU2MzlkNzA1NzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L186-L195",
+          "version": "repo-lines-v1:sha256:63555e80e4aa924141247dcc04909d7fa8f4740b1caf16ca748b5e651278dfc2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MDNlMzQ3OTcxN2Y2NThmODk1YjU3ZWVjOTBjMGQwZTE5MTQzNWI3M2NkNjRmZjIxODU3ZjQyZjRhN2UyZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmNDU0MTM3NmFjM2FmYjc4OTM1OGEwNGQ2MWE1YWFmMTBjMjMzZjBkNGNjZGEzNDEwY2QzYzZjMTk3NDAxYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0MjljZWM3NGJlY2RlMTFjMTNmMTg3ZDc4OGVjYTQzZDE4NGNhZmJkNWY1MjYxMDNlYTJiNmFiNDc0ZTFhMTEifQ"
         }
       ]
     },
     {
       "id": "claim_86fdcc7cb22443f7a389ad0a1459ed66",
-      "statement": "Inertialized hips blending across a rootPositionsMask change and toe-floor penetration correction were dropped when the pipeline moved to stages, and the intended home for each is a MoSynthStage running after the pose is produced rather than another special case inside the orchestrator.",
+      "statement": "Inertialized hips blending across a rootPositionsMask change and toe-floor penetration correction were dropped when the pipeline moved to stages and are both still absent; the intended home for each is a MoSynthStage running after the pose is produced rather than another special case inside the orchestrator.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L297-L300",
-          "version": "repo-lines-v1:sha256:a27bb9803e5a789e7a283ecc0bd6ea107c89e18195941a444cf4495a70bf7d69:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGI1NWIzODFkMzk0MDFkYzJlYjNhNTY4ZDE5ZDFiZDcwZWEyMmVkNzI2NTU1MTQ2ODNhY2Y5OTNkYzZlOWIyYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTU5MzJhNzllM2I5MzA4OTY0ZDdiZTNmYmVjYTEwMmQzMTI2OTE0MWM4ODAyZGE0ODIwYjJkNGZiZGJjNDhlZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGM0N2M5OGNmNzVmMDRkN2NhYmU4ZTMzNWNjMjg1ODMyYzEzNWFmNDM5MzJiYWNhMzcxZWFlYzNiYjFjMGE5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTA3ZTc0YWMxN2JhNTVlOTc4Y2EzNjVjN2JjMjVhODFlZDBhMzc1M2IzYTk3Y2VlNTNlM2FhNTY2MDgyNGJmMyJ9"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L293-L297",
+          "version": "repo-lines-v1:sha256:accd251de68f2ca8bfe0fd3911cfab5e64ffed0a021aa53f4a48f7fc198ea998:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGI1NWIzODFkMzk0MDFkYzJlYjNhNTY4ZDE5ZDFiZDcwZWEyMmVkNzI2NTU1MTQ2ODNhY2Y5OTNkYzZlOWIyYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzIzNDUxYTYyODJmMWVjOTg0Y2UzMmFlZjgzZGYyNDE3NzQ4Y2IwOGRkMjMwZjkyNjg4MmJkMTdmYjRmYzlkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTZmM2JlZDUxZjJlMzNmMTQxZThhNTk5MTFjZTdiOGU4Y2FkZDA2ZDAzMTViYTQxZTcxNzQ0ZDgxZTU2NzE4NyJ9"
         }
       ]
     },
@@ -195,8 +199,8 @@
       "statement": "Advancing the character's Transform by the frame's own velocity is gated on the rootPositionsMask flag; when it is off the pose is still applied and bone 0 is still placed frame-locally, but the Transform is never integrated, so the character animates in place instead of travelling.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L286-L295",
-          "version": "repo-lines-v1:sha256:1ece241f48d6d29278fdcec8bb7364a8e87f54d4f66cbfbe7b5c2079acc3263f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5NTlhNDNlOTdmZTRmODdjYTIzNDEwZjA2ZDkyM2JkMzY5ODY4Mjg1ZTM3ZWMzN2U3OTUwNDFiNjQ5ZWNmMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlMzVhYmQyZWNjZGYxMTJjZTVkYjRhYmY0ZWIzNGEwZjFiMjM1MGZiNmY0NTI5ZDE3NmNjYjJjNzliN2M5ODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMjdjZDlkM2UwOTM1MzBiZTI1MGNiN2M1MWJiODI0MzhmNDc5MjllOTI5OGI5MjFhMDIwYTZlNTJhM2QwNjkifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L286-L323",
+          "version": "repo-lines-v1:sha256:d5f5e5235ded88e3b6fc887d7c5d78d16d7508bdc8231c8fe2ed439350afb16d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlODUxMTgzOWIwZTVlYWUzMWNmYjM1ZjExODcxZWUwYmY4N2UzOGJjMTBhY2QwNjM5NGIzNDQwNzU2MzMwM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjOWVjOTlkODNmMDM0ZTkzNDc1Mjk0YzcwZjU5N2Y3NDUzZDEyZTcyMGQyMTM1NmFkZTQwMWY3ZjIyZGQwMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNjkxMDllMjVmYTczZGZjMGRjOTJiOWU2OTY4YThkZGY1MGNkNjVjMGFmYjY3ZTBlMzI0YmVjY2I5MzI4OTAifQ"
         }
       ]
     },
@@ -205,8 +209,8 @@
       "statement": "Applying a pose writes bone 0's local position and rotation but writes only the local rotation of every other bone — their local positions are never touched — so bone lengths come from the scene rig's own Transforms rather than from the pose.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L261-L295",
-          "version": "repo-lines-v1:sha256:77ef9ae8431ee8ea6e23613a769bf9f2e5861c0dc61df906312e6c61bbbdcdc9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxMWY5MTI3YjUxMjFmMDc1YzY5ZTc4ZWVlYTNhZTFjNjc1ODhmNGYwZTA1Nzk5YTg5MGE2OWQ1YWQwM2VkZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMjdjZDlkM2UwOTM1MzBiZTI1MGNiN2M1MWJiODI0MzhmNDc5MjllOTI5OGI5MjFhMDIwYTZlNTJhM2QwNjkifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L268-L285",
+          "version": "repo-lines-v1:sha256:097494c21d3a5b3159ca9b7ca87d2039d9432e99df3f82e49c3a4c6cc4d1c216:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlNzZkMjNkODViMTU1N2FiNjI0MTA5YWE4OGI2NTcwZTkzMzlmYzVkZDk5MjY3ZTQzZGQxNzk0YzRmZjFkNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwOGNmOGM0YThiYjhmOTgxZjljZjkyMDllMWZhNzYwMTEzYjMxNzFmMGMyY2IwNTc5MTlkNzgzZjdlMmNiNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzNDBiNjI2MWExZmExZjU5NDViMTBjZGRhNjllNTdjZWFkNjllZmJmNjI4MjRhZTA1MmFkZDllMmY0ODc4NzEifQ"
         }
       ]
     },
@@ -215,8 +219,8 @@
       "statement": "The component applies the pose regardless of what any stage returned or whether any stage ran, so the values read off the rig reach the apply step on several reachable paths — an empty or entirely disabled stage list, the ZeroMQ connector returning without a reply, and the motion field stage after a mid-run exception.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L186-L211",
-          "version": "repo-lines-v1:sha256:bd2d69555069ef467782a227d175bcc8133938a1e9b794013bd8b2df01fb8d84:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MDNlMzQ3OTcxN2Y2NThmODk1YjU3ZWVjOTBjMGQwZTE5MTQzNWI3M2NkNjRmZjIxODU3ZjQyZjRhN2UyZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYTRkMWIyODVkMzBhZTk2NWQxMmM1ZGFhNzY4OTNkNTAyOTMyZDdkZGVlOWJjNmU0ZmM4MjhhMzNhZTk5MjUifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L186-L212",
+          "version": "repo-lines-v1:sha256:19a11fe4c15e81770f928cf13bb8a67a9b45553bcd252f4761c379f9444beb8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MDNlMzQ3OTcxN2Y2NThmODk1YjU3ZWVjOTBjMGQwZTE5MTQzNWI3M2NkNjRmZjIxODU3ZjQyZjRhN2UyZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYTRkMWIyODVkMzBhZTk2NWQxMmM1ZGFhNzY4OTNkNTAyOTMyZDdkZGVlOWJjNmU0ZmM4MjhhMzNhZTk5MjUifQ"
         },
         {
           "resource": "repo://Assets/MotionField/MfConnector.cs#L98-L148",
@@ -241,10 +245,38 @@
           "version": "repo-lines-v1:sha256:4d86620b4335107148b327cab26b106d002230090aee80e1eb8c96e92e19bd53:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiNTgxZTcxNGQyZjExYWE3ZDE3YzE2OWI5YzcyYzU2N2RhYmNjNzA0ZTY4ZmU0YTEzNGJmZWE4YWE4OWQ1OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ZjY3MTAyYjg4MzBhZDVhNzhmOWY1ZGEzNzFlMmZiMjU0MWRkMGU4MGNmY2ZlM2ZkNzBmZjVmNTY4NTg4NjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3Y2E5NjQwM2QyYWE1YjNlZGFiM2UxZGMxMThjMDMxZDAwZmUwNmQ4NmY5OGUyYWY2OWNlM2YyYjUxYzkxZDIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_af36b7cb1b8f4bbe95beb8efdb06969d",
+      "statement": "A root correction reaches the character through bone 0's velocity channels rather than by writing the character's Transform, because the component derives the frame's own motion from those channels when it advances the character; that is the same route Inertialization writes its blended root through, and it is what lets a correction be damped and rate-limited against the animation's own travel.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs#L94-L133",
+          "version": "repo-lines-v1:sha256:d0c63a219e44ca6b1bf95fd4e6a559e22b96e27c622eb644b8591dc7491840f3:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhMTdjYzQyYzgwMDdhOWZkNmRhZTI3MTkxYTI0YTljY2FlZGEyODI5OGUzNGFhODA5MTVhZGNmNjcwN2MyOGYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L268-L323",
+          "version": "repo-lines-v1:sha256:233b4f5750af182262e00845bec49e23b73a667af585a5feca1cd6246937dccb:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlNzZkMjNkODViMTU1N2FiNjI0MTA5YWE4OGI2NTcwZTkzMzlmYzVkZDk5MjY3ZTQzZGQxNzk0YzRmZjFkNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlODUxMTgzOWIwZTVlYWUzMWNmYjM1ZjExODcxZWUwYmY4N2UzOGJjMTBhY2QwNjM5NGIzNDQwNzU2MzMwM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwOGNmOGM0YThiYjhmOTgxZjljZjkyMDllMWZhNzYwMTEzYjMxNzFmMGMyY2IwNTc5MTlkNzgzZjdlMmNiNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNjkxMDllMjVmYTczZGZjMGRjOTJiOWU2OTY4YThkZGY1MGNkNjVjMGFmYjY3ZTBlMzI0YmVjY2I5MzI4OTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_21d078c0f22c4a6f8a04106608a4eb5b",
+      "statement": "ComputeAppliedFrame reports where a pose will be rendered — the component's Transform advanced by the frame velocity that pose carries, or unchanged while rootPositionsMask is off — and the apply path itself goes through it, so a stage that needs to know the frame its edit will land in cannot disagree with the integration that follows.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L286-L323",
+          "version": "repo-lines-v1:sha256:d5f5e5235ded88e3b6fc887d7c5d78d16d7508bdc8231c8fe2ed439350afb16d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlODUxMTgzOWIwZTVlYWUzMWNmYjM1ZjExODcxZWUwYmY4N2UzOGJjMTBhY2QwNjM5NGIzNDQwNzU2MzMwM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjOWVjOTlkODNmMDM0ZTkzNDc1Mjk0YzcwZjU5N2Y3NDUzZDEyZTcyMGQyMTM1NmFkZTQwMWY3ZjIyZGQwMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNjkxMDllMjVmYTczZGZjMGRjOTJiOWU2OTY4YThkZGY1MGNkNjVjMGFmYjY3ZTBlMzI0YmVjY2I5MzI4OTAifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L90-L106",
+          "version": "repo-lines-v1:sha256:5f0347db79ed18dc59e7e1dc4f122fda3ac8f95178cf7f28b9d7fa830aa9c0d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmM2YyYThjMzk5ZmRiMzkxMjZjYzc0NmEzNzM5YjJjMmMzODRiMDMxMTMzMGFhZGZjYjcxNmYwYTMwYjdlMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkOTRjYjU2M2NjNDlhNTAwZWYyODZlYTVhNzg3YjA3MzkyZTYyOTE0ZGIxMDdhOGUzM2M0YmI4M2E5YzM4NWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwMGVlZGZiYTY4OTA0ZTE0NmUyZTQ4ODIyMTY1ZDRlNmQ2ZmQ3NjkyODFiMTIxNjg3MGQ5NGQwNzFkMzI3OWIifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-29T23:23:48.822Z"
+    "at": "2026-09-06T12:33:15.598Z"
   }
 }

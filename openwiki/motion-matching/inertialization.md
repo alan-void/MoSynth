@@ -10,7 +10,7 @@ sources:
     resource: repo://Assets/MotionMatching/Runtime/IK/TwoJointIK.cs
   - id: openwiki-source-33d9396a1c6cf0745b22c6d1
     resource: repo://Assets/MotionMatching/Runtime/Inertialization/Inertialization.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-09-06T12:33:15.598Z"}
 verified:
   - by: openwiki/0.3.3
     at: 2026-08-24T17:01:26.052Z
@@ -112,7 +112,9 @@ fold the cosine rule is degenerate. Every `acos` argument is clamped.
 > **It has zero call sites.** The only occurrence of the identifier in the repository is its own
 > declaration. Foot planting is not wired up anywhere — which is consistent with toe-floor
 > penetration correction being one of the two effects
-> [dropped when the pipeline moved to stages](../animation-tools/synthesis-pipeline.md).
+> [dropped when the pipeline moved to stages](../animation-tools/synthesis-pipeline.md). The stage
+> that would call it, and the pose-space overload it would need first, are designed under
+> [root following](../animation-tools/root-following.md).
 
 ## Source map
 

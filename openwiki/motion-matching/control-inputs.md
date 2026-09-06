@@ -4,18 +4,22 @@ title: Control inputs
 description: Turning intent into the trajectory the search matches against, the simulation-object model every input shares, and an honest account of which inputs actually work.
 tags: [control-input, trajectory, crowd, status]
 sources:
+  - id: openwiki-source-20e38e100e36c5379b2eb8ec
+    resource: repo://Assets/AnimationTools/Runtime/ControlInput/IFrameTarget.cs
+  - id: openwiki-source-b106a4622123233262d982ae
+    resource: repo://Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs
   - id: openwiki-source-08ea4bc02364c8785bdd8d8f
     resource: repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs
   - id: openwiki-source-1fb0416756719f48922c424e
     resource: repo://Assets/MotionField/MotionFieldSplineControlInput.cs
   - id: openwiki-source-13742752b942a8c72fc71381
     resource: repo://Assets/MotionField/MotionFieldStage.cs
+  - id: openwiki-source-04495c5987b8f45114d94957
+    resource: repo://Assets/MotionMatching/Runtime/CharacterController/AnchoredDirectionControlInput.cs
   - id: openwiki-source-eff87e6d0ba384d583d754cf
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/CollisionsSpringControlInput.cs
   - id: openwiki-source-27c6cae65749148a2fa4147b
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/CrowdControlInput.cs
-  - id: openwiki-source-026c5ca3277e1544b8b26bd1
-    resource: repo://Assets/MotionMatching/Runtime/CharacterController/CrowdSplineControlInput.cs
   - id: openwiki-source-fd76ee323a7bc3a268f0ac68
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/DirectionControlInput.cs
   - id: openwiki-source-fed6ec6af0a6135c6cbeddce
@@ -24,7 +28,10 @@ sources:
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs
   - id: openwiki-source-cd81b693f918262549b5d6bc
     resource: repo://Assets/Scripts/UserInput.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-09-06T12:33:15.598Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-06T12:33:15.598Z
 ---
 
 # Control inputs
@@ -32,17 +39,37 @@ generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
 `MotionMatchingControlInput` is the *"what should the character be doing"* half of motion matching.
 [The stage](matching-stage.md) is the *"which animation frame looks most like that"* half.
 
-## The simulation-object model
+## The model
 
-Every subclass works the same way:
+Every subclass predicts where the character should be at each of the database's prediction horizons,
+and **those predictions are the trajectory**. Nothing here poses the character; it follows only
+because the search keeps picking frames that move like the prediction. That indirection is the whole
+design, and it is why a control input can be swapped without touching anything downstream.
 
-1. Drive a lightweight **simulation object** — usually the input's own Transform.
-2. Predict where that object will be at each of the database's prediction horizons.
-3. **Those predictions are the trajectory.**
+What differs between inputs is **where the prediction starts**, and the difference is not cosmetic:
 
-Nothing here poses the character. The character follows only because the search keeps picking frames
-that move like the prediction. That indirection is the whole design, and it is why a control input
-can be swapped without touching anything downstream.
+- **From a simulation object the input drives itself** — usually its own Transform. The original
+  model, and still what `DirectionControlInput` and the spline inputs do.
+- **From the character's own frame, re-read every tick.** `AnchoredDirectionControlInput`.
+
+### Why the origin matters
+
+A simulation object and the synthesized character are never quite in the same place, and nothing
+closes the loop between them. The difference accumulates and enters the query as a standing offset:
+"you are behind where you should be", every tick. The character reads as permanently catching up.
+That is the behaviour of the design, not a bug in the springs.
+
+Anchoring the origin on the character removes the drift by construction — there is no position left
+to drift. The trade is that such an input describes *motion* and never *location*, so it cannot place
+a character or measure path-following error, which is why the spline inputs stay open-loop.
+
+The third option is to stop asking the search to close the gap and place the character outright: see
+[root following](../animation-tools/root-following.md), which is a stage rather than an input.
+
+### Ordering
+
+Control inputs advance in `Update`; `MotionSynthesisComponent` ticks in `LateUpdate`. So a search
+always runs against this frame's trajectory rather than the previous frame's.
 
 Prediction horizons are counted in **database frames**, so converting one to seconds means
 multiplying by the database's own frame time — not by `Time.deltaTime`. The trajectory is a
@@ -70,6 +97,7 @@ because the failure modes of the others differ and the naive summary is wrong.
 | Input | Status |
 | --- | --- |
 | `DirectionControlInput` | live — used in 3 scenes/prefabs |
+| `AnchoredDirectionControlInput` | live — the anchored-origin variant of the above |
 | `SplineControlInput` | live — 2 |
 | `SplinePoseKeypointControlInput` | live — 1, and actively being worked on |
 | `CrowdControlInput` | **throws on its first update** with default inspector values |
@@ -86,18 +114,39 @@ runs immediately.
 sites anywhere**. So it would run. `PathControlInput` calls none of the four unimplemented members at
 all.
 
-> **A quieter defect than the exceptions.** The four `Root*` properties on
-> `MotionSynthesisComponent` — `RootPosition`, `RootVelocity`, `RootRotation`, `RootAngularVelocity`
-> — are **never assigned anywhere in the repository**. They sit at `default`. So every crowd input
-> that reads `RootPosition` to decide whether the character has fallen behind, or where to steer
-> from, is silently measuring against the **world origin**, and `RootRotation` is
-> `quaternion(0,0,0,0)` — not even identity. Nothing fails; the numbers are just wrong.
+> **A defect that has since been fixed.** The four `Root*` properties on `MotionSynthesisComponent`
+> used to be unassigned auto-properties sitting at `default`, so every crowd input reading
+> `RootPosition` to decide whether the character had fallen behind was silently measuring against the
+> **world origin**. Nothing failed; the numbers were just wrong. They now route to the component's
+> Transform and to rates re-derived from the pose each tick.
 
 The whole obstacle-feature path is dead in the same way: `IObstacleAwareCharacterControler` has two
 implementers and no consumer, and `Obstacle.EllipsesFeatureName` is referenced only from there.
 
 See [the unimplemented block](../animation-tools/synthesis-pipeline.md) for what finishing this would
 mean.
+
+## AnchoredDirectionControlInput
+
+The same springs as `DirectionControlInput`, with the origin re-read off the character every tick and
+no position state of its own. Two decisions in it are worth knowing, both about *not* keeping state:
+
+- **The velocity springs keep their own state rather than being seeded from the character's measured
+  velocity.** Seeding looks more honest and is worse: the rate read back off the rig carries the
+  hips' sway and the clip's noise, which would enter the query directly and then influence the search
+  that produced it.
+- **There is no facing state at all.** Each horizon's facing is damped from the character's actual
+  yaw toward its direction of travel. The database bakes Direction channels as *facing*, and the
+  character's facing is whatever yaw rate the matched clip integrated, so a stored facing would be a
+  second source of truth the clip can contradict — the same defect as the free simulation object, in
+  smaller form.
+
+Negative horizons still come from a `TrajectoryHistory`, recording where the character has been
+rather than where a simulation object went.
+
+It shares its steering maths with the PFNN direction input through `TrajectorySteering` in
+`AnimationTools`: rate-limit the request, run the velocity spring on, jump the facing damper to each
+horizon in closed form.
 
 ## DirectionControlInput
 
@@ -212,15 +261,14 @@ shortest-arc correction — see
 | Concern | File |
 | --- | --- |
 | Base class and the model | `Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs` |
-| Stick/WASD | `.../DirectionControlInput.cs` |
+| Stick/WASD | `.../DirectionControlInput.cs`, `.../AnchoredDirectionControlInput.cs` |
+| Shared steering maths | `Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs` |
 | Path following | `.../SplineControlInput.cs`, `.../PathControlInput.cs` |
 | Crowd and collision | `.../CrowdControlInput.cs`, `.../CrowdSplineControlInput.cs`, `.../CollisionsSpringControlInput.cs` |
 | Obstacles | `Assets/MotionMatching/Runtime/Unity/Obstacle.cs`, `ObstacleManager.cs` |
 | Springs | `Assets/AnimationTools/Runtime/Utils/Spring.cs` |
 | Player input | `Assets/Scripts/UserInput.cs`, `Assets/InputActions.cs` |
 
-**Tests.** None.
-
-**Ordering note.** Both the control inputs and `MotionSynthesisComponent` run in `LateUpdate` and
-neither declares a `DefaultExecutionOrder`, so the order of "advance the simulation object" versus
-"run the synthesis tick" is Unity's default component order rather than something pinned.
+**Tests.** `ControlInputPlanarHelpersTests` pins the character-frame conversion every input answers
+the query through. `TrajectoryHistoryTests` covers the past-horizon ring, and
+`SplineControlInputFoldTests` the open-path clamp.

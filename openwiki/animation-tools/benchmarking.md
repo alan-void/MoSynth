@@ -45,9 +45,6 @@ sources:
   - id: openwiki-source-0005a5fab5e50ca368e2a4f7
     resource: repo://Tools/run-benchmark.ps1
 generated: {by: "claude-code", at: "2026-08-31T18:45:35.579Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-31T18:48:12.901Z
 ---
 
 # Benchmarking synthesis methods

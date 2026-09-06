@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:30f6d94595a03648275f8fc4b835c796838d41d37762730f1d3f6064ce4b93cb",
+  "claims": [
+    {
+      "id": "claim_773e4f48b79a48d3878ef579507de07f",
+      "statement": "RootFollowStage lands the character on a target by rewriting bone 0's velocity channels rather than by moving the character's Transform, because the component derives the frame's own motion from those channels when it advances the character; a Transform written beside that integration would be a correction nothing downstream could blend, cap or disable.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs#L7-L26",
+          "version": "repo-lines-v1:sha256:fa44d9ccdf0f8ac810a03c064bf0f8a8b9009c253ea2742c3f369e08c5708e46:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1Y2Y2YWU4YzljNTc5MjU1ODdmN2JlOTIwMTIyNmNiOTMwYmRlNjY5N2Q2ZmRmMTY1MGJlYTc2NTQ2OTFjZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyOWM3OWNjNzA1ZmZkYzUzZGQwMzA5Y2ZmZTFhOTZiMWNmZWI4YzJlMmNjYjIwYmI3NGI5Zjc5ZDU3NDM5MWMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs#L94-L133",
+          "version": "repo-lines-v1:sha256:d0c63a219e44ca6b1bf95fd4e6a559e22b96e27c622eb644b8591dc7491840f3:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhMTdjYzQyYzgwMDdhOWZkNmRhZTI3MTkxYTI0YTljY2FlZGEyODI5OGUzNGFhODA5MTVhZGNmNjcwN2MyOGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cfcc4af05629409583384473826ad34e",
+      "statement": "The correction is the residual left after subtracting the motion the pose was already going to produce from the gap to the target, damped by a half-life and optionally capped; a zero half-life closes the whole gap in one tick and needs no special case, because the implicit damper's exponential is already indistinguishable from one there.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollow.cs#L20-L70",
+          "version": "repo-lines-v1:sha256:12d434d56bed06503d36b11425f314cb78f7f3e19b82499378fe81c86071d91e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxODE1YWRiODZiOTNmNDYzYzZmNWY5MzNjODJkZDdmOGZkNjQyZjlhNDk2Yjg2MmEyZDg5ODdkMTIxMjVjNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjNmU2YmQ0NWUwNmFhN2QwNGY0ODQ2YTJmYmQ0YTMyM2M3YzhjZjBmYzJmZDgwZjI2YzdmODFmMGUyNDU0ZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Utils/Spring.cs#L27-L36",
+          "version": "repo-lines-v1:sha256:a58fa6c44b7e2cc92c1a04fe0db50017954ec33de27e875b20e284ddbf8f7513:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3ZWRiZTc5YTU3NDk1N2E3MzU0MGRlNTM3MDlmZjI1ZTc2NzYwNDJhZjA1NjdhZmI3NmZkYTFkNzhhOWM1OWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMjE1NjE1NTUwMmU4NWMwOTVmYjkwZTVlMjBlZWM4YjI5NGRlNmM4MGUwZjhiMjhjN2MwMzRiMmYyYTQ0YjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkNzJjZjVjMDMyZDIzNDM2MTk1YjVmNjA3ODY1MGZjNjgyNDA4ZmRjMzQ1MTMzMmEwMGEyNmE3ZTE4ODNjNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiNzM0NTc0YjI4MmMzYmMxN2Q4MDhhOTQ0NGUyYmY1YzM2ZDdiMzBlZGZkZWRiMDliOTdmMTJkZTU0ZGVkNjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4b3dd450958447cab95429fdfff8a7a0",
+      "statement": "Root following works in the ground plane only: the character frame is ground-projected by construction, so a correction routed through bone 0's velocity can never change the character's height, and a target above or below it is followed in x and z and ignored in y.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollow.cs#L60-L70",
+          "version": "repo-lines-v1:sha256:a6051b960faf465093bcb30bb185d60f61f65ff1561fdd70312589f544eeebb3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4NTA1YTcwOWNiNzZlOGNkNTFjMTVlMjJlODE3MDM0ZmY3NmY4MTFhNmM3M2Q3YmMyMmM5YTNjM2RlMjgyZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L63-L88",
+          "version": "repo-lines-v1:sha256:4bc1ba11f67b87dc9ae356c8a4d65fac0d70cef51106837296086cd15038e4f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwMWFkZGQwMzFhNGY1ODE1ZGIwMGUyYjcxZTIzNmY5OGFhN2FmNTEzZjc1MGRiY2IyZTIzY2Q0YzZiZDUyNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxY2YxOTVmZGQxMWRmOTFkMDU2ZTg3MDkzMDE0NDM4ZDc5NmZlZjM3NmM3NzcxYzliODgzNDk2N2FkNjFjYmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5dfa00728959401fb22334717a30fa98",
+      "statement": "RootFollowStage must run after Inertialization, because that blend smooths the pose stream and would otherwise smooth the correction away with it; it also goes inert, with a warning, when its target is null, is a child of the character, or when rootPositionsMask is off and the component therefore never integrates anything.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs#L54-L92",
+          "version": "repo-lines-v1:sha256:008cf2dce5fc3aabe46b97cdc592461d697effa9c386202e306bfe6288b26510:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMTUxZjFhYWE5OTIzMjc0MDk3NmFkOTllYTgyMTA0NjVkMGFjMGZiZjZkMGU4Yjc4ZDVmNzgwYzVmMGNiMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZGYyNWE2OWFjYzYzZmQ0YjJmNGM0YTYxY2EyZjE0Y2EwYzRiNWNkN2JiYzdlOGYxNzA1YmFmNzA5MTIxZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2ZDg1MGRmMWViNTE2MGI3NDc2ZTZmMjQzNTllZGQxMTY1YmRhOTEzMDlhNTE5NDZhZDk4YTAyYTQ4MzkyNjYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs#L14-L26",
+          "version": "repo-lines-v1:sha256:eb80d10ed24472cd5fb83f656077a60b222b410baabc419fd688e4a901ff63f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4ODcwNjY5YWZiOGQyMGNhZjMyMDAxMWY2ZWVhYmI0YzU2ZGNmN2RhNTliZTJmNzk0NDRiN2YzZWNhODZkODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1Y2Y2YWU4YzljNTc5MjU1ODdmN2JlOTIwMTIyNmNiOTMwYmRlNjY5N2Q2ZmRmMTY1MGJlYTc2NTQ2OTFjZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzOTBhMDIyMWZkMDE0MTQ3ZjExMzI2ZGQ3YzAyNjIwNWEyYmQ1YWI0YTdkZTgwN2U5ZTFhNzgwNWVjM2M3MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyOWM3OWNjNzA1ZmZkYzUzZGQwMzA5Y2ZmZTFhOTZiMWNmZWI4YzJlMmNjYjIwYmI3NGI5Zjc5ZDU3NDM5MWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f1ba649a01614b7f8128160ad517bc74",
+      "statement": "A target's Transform is not always where the target is — a spline follower's point travels along its path while its object stays put — so IFrameTarget lets a target answer for its own position and facing, and alignTargetOnInit is skipped for such a target since it decides where it is.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/IFrameTarget.cs",
+          "version": "repo-file-v1:sha256:d7207722292a2ef583a1a0ab7c366a61ec5538b8b994c14d829aff64a9215816"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs#L84-L92",
+          "version": "repo-lines-v1:sha256:3e430f018ee2b3d6f59908f131a808450604e35672c05f194c48514d571a89b1:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmI1ZGJmYmFhZTRmNjVkMmMwN2QxZmIyNWQ2N2M5ZjFiMTYxN2E0NGQzZmFiZmZmM2FjZWFlNzljNzViZDg2ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTZkODUwZGYxZWI1MTYwYjc0NzZlNmYyNDM1OWVkZDExNjViZGE5MTMwOWE1MTk0NmFkOThhMDJhNDgzOTI2NiJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs#L135-L143",
+          "version": "repo-lines-v1:sha256:5e0264f1db5b97a5ce9c852db45f6f1cdbb153599d342881523f3317d4872ebe:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTJiOWUwOGM3M2Y0NDUxMDBhZjBlMTNkOGNiMDBhZGVhMTY5ZTY2ZmU4NjEwMjkzNzM2NTJiYmVmYTdkNDAwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmFmMTRjNTFiN2JhY2YzNGRkMzNhMzMxOWQ1ZGMwNWYxYmNkOWZlMWU0MjkwMjllMmVlMmQ1MTIyZGY5MDRhOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5b4fc2b50fca4956ad7d60a503785d7b",
+      "statement": "Placing the character exactly on a target makes planted feet slide, because the correction moves the root while the animation's legs carry on doing what the clip said; a foot-locking stage after RootFollowStage is the intended fix and is not yet written, which is what footskatePerMeter measures the cost of.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs#L7-L26",
+          "version": "repo-lines-v1:sha256:fa44d9ccdf0f8ac810a03c064bf0f8a8b9009c253ea2742c3f369e08c5708e46:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1Y2Y2YWU4YzljNTc5MjU1ODdmN2JlOTIwMTIyNmNiOTMwYmRlNjY5N2Q2ZmRmMTY1MGJlYTc2NTQ2OTFjZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyOWM3OWNjNzA1ZmZkYzUzZGQwMzA5Y2ZmZTFhOTZiMWNmZWI4YzJlMmNjYjIwYmI3NGI5Zjc5ZDU3NDM5MWMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Benchmark/MotionQualityMetricsCalculator.cs",
+          "version": "repo-file-v1:sha256:4eec483507d08645257f369cfa1dca4593468079144f7e0a9d993469fe83895c"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-09-06T12:33:15.598Z"
+  }
+}

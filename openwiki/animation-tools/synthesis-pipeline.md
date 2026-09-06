@@ -14,6 +14,10 @@ sources:
     resource: repo://Assets/AnimationTools/Runtime/Pose/ChannelTypes.cs
   - id: openwiki-source-3a703c7ca77d15bdc72d6f48
     resource: repo://Assets/AnimationTools/Runtime/Pose/RigPoseReader.cs
+  - id: openwiki-source-2cab5ee24d405d8240d13641
+    resource: repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs
+  - id: openwiki-source-959ade3d157f2f3700dee33f
+    resource: repo://Assets/AnimationTools/Runtime/Stages/RootFollowStage.cs
   - id: openwiki-source-90f250a0ffb89826b24d0228
     resource: repo://Assets/AnimationTools/Tests/Editor/RigPoseReaderTests.cs
   - id: openwiki-source-9b84862940b622d8527df945
@@ -22,10 +26,10 @@ sources:
     resource: repo://Assets/MotionField/MotionFieldStage.cs
   - id: openwiki-source-fed6ec6af0a6135c6cbeddce
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-09-06T12:33:15.598Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-29T23:23:48.822Z
+    at: 2026-09-06T12:33:15.598Z
 ---
 
 # The synthesis pipeline
@@ -209,16 +213,19 @@ rather than failing.
 
 ## Extension points
 
-Extension points in this codebase live in the assembly that *depends on* `AnimationTools`, never in
-`AnimationTools` itself. A concrete implementation sits next to the thing it pokes: a motion field
-policy override belongs in the `MotionField` assembly, which depends on `AnimationTools` and not the
-other way round. The list picks implementations up wherever they are defined.
+A concrete implementation sits next to the thing it pokes: a motion field policy override belongs in
+the `MotionField` assembly, which depends on `AnimationTools` and not the other way round. The list
+picks implementations up wherever they are defined.
+
+The rule is about *dependency direction*, not about avoiding `AnimationTools` — something that pokes
+nothing synthesis-specific belongs there, so that every synthesis method can use it.
+`RootFollowStage` and `SynthesisFrameRateOverride` are both like that.
 
 Exactly four of these are `[SerializeReference]` inspector seams:
 
 | Seam | Shape | Where implementations live |
 | --- | --- | --- |
-| `MoSynthStage` | list on `MotionSynthesisComponent` | `MotionMatching`, `MotionField` |
+| `MoSynthStage` | list on `MotionSynthesisComponent` | `AnimationTools`, `MotionMatching`, `MotionField`, `Pfnn` |
 | `RecorderChannel` | list on `MotionRecorder` | `AnimationTools`, `MotionMatching` |
 | `BenchmarkOverride` | list on `SynthesisBenchmarkConfig` | `MotionMatching`, `MotionField` |
 | `MotionMatchingSearch` | single field on `MotionMatchingStage` | `MotionMatching` |
@@ -231,35 +238,47 @@ the four.
 
 A `[SerializeReference]` implementation must be `[Serializable]` with a parameterless constructor.
 
-## Unimplemented: pose adjustment and feature read-back
+## The root's motion state
 
-`MotionSynthesisComponent` exposes a block of members that do not work:
+`RootPosition`, `RootRotation`, `RootVelocity` and `RootAngularVelocity` describe where the character
+is and how fast it is going. All four are **routed, never stored**: position and rotation are the
+component's own Transform, and the two rates are re-derived once per tick from the pose read off the
+rig, right after the read-back. A copy kept here would be a second source of truth for facts the
+Transform and the pose already determine.
 
-- `RootVelocity`, `RootAngularVelocity`, `RootPosition`, `RootRotation` — auto-properties that are
-  **never assigned anywhere in the repository**. They silently return `default`, so `RootPosition`
-  reads as the world origin and `RootRotation` as `quaternion(0,0,0,0)` — not even identity.
-- `SetPosAdjustment`, `SetRotAdjustment`, `GetMainPositionFeature`, `GetEnvironmentFeature` — these
-  throw `NotImplementedException`.
+> They used to be unassigned auto-properties returning `default`, so anything reading `RootPosition`
+> silently measured the character at the world origin. Anything written against "do not trust the
+> Root properties" predates the fix.
 
-The block is kept explicit because it is the contract the crowd and collision control inputs were
-written against. The intended design is documented in place: `Set*Adjustment` would nudge the root
-off what the database produced, blended in rather than jumped, for collision response and crowd
-steering; `Get*Feature` would read back the trajectory being predicted so a controller could steer
-against it.
+### Where a pose will be rendered
 
-Finishing it means **routing, not adding state**. Root motion is already the component's own
-Transform and the trajectory already lives in the matching stage's query vector, so a copy here would
-be a second source of truth for facts that already have owners.
+`ComputeAppliedFrame` answers "if this pose is applied, where does the character end up" — the
+Transform advanced by the frame velocity the pose carries, or left alone while `rootPositionsMask` is
+off. The apply path itself goes through it, which is the point: a stage that has to place something
+in the world, such as a planted foot, gets the same answer the integration will produce rather than
+a second implementation of it.
 
-For which control inputs this actually breaks, and which merely read zeros, see
+## Still unimplemented: adjustment entry points and feature read-back
+
+`SetPosAdjustment`, `SetRotAdjustment`, `GetMainPositionFeature` and `GetEnvironmentFeature` still
+throw `NotImplementedException`. They are kept explicit because they are the contract the crowd and
+collision control inputs were written against.
+
+The adjustment half now has an implementation those callers predate:
+[`RootFollowStage`](root-following.md) nudges the root off what the database produced, blended in
+rather than jumped, by writing bone 0's velocity channels — which is where a correction has to go for
+the component to integrate it at all. Wiring the crowd inputs onto it has not been done.
+
+For which control inputs this actually breaks, see
 [control inputs](../motion-matching/control-inputs.md).
 
 ## Two effects that used to live here
 
 Inertialized hips blending across a `rootPositionsMask` change, and toe-floor penetration correction,
 both used to happen inside `ApplyPoseToSkeletonTransforms`. They were dropped when the pipeline moved
-to stages. The intended home for each is a `MoSynthStage` running after the pose is produced, rather
-than another special case inside the orchestrator.
+to stages, and both are **still missing**. The intended home for each is a `MoSynthStage` running
+after the pose is produced, rather than another special case inside the orchestrator; the foot-side
+design is written up under [root following](root-following.md).
 
 ## Measuring stage cost
 

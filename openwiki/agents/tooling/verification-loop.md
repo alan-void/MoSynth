@@ -99,16 +99,19 @@ The `-t Python` form fails with *"Start directory is not importable"* — there 
 The suites use only numpy and scipy and build their own fixtures, so they need neither Unity nor a
 generated database. Use the project venv (see [running the Python side](../python/running-the-python-side.md)).
 
-## `openwiki_finish` overwrites part of AGENTS.md
+## An OpenWiki run overwrites part of AGENTS.md
 
 The lifecycle rewrites the block between the `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`
 markers in root `AGENTS.md` with its own default text. That block currently holds the project's
 two-audience wiki policy — including the statement that this `agents/` section belongs to the coding
 agents — and the default text replaces it with the opposite advice.
 
-**Check `git diff AGENTS.md` after every `openwiki_finish` and restore the section if it was
-replaced.** The `wikiGoal` returned by `openwiki_begin` still carries the real policy, so it can
-always be recovered from there or from git history.
+**`openwiki_begin` does this, not only `openwiki_finish`.** A backup copied after `begin` is already
+the clobbered version, so it is useless as a restore source and a post-`finish` diff against it looks
+clean.
+
+**Check `git diff AGENTS.md` after both calls, and restore with `git show HEAD:AGENTS.md`.** The
+`wikiGoal` returned by `openwiki_begin` also still carries the real policy in full.
 
 ## Confirming it actually runs
 
