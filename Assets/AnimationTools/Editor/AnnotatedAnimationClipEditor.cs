@@ -1,12 +1,19 @@
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace AnimationTools.Editor
 {
+    /// <summary>
+    /// Inspector for an <see cref="AnnotatedAnimationClip"/>: the asset's own fields, whether it
+    /// validates, and a way into the clip editor.
+    /// </summary>
+    /// <remarks>
+    /// The annotation itself is viewed and edited in <see cref="AnnotatedClipEditorWindow"/>, which
+    /// has the room for a timeline and a preview side by side. This stays the plain data view for a
+    /// clip picked in the Project window.
+    /// </remarks>
     [CustomEditor(typeof(AnnotatedAnimationClip))]
-    public class AnimationDataEditor : SkeletonAnimationEditor
+    public class AnnotatedAnimationClipEditor : SkeletonAnimationEditor
     {
         private SerializedProperty _clipProp;
         private SerializedProperty _skeletonProp;
@@ -14,8 +21,6 @@ namespace AnimationTools.Editor
         private SerializedProperty _startFrameProp;
         private SerializedProperty _endFrameProp;
         private SerializedProperty _componentsProp;
-
-        private GaitPhaseStrip _phaseStrip;
 
         protected override void OnEnable()
         {
@@ -27,19 +32,11 @@ namespace AnimationTools.Editor
             _startFrameProp = serializedObject.FindProperty("startFrame");
             _endFrameProp = serializedObject.FindProperty("endFrame");
             _componentsProp = serializedObject.FindProperty("components");
-
-            _phaseStrip = new GaitPhaseStrip();
-        }
-
-        private void OnDisable()
-        {
-            _phaseStrip?.Dispose();
-            _phaseStrip = null;
         }
 
         public override void OnInspectorGUI()
         {
-            AnnotatedAnimationClip clip = (AnnotatedAnimationClip)target;
+            var clip = (AnnotatedAnimationClip)target;
 
             serializedObject.Update();
 
@@ -53,9 +50,7 @@ namespace AnimationTools.Editor
 
             // The list is [SerializeReference] [SubclassSelector], so the package drawer supplies
             // the type dropdown and the per-element foldout; nothing here has to build them.
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_componentsProp, true);
-            if (EditorGUI.EndChangeCheck()) _phaseStrip.Invalidate();
 
             serializedObject.ApplyModifiedProperties();
 
@@ -77,45 +72,12 @@ namespace AnimationTools.Editor
                     $"   Bones: {(skeleton != null ? skeleton.BoneCount.ToString() : "-")}");
             }
 
-            DrawGaitPhaseSection(clip);
-
-            // Save
-            if (GUI.changed)
-            {
-                EditorUtility.SetDirty(target);
-                EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-            }
-        }
-
-        /// <summary>
-        /// Detection, a summary, and the timeline — shown only when the clip actually carries a
-        /// gait phase component, so a clip annotated for something else is not cluttered by it.
-        /// </summary>
-        private void DrawGaitPhaseSection(AnnotatedAnimationClip clip)
-        {
-            if (!clip.TryGetComponent<GaitPhaseComponent>(out var phase)) return;
-
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Gait Phase", EditorStyles.boldLabel);
 
-            if (GUILayout.Button("Detect Footfalls", GUILayout.Height(22)))
+            if (GUILayout.Button("Open in Clip Editor", GUILayout.Height(24f)))
             {
-                Undo.RecordObject(clip, "Detect footfalls");
-                if (phase.TryDetect(clip, out var contacts, out var detectError))
-                {
-                    _phaseStrip.SetContacts(contacts);
-                    EditorUtility.SetDirty(clip);
-                    Debug.Log($"[GaitPhase] {clip.name}: {phase.Describe()}.", clip);
-                }
-                else
-                {
-                    Debug.LogError($"[GaitPhase] {clip.name}: {detectError}", clip);
-                }
-
-                _phaseStrip.Invalidate();
+                AnnotatedClipEditorWindow.Open(clip);
             }
-
-            _phaseStrip.Draw(clip, phase, SeekToFrame);
         }
     }
 }
