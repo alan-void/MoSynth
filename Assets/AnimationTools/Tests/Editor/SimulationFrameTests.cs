@@ -317,5 +317,60 @@ public class SimulationFrameTests
         AssertApprox(expected, _skeletonData.CharacterSpaceAngularVelocity(_pose, 2));
         AssertApprox(angularVelocities[0], _skeletonData.CharacterSpaceAngularVelocity(_pose, 0));
     }
+
+    /// <summary>
+    /// The rates a pose carries are how the character accumulates movement, so integrating them has
+    /// to land where the neighbouring pose's own frame would be. This is the property
+    /// <c>RootFollowStage</c> computes a correction against.
+    /// </summary>
+    [Test]
+    public void Advance_MovesTheFrameByItsOwnRates()
+    {
+        var framePos = new float3(1f, 0f, 2f);
+        var frameRot = quaternion.RotateY(math.radians(90f));
+        var linVelFrameLocal = new float3(0f, 0f, 3f);
+        const float yawRate = 0.5f;
+
+        SimulationFrame.Advance(framePos, frameRot, linVelFrameLocal, yawRate, FrameTime,
+            out var nextPos, out var nextRot);
+
+        // Facing +x after the 90 degree yaw, so a forward velocity travels along +x.
+        AssertApprox(framePos + new float3(3f * FrameTime, 0f, 0f), nextPos);
+        Assert.That(SimulationFrame.Yaw(nextRot),
+            Is.EqualTo(math.radians(90f) + yawRate * FrameTime).Within(Tolerance));
+    }
+
+    [Test]
+    public void Advance_WithNoRates_HoldsTheFrame()
+    {
+        var framePos = new float3(1f, 0f, 2f);
+        var frameRot = quaternion.RotateY(math.radians(30f));
+
+        SimulationFrame.Advance(framePos, frameRot, float3.zero, 0f, FrameTime, out var nextPos,
+            out var nextRot);
+
+        AssertApprox(framePos, nextPos);
+        Assert.That(SimulationFrame.Yaw(nextRot), Is.EqualTo(math.radians(30f)).Within(Tolerance));
+    }
+
+    [Test]
+    public void Yaw_OfARotationAboutUp_IsThatAngle()
+    {
+        Assert.That(SimulationFrame.Yaw(quaternion.identity), Is.EqualTo(0f).Within(Tolerance));
+        Assert.That(SimulationFrame.Yaw(quaternion.RotateY(math.radians(37f))),
+            Is.EqualTo(math.radians(37f)).Within(Tolerance));
+    }
+
+    /// <summary>Headings either side of the wrap are close together, not most of a turn apart.</summary>
+    [Test]
+    public void SignedYawDelta_TakesTheShortWayRound()
+    {
+        Assert.That(math.degrees(SimulationFrame.SignedYawDelta(math.radians(-170f), math.radians(170f))),
+            Is.EqualTo(-20f).Within(1e-3f));
+        Assert.That(math.degrees(SimulationFrame.SignedYawDelta(math.radians(170f), math.radians(-170f))),
+            Is.EqualTo(20f).Within(1e-3f));
+        Assert.That(math.degrees(SimulationFrame.SignedYawDelta(math.radians(10f), math.radians(40f))),
+            Is.EqualTo(30f).Within(1e-3f));
+    }
 }
 }

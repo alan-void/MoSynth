@@ -23,7 +23,7 @@ namespace MotionMatching
 /// spline evaluation answers it.
 /// </para>
 /// </remarks>
-public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSplineControlInput
+public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSplineControlInput, IFrameTarget
 {
     [FormerlySerializedAs("TrajectoryPositionFeatureName")] public string trajectoryPositionFeatureName = "FuturePosition";
     [FormerlySerializedAs("TrajectoryDirectionFeatureName")] public string trajectoryDirectionFeatureName = "FutureDirection";
@@ -78,54 +78,17 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     private float2[] _predictedDirections;
 
     // Features -----------------------------------------------------------------
-    private int _trajectoryPosFeatureIndex;
-    private int _trajectoryRotFeatureIndex;
-    private int[] _trajectoryPosPredictionFrames;
-    private int[] _trajectoryRotPredictionFrames;
+    private TrajectoryFeaturePair _features;
 
-    private int NumberPredictionPos
-    {
-        get { return _trajectoryPosPredictionFrames.Length; }
-    }
-
-    private int NumberPredictionRot
-    {
-        get { return _trajectoryRotPredictionFrames.Length; }
-    }
+    private int PredictionCount => _features.PredictionCount;
     // --------------------------------------------------------------------------
 
     protected virtual void Start()
     {
-        // Get the feature indices
-        _trajectoryPosFeatureIndex = -1;
-        _trajectoryRotFeatureIndex = -1;
-        var mmData = motionSynthesizer.GetMmData();
-        for (int i = 0; i < mmData.trajectoryFeatures.Count; ++i)
-        {
-            if (mmData.trajectoryFeatures[i].name == trajectoryPositionFeatureName)
-                _trajectoryPosFeatureIndex = i;
-            if (mmData.trajectoryFeatures[i].name == trajectoryDirectionFeatureName)
-                _trajectoryRotFeatureIndex = i;
-        }
+        _features = ResolveTrajectoryFeaturePair(trajectoryPositionFeatureName, trajectoryDirectionFeatureName);
 
-        Debug.Assert(_trajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
-        Debug.Assert(_trajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
-
-        _trajectoryPosPredictionFrames = mmData.trajectoryFeatures[_trajectoryPosFeatureIndex]
-            .predictionFrames;
-        _trajectoryRotPredictionFrames = mmData.trajectoryFeatures[_trajectoryRotFeatureIndex]
-            .predictionFrames;
-        // TODO: generalize this, allow for different number of prediction frames
-        Debug.Assert(_trajectoryPosPredictionFrames.Length == _trajectoryRotPredictionFrames.Length,
-            "Trajectory Position and Trajectory Direction Prediction Frames must be the same for PathCharacterController");
-        for (int i = 0; i < _trajectoryPosPredictionFrames.Length; ++i)
-        {
-            Debug.Assert(_trajectoryPosPredictionFrames[i] == _trajectoryRotPredictionFrames[i],
-                "Trajectory Position and Trajectory Direction Prediction Frames must be the same for PathCharacterController");
-        }
-
-        _predictedPositions = new float2[NumberPredictionPos];
-        _predictedDirections = new float2[NumberPredictionRot];
+        _predictedPositions = new float2[PredictionCount];
+        _predictedDirections = new float2[PredictionCount];
     }
 
     /// <summary>
@@ -148,9 +111,9 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         _currentPosition = pos.xz;
         _currentDirection = SampleDirection(_splineT, pos);
 
-        for (int i = 0; i < NumberPredictionPos; i++)
+        for (int i = 0; i < PredictionCount; i++)
         {
-            var t = Fold(_splineT + _trajectoryPosPredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
+            var t = Fold(_splineT + _features.PredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
             float3 predPos = SamplePosition(t);
             _predictedPositions[i] = predPos.xz;
             _predictedDirections[i] = SampleDirection(t, predPos);
@@ -217,16 +180,10 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         switch (feature.featureType)
         {
             case TrajectoryFeatureChannel.Type.Position:
-                float2 world = GetWorldPredictedPos(index);
-                float3 local = character.InverseTransformPoint(new float3(world.x, 0.0f, world.y));
-                span[0] = local.x;
-                span[1] = local.z;
+                WritePlanarPosition(character, GetWorldPredictedPos(index), span);
                 break;
             case TrajectoryFeatureChannel.Type.Direction:
-                float2 worldDir = GetWorldPredictedDir(index);
-                float3 localDir = character.InverseTransformDirection(new Vector3(worldDir.x, 0.0f, worldDir.y));
-                span[0] = localDir.x;
-                span[1] = localDir.z;
+                WritePlanarDirection(character, GetWorldPredictedDir(index), span);
                 break;
             default:
                 Debug.Assert(false, "Unknown feature type: " + feature.featureType);
@@ -272,6 +229,21 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         return speed;
     }
 
+    /// <summary>
+    /// Where on the path this input has got to, for a stage pulling the character onto it.
+    /// </summary>
+    /// <remarks>
+    /// The point travels along the spline while this component's Transform stays where it was
+    /// dropped, so a follower has to ask rather than read that Transform. Answers false until the
+    /// first update has sampled a usable path.
+    /// </remarks>
+    public bool TryGetFrame(out float2 positionXZ, out float yaw)
+    {
+        positionXZ = _currentPosition;
+        yaw = math.atan2(_currentDirection.x, _currentDirection.y);
+        return HasPath && math.lengthsq(_currentDirection) > 0f;
+    }
+
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
@@ -286,10 +258,10 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         Gizmos.DrawSphere(currentPos, 0.1f);
         GizmosExtensions.DrawLine(currentPos, currentPos + (Quaternion)GetCurrentRotation() * Vector3.forward, 12);
         // Draw Prediction
-        if (_predictedPositions == null || _predictedPositions.Length != NumberPredictionPos ||
-            _predictedDirections == null || _predictedDirections.Length != NumberPredictionRot) return;
+        if (_predictedPositions == null || _predictedPositions.Length != PredictionCount ||
+            _predictedDirections == null || _predictedDirections.Length != PredictionCount) return;
         Gizmos.color = new Color(0.6f, 0.3f, 0.8f, 1.0f);
-        for (int i = 0; i < NumberPredictionPos; i++)
+        for (int i = 0; i < PredictionCount; i++)
         {
             float2 predictedPosf2 = GetWorldPredictedPos(i);
             Vector3 predictedPos = new Vector3(predictedPosf2.x, heightOffset * 2, predictedPosf2.y);

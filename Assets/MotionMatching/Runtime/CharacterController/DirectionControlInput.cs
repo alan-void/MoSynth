@@ -99,14 +99,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
 
     // --- Resolved database feature layout, cached in Start --------------------------------------
 
-    private int _trajectoryPosFeatureIndex;
-    private int _trajectoryRotFeatureIndex;
-
-    /// <summary>Horizons, in database frames, that the position feature predicts at.</summary>
-    private int[] _trajectoryPosPredictionFrames;
-
-    /// <summary>Horizons, in database frames, that the direction feature predicts at.</summary>
-    private int[] _trajectoryRotPredictionFrames;
+    private TrajectoryFeaturePair _features;
 
     // --- Past horizons --------------------------------------------------------------------------
 
@@ -122,54 +115,21 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     /// </summary>
     private const float HistorySampleRate = 240f;
 
-    private int NumberPredictionPos
-    {
-        get { return _trajectoryPosPredictionFrames.Length; }
-    }
-
-    private int NumberPredictionRot
-    {
-        get { return _trajectoryRotPredictionFrames.Length; }
-    }
+    private int PredictionCount => _features.PredictionCount;
 
     /// <summary>Resolves the named trajectory features and sizes the prediction arrays.</summary>
     private void Start()
     {
-        // Get the feature indices
-        _trajectoryPosFeatureIndex = -1;
-        _trajectoryRotFeatureIndex = -1;
-        var mmData = motionSynthesizer.GetMmData();
-        for (var i = 0; i < mmData.trajectoryFeatures.Count; ++i)
-        {
-            if (mmData.trajectoryFeatures[i].name == trajectoryPositionFeatureName)
-                _trajectoryPosFeatureIndex = i;
-            if (mmData.trajectoryFeatures[i].name == trajectoryDirectionFeatureName)
-                _trajectoryRotFeatureIndex = i;
-        }
+        _features = ResolveTrajectoryFeaturePair(trajectoryPositionFeatureName, trajectoryDirectionFeatureName);
 
-        Debug.Assert(_trajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
-        Debug.Assert(_trajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
-
-        _trajectoryPosPredictionFrames =
-            mmData.trajectoryFeatures[_trajectoryPosFeatureIndex].predictionFrames;
-        _trajectoryRotPredictionFrames =
-            mmData.trajectoryFeatures[_trajectoryRotFeatureIndex].predictionFrames;
-        // TODO: generalize this... allow different number of prediction frames for different features
-        Debug.Assert(_trajectoryPosPredictionFrames.Length == _trajectoryRotPredictionFrames.Length,
-            "Trajectory Position and Trajectory Direction Prediction Frames must be the same for SpringCharacterController");
-        for (var i = 0; i < _trajectoryPosPredictionFrames.Length; ++i)
-        {
-            Debug.Assert(_trajectoryPosPredictionFrames[i] == _trajectoryRotPredictionFrames[i],
-                "Trajectory Position and Trajectory Direction Prediction Frames must be the same for SpringCharacterController");
-        }
-
-        _predictedPosition = new float2[NumberPredictionPos];
-        _predictedVelocity = new float2[NumberPredictionPos];
-        _predictedAcceleration = new float2[NumberPredictionPos];
+        _predictedPosition = new float2[PredictionCount];
+        _predictedVelocity = new float2[PredictionCount];
+        _predictedAcceleration = new float2[PredictionCount];
         _desiredRotation = quaternion.LookRotation(transform.forward, transform.up);
-        _predictedRotations = new quaternion[NumberPredictionRot];
-        _predictedAngularVelocities = new float3[NumberPredictionRot];
+        _predictedRotations = new quaternion[PredictionCount];
+        _predictedAngularVelocities = new float3[PredictionCount];
 
+        var mmData = motionSynthesizer.GetMmData();
         var historyFrames = mmData.MaximumFramesHistory;
         if (historyFrames > 0)
         {
@@ -247,8 +207,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
 
         var position = transform.position;
         var forward = transform.forward;
-        _history.Record(Time.time, new float2(position.x, position.z),
-            math.normalizesafe(new float2(forward.x, forward.z), new float2(0f, 1f)));
+        _history.Record(Time.time, PlanarPosition(transform), PlanarForward(transform));
     }
 
     /// <summary>
@@ -264,8 +223,8 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
             return;
         }
 
-        position = CurrentPlanarPosition;
-        forward = CurrentPlanarForward;
+        position = PlanarPosition(transform);
+        forward = PlanarForward(transform);
     }
 
     /// <summary>
@@ -275,17 +234,17 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     /// </summary>
     private void PredictRotations(quaternion currentRotation, float averagedDeltaTime)
     {
-        for (var i = 0; i < NumberPredictionRot; i++)
+        for (var i = 0; i < PredictionCount; i++)
         {
             // Init Predicted values
             _predictedRotations[i] = currentRotation;
             _predictedAngularVelocities[i] = _angularVelocity;
-            if (_trajectoryRotPredictionFrames[i] < 0) continue;
+            if (_features.PredictionFrames[i] < 0) continue;
 
             // Predict
             Spring.SimpleSpringDamperImplicit(ref _predictedRotations[i], ref _predictedAngularVelocities[i],
                 _desiredRotation, 1.0f - responsivenessDirections,
-                _trajectoryRotPredictionFrames[i] * averagedDeltaTime);
+                _features.PredictionFrames[i] * averagedDeltaTime);
         }
     }
 
@@ -304,9 +263,9 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         var velocity = _velocity;
         var acceleration = _acceleration;
 
-        for (var i = 0; i < NumberPredictionPos; ++i)
+        for (var i = 0; i < PredictionCount; ++i)
         {
-            var predictionFrames = _trajectoryPosPredictionFrames[i];
+            var predictionFrames = _features.PredictionFrames[i];
             if (predictionFrames < 0)
             {
                 _predictedPosition[i] = currentPos;
@@ -454,9 +413,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
                 if (framesBack > 0) GetPastState(framesBack, out world, out _);
                 else world = _predictedPosition[index];
 
-                float3 local = character.InverseTransformPoint(new float3(world.x, 0.0f, world.y));
-                output[0] = local.x;
-                output[1] = local.z;
+                WritePlanarPosition(character, world, output);
                 break;
             }
             case TrajectoryFeatureChannel.Type.Direction:
@@ -465,10 +422,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
                 if (framesBack > 0) GetPastState(framesBack, out _, out dirProjected);
                 else dirProjected = GetWorldSpaceDirectionPrediction(index);
 
-                float3 localDir =
-                    character.InverseTransformDirection(new Vector3(dirProjected.x, 0.0f, dirProjected.y));
-                output[0] = localDir.x;
-                output[1] = localDir.z;
+                WritePlanarDirection(character, dirProjected, output);
                 break;
             }
             default:
@@ -476,11 +430,6 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
                 break;
         }
     }
-
-    private float2 CurrentPlanarPosition => new(transform.position.x, transform.position.z);
-
-    private float2 CurrentPlanarForward =>
-        math.normalizesafe(new float2(transform.forward.x, transform.forward.z), new float2(0f, 1f));
 
     private float2 GetWorldSpaceDirectionPrediction(int index)
     {

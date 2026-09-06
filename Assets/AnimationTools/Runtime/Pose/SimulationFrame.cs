@@ -87,6 +87,38 @@ public static class SimulationFrame
         yawRate = SignedYawAngle(forward, nextForward) / dt;
     }
 
+    /// <summary>
+    /// The frame one step of <paramref name="dt"/> later, given the rates <see cref="ComputeVelocity"/>
+    /// reports. This is how a character accumulates movement, so it is the one definition of it.
+    /// </summary>
+    public static void Advance(float3 framePos, quaternion frameRot, float3 linVelFrameLocal, float yawRate,
+        float dt, out float3 nextFramePos, out quaternion nextFrameRot)
+    {
+        nextFramePos = framePos + math.mul(frameRot, linVelFrameLocal) * dt;
+        nextFrameRot = math.mul(MathExtensions.QuaternionFromScaledAngleAxis(new float3(0f, yawRate * dt, 0f)),
+            frameRot);
+    }
+
+    /// <summary>
+    /// The heading a rotation represents: the angle about +Y from character forward, in radians.
+    /// </summary>
+    /// <remarks>
+    /// Unity is y-up and left-handed with the character facing +Z, so a heading of theta is the
+    /// direction (sin theta, cos theta) in (x, z) — the convention the Python side measures with too.
+    /// </remarks>
+    public static float Yaw(quaternion rotation)
+    {
+        var forward = math.mul(rotation, math.forward());
+        return math.atan2(forward.x, forward.z);
+    }
+
+    /// <summary>Signed angle from one heading to another, taken the short way round.</summary>
+    public static float SignedYawDelta(float fromYaw, float toYaw)
+    {
+        var delta = toYaw - fromYaw;
+        return math.atan2(math.sin(delta), math.cos(delta));
+    }
+
     /// <summary>World position expressed relative to a simulation frame.</summary>
     public static float3 ToFrameLocal(float3 worldPos, float3 framePos, quaternion frameRot) =>
         math.mul(math.inverse(frameRot), worldPos - framePos);

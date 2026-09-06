@@ -48,7 +48,12 @@ public abstract class MotionMatchingControlInput : MonoBehaviour
     /// </summary>
     public float DatabaseDeltaTime { get; private set; }
 
-    private void LateUpdate()
+    /// <summary>
+    /// Advances the input, before the synthesis tick. The component synthesizes in LateUpdate, so
+    /// running here is what makes "the trajectory the stage searched with" this frame's trajectory
+    /// rather than the previous one's.
+    /// </summary>
+    private void Update()
     {
         DatabaseDeltaTime = motionSynthesizer.GetMmData().GetOrImportPoseSet().FrameTime;
         OnUpdate();
@@ -123,5 +128,84 @@ public abstract class MotionMatchingControlInput : MonoBehaviour
     {
         throw new NotImplementedException();
     }
+
+    // --- Shared plumbing -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The database's position and direction trajectory channels, resolved by name, plus the
+    /// horizons they share.
+    /// </summary>
+    protected readonly struct TrajectoryFeaturePair
+    {
+        public readonly int PositionIndex;
+        public readonly int DirectionIndex;
+
+        /// <summary>Horizons in database frames, ascending, negative meaning the past.</summary>
+        public readonly int[] PredictionFrames;
+
+        public TrajectoryFeaturePair(int positionIndex, int directionIndex, int[] predictionFrames)
+        {
+            PositionIndex = positionIndex;
+            DirectionIndex = directionIndex;
+            PredictionFrames = predictionFrames;
+        }
+
+        public int PredictionCount => PredictionFrames.Length;
+    }
+
+    /// <summary>
+    /// Finds the two named trajectory channels in the database this input drives. Both must predict
+    /// at the same horizons, since an input answers a position and a facing for each one.
+    /// </summary>
+    protected TrajectoryFeaturePair ResolveTrajectoryFeaturePair(string positionFeatureName,
+        string directionFeatureName)
+    {
+        var trajectoryFeatures = motionSynthesizer.GetMmData().trajectoryFeatures;
+        var positionIndex = -1;
+        var directionIndex = -1;
+        for (var i = 0; i < trajectoryFeatures.Count; i++)
+        {
+            if (trajectoryFeatures[i].name == positionFeatureName) positionIndex = i;
+            if (trajectoryFeatures[i].name == directionFeatureName) directionIndex = i;
+        }
+
+        Debug.Assert(positionIndex != -1, $"Trajectory feature \"{positionFeatureName}\" not found");
+        Debug.Assert(directionIndex != -1, $"Trajectory feature \"{directionFeatureName}\" not found");
+
+        var positionFrames = trajectoryFeatures[positionIndex].predictionFrames;
+        var directionFrames = trajectoryFeatures[directionIndex].predictionFrames;
+        Debug.Assert(positionFrames.Length == directionFrames.Length,
+            $"\"{positionFeatureName}\" and \"{directionFeatureName}\" must predict at the same horizons");
+        for (var i = 0; i < positionFrames.Length && i < directionFrames.Length; i++)
+        {
+            Debug.Assert(positionFrames[i] == directionFrames[i],
+                $"\"{positionFeatureName}\" and \"{directionFeatureName}\" must predict at the same horizons");
+        }
+
+        return new TrajectoryFeaturePair(positionIndex, directionIndex, positionFrames);
+    }
+
+    /// <summary>Writes a world ground-plane point into a feature span, in the character's frame.</summary>
+    protected static void WritePlanarPosition(Transform character, float2 world, Span<float> output)
+    {
+        var local = character.InverseTransformPoint(new Vector3(world.x, 0f, world.y));
+        output[0] = local.x;
+        output[1] = local.z;
+    }
+
+    /// <summary>Writes a world ground-plane direction into a feature span, in the character's frame.</summary>
+    protected static void WritePlanarDirection(Transform character, float2 world, Span<float> output)
+    {
+        var local = character.InverseTransformDirection(new Vector3(world.x, 0f, world.y));
+        output[0] = local.x;
+        output[1] = local.z;
+    }
+
+    /// <summary>A Transform's world position, flattened onto the ground plane.</summary>
+    protected static float2 PlanarPosition(Transform t) => new(t.position.x, t.position.z);
+
+    /// <summary>A Transform's forward, flattened onto the ground plane and normalized.</summary>
+    protected static float2 PlanarForward(Transform t) =>
+        math.normalizesafe(new float2(t.forward.x, t.forward.z), new float2(0f, 1f));
 }
 }

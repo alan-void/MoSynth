@@ -188,6 +188,7 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         if (!TryBeginSynthesisTick()) return;
 
         ConstructCurrentPoseFromSkeletonTransforms();
+        UpdateRootMotionState();
 
         PoseDiscontinuity = false;
         _scratchPose.CopyFrom(CurrentPose);
@@ -285,19 +286,49 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
 
         if (rootPositionsMask)
         {
-            AnimationTools.SimulationFrame.ComputeVelocity(pose, SkeletonData, SimulationFrame,
-                _animationDeltaTime, out var linearVelocity, out var yawRate);
-
-            transform.position += transform.rotation * (Vector3)linearVelocity * _animationDeltaTime;
-            var deltaRotation = MathExtensions.QuaternionFromScaledAngleAxis(
-                new float3(0f, yawRate * _animationDeltaTime, 0f));
-            transform.rotation = deltaRotation * transform.rotation;
+            ComputeAppliedFrame(pose, _animationDeltaTime, out var appliedPosition, out var appliedRotation);
+            transform.SetPositionAndRotation(appliedPosition, appliedRotation);
         }
 
         // TODO: inertialized hips blending across a rootPositionsMask change, and toes-floor
         // penetration correction, both used to happen here. They were dropped when the pipeline
         // moved to stages; the intended home for each is a MoSynthStage running after the pose is
         // produced, rather than another special case inside the orchestrator.
+    }
+
+    /// <summary>
+    /// Where this pose will be rendered: this Transform advanced by the frame velocity the pose
+    /// itself carries, or left where it is while <see cref="rootPositionsMask"/> is off.
+    /// </summary>
+    /// <remarks>
+    /// A stage that has to know where the pose it is editing will end up — one planting a foot in
+    /// the world, say — must ask here rather than integrate the velocity itself, so its answer and
+    /// the apply path cannot disagree.
+    /// </remarks>
+    public void ComputeAppliedFrame(in PoseBuffer pose, float deltaTime, out float3 position,
+        out quaternion rotation)
+    {
+        position = transform.position;
+        rotation = transform.rotation;
+        if (!rootPositionsMask) return;
+
+        AnimationTools.SimulationFrame.ComputeVelocity(pose, SkeletonData, SimulationFrame, deltaTime,
+            out var linearVelocity, out var yawRate);
+        AnimationTools.SimulationFrame.Advance(position, rotation, linearVelocity, yawRate, deltaTime,
+            out position, out rotation);
+    }
+
+    /// <summary>
+    /// Refreshes the motion state read back off the rig, so <see cref="RootVelocity"/> and
+    /// <see cref="RootAngularVelocity"/> describe the tick about to run.
+    /// </summary>
+    private void UpdateRootMotionState()
+    {
+        AnimationTools.SimulationFrame.ComputeVelocity(CurrentPose, SkeletonData, SimulationFrame,
+            _animationDeltaTime, out var linearVelocity, out var yawRate);
+
+        RootVelocity = math.mul((quaternion)transform.rotation, linearVelocity);
+        RootAngularVelocity = new float3(0f, yawRate, 0f);
     }
 
     private void OnValidate()
@@ -319,24 +350,34 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         if (_scratchPose.IsCreated) _scratchPose.Dispose();
     }
 
+    // --- The synthesized root's motion state, in world space ----------------------------------
+    //
+    // Routed rather than stored: position and rotation are this Transform, and the rates are
+    // re-derived from the pose read off the rig each tick. A copy kept here would be a second
+    // source of truth for something the Transform and the pose already determine.
+
+    /// <summary>World ground-plane velocity of the character frame, in metres per second.</summary>
+    public float3 RootVelocity { get; private set; }
+
+    /// <summary>Rotation rate of the character frame about +Y, in radians per second.</summary>
+    public float3 RootAngularVelocity { get; private set; }
+
+    public float3 RootPosition => transform.position;
+    public quaternion RootRotation => transform.rotation;
+
     // --- Unimplemented: pose adjustment and feature read-back ---------------------------------
     //
-    // These all throw, but the crowd and collision control inputs (and Obstacle) still call them and
+    // These throw, but the crowd and collision control inputs (and Obstacle) still call them and
     // will throw the moment those paths run. Kept explicit because it is the contract they were
     // written against:
     //
-    //  * Root*                 -- the synthesized root's motion state in world space.
     //  * Set*Adjustment        -- nudge the root off what the database produced, for collision
     //                             response and crowd steering, blended in rather than jumped.
     //  * Get*Feature           -- read back the trajectory being predicted, to steer against it.
     //
-    // Root motion is this component's own Transform and the trajectory lives in the motion matching
-    // stage's query vector, so finishing this means routing to those, not adding state here.
-
-    public float3 RootVelocity { get; protected set; }
-    public float3 RootAngularVelocity { get; protected set; }
-    public float3 RootPosition { get; protected set; }
-    public quaternion RootRotation { get; protected set; }
+    // The adjustment half now has an implementation those callers predate: RootFollowStage pulls
+    // the root onto a target through bone 0's velocity channels, which is where a correction has to
+    // go for the component to integrate it.
 
     public void SetRotAdjustment(quaternion adjustmentRotation)
     {
