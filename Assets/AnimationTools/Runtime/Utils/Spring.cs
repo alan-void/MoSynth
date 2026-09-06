@@ -17,6 +17,22 @@ namespace AnimationTools
             return goal * (1.0f - FastNegativeExponent((ln2 * dt) / (halfLife + eps)));
         }
         /// <summary>
+        /// Variation of the damper code that damps a point starting at zero moving toward the desired difference
+        /// </summary>
+        public static float2 DampAdjustmentImplicit(float2 goal, float halfLife, float dt, float eps = 1e-5f)
+        {
+            const float ln2 = 0.69314718056f;
+            return goal * (1.0f - FastNegativeExponent((ln2 * dt) / (halfLife + eps)));
+        }
+        /// <summary>
+        /// Variation of the damper code that damps a value starting at zero moving toward the desired difference
+        /// </summary>
+        public static float DampAdjustmentImplicit(float goal, float halfLife, float dt, float eps = 1e-5f)
+        {
+            const float ln2 = 0.69314718056f;
+            return goal * (1.0f - FastNegativeExponent((ln2 * dt) / (halfLife + eps)));
+        }
+        /// <summary>
         /// Variation of the damper code that damps a rotation starting at the identity rotation toward the desired difference
         /// </summary>
         public static quaternion DampAdjustmentImplicit(quaternion goal, float halfLife, float dt, float eps = 1e-5f)

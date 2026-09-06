@@ -28,7 +28,10 @@ public class UserInput : MonoBehaviour
 
     private void Start()
     {
+        // Both edges: performed alone latches the last direction when the keys are released, which
+        // every control input reads as a stick still being held.
         _inputActions.Player.Move.performed += ctx => inputActionsPlayerMove?.Invoke(ctx.ReadValue<Vector2>());
+        _inputActions.Player.Move.canceled += ctx => inputActionsPlayerMove?.Invoke(ctx.ReadValue<Vector2>());
     }
 }
 }

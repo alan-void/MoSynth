@@ -101,5 +101,19 @@ public class PfnnTrajectory
         var relative = yaw - frameYaw;
         return new float2(math.sin(relative), math.cos(relative));
     }
+
+    /// <summary>Inverse of <see cref="ToFrame"/>.</summary>
+    public static float2 FromFrame(float2 local, float2 origin, float frameYaw) =>
+        origin + RotateOutOfFrame(local, frameYaw);
+
+    /// <summary>Inverse of <see cref="DirectionInFrame"/>, as a world direction rather than a yaw.</summary>
+    public static float2 DirectionFromFrame(float2 localDirection, float frameYaw) =>
+        RotateOutOfFrame(localDirection, frameYaw);
+
+    private static float2 RotateOutOfFrame(float2 local, float frameYaw)
+    {
+        math.sincos(frameYaw, out var sin, out var cos);
+        return new float2(cos * local.x + sin * local.y, -sin * local.x + cos * local.y);
+    }
 }
 }

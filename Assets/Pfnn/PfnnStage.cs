@@ -71,6 +71,30 @@ public class PfnnStage : MoSynthStage, IDisposable
     /// <summary>Current gait phase in radians, for gizmos and diagnostics.</summary>
     public float Phase { get; private set; }
 
+    /// <summary>Samples in the trajectory window, once one has been assembled.</summary>
+    public int WindowSampleCount => _windowFilled ? _windowOffsets.Length : 0;
+
+    /// <summary>
+    /// One sample of the window last handed to the network, taken back out of the character frame
+    /// it was packed into.
+    /// </summary>
+    /// <remarks>
+    /// Reading the packed floats rather than re-asking the control input is the point: this is what
+    /// the model was queried with, so a packing or frame error shows up as a visibly wrong drawing
+    /// instead of hiding behind a picture that redraws the intent correctly.
+    /// </remarks>
+    /// <param name="framesAhead">The sample's offset from now, negative for the history half.</param>
+    public void GetWindowSample(int index, out int framesAhead, out float2 world, out float2 direction)
+    {
+        framesAhead = _windowOffsets[index];
+        world = PfnnTrajectory.FromFrame(
+            new float2(_windowPositions[index * 2], _windowPositions[index * 2 + 1]),
+            _windowOrigin, _windowFrameYaw);
+        direction = PfnnTrajectory.DirectionFromFrame(
+            new float2(_windowDirections[index * 2], _windowDirections[index * 2 + 1]),
+            _windowFrameYaw);
+    }
+
     // Packing, read off the checkpoint at Init ---------------------------------------------------
     private int[] _boneIndices;      // checkpoint slot -> skeleton bone
     private int[] _slotOfBone;       // skeleton bone -> checkpoint slot, or -1
@@ -83,6 +107,7 @@ public class PfnnStage : MoSynthStage, IDisposable
     private NativeArray<float3> _velocities;
     private NativeArray<float3> _angularVelocities;
     private NativeArray<quaternion> _previousRotations;
+    private bool _hasPreviousPose;
 
     // What crosses the boundary -----------------------------------------------------------------
     private float[] _windowPositions;
@@ -92,6 +117,11 @@ public class PfnnStage : MoSynthStage, IDisposable
     private readonly float[] _contacts = new float[2];
 
     private PfnnTrajectory _trajectory;
+
+    // The frame the window above was packed into, kept so a gizmo can take it back out again.
+    private float2 _windowOrigin;
+    private float _windowFrameYaw;
+    private bool _windowFilled;
 
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
@@ -205,6 +235,7 @@ public class PfnnStage : MoSynthStage, IDisposable
         }
 
         _previousRotations.CopyFrom(_rotations);
+        _hasPreviousPose = false;
 
         _contacts[0] = _owner.CurrentPose.GetBool(_owner.LeftFootContactHandle) ? 1f : 0f;
         _contacts[1] = _owner.CurrentPose.GetBool(_owner.RightFootContactHandle) ? 1f : 0f;
@@ -301,6 +332,9 @@ public class PfnnStage : MoSynthStage, IDisposable
     {
         var origin = CurrentGroundPosition();
         var frameYaw = CurrentYaw();
+        _windowOrigin = origin;
+        _windowFrameYaw = frameYaw;
+        _windowFilled = true;
 
         for (var i = 0; i < _windowOffsets.Length; i++)
         {
@@ -364,11 +398,16 @@ public class PfnnStage : MoSynthStage, IDisposable
 
             // The network predicts a linear rate per bone but no angular one, so the angular rate
             // is differenced from the rotations — which is the same quantity training_data stores,
-            // differences of consecutive frame-local poses.
+            // differences of consecutive frame-local poses. On the first tick there is no previous
+            // frame to difference against, only the rig's rest pose, and bone 0's share of that
+            // would be integrated onto the character's Transform as a tick of root motion.
             _velocities[bone] = slot >= 0 ? ReadFloat3(jointVelocities, slot) : float3.zero;
-            _angularVelocities[bone] =
-                AngularVelocity(_previousRotations[bone], _rotations[bone], _databaseFrameTime);
+            _angularVelocities[bone] = _hasPreviousPose
+                ? AngularVelocity(_previousRotations[bone], _rotations[bone], _databaseFrameTime)
+                : float3.zero;
         }
+
+        _hasPreviousPose = true;
 
         for (var slot = 0; slot < _boneIndices.Length; slot++)
         {

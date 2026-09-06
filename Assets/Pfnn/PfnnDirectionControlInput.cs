@@ -13,12 +13,18 @@ namespace Pfnn
 /// <see cref="Spring"/> — from Daniel Holden's <a
 /// href="https://theorangeduck.com/page/spring-roll-call#controllers">spring roll call</a>. What
 /// differs is only how much of it the network is shown: a PFNN reads the whole predicted path
-/// rather than a handful of authored horizons.
+/// rather than a handful of authored horizons, which is also why the request itself is rate-limited
+/// and not only the body's response to it — see <see cref="steeringHalfLife"/>.
 /// </remarks>
 public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirectionControlInput
 {
     [Tooltip("Speed at full stick deflection, in m/s.")]
     public float maxSpeed = 1.0f;
+
+    [Tooltip("Time to close half the gap between the requested velocity and the one being asked " +
+             "for. How fast the trajectory may re-aim, as opposed to how fast the body follows it.")]
+    [Range(0.01f, 1f)]
+    public float steeringHalfLife = 0.25f;
 
     [Tooltip("Time to close half the gap between the current velocity and the requested one.")]
     [Range(0.01f, 1f)]
@@ -31,72 +37,108 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
     [Tooltip("Speed below which the character is treated as stopped, so it settles cleanly.")]
     public float minimumSpeed = 0.01f;
 
+    /// <summary>How long the character may go undriven before saying so, in seconds.</summary>
+    private const float UndrivenWarningDelay = 5f;
+
     private float2 _desiredDirection;
+    private float2 _goalVelocity;
     private float2 _velocity;
-    private float2 _facing = new(0f, 1f);
+    private float2 _acceleration;
+    private float2 _facing;
+    private bool _everDriven;
+    private bool _warnedUndriven;
+    private float _undrivenSeconds;
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        // The facing has to start where the character is actually pointing. Starting it at world
+        // +z would ask a character facing any other way to turn round on its very first frame.
+        var forward = synthesisComponent != null ? synthesisComponent.transform.forward : Vector3.forward;
+        _facing = math.normalizesafe(new float2(forward.x, forward.z), new float2(0f, 1f));
+    }
 
     /// <summary>Set by an input script; a zero vector asks the character to stop.</summary>
     public void SetMovementDirection(Vector2 movementDirection)
     {
+        _everDriven = true;
         _desiredDirection = new float2(movementDirection.x, movementDirection.y);
         if (math.lengthsq(_desiredDirection) > 1f) _desiredDirection = math.normalize(_desiredDirection);
     }
 
     protected override void OnUpdate()
     {
-        var goal = _desiredDirection * maxSpeed;
-        var position = float2.zero;
-        Spring.SimpleSpringDamperImplicit(ref position, ref _velocity, goal, velocityHalfLife,
-            Time.deltaTime);
+        WarnIfNothingIsDriving();
+
+        var deltaTime = Time.deltaTime;
+
+        // The request is rate-limited before the body ever sees it, because a keyboard delivers it
+        // as a step. A trajectory sample a second ahead has converged onto the goal, so it inherits
+        // any step in the goal whole, while the samples near the character do not move at all.
+        _goalVelocity = TrajectorySteering.DampToward(_goalVelocity, _desiredDirection * maxSpeed,
+            steeringHalfLife, deltaTime);
+
+        // The controller for a *velocity* goal, which is what a stick gives. A position spring aimed
+        // at a velocity has a fixed point that depends on the step size rather than on the request:
+        // it settled at 3.26 m/s for maxSpeed 1 at 30 fps, and drifted with the frame rate.
+        var travelled = float2.zero;
+        Spring.CharacterPositionUpdate(ref travelled, ref _velocity, ref _acceleration, _goalVelocity,
+            velocityHalfLife, deltaTime);
 
         if (math.length(_velocity) < minimumSpeed) _velocity = float2.zero;
-        else _facing = math.normalizesafe(_velocity, _facing);
+        else
+        {
+            _facing = TrajectorySteering.DampFacing(_facing, math.normalizesafe(_velocity, _facing),
+                facingHalfLife, deltaTime);
+        }
+    }
+
+    /// <summary>
+    /// Nothing in this component polls input, so a character whose driver was never wired up simply
+    /// stands still, and every component involved reports itself healthy. Saying so once is the only
+    /// signal that distinguishes it from a character nobody has steered yet.
+    /// </summary>
+    private void WarnIfNothingIsDriving()
+    {
+        if (_everDriven || _warnedUndriven) return;
+
+        _undrivenSeconds += Time.deltaTime;
+        if (_undrivenSeconds < UndrivenWarningDelay) return;
+
+        Debug.LogWarning(
+            $"[PFNN] No movement input has reached '{name}' in {UndrivenWarningDelay:0} seconds. " +
+            "If nothing has touched the controls yet, that is expected; otherwise nothing calls " +
+            "SetMovementDirection on it — in the demo scene that is a persistent listener on " +
+            "UserInput's move event.", this);
+        _warnedUndriven = true;
     }
 
     public override bool TryGetFutureSample(int frameOffset, out float2 position,
         out float2 direction)
     {
+        // Never driven is the base contract's "nothing to say": the stage then substitutes the
+        // character's own position and facing, which is the same answer this would give but leaves
+        // the two states distinguishable at the seam.
+        if (!_everDriven)
+        {
+            position = default;
+            direction = default;
+            return false;
+        }
+
         var origin = RootPosition;
         var frameTime = 1f / math.max(1f, Synthesizer.synthesisFrameRate);
 
-        // The same spring, run on with no new input. Its own state must not move, so the prediction
-        // works on copies -- what the character does is decided in OnUpdate, once.
-        var predictedVelocity = _velocity;
-        var predictedOffset = float2.zero;
-        var goal = _desiredDirection * maxSpeed;
+        // The same springs, run on with no new input. Their own state must not move, so this reads
+        // it by value -- what the character does is decided in OnUpdate, once.
+        var offset = TrajectorySteering.PredictOffset(_velocity, _acceleration, _goalVelocity, frameOffset,
+            frameTime, velocityHalfLife, out var horizonVelocity);
+        position = new float2(origin.x, origin.z) + offset;
 
-        for (var frame = 0; frame < frameOffset; frame++)
-        {
-            var spring = float2.zero;
-            Spring.SimpleSpringDamperImplicit(ref spring, ref predictedVelocity, goal,
-                velocityHalfLife, frameTime);
-            predictedOffset += predictedVelocity * frameTime;
-        }
-
-        position = new float2(origin.x, origin.z) + predictedOffset;
-
-        var travel = math.normalizesafe(predictedVelocity, _facing);
-        // The facing lags the travel direction by its own spring, which is what stops a character
-        // snapping round the instant the stick moves.
-        var blend = 1f - math.pow(0.5f, frameOffset * frameTime / facingHalfLife);
-        direction = math.normalizesafe(math.lerp(_facing, travel, blend), new float2(0f, 1f));
+        var travel = math.normalizesafe(horizonVelocity, _facing);
+        direction = TrajectorySteering.PredictFacing(_facing, travel, frameOffset, frameTime, facingHalfLife);
         return true;
     }
-
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (!Application.isPlaying || Stage == null) return;
-
-        Gizmos.color = new Color(1f, 0.6f, 0.1f);
-        for (var frames = 0; frames <= 30; frames += 5)
-        {
-            if (!TryGetFutureSample(frames, out var position, out var direction)) continue;
-            var world = new Vector3(position.x, RootPosition.y + 0.05f, position.y);
-            Gizmos.DrawSphere(world, 0.04f);
-            Gizmos.DrawLine(world, world + new Vector3(direction.x, 0f, direction.y) * 0.2f);
-        }
-    }
-#endif
 }
 }

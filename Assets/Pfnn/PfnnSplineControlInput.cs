@@ -94,21 +94,5 @@ public class PfnnSplineControlInput : PfnnControlInput, IMotionSynthesisSplineCo
         direction = math.normalizesafe(step, new float2(0f, 1f));
         return true;
     }
-
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (!Application.isPlaying || Stage == null) return;
-
-        Gizmos.color = new Color(0.2f, 0.8f, 1f);
-        for (var frames = 0; frames <= 30; frames += 5)
-        {
-            if (!TryGetFutureSample(frames, out var position, out var direction)) continue;
-            var world = new Vector3(position.x, RootPosition.y + 0.05f, position.y);
-            Gizmos.DrawSphere(world, 0.04f);
-            Gizmos.DrawLine(world, world + new Vector3(direction.x, 0f, direction.y) * 0.2f);
-        }
-    }
-#endif
 }
 }

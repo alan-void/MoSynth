@@ -95,5 +95,39 @@ public abstract class PfnnControlInput : MonoBehaviour, IMotionSynthesisControlI
     /// </remarks>
     /// <param name="frameOffset">Synthesis frames ahead. Always positive.</param>
     public abstract bool TryGetFutureSample(int frameOffset, out float2 position, out float2 direction);
+
+#if UNITY_EDITOR
+    private static readonly Color PastColor = new(0.35f, 0.45f, 0.55f);
+    private static readonly Color FutureColor = new(1f, 0.6f, 0.1f);
+
+    /// <summary>
+    /// Draws the trajectory window the stage last assembled: where the character has been behind it,
+    /// where it is being asked to go ahead of it.
+    /// </summary>
+    /// <remarks>
+    /// Shared by every input rather than written per subclass, because what is worth looking at is
+    /// the window the network was queried with, which is the stage's to answer for. An input with a
+    /// path of its own to show overrides this and calls back into it.
+    /// </remarks>
+    protected virtual void OnDrawGizmos()
+    {
+        if (!Application.isPlaying || synthesisComponent == null || Stage == null) return;
+
+        var height = RootPosition.y + 0.05f;
+        var previous = Vector3.zero;
+
+        for (var i = 0; i < Stage.WindowSampleCount; i++)
+        {
+            Stage.GetWindowSample(i, out var framesAhead, out var position, out var direction);
+
+            Gizmos.color = framesAhead <= 0 ? PastColor : FutureColor;
+            var world = new Vector3(position.x, height, position.y);
+            Gizmos.DrawSphere(world, 0.04f);
+            Gizmos.DrawLine(world, world + new Vector3(direction.x, 0f, direction.y) * 0.2f);
+            if (i > 0) Gizmos.DrawLine(previous, world);
+            previous = world;
+        }
+    }
+#endif
 }
 }
