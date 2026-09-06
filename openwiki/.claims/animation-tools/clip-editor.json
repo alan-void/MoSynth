@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:5f0ef54f6df258be803a8ba11045679c0574c09c8964d6df6fdc7b153b01b139",
+  "claims": [
+    {
+      "id": "claim_1b47a148a2dc4e6ab7b119a9ac72e0a7",
+      "statement": "AnnotatedClipEditorWindow presents one AnnotatedAnimationClip through three IMGUIContainer surfaces inside a UI Toolkit shell - a SkeletonPreview viewport, a track timeline, and an inspector for the focused track - all driven from a single playhead frame.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/AnnotatedClipEditorWindow.cs#L102-L132",
+          "version": "repo-lines-v1:sha256:8cae60456bbfed2498c6b32dabed3da977302590c3cfa32f26bfa059311ccc98:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmNDQxMWFhNzlkYzExZWRmMzczNmU5YWJhYTQxMjU3YjJiNjI0NDhmMTgyNzhlNjE5NWE3NzcxMjI5ZDdhZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmMTk3NGQ1MjIzMjFhODEzOTMzMWI1ZGEyN2U3OWRmOTc1MDkyYmNmMzBiMmQwMDhkZTI0YTZkZGRjNmY0YTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNTE3ODY2NTkzZWRlZWExODAzNjAxZmYwODg3YmYxMDA4Y2E1YzRhOGE1ODdmMmNiZTVlYzE2NDY0YjNlMDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae4eeab99cfc42c484161864d5209bb5",
+      "statement": "The clip editor distinguishes clip frames, which index the whole baked animation, from slice frames, which are relative to startFrame and are what GaitPhase.Footfall stores; ClipEditorContext owns the conversion and exposes ClipFrameCount and SliceFrameCount rather than the shadowed FrameCount member.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipEditorContext.cs#L48-L80",
+          "version": "repo-lines-v1:sha256:a5bb017952d066c9356e31979f39e796af3947c569d40825859ecbb688fbf24e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiOTI5ZjY2NDAwNmUzZTUwNTk3N2MwMzNkNzE5YTg0YWZhZTg0ODhiOTkyYWUyNjcxYjMzNjYyNzhjZTlmMzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjM2M1MDE3YmU5NzEzNDRjYjdmYzUyNzYxN2ZmODI2N2JmYmI2M2QwNTRkNTg0ZGQyNzY1MzE1OWZjOWZhNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmOGY4MWQ4Y2Y2ZmEzNjdmYWFhZThkM2YxZDUxZTllMTU4MGZhODZiOWQ2NjkzODJmODM3MDY2YjFkZGZjYjcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnnotatedAnimationClip.cs#L36-L45",
+          "version": "repo-lines-v1:sha256:1f13c940419ea21a4b8706a95bde2f56560f0838d8c48791f6a982ed10146b0f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlYmNkYzkzYWQ2NjA4ZDliMjcyMjI0NTE1M2E5MmIxMmUxZmJjYTAzYjY3YmRkZGJjZWMxYmMxYzY4MGFiZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5MjA2YTA2MGM3YzgzNWE1YTYzOWE2ZGMxYjU3NzZkMGRhMTAxNTg2Mjc4M2EzOTc1ODdkNGQ4NTQwYmYzNDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc0ZGM0ZTVmMDBhYWU2Y2FmNDQyZWE0MjEzYTdiMGMyYTRmOGIyMWMwODk2OTc4NTEyZjUyOGNhOGIyMjc4NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3YTMwYWRhYjM1NjExYjFlMTZlNWJlNWVlYzE3YzBhOGM4ZjI3ZGY5ZWVhYWI3NmVkZTI5OWUyOWIyMjNmNjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_050800a447934452a66cccc22d3bd1d7",
+      "statement": "The clip editor's timeline axis runs over whole-clip frames rather than slice frames so that the startFrame and endFrame handles can be dragged on the ruler without sliding every lane's content sideways under the cursor, and so material outside the slice stays visible for trimming.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipTimelineView.cs#L1-L30",
+          "version": "repo-lines-v1:sha256:b86402e86724f75a5e78628fd6f9cd6c163396e9a0831ebdc3895b7119dbfbea:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YzNlMDRkZmExYTE5YzY2YTA1MDM0NzMyMjNkOTE1OTVmNmQ3MDg3MjU5NDZkNjg4YzA2ZDljNTdjOWVmZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMzY0Y2FmMGUwNjIxMWY1MTA5OGZmZDgzZDE3N2ZjODRjNWI3ZTUyMTIxNzMyMWU5MWVhMTkwMjUxYWE5OTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5ZDEyZjZjZTFhMWEwMzRkMWMyNjlmN2EwMjM1NmNkZGRkNmM3ZmUwMWRhZDY4MDYzNDIzYTk4MTg4NzljOGYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipTimeAxis.cs#L6-L20",
+          "version": "repo-lines-v1:sha256:ba41812cfd20a862be872385fe76dda63c5b192acb4207f0b6a2bc2de203c666:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkMDUyNzhlZTM5N2FhZTE3YjQzN2YxNmRhNGY1NTM3YmE5NzlmNDcwOWZmN2RmNDdlMjk4MTA2ZTZjNGI0OTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNDNlMGY2NGRmOWNiYzhhZjg2MTQyMzVjZGJlM2ZjNWVkOGE1MWRlYWNkZDlkN2I0YjIxZDFmNWQ1ODkxMzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d708ac1425944710bdd6bec91758ed8c",
+      "statement": "An AnimationClipComponent with no registered track still gets a lane and a fully editable inspector from DefaultComponentTrack, whose inspector is a single PropertyField over the SerializeReference list element, so a new component type is authorable in the clip editor with no editor code written.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/DefaultComponentTrack.cs",
+          "version": "repo-file-v1:sha256:2d680878c9785008cf76287d79107bcd3ed7ae34d064b20f8581d8b9ac85d048"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipComponentTrackRegistry.cs#L36-L57",
+          "version": "repo-lines-v1:sha256:1eee17e2935c8d169f6492caefa51048d1c2c2aefb725d670df0f0b27fd423df:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwMmFkM2Q3ZDNhNDRlYTdkZmE3ZmQ1YjJkN2U2Y2RmMGM1Zjg2YTRiODNiYTYwOTJjNDNhZjlmZjQ3ODg3NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4Njg4YWJmZGI1NGRiOTVlYTNhZDhkYWI0NDFmNTBmYjQ1OTI5ODFkZWFmNDJkZDk2NjE3OGE4OWE3OGUzM2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_695184f542f3403c9d231abae3b8e9b2",
+      "statement": "The clip editor renders dense per-frame signals as a TimelineSignalTexture blitted under a moving UV window so cost is independent of clip length and zoom, while footfall anchors stay vector-drawn because they need pixel-accurate hit rects at any zoom and must follow a drag without a texture rebuild.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/TimelineSignalTexture.cs#L6-L20",
+          "version": "repo-lines-v1:sha256:cf8a80729a996d4b76e93bad4e6c3bc780e9a979dc30616dc88a9fa4e672881d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiNTI4YzlhYzE2MDg1YWZkYTU3YzFjZDVkMTJhOWE4ZTJiNmQ1ZDY4YTg1YTBhMWY2OTI0NDk2YjBlNzI2YWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5Y2Q1ZjFlYjc2MDJiNmMyOWUwZmIyMDJmNWVmM2UxYmI1OTliZTU2MzIxMWNlMWJkZTEzNWViM2Y0MTA5MWEifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/Tracks/GaitPhaseTrack.cs#L9-L19",
+          "version": "repo-lines-v1:sha256:78290bda40e9451828617f8ec02e5f13de594f8c13dcfe0b1361337594f2f656:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3OTc1NDMzN2NmYjhmM2EyMjRmM2FlODhjNjdjNDYyYjE2YjA2OWYyYmQ5ZWI0ZjE5NjQ0ZjBmM2MwMGVjMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhOWJjNGNhNjE2MjY3NGE0NWQ5YzQ3MzNlMDhiODY2OTJlZjkxYjVmOTc3ZTRiYjc4ZjczOGJmZTY4OTk4ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMDcyZTQ2ZGY1OGMwYzA0ZDMzNzM3NjgwYjcwMmE3MDY5MDQxNWQwNzdiZTJhNTllMmQzNmFhNGUyYmRiNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlNjM0NGM5Y2MxN2E3ZjczOTgyYmVlODQ2YmYzMzI0NDg4MDZkYTYwMmRiMWEwMWU0OWE2MDM5MGEzNWVlOTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9301bf13aa5f4cd8a3ae09a146775897",
+      "statement": "Committing a clip editor edit runs AnnotatedAnimationClip.OnValidate, which clears the cached PoseSequence and forces the next preview repaint to re-bake the whole clip, so anchor drags hold a transient frame offset and commit once on mouse-up instead of per mouse-move.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipEditorContext.cs#L93-L112",
+          "version": "repo-lines-v1:sha256:57b570c0b7737a2989827aa03920bd0ed353eb2ccbd5dfc1c0153116a6feecdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZjI0OTA2NmI2ZDE1YmQzOTgwYTJkZTg0ZTljNWIyMGY4ZGI4MjM5OGJjYjVjMjBmY2Q4NzViYmViM2NmOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzNWY1YTUzY2RlNzg5NDdlYjQwMzVlMzNiNTM4YTgzYjBmMGNlNjRhOTQ0ZDZjMmQwYzY4NjhmZDYwZjI5MDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxZWI3NzI2NjE2NTQwMjE3YTljNGM0M2Y2MDlkOWZlZjhkMjBjMDAzMDEwYTA0NTRjZjlkZTNkN2NmYjhhZTQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs#L176-L187",
+          "version": "repo-lines-v1:sha256:46369b7d046b5ccba8fabd679c521f57d44fb90d5fdfbd6d9a8cace921ffd9cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YTkzN2UyMmE5ZDMyN2FkZDYzZjRlNDMzOTUxY2RmNDUwZWQyZTAzMzhhZGE0NjI0OTRjZmM0ODc2ZDFmMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiYmQ4MmUwYjg0ODY3YmJjMzNjMzQ0ZDM0ZTZkYWVlNWVjZDdjYTEzM2YwMDg4NzhhMTZiYTFjODAxYTlkOTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxMGIzNmFhNzRhNTliY2Y0YTg4MTg1ODM3ZjY1OGFmYWYzNjQ2ZWZmMmJiMTZjMzkyOGQwZTkzMzVlOTQ1ZDIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/Tracks/GaitPhaseTrack.cs#L200-L235",
+          "version": "repo-lines-v1:sha256:53e7a5c766aa18348195ac090f408f1080a949295194843deb5f07d78477ada4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmZDkzNmYyODFhZmFkOTVlNWUwZWFlYzNlY2E0NGU3YjE3MTA2Y2M2MmI2YTBhMDhlNjNiNWE1ZWYyMmJlZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZWFkNzkyODg1ZTczZWVlNzk2ZmFlNzgyMjUyY2Y5YzVmMTIxMzJhMDBjZWEyNGMzYmRkOTdjMzQ0MDVhNWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxMzc1ZGU1MDNmNTQzZGY3ZGE2MDc5ODg5ZDAyMzJiNDIzNzk5NzFiMzcyNTZkZWZiY2QyNmY3ODhhNGJkNGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhOWQ0MzAzNmU5N2JiNjJlOGQzMTlkN2U0NjVlMTA5NmU2ZTZhZmMxYzMxZWRlMzk2ZjlkMzBlZDNiNjY2OWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f22f3184b54b431b9f0a6a37e40b08dc",
+      "statement": "Footfall edits are clamped to the slice and re-sorted ascending on commit because GaitPhaseComponent.OnValidate silently removes out-of-range anchors and GaitPhase silently drops anchors that are not strictly later than their predecessor.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/Tracks/FootfallEdits.cs#L6-L68",
+          "version": "repo-lines-v1:sha256:f25e6e265932b5bcf284df00eeba04ef2b9602b1bea77fd2a58856ee71bfc380:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhMzQ4YjY4NGQ2NDMzYTVmZmUyZjFmMzE5ZGJmOTc1NDM1NmVkMmM1Y2RlYjIyNThiYjYxOTU3NmMyY2Y3MmMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/GaitPhaseComponent.cs#L58-L65",
+          "version": "repo-lines-v1:sha256:1ddf98ecc7b5fb0b6458b81f0acfb2a54cf5888d290c212e39fd3b71ddbb528b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmUwOWIyZjdlMDNkMGI4ZDgzNzQxZWFhMTE4NWYzMzA3MDZhMDg1YTRhNzkxNTUwZjE0YWM2MWVmN2IzZDNlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQxMjI2OGJmYTJiYjRiOWZhZjQ3Y2EzN2E0YjI2YmZmNjZiNjRlOTZlZWQ0NDhkZmQxZjFlNmU3OWNjNmYyZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk0MTE2MTNhMTk2ZDZlNzlkY2QyODUyMGZhMjYyY2ZlZDE5YmNhNmZmM2FjODk5ZTE2Y2I4Y2M1Y2RmYWM3YSJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/GaitPhase.cs#L127-L145",
+          "version": "repo-lines-v1:sha256:a770127971cd7857c6a89bd7bded8d37af457def4bebf2cda136380cac47b2dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYTBkMGVmOTUzYzkwZjBjNzY1MjliYmQzOWMwYzM2NTEwMzM0OWFmZjkyNWM5MWVkZTdkMTZhOGU4YmMwZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjZDY4ZTczM2U0ZWQzZTE5NTAwYTIwZjJjYzQxODRlOTkzYWFjNTdmOWY5YzYyODJlOTE1ZTAzMmZjMmEyNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzZjIyMDViOWJiMmQ0ODQwZGRhMjNlNWFmYTE3OGMxNWU2ZmI3NWRkOGM5NGVlZmVlZDM2ZTZhODhlZWMwZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhOTFiYTUyYWM2NDM0ZDk0ODk3ZmUxZGQxZThmYmI4NDRhNDMzMjdmY2U1Y2ZjY2I4ODk0OTAyZDNhYmRkNjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_14fcac5f71df47828c3055391130b9c5",
+      "statement": "Foot contact flags are not serialized on the clip - only the footfalls derived from them are - so the clip editor's contact bands stay empty until a detection pass is run in the current session.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/GaitPhaseComponent.cs#L27-L47",
+          "version": "repo-lines-v1:sha256:03a5808e5ce8eb3794f2df34ea9c9cdf2d7aced29c9c1e633bd96bd711542991:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMmY2NzJkZTVlNTljNDc0OTVhODBmYzczNWI3NDljZWZjYjE5NDg5ZTc3MTZmZGQ0YTBlOTQ4YmZiMmYwNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwZDQ2OTYxZDViZWVjMzU3OTA3YzlhNzgxZDVmNjgxYTg4ZTFhN2VlZjEzODkxNjdhMWQwNzgxNTRiZGYxZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0NGZhZGY1MWNmNWIxZGU2MTdmOGUwMWRhOWFmZWEwN2NhY2MwNWY5YTJhYWIzNTAyZGQxMWNjMmQzZmQ3MWUifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/Tracks/GaitPhaseTrack.cs#L379-L400",
+          "version": "repo-lines-v1:sha256:173822c382e437f5ca7e8d24290a2adf37a182dea52b507a860a10743988fa01:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyMjRjYWY3NGExNjViNDRiZDZjZDQ3NzkyNzQ0MDBlNGFlZTc3OTkzNzE0ZTNkYzAxY2M2YjlmOWM5NDFjNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5NGNlMDc0NDRiN2E0NDY4OWVlMTBlNTk4ZTlmZjkyZDAwNDFhNTUyNGY2NjA3ZDFhYWE4ODVmN2UyYjFhNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5YmM2Yzk4YTMxMjRlNTBjOWIzZDkyNzdkZTZjYzQwMjZiMDM2NzA4OTc4MzRkNjJjMWRjYTQyMjBhMTVmY2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a27051d0300549648331f84f73f06da3",
+      "statement": "Clip editor lane visibility and lane height are stored per clip in SessionState keyed by asset GUID and component type name, not in the asset, so reordering the components list does not shuffle which lanes are hidden.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipTrackRow.cs#L23-L96",
+          "version": "repo-lines-v1:sha256:445befa538ee047b0588d4f71dffb2d9bd2ce692c786f92b238f72a374ebf596:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3NTM2MmY5NDE5ZWQzNTNkMmRlYTI4MmM5NDNhODdiN2QwZTk3NGI1YzUxN2NhNzJiNmU3OTE5OGJkZTFiMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2435e1b51914d3e836cd265f93bef5b",
+      "statement": "The AnnotatedAnimationClip inspector no longer draws gait phase itself: GaitPhaseStrip was removed and its phase and contact pixel rules moved to GaitPhaseSignalBuilder while its summary and warnings moved to GaitPhaseTrack, leaving the inspector with the asset's fields, validation, a frame readout and a button that opens the clip editor.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnnotatedAnimationClipEditor.cs",
+          "version": "repo-file-v1:sha256:08e350e9317934009703efc4dbc1a6a0eebcc507c96e7d8c47a5f4fc570f2ee3"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/Tracks/GaitPhaseSignalBuilder.cs",
+          "version": "repo-file-v1:sha256:99255d2d392546d900342e402322f459a44b5c4158ea28a83dad47adf953d470"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-09-02T21:44:37.029Z"
+  }
+}

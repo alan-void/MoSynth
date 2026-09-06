@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:adfc573c4eb8114ea499ed24559462ab5d58c49732355e7dc301a246a9b20c14",
+  "claims": [
+    {
+      "id": "claim_6d8123b3d2154b77a3d7109fcbcaf100",
+      "statement": "ClipComponentTrackRegistry discovers tracks lazily through TypeCache.GetTypesWithAttribute, skipping with a warning any type that is abstract, lacks a public parameterless constructor, does not derive from AnimationClipComponentTrack, or names a non-component type, and resolving duplicate registrations by Type.FullName order so the winner does not depend on assembly load order.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipComponentTrackRegistry.cs#L62-L140",
+          "version": "repo-lines-v1:sha256:7fc28e969b736b30b3ff77ccd30ca2bc42fad22d9cb6f0c158df21c8ae3842d3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwZWY0ZDE1ODU3OTc0MDc4Y2YzYTBhNDY4M2M4N2Y1ZDMzZjc5YmMyYThjYWViZjk4NTg4NTM1NDJiMmJkNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3ZTY4NTMwN2M0MGQ0OGIxMDI4OWMxMGE5MThiMWRiNDY0ODk2N2Q2NWRlNDFlMTJlOWMwYTQyMjdiNGYxYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_733d5d799c864fc681682a9739c9ea7b",
+      "statement": "ClipComponentTrackRegistry.FindTrackType walks a component's base chain up to but excluding AnimationClipComponent, so a track registered against an abstract component family covers every subclass.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipComponentTrackRegistry.cs#L22-L36",
+          "version": "repo-lines-v1:sha256:2f77c85de1255ab02d8386a2190771b7790042ef4fd049d1059fb9c80bb5cc30:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmZDk2MDY2OTgzN2MyMDU0MjMwZTU3YTBjMmY1ZTAyNjM1MTQwY2YyZGViMTk0NWVhMmY0ZmY1ZjFmZWNhNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlMmNiZDQ1MzYwZGFlN2E1YjllMDNhZmM0MDQzNjYwODRlZjgxYmFmMjQzNGI2NDQ5NDUzYjE2Njc0YzMzZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4OTVlZWQ2NzJmNTliODEyYTdkMTg3OWQ4ODQ2NGI5OTk0OGU0MGMzYWQ5YzIxNWI4ZGY4ZDllY2UxMjBlZmYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/ClipComponentTrackRegistryTests.cs",
+          "version": "repo-file-v1:sha256:8e70a80041f70fe24a8d37a2e622e15ce011feeec154a3f0f42dcf2e963fdd5c"
+        }
+      ]
+    },
+    {
+      "id": "claim_c75790fd44bf480aafeda940351bb110",
+      "statement": "A clip editor preview overlay cannot use UnityEditor.Handles because Handles draws into the current GUI or Scene view camera rather than the preview's off-screen one; overlays submit geometry through ISkeletonPreviewDrawer, which SkeletonPreviewOverlay batches into one dynamic mesh per repaint.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/ISkeletonPreviewDrawer.cs",
+          "version": "repo-file-v1:sha256:6fd28b86da5c8e5b29a8f6e6d4a5fa5c4654544f5a37008b11cbe8694f2f642c"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/SkeletonPreviewOverlay.cs#L9-L55",
+          "version": "repo-lines-v1:sha256:7190a3b4493f9beb1a11f21e3cd8c7136f065ebd5a7a897294dbb70de5f6382a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzYzI4MzM4ZTI3N2M0YzA1M2IxNGQzZmFjMGMyOGFhODA0NzEwNjFiZWZhM2RjNTM2NTFkMTVjY2U2OTJlMDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9fff76699131484a9b00d6915b2e2f67",
+      "statement": "The bone position and rotation arrays handed to a clip editor overlay are SkeletonPreview's own persistent FK buffers, overwritten on the next repaint, while the SkeletonData and PoseSequence reachable from the same context are Allocator.Domain and owned elsewhere, so only SkeletonPreview's two Allocator.Persistent arrays are disposed by it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/SkeletonPreview.cs#L10-L38",
+          "version": "repo-lines-v1:sha256:8883b1a624e579f21f63d4358cf65c3758f2fa6fb534e3aee220a8931f6a7345:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/SkeletonPreview.cs#L333-L370",
+          "version": "repo-lines-v1:sha256:0948188aab669970aff0ec08c13bcecf2bc2dd7bb3c455df6163628d439c344a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3ZjcyMTM1Njk2NzQ3OTQwNzNiMjdhMTgwOTIyMWMzZWRhNGZjYTMyZDA4OGQ4YjM2Mzc5N2RmYzg1YmFlMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYxZGRhZjU1MmJlYWEzZTI0ZjYwNjliZGUwMWUxZjk4NTEyNzg3YWRkMzlkZGRhMGE2Njc1Njg3YjA1NzRiYTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b1532a7a6c34c67be7402d20b342e45",
+      "statement": "SkeletonAnimationEditor.OnDisable is protected virtual and AnnotatedAnimationClipEditor overrides it calling base, because a private declaration on both hid rather than overrode the base method, leaving Unity to dispatch only to the derived version and leaking a PreviewRenderUtility plus two Allocator.Persistent NativeArrays for every inspector opened on an annotated clip.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/SkeletonAnimationEditor.cs#L33-L45",
+          "version": "repo-lines-v1:sha256:7c62931807442ca901155620ae5d335faaccfa0ddea2851aa674bdef39c66b87:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhYjM1MmM1YmVlYTkzZmI5YTk3ZDE3NzYwMDYyYzcyZjIxNTgzYzk1MTBjNGQzMjkzYjEyMGMyYzA1YTczMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmNjM3YjgzYzFjNGNmMjZiZWYyZmNlYWM4ODY4ZDU5ODFlOWQwZDJhZGQ5Y2JiZDgzNjhhZGUwNDc1ZDIzMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhZWU1NGQ0ZDA3OTFmZGVhYWJlMWRjODAxZGVkZTk3NDAzYmM3OThjMmMyNTM0NWRiYzE1MDFhOTYyMjI5NjMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnnotatedAnimationClipEditor.cs#L26-L36",
+          "version": "repo-lines-v1:sha256:a2ee0c157467b0467cd5d7369a52bf57d87f159984012f51b8a97108ded89993:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiM2MwMzdiNWU3ZDk2MTY0MzllMjc0YWIwMGYxYTBhZDJhOTQ4OWQyNTcwNzU2OWNiNGFiMDBiYTdmZDM1MDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyMzIyZmQ0NzU3MmE4ZjUzYjMxNmM1NDYxNTg5MjMzOWFlMjI3Y2FiZmI4MTA0YWFjNDM5YjFiNjMyZTI3ZTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5526e8291a394dabb4ac10e5b156b506",
+      "statement": "SkeletonPreview holds no playback state and exposes only a Source and a Frame, so the clip inspector's preview settings and the clip editor window's transport bar drive the same rendering code; Source is typed as the base SkeletonAnimation so FrameCount and GetFrame bind to the whole-clip members rather than AnnotatedAnimationClip's slice-local shadows.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/SkeletonPreview.cs#L40-L100",
+          "version": "repo-lines-v1:sha256:30cbdc2768c4fd1bdcd661bf7d1daad7b76f97cee51ba4e1eef36354c220307b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyNmNjZTI4ZDQ3ZGZmMjY3NmQ2NWI5ZTBkNTAxNzVkMzE1ZjdiNTFmNTMyOWU4Y2JiOTQxNDk4MjNhYmQ3ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5NjczNDg1NjI0NzIyNTlmNTI4NDBjMGZjM2NkZWJjOTRhZmQzZWNlMzNhNjQ1NTU4ODI3N2MzOTVjYzEyOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2NzYyMDhlMjc0MzQyN2VkN2I2ZTNiZDY0ZmVkMTczY2ZjOTJjMTBjMWJjMDkxZTE1NDJhZmE2YjJmYWNlOTcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/SkeletonAnimationEditor.cs#L108-L118",
+          "version": "repo-lines-v1:sha256:e4ba46233a9b1f2178ebe7af119f510cb431e747b4a91ed8a9fa6f0158f105e2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjYzlhNjE2MDc0NTY1MGM2YTdiY2I1OTJhZTJiZDYwMDlkYTQ3YjZiZmMzMTczZGUwN2Y5YTI4OTVjZTRlNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2ZjJhNTEzOGZmNDk1ODRiOTkzNzEyOTBiZDJlZGM4YjllYjU3ZjcwNWU1ZjIyODY3NTEwMzcwODdhOTVjYzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyMDU0OGJiNmNhMzFkNzNkNzczOGE0NTQ0MDUxYTZkNjI0NjI2YTc3MzdmNDc3ZTQ4ZjBjMWUzZTI3MDA4YTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlNWIwYzU0NGMwYzkzZjY4MTliY2MwMzIyMWVkYTNiZGQwNjYzOTM0OGI0OWEwYWM4ZWU3ZGU1NDllZmQ4M2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d11a9fdf28d948e6b6476bf2bd31f3a6",
+      "statement": "The clip editor lives in the existing AnimationTools.Editor assembly rather than a new asmdef, so that authoring a track needs no extra assembly reference and so that AnimationTools.Tests, which already references AnimationTools.Editor, can unit-test the axis, tick, registry and footfall-edit types with no plumbing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnimationTools.Editor.asmdef",
+          "version": "repo-file-v1:sha256:9e17a387fb88a4a280b4fc9811d0c539ac2608e933439b1f9e0703720717960e"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/AnimationTools.Tests.asmdef",
+          "version": "repo-file-v1:sha256:d35128481d79921b2c3591ec8f55fb7373de602c53613c2591264d5cb7f1fd93"
+        }
+      ]
+    },
+    {
+      "id": "claim_f5b9484900bc4de8bbd71a3ad71bc001",
+      "statement": "ClipTimeAxis is the single frame-to-pixel mapping shared by the clip editor's ruler, slice overlay, playhead and every lane, and its ZoomAt keeps the frame under the pivot pixel fixed while clamping zoom between fit-the-whole-clip and 40 pixels per frame.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipTimeAxis.cs#L74-L100",
+          "version": "repo-lines-v1:sha256:3ce6e90300fcb3d8f41e8a2de929b3814411797bbbba7570a2bc4f7c06f7e765:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZjI0OTA2NmI2ZDE1YmQzOTgwYTJkZTg0ZTljNWIyMGY4ZGI4MjM5OGJjYjVjMjBmY2Q4NzViYmViM2NmOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmZWVlMGE3NjA1NTI3NzE5ZWZiYjNkZmU5MjFiYzU0NjZlMTNkNDFiZWVlZGYzYzg3NTdiMzk3Zjk5YWQ2NDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjZGRmYjdjZDAwODAyMTI3MTQ4MDI3YTVlZDkzZTM3M2E5NTI2NzY2MTU2ODIwZTI3OGYxYjUyMzBkZmUwNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2ZmRjMWVlMTg5NThiMTdkOTgzMTM4NGY3ZmE5ZDM1ZjdkOWYyMWNjODUxMzA1MWI0MTZmM2Q2MjM5NGFmZDgifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/ClipTimeAxisTests.cs",
+          "version": "repo-file-v1:sha256:bea39d6e4398e83b591cc312653aa4a68bf9e7593f6bc12685e16919c97a93cf"
+        }
+      ]
+    },
+    {
+      "id": "claim_f5964ea4a9a14aaabf5e1b6b53232131",
+      "statement": "ClipComponentTrackRegistry discovers tracks lazily through TypeCache.GetTypesWithAttribute, skipping with a warning any type that is abstract, lacks a public parameterless constructor, does not derive from AnimationClipComponentTrack, or names a non-component type, and resolving duplicate registrations by Type.FullName order so the winner does not depend on assembly load order.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipComponentTrackRegistry.cs#L62-L140",
+          "version": "repo-lines-v1:sha256:7fc28e969b736b30b3ff77ccd30ca2bc42fad22d9cb6f0c158df21c8ae3842d3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwZWY0ZDE1ODU3OTc0MDc4Y2YzYTBhNDY4M2M4N2Y1ZDMzZjc5YmMyYThjYWViZjk4NTg4NTM1NDJiMmJkNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3ZTY4NTMwN2M0MGQ0OGIxMDI4OWMxMGE5MThiMWRiNDY0ODk2N2Q2NWRlNDFlMTJlOWMwYTQyMjdiNGYxYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3cfc45ad541c4d74a8ffb06c7062a5db",
+      "statement": "ClipComponentTrackRegistry.FindTrackType walks a component's base chain up to but excluding AnimationClipComponent, so a track registered against an abstract component family covers every subclass.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipComponentTrackRegistry.cs#L22-L36",
+          "version": "repo-lines-v1:sha256:2f77c85de1255ab02d8386a2190771b7790042ef4fd049d1059fb9c80bb5cc30:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmZDk2MDY2OTgzN2MyMDU0MjMwZTU3YTBjMmY1ZTAyNjM1MTQwY2YyZGViMTk0NWVhMmY0ZmY1ZjFmZWNhNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlMmNiZDQ1MzYwZGFlN2E1YjllMDNhZmM0MDQzNjYwODRlZjgxYmFmMjQzNGI2NDQ5NDUzYjE2Njc0YzMzZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4OTVlZWQ2NzJmNTliODEyYTdkMTg3OWQ4ODQ2NGI5OTk0OGU0MGMzYWQ5YzIxNWI4ZGY4ZDllY2UxMjBlZmYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/ClipComponentTrackRegistryTests.cs",
+          "version": "repo-file-v1:sha256:8e70a80041f70fe24a8d37a2e622e15ce011feeec154a3f0f42dcf2e963fdd5c"
+        }
+      ]
+    },
+    {
+      "id": "claim_3a3c38053ce44149acf6eb21dacb2a14",
+      "statement": "A clip editor preview overlay cannot use UnityEditor.Handles because Handles draws into the current GUI or Scene view camera rather than the preview's off-screen one; overlays submit geometry through ISkeletonPreviewDrawer, which SkeletonPreviewOverlay batches into one dynamic mesh per repaint.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/ISkeletonPreviewDrawer.cs",
+          "version": "repo-file-v1:sha256:6fd28b86da5c8e5b29a8f6e6d4a5fa5c4654544f5a37008b11cbe8694f2f642c"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/SkeletonPreviewOverlay.cs#L9-L55",
+          "version": "repo-lines-v1:sha256:7190a3b4493f9beb1a11f21e3cd8c7136f065ebd5a7a897294dbb70de5f6382a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzYzI4MzM4ZTI3N2M0YzA1M2IxNGQzZmFjMGMyOGFhODA0NzEwNjFiZWZhM2RjNTM2NTFkMTVjY2U2OTJlMDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2a8df3f5a8c042d18ba30fb4893e62a2",
+      "statement": "The bone position and rotation arrays handed to a clip editor overlay are SkeletonPreview's own persistent FK buffers, overwritten on the next repaint, while the SkeletonData and PoseSequence reachable from the same context are Allocator.Domain and owned elsewhere, so only SkeletonPreview's two Allocator.Persistent arrays are disposed by it.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/SkeletonPreview.cs#L10-L38",
+          "version": "repo-lines-v1:sha256:8883b1a624e579f21f63d4358cf65c3758f2fa6fb534e3aee220a8931f6a7345:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGI0YzMxNzQ0M2Q3ZDJiY2VlZjAxNTJkZmRiNzRjMTczMDA0NDIwYWVlMjAzYTViNWJiZDE5ZGQzYmNmYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/SkeletonPreview.cs#L333-L370",
+          "version": "repo-lines-v1:sha256:0948188aab669970aff0ec08c13bcecf2bc2dd7bb3c455df6163628d439c344a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3ZjcyMTM1Njk2NzQ3OTQwNzNiMjdhMTgwOTIyMWMzZWRhNGZjYTMyZDA4OGQ4YjM2Mzc5N2RmYzg1YmFlMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYxZGRhZjU1MmJlYWEzZTI0ZjYwNjliZGUwMWUxZjk4NTEyNzg3YWRkMzlkZGRhMGE2Njc1Njg3YjA1NzRiYTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9f805d691d004e4d86cbef22cc8f3e26",
+      "statement": "SkeletonAnimationEditor.OnDisable is protected virtual because it was previously private while AnnotatedAnimationClipEditor declared its own private OnDisable, which hid rather than overrode it, so Unity dispatched only to the derived version and every inspector opened on an annotated clip leaked a PreviewRenderUtility and two Allocator.Persistent NativeArrays.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/SkeletonAnimationEditor.cs#L33-L45",
+          "version": "repo-lines-v1:sha256:7c62931807442ca901155620ae5d335faaccfa0ddea2851aa674bdef39c66b87:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhYjM1MmM1YmVlYTkzZmI5YTk3ZDE3NzYwMDYyYzcyZjIxNTgzYzk1MTBjNGQzMjkzYjEyMGMyYzA1YTczMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmNjM3YjgzYzFjNGNmMjZiZWYyZmNlYWM4ODY4ZDU5ODFlOWQwZDJhZGQ5Y2JiZDgzNjhhZGUwNDc1ZDIzMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhZWU1NGQ0ZDA3OTFmZGVhYWJlMWRjODAxZGVkZTk3NDAzYmM3OThjMmMyNTM0NWRiYzE1MDFhOTYyMjI5NjMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnnotatedAnimationClipEditor.cs#L25-L36",
+          "version": "repo-lines-v1:sha256:a2e4a98a793330b7df66b2294b1cc6c1cc657acf8709baeb0bfd0179d8ee4c3f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4MWU1OWFlMTkzNThlOTNkYzg2Y2NhOTY0MzcxNmNjOTRlMDAzZjNlZmQwMmRlMWIwMGMxMDRjOWVlNmZiOGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmNDE4NWJmY2IxMDdiYTRhZjE3NGQ5YzVhYjRkNjlkYTViODM5MWZkY2U2ZmRiOGUwODBmNTgzM2U4OTU2NjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyMzIyZmQ0NzU3MmE4ZjUzYjMxNmM1NDYxNTg5MjMzOWFlMjI3Y2FiZmI4MTA0YWFjNDM5YjFiNjMyZTI3ZTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_edd27cc2e5434038a51ae56165325c0f",
+      "statement": "SkeletonPreview holds no playback state and exposes only a Source and a Frame, so the clip inspector's preview settings and the clip editor window's transport bar drive the same rendering code; Source is typed as the base SkeletonAnimation so FrameCount and GetFrame bind to the whole-clip members rather than AnnotatedAnimationClip's slice-local shadows.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Preview/SkeletonPreview.cs#L40-L100",
+          "version": "repo-lines-v1:sha256:30cbdc2768c4fd1bdcd661bf7d1daad7b76f97cee51ba4e1eef36354c220307b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyNmNjZTI4ZDQ3ZGZmMjY3NmQ2NWI5ZTBkNTAxNzVkMzE1ZjdiNTFmNTMyOWU4Y2JiOTQxNDk4MjNhYmQ3ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5NjczNDg1NjI0NzIyNTlmNTI4NDBjMGZjM2NkZWJjOTRhZmQzZWNlMzNhNjQ1NTU4ODI3N2MzOTVjYzEyOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2NzYyMDhlMjc0MzQyN2VkN2I2ZTNiZDY0ZmVkMTczY2ZjOTJjMTBjMWJjMDkxZTE1NDJhZmE2YjJmYWNlOTcifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/SkeletonAnimationEditor.cs#L108-L118",
+          "version": "repo-lines-v1:sha256:e4ba46233a9b1f2178ebe7af119f510cb431e747b4a91ed8a9fa6f0158f105e2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjYzlhNjE2MDc0NTY1MGM2YTdiY2I1OTJhZTJiZDYwMDlkYTQ3YjZiZmMzMTczZGUwN2Y5YTI4OTVjZTRlNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2ZjJhNTEzOGZmNDk1ODRiOTkzNzEyOTBiZDJlZGM4YjllYjU3ZjcwNWU1ZjIyODY3NTEwMzcwODdhOTVjYzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyMDU0OGJiNmNhMzFkNzNkNzczOGE0NTQ0MDUxYTZkNjI0NjI2YTc3MzdmNDc3ZTQ4ZjBjMWUzZTI3MDA4YTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlNWIwYzU0NGMwYzkzZjY4MTliY2MwMzIyMWVkYTNiZGQwNjYzOTM0OGI0OWEwYWM4ZWU3ZGU1NDllZmQ4M2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_010e33f669a14be89dd46c9622ab250c",
+      "statement": "The clip editor lives in the existing AnimationTools.Editor assembly rather than a new asmdef, so that authoring a track needs no extra assembly reference and so that AnimationTools.Tests, which already references AnimationTools.Editor, can unit-test the axis, tick, registry and footfall-edit types with no plumbing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnimationTools.Editor.asmdef",
+          "version": "repo-file-v1:sha256:9e17a387fb88a4a280b4fc9811d0c539ac2608e933439b1f9e0703720717960e"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/AnimationTools.Tests.asmdef",
+          "version": "repo-file-v1:sha256:d35128481d79921b2c3591ec8f55fb7373de602c53613c2591264d5cb7f1fd93"
+        }
+      ]
+    },
+    {
+      "id": "claim_5846e81360204eeba48a0c3179a3579d",
+      "statement": "ClipTimeAxis is the single frame-to-pixel mapping shared by the clip editor's ruler, slice overlay, playhead and every lane, and its ZoomAt keeps the frame under the pivot pixel fixed while clamping zoom between fit-the-whole-clip and 40 pixels per frame.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/ClipEditor/ClipTimeAxis.cs#L74-L100",
+          "version": "repo-lines-v1:sha256:3ce6e90300fcb3d8f41e8a2de929b3814411797bbbba7570a2bc4f7c06f7e765:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZjI0OTA2NmI2ZDE1YmQzOTgwYTJkZTg0ZTljNWIyMGY4ZGI4MjM5OGJjYjVjMjBmY2Q4NzViYmViM2NmOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmZWVlMGE3NjA1NTI3NzE5ZWZiYjNkZmU5MjFiYzU0NjZlMTNkNDFiZWVlZGYzYzg3NTdiMzk3Zjk5YWQ2NDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjZGRmYjdjZDAwODAyMTI3MTQ4MDI3YTVlZDkzZTM3M2E5NTI2NzY2MTU2ODIwZTI3OGYxYjUyMzBkZmUwNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2ZmRjMWVlMTg5NThiMTdkOTgzMTM4NGY3ZmE5ZDM1ZjdkOWYyMWNjODUxMzA1MWI0MTZmM2Q2MjM5NGFmZDgifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/ClipTimeAxisTests.cs",
+          "version": "repo-file-v1:sha256:bea39d6e4398e83b591cc312653aa4a68bf9e7593f6bc12685e16919c97a93cf"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-09-02T21:44:37.029Z"
+  }
+}
