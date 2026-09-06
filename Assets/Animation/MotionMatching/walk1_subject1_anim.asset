@@ -22,11 +22,12 @@ MonoBehaviour:
   startFrame: 0
   endFrame: 7840
   components:
-  - rid: 5432756900224041274
+  - rid: 4326262852383146073
+  - rid: 4326262852383146083
   references:
     version: 2
     RefIds:
-    - rid: 5432756900224041274
+    - rid: 4326262852383146073
       type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
       data:
         isEnabled: 1
@@ -717,3 +718,12 @@ MonoBehaviour:
         rightContactBoneName: 
         contactVelocityThreshold: 0.15
         smoothingRadius: 6
+    - rid: 4326262852383146083
+      type: {class: AnimationTagComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        channels:
+        - tag: {fileID: 11400000, guid: 6737db8a0eef476459004516901311f3, type: 2}
+          toggles: ac0a00001f0e0000
+        - tag: {fileID: 11400000, guid: 34a850499929a674694031ffec05393c, type: 2}
+          toggles: 3508000041110000
