@@ -44,6 +44,13 @@ public class ClipComponentTrackRegistryTests
     }
 
     [Test]
+    public void AnimationTagResolvesToItsOwnTrack()
+    {
+        var track = ClipComponentTrackRegistry.Create(new AnimationTagComponent());
+        Assert.IsInstanceOf<AnimationTagTrack>(track);
+    }
+
+    [Test]
     public void AComponentWithNoTrackFallsBackToTheDefault()
     {
         var track = ClipComponentTrackRegistry.Create(new RegistryTestUnregisteredComponent());
@@ -67,6 +74,7 @@ public class ClipComponentTrackRegistryTests
     public void HasTrackAgreesWithWhatCreateReturns()
     {
         Assert.IsTrue(ClipComponentTrackRegistry.HasTrack(typeof(GaitPhaseComponent)));
+        Assert.IsTrue(ClipComponentTrackRegistry.HasTrack(typeof(AnimationTagComponent)));
         Assert.IsFalse(ClipComponentTrackRegistry.HasTrack(typeof(RegistryTestUnregisteredComponent)));
     }
 }

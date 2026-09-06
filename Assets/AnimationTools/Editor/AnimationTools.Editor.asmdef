@@ -1,7 +1,7 @@
 {
     "name": "AnimationTools.Editor",
     "rootNamespace": "",
-    "references": ["AnimationTools", "Unity.Mathematics", "Unity.Collections", "Unity.Splines"],
+    "references": ["AnimationTools", "Unity.Mathematics", "Unity.Collections", "Unity.Splines", "GameplayTags", "GameplayTags.Editor"],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

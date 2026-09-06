@@ -1,7 +1,7 @@
 {
     "name": "AnimationTools.Tests",
     "rootNamespace": "",
-    "references": ["UnityEngine.TestRunner", "UnityEditor.TestRunner", "AnimationTools", "AnimationTools.Editor", "Unity.Mathematics", "Unity.Collections", "Unity.Splines"],
+    "references": ["UnityEngine.TestRunner", "UnityEditor.TestRunner", "AnimationTools", "AnimationTools.Editor", "Unity.Mathematics", "Unity.Collections", "Unity.Splines", "GameplayTags", "GameplayTags.Editor"],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

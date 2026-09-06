@@ -29,6 +29,10 @@ This file provides guidance to AI coding agents (Claude Code, and others reading
   - Barracuda (3.0.2) - in the manifest for neural network inference in Unity, but nothing consumes it today; it is deprecated on Unity 6
   - Mathematics, Collections, Jobs (for performance)
   - PyThonNET - C#/Python interoperability
+  - GameplayTags - hierarchical tag assets, embedded as a **git submodule** at
+    `Packages/com.alanvoid.gameplaytags` rather than a manifest git URL, because it is developed
+    alongside this project. A fresh clone needs `git submodule update --init` or Unity finds no
+    `GameplayTags` assembly and `AnimationTools` fails to compile
   - Scipy, NumPy, PyTorch (Python side)
 
 ## Architecture
@@ -83,6 +87,26 @@ Python behind PythonNET.
   the character's own history, which is what training used
 - Full detail: `openwiki/pfnn/`
 
+### Steering a character: three roles
+
+Intent, trajectory origin and root reconciliation are separate concerns, and the combination decides
+how a character behaves:
+
+- **Free simulation object** (`DirectionControlInput`): the input integrates a position of its own
+  and the search chases it. Nothing closes the loop, so the character permanently lags
+- **Anchored** (`AnchoredDirectionControlInput`): the trajectory starts at the character's own frame,
+  re-read every tick, and only the velocity springs carry state. No position exists to drift. It
+  describes motion, never location, so it cannot place a character or measure path error
+- **Capsule authority** (`RootFollowStage`, in `AnimationTools`): a post-pose stage that puts the
+  character on a target — a capsule, or a point on a path via `IFrameTarget`. The correction is
+  written as bone 0's frame velocity, the same channel `Inertialization` writes through, so it can be
+  damped and rate-limited; a half-life of 0 is exact placement. It must run **after**
+  `Inertialization`, and it follows in the ground plane only
+- Anchored and capsule authority **do not compose** — an anchored input has no object to follow
+
+Full detail, including the rejected alternatives: `openwiki/animation-tools/root-following.md`.
+Hazards: `openwiki/agents/motion-matching/root-and-control-input-hazards.md`.
+
 ### MotionFieldStage (Current Feature Branch)
 
 Integrates a neural motion field into the pipeline via PythonNET:
@@ -130,6 +154,13 @@ Assets/
 │   │   ├── PoseBuffer.cs            [mutable pose in motion synthesis]
 │   │   ├── CharacterSpacePose.cs    [Extract/Apply: a pose measured in, and written back from, its character frame]
 │   │   └── PoseFK.cs                [forward kinematics]
+│   ├── Runtime/Stages/
+│   │   ├── RootFollow.cs            [pure: the frame velocity that lands the character on a target]
+│   │   └── RootFollowStage.cs       [places the character on a capsule or path point, via bone 0's rates]
+│   ├── Runtime/ControlInput/
+│   │   ├── IMotionSynthesisControlInput.cs [synthesis-agnostic steering surfaces]
+│   │   ├── IFrameTarget.cs          [a target that answers for its own position, not its Transform's]
+│   │   └── TrajectorySteering.cs    [request damping + horizon prediction, shared by MM and PFNN inputs]
 │   ├── Runtime/Python/
 │   │   ├── PythonRuntime.cs         [shared CPython bootstrap and module reloading]
 │   │   └── PythonPathSettings.cs    [per-user interpreter paths in UserSettings/MoSynthPython.json]
@@ -138,6 +169,9 @@ Assets/
 │   ├── Runtime/Evaluation/          [PathFollowingMetric(sCalculator): in-scene A/B tool + pure metrics]
 │   ├── Runtime/Recording/           [MotionRecorder, channels, manifest, reader]
 │   ├── Editor/Benchmark/            [sweep driver, CLI entry point, menu, report writer]
+│   ├── Editor/Preview/              [SkeletonPreview: the off-screen posed-skeleton render + overlay seam]
+│   ├── Editor/ClipEditor/           [the clip editor window: axis, timeline, track seam, registry]
+│   │   └── Tracks/GaitPhaseTrack.cs [the worked example track]
 │   ├── Editor/
 │   │   └── SkeletonBoneDrawer.cs    [Inspector dropdown for bone selection]
 │   └── (other runtime & editor features)
@@ -153,6 +187,11 @@ Assets/
 │   ├── PfnnControlInput.cs          [steering contract; + spline and direction inputs]
 │   └── Editor/                      [config inspector, training, default bone selection, agreement check]
 ├── MotionMatching/
+│   ├── Runtime/CharacterController/
+│   │   ├── MotionMatchingControlInput.cs   [steering contract + the character-frame query helpers]
+│   │   ├── DirectionControlInput.cs        [stick/WASD over a free simulation object]
+│   │   ├── AnchoredDirectionControlInput.cs [stick/WASD anchored on the character; no drift]
+│   │   └── SplineControlInput.cs           [open-loop path follower; also an IFrameTarget]
 │   ├── Runtime/Core/
 │   │   ├── MotionMatchingStage.cs   [database search stage]
 │   │   └── ContactVisualizerStage.cs
@@ -333,7 +372,7 @@ When adding a new `MoSynthStage`:
 - Bone indices follow the index+1 convention (bone ID = index + 1, 0 = unset); index 0 is the skeleton's real root bone, and the pose skeleton is the same tree as the clip skeleton — nothing is prepended
 - `SkeletonBoneOverrides` binds a `Skeleton` (an asset rig at rest) to a different, live rig by name, with per-bone overrides for mismatched names; `SkeletonBone` is drawn by `SkeletonBoneDrawer` with a rig-aware dropdown
 - **Two invariants nothing enforces at compile time:**
-  1. A `Skeleton`'s rest pose is read live off its Transforms, so it must point at an ASSET rig (imported FBX or prefab), never a live scene rig — a skeleton over an animated scene rig reports the current pose as the rest pose and silently corrupts FK. `MotionSynthesisComponent` serializes its own `Skeleton` field — assigned to the rig's root bone from the FBX asset, since the field's drawer refuses scene objects — and binds it to the scene rig via `SkeletonBoneOverrides`
+  1. A `Skeleton`'s rest pose is read live off its Transforms, so it must point at an ASSET rig (imported FBX or prefab), never a live scene rig — a skeleton over an animated scene rig reports the current pose as the rest pose and silently corrupts FK. `MotionSynthesisComponent` serializes its own `Skeleton` field — assigned to the rig's root bone from the FBX asset, since the field's drawer refuses scene objects — and binds it to the scene rig via `SkeletonBoneOverrides`. **An asset rig is not automatically at rest**: Unity poses an imported model's hierarchy from its *first animation take*, so an exported FBX has to lead with a rest-pose take or it imports holding a frame of motion, passes the `IsPersistent` check, and hands that frame over as the rest pose — which is what `RestLocalAxis` derives the character frame's forward axis from. `Skeleton.TryValidateRestPose` catches the part of this that is measurable (the root bone standing away from the rig origin); see `openwiki/animation-tools/retargeting-pipeline.md`
   2. Everything under a skeleton's root Transform becomes a bone, so a rig must have nothing but bones beneath its skeleton root — a mesh node, IK helper, or attachment point there would shift every index after it
 
 ### Clip components
@@ -351,15 +390,40 @@ When adding a new `MoSynthStage`:
   were detected with. `GaitPhase` turns anchors into phase by the same rule as
   `Python/gait_phase.py`, except that it refuses to extrapolate past the outer anchors — see
   `openwiki/animation-tools/animation-sources.md`. The anchors do **not** reach the database yet
-- The `Tag` struct, `PoseSet.AddTag` and the `.mmpose` tag block are a dead subsystem: nothing can
-  author a tag. A tags component is the natural replacement; the dead code is left until one exists
+- `AnimationTagComponent` is the second one: hierarchical `GameplayTagSO` tags over stretches of a
+  clip, one channel per tag, each stored as the **boolean keyframes it flips at** rather than as
+  intervals. `AnimationTagging.FindSegments` answers a `GameplayTagQuery` with
+  `AnimationClipSegment`s. A query runs downhill only — `action.walk` answers a query for `action`,
+  never the reverse. Full detail: `openwiki/animation-tools/clip-tags.md`
+- **How a component is drawn is its own decision too.** `AnnotatedClipEditorWindow`
+  (`MoSynth/Animation/Clip Editor...`) gives each component a timeline lane, an inspector and an
+  optional 3D preview overlay. Declare an `AnimationClipComponentTrack` tagged
+  `[ClipComponentTrack(typeof(TheComponent))]` and it is discovered with no registration, exactly
+  like the components themselves; a component with no track still gets a lane and a fully editable
+  inspector from `DefaultComponentTrack`. Before writing one, read
+  `openwiki/agents/animation-tools/clip-editor-tracks.md` — the edits that silently drop anchors are
+  listed there
+- **Keyframe lanes share one Blender-style keymap**, in `Editor/ClipEditor/Keys/`: box select, `G`
+  to move, `S` to scale, numbers to type an exact value, `X` to delete. `AnimationTagTrack` and
+  `GaitPhaseTrack` both run on it, and a third such track should too rather than hand-rolling drags.
+  Selection is keyed by `(row, frame)`, never by list index, because every edit re-sorts its list.
+  Note `A` is select-all, so framing the view moved to `Home` / `.`. **Handle keys off raw `e.type`,
+  never `e.GetTypeForControl`** — it drops key events unless that control owns `keyboardControl`, and
+  a lane's is Passive; that alone had killed every binding in both tracks. The window is UI Toolkit,
+  so a mode follows the cursor by sampling `mousePosition` on repaint rather than relying on
+  `MouseMove`. `Add Component` and the lane list live in the timeline's draggable left gutter, not
+  the toolbar
+- The `Tag` struct, `PoseSet.AddTag` and the `.mmpose` tag block are **still** a dead subsystem, but
+  no longer for want of an author: `AnimationTagComponent` is one and is deliberately not wired to
+  it, because nothing downstream reads tags out of the database and doing so would cost a full
+  database regeneration for dead weight. Leave the dead code alone until something wants to read it
 
 ### `SkeletonAnimation` has one source of truth
 - A `SkeletonAnimation` (and its `AnnotatedAnimationClip` subclass) stores a clip and a `Skeleton`, and nothing else about where the bones are. There is no separate rig field: a second reference could disagree with the skeleton, and did — an earlier `GameObject` → `Transform` change orphaned every asset's rig
 - `AnimationClipBaker` still needs the asset's main object, because `clip.SampleAnimation` matches curve paths against the hierarchy it is handed and importers write those paths relative to the main object (the FBX root, or the container `BvhImporter` puts its bones under). It derives that as `skeleton.Root.root` — the root bone's topmost ancestor — so the bake target cannot drift from the skeleton
-- The root-bone guess (single child, else a `*Hips` descendant) now happens once, in `CreateAnnotatedClipMenu`, and is written into the asset. Nothing re-derives it at access time
+- The root-bone guess (single child, else a `*Hips` descendant) now happens once, in `AnnotatedClipFactory`, and is written into the asset. Nothing re-derives it at access time. That factory is shared by the single-selection menu (`Assets/Create/MotionMatching/Annotated Clip From Selection`) and by `MoSynth/Animation/Create Annotated Clips From Model...`, which creates one asset per matching take of a model into a chosen folder — the shape a retargeted capture session arrives in. A batch re-run updates assets in place (configs reference clips by GUID) and adds a `GaitPhaseComponent` only where there is none, so corrected anchors survive
 - A `Skeleton` field is drawn by `SkeletonDrawer` as a rig object field plus a root-bone dropdown, because a bone *inside* an imported rig is not reachable from the Project window or the object picker — only the asset's main object is. Drop the rig in to seed the field, then pick the actual root from the dropdown. It deliberately does not guess: every `Skeleton` — a clip's or a config's — starts at the rig's root bone. `SkeletonDrawer` and `SkeletonBoneDrawer` share their listing code via `BonePopup`
-- `TryValidate` rejects a skeleton root that is not `EditorUtility.IsPersistent`, which is the only automatic check on invariant 1 above
+- `TryValidate` rejects a skeleton root that is not `EditorUtility.IsPersistent`, and `Skeleton.TryValidateRestPose` rejects one standing away from its rig's origin. Those two are the whole automatic defence on invariant 1 above, and neither catches a rig posed at a frame that happens to sit near the origin
 
 ### `SkeletonBone` naming collision
 `AnimationTools.SkeletonBone` collides with the built-in `UnityEngine.SkeletonBone`. Any file outside the `AnimationTools*` namespaces that names the type needs `using SkeletonBone = AnimationTools.SkeletonBone;`.
@@ -403,8 +467,9 @@ Implementer agents need a spec that names the files, the intended design, and th
 
 1. **Module reloading**: `MotionFieldStage.reloadPythonModules` defaults to true for development convenience; disable it for builds
 2. **PoseBuffer vs Pose confusion**: dual representation exists; unify or document the split
-3. **Dropped pipeline features**: inertialized hips blending and toes-floor penetration correction were lost when the pipeline moved to stages; the intended home for each is a `MoSynthStage` running after the pose is produced (TODO in `MotionSynthesisComponent`, ~line 315)
-4. **Foot-contact detection bones** are configurable on `MotionMatchingData`/`MotionFieldConfig` via `leftContactBone`/`rightContactBone` (`SkeletonBone`); empty fields fall back to name heuristics in `BoneNameConventions`
+3. **Dropped pipeline features**: inertialized hips blending and toes-floor penetration correction were lost when the pipeline moved to stages and are both still missing; the intended home for each is a `MoSynthStage` running after the pose is produced. The foot-side design, and the slot after `RootFollowStage` it goes in, are written up in `openwiki/animation-tools/root-following.md`
+4. **Foot sliding under root following**: `RootFollowStage` places the character exactly, and nothing yet keeps planted feet still while it does. Expect `footskatePerMeter` to rise when it is enabled
+5. **Foot-contact detection bones** are configurable on `MotionMatchingData`/`MotionFieldConfig` via `leftContactBone`/`rightContactBone` (`SkeletonBone`); empty fields fall back to name heuristics in `BoneNameConventions`
 
 ## Testing & Debugging
 
@@ -426,7 +491,7 @@ Implementer agents need a spec that names the files, the intended design, and th
 
 `openwiki/` serves two audiences, and the split decides who owns what.
 
-- **`openwiki/agents/` is yours.** It exists for the detailed, operational material you need to work here efficiently: exact invariants, hazards and "do NOT fix this" notes, editing and verification workflows, per-subsystem internals. Organise it as one subfolder per subsystem. Write to it freely — you do not need permission. It currently holds `agents/tooling/`, `agents/animation-tools/` and `agents/python/`; add a subfolder the first time you have something operational worth keeping about a subsystem that has none.
+- **`openwiki/agents/` is yours.** It exists for the detailed, operational material you need to work here efficiently: exact invariants, hazards and "do NOT fix this" notes, editing and verification workflows, per-subsystem internals. Organise it as one subfolder per subsystem. Write to it freely — you do not need permission. It currently holds `agents/tooling/`, `agents/animation-tools/`, `agents/motion-matching/` and `agents/python/`; add a subfolder the first time you have something operational worth keeping about a subsystem that has none.
 - **Everything else is for human readers.** Concept-first, plain language, explaining what a system is for and how it behaves before naming files and symbols. No exhaustive inventories — link to the matching `agents/` page for that depth.
 
 Working rules:

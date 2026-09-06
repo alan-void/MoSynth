@@ -1,3 +1,6 @@
 [submodule "External/mujoco"]
 	path = External/mujoco
 	url = https://github.com/google-deepmind/mujoco.git
+[submodule "Packages/com.alanvoid.gameplaytags"]
+	path = Packages/com.alanvoid.gameplaytags
+	url = https://github.com/alan-void/GameplayTags.git
