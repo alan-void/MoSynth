@@ -390,6 +390,10 @@ When adding a new `MoSynthStage`:
   were detected with. `GaitPhase` turns anchors into phase by the same rule as
   `Python/gait_phase.py`, except that it refuses to extrapolate past the outer anchors — see
   `openwiki/animation-tools/animation-sources.md`. The anchors do **not** reach the database yet
+- **Annotation frames are clip-local, and nothing may delete annotation for falling outside the
+  clip's `[startFrame, endFrame)` slice.** Both were once the other way round, and trimming a clip
+  destroyed the anchors beyond the new end — permanently, on every `OnValidate`. `GaitPhase.Evaluate`
+  already ignores out-of-range anchors, so the deletion protected nothing
 - `AnimationTagComponent` is the second one: hierarchical `GameplayTagSO` tags over stretches of a
   clip, one channel per tag, each stored as the **boolean keyframes it flips at** rather than as
   intervals. `AnimationTagging.FindSegments` answers a `GameplayTagQuery` with

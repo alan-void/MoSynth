@@ -22,14 +22,14 @@ namespace AnimationTools.Editor
         /// Ties go to the earlier anchor, so picking is stable when two share a pixel.
         /// </summary>
         public static int Pick(IReadOnlyList<GaitPhase.Footfall> footfalls, float x,
-            System.Func<int, float> sliceFrameToX)
+            System.Func<int, float> clipFrameToX)
         {
             var best = -1;
             var bestDistance = PickTolerance;
 
             for (var i = 0; i < footfalls.Count; i++)
             {
-                var distance = Mathf.Abs(sliceFrameToX(footfalls[i].frame) - x);
+                var distance = Mathf.Abs(clipFrameToX(footfalls[i].frame) - x);
                 if (distance >= bestDistance) continue;
 
                 bestDistance = distance;
@@ -41,13 +41,13 @@ namespace AnimationTools.Editor
 
         /// <summary>Every anchor whose x lies within the horizontal span, inclusive.</summary>
         public static void PickRange(IReadOnlyList<GaitPhase.Footfall> footfalls, float minX, float maxX,
-            System.Func<int, float> sliceFrameToX, ICollection<int> results)
+            System.Func<int, float> clipFrameToX, ICollection<int> results)
         {
             if (minX > maxX) (minX, maxX) = (maxX, minX);
 
             for (var i = 0; i < footfalls.Count; i++)
             {
-                var x = sliceFrameToX(footfalls[i].frame);
+                var x = clipFrameToX(footfalls[i].frame);
                 if (x >= minX && x <= maxX) results.Add(i);
             }
         }

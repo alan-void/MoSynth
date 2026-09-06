@@ -15,8 +15,9 @@ namespace AnimationTools
 /// is a valid boolean signal, so there is no overlapping-or-inverted state to guard against the way
 /// stored intervals would need.
 /// <para>
-/// Frames are slice-local, the same choice <see cref="GaitPhase.Footfall"/> documents, so the keys
-/// stay correct when a clip's start or end frame moves.
+/// Frames are clip-local, the same choice <see cref="GaitPhase.Footfall"/> documents: numbered
+/// against the whole baked clip, so trimming can never change which moment of the animation a key
+/// names, and nothing has to be deleted when the range moves.
 /// </para>
 /// </remarks>
 public static class AnimationTagging
@@ -27,9 +28,9 @@ public static class AnimationTagging
     {
         public GameplayTagSO tag;
 
-        [Tooltip("Frames the tag flips at, in this clip's sliced frame numbering. Sorted and " +
-                 "distinct. The channel starts off, so an even-indexed key switches it on and an " +
-                 "odd-indexed one switches it off.")]
+        [Tooltip("Frames the tag flips at, numbered against the whole clip. Sorted and distinct. " +
+                 "The channel starts off, so an even-indexed key switches it on and an odd-indexed " +
+                 "one switches it off.")]
         public List<int> toggles = new();
     }
 
@@ -48,19 +49,22 @@ public static class AnimationTagging
         public int FrameCount => EndFrame - StartFrame;
     }
 
-    /// <summary>
-    /// Sorts the keys, cancels ones sharing a frame, and drops those the clip no longer holds.
-    /// </summary>
+    /// <summary>Sorts the keys and cancels ones sharing a frame.</summary>
     /// <remarks>
     /// Two keys on one frame describe a flip and an immediate flip back, which is the same signal
     /// as neither — and it is exactly what a drag that lands one key on another produces, so
     /// cancelling is the whole collision rule. An odd run leaves one key behind.
     /// <para>
-    /// Dropping keys past the end can leave an odd number, i.e. the tag on to the end of the slice.
-    /// That is the correct reading of what survived: it was on at the boundary.
+    /// Nothing is dropped for lying outside the clip's current range. Deleting a key because the
+    /// range moved destroys annotation that trimming was never meant to touch, and a reader ignores
+    /// what it was not asked about anyway.
+    /// </para>
+    /// <para>
+    /// A negative frame is corruption rather than out-of-range data, so it does go: a key below zero
+    /// is counted by <see cref="IsOn"/> for every frame from 0 up, inverting the whole channel.
     /// </para>
     /// </remarks>
-    public static void Normalise(List<int> toggles, int frameCount)
+    public static void Normalise(List<int> toggles)
     {
         if (toggles == null || toggles.Count == 0) return;
 
@@ -74,7 +78,7 @@ public static class AnimationTagging
             var run = 1;
             while (i + run < toggles.Count && toggles[i + run] == frame) run++;
 
-            if (run % 2 == 1 && frame >= 0 && frame <= frameCount) toggles[kept++] = frame;
+            if (run % 2 == 1 && frame >= 0) toggles[kept++] = frame;
 
             i += run;
         }
@@ -99,35 +103,41 @@ public static class AnimationTagging
 
     /// <summary>
     /// The intervals a channel is on over, pairing consecutive keys. A trailing unpaired key runs
-    /// to <paramref name="frameCount"/>, so "on until the end" needs no closing key.
+    /// to <paramref name="clipFrameCount"/>, so "on until the end" needs no closing key.
     /// </summary>
-    public static void Spans(IReadOnlyList<int> toggles, int frameCount, List<TagSpan> results)
+    public static void Spans(IReadOnlyList<int> toggles, int clipFrameCount, List<TagSpan> results)
     {
         results.Clear();
         if (toggles == null) return;
 
         for (var i = 0; i < toggles.Count; i += 2)
         {
-            var end = i + 1 < toggles.Count ? toggles[i + 1] : frameCount;
+            var end = i + 1 < toggles.Count ? toggles[i + 1] : clipFrameCount;
             if (end > toggles[i]) results.Add(new TagSpan(toggles[i], end));
         }
     }
 
     /// <summary>
-    /// The runs of frames whose active tags satisfy <paramref name="query"/>, merged where they
-    /// touch.
+    /// The runs of frames within <c>[firstFrame, endFrame)</c> whose active tags satisfy
+    /// <paramref name="query"/>, merged where they touch.
     /// </summary>
     /// <remarks>
     /// Sweeps the keys rather than the frames: the active tag set only changes where a channel
     /// flips, so the query is evaluated once per interval between keys instead of once per frame.
+    /// <para>
+    /// The window is a parameter rather than a frame count because keys are allowed to lie outside
+    /// it. One that does is not a boundary the sweep visits, but it is still counted by
+    /// <see cref="IsOn"/> - so a channel switched on before <paramref name="firstFrame"/> is
+    /// correctly already on at it.
+    /// </para>
     /// </remarks>
     public static void FindSegments(AnnotatedAnimationClip clip, IReadOnlyList<TagChannel> channels,
-        GameplayTagQuery query, int frameCount, List<AnimationClipSegment> results)
+        GameplayTagQuery query, int firstFrame, int endFrame, List<AnimationClipSegment> results)
     {
         if (results == null) throw new ArgumentNullException(nameof(results));
-        if (frameCount <= 0 || query == null) return;
+        if (endFrame <= firstFrame || query == null) return;
 
-        var boundaries = Boundaries(channels, frameCount);
+        var boundaries = Boundaries(channels, firstFrame, endFrame);
         var active = new GameplayTagSet();
 
         var runStart = -1;
@@ -145,7 +155,7 @@ public static class AnimationTagging
             runStart = -1;
         }
 
-        if (runStart >= 0) results.Add(new AnimationClipSegment(clip, runStart, frameCount));
+        if (runStart >= 0) results.Add(new AnimationClipSegment(clip, runStart, endFrame));
     }
 
     /// <summary>The tags on at <paramref name="frame"/>, replacing whatever <paramref name="into"/> held.</summary>
@@ -162,9 +172,10 @@ public static class AnimationTagging
     }
 
     /// <summary>Every frame the active tag set can change at, plus both ends, sorted and distinct.</summary>
-    private static List<int> Boundaries(IReadOnlyList<TagChannel> channels, int frameCount)
+    private static List<int> Boundaries(IReadOnlyList<TagChannel> channels, int firstFrame,
+        int endFrame)
     {
-        var boundaries = new List<int> { 0, frameCount };
+        var boundaries = new List<int> { firstFrame, endFrame };
 
         if (channels != null)
         {
@@ -174,7 +185,7 @@ public static class AnimationTagging
 
                 foreach (var toggle in channel.toggles)
                 {
-                    if (toggle > 0 && toggle < frameCount) boundaries.Add(toggle);
+                    if (toggle > firstFrame && toggle < endFrame) boundaries.Add(toggle);
                 }
             }
         }

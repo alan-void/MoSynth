@@ -164,9 +164,12 @@ so they can appear in the summary, but both tag and gait tracks fall through wit
    and the next preview repaint re-runs `AnimationClipBaker.Bake` over the whole clip. Hold a
    transient delta, render at `value + delta`, commit once on `MouseUp`. The symptom to watch for in
    the Profiler is `AnimationClipBaker.Bake` appearing once per mouse-move.
-2. **Clamp to the slice before committing.** `GaitPhaseComponent.OnValidate` does
-   `footfalls.RemoveAll(out-of-range)`. Any component with a similar validator will do the same. See
-   `FootfallEdits.ClampDelta`.
+2. **Never delete annotation because the range moved.** A component's `OnValidate` runs on every
+   validate, including one caused by a slice-handle drag, so a range clamp there destroys anchors
+   permanently and silently. Both components used to do exactly this and it cost a real clip 44
+   footfalls. Annotation frames are clip-local; readers ignore what they were not asked about, and
+   `GaitPhase.UsableAnchors` was already filtering out-of-range anchors anyway. Clamp the frames an
+   *edit produces* instead — see `AnimationTagEdits.ClampDelta` and its `InRange`.
 3. **Keep anchor lists ascending.** `GaitPhase.UsableAnchors` drops any anchor not strictly later
    than its predecessor, with no message. `FootfallEdits.Move` re-sorts; selection indices are
    therefore invalid after a commit and must be cleared.
@@ -187,7 +190,9 @@ binds depends on the expression's static type. **Do not write `FrameCount` or `G
 `AnnotatedAnimationClip`-typed expression in new code.** Use:
 
 - `context.Editor.ClipFrameCount` / `SliceFrameCount`
-- `context.Editor.SliceToClipFrame(n)` / `ClipToSliceFrame(n)`
+- `context.Editor.SliceToClipFrame(n)` / `ClipToSliceFrame(n)` — for *pose* access only. **Annotation
+  is in clip frames**, so a track drawing or editing it converts nothing; both existing tracks call
+  `Axis.FrameToX(frame)` directly.
 - `context.Editor.GetClipFrame(clipFrame)` — casts to `SkeletonAnimation` internally
 - `SkeletonPreview.Source` is typed `SkeletonAnimation` for the same reason; leave it that way
 
@@ -259,18 +264,22 @@ every assembly is ready; `TypeCache` is rebuilt by the same reload that clears t
 
 ## Tag channels specifically
 
-`AnimationTagComponent.OnValidate` runs `AnimationTagging.Normalise` per channel, which **drops keys
-outside `[0, frameCount]`** exactly as `GaitPhaseComponent` drops footfalls. Re-trimming a clip past
-some keys loses them, and the trim is not undoable back into them.
+`AnimationTagComponent.OnValidate` runs `AnimationTagging.Normalise` per channel, which sorts and
+cancels same-frame pairs and **drops nothing for being out of range**. A key beyond the clip's slice
+is kept, drawn, selectable and deletable like any other. A *negative* key is still dropped, and that
+is not a range rule: `IsOn` counts it for every frame from 0 up, so one inverts the whole channel.
 
-Two more that look like bugs and are not:
+Three more that look like bugs and are not:
 
 - **Keys on the same frame cancel.** That is the parity rule, not an error to reject. A drag that
   lands one key on another is supposed to remove both, and `AnimationTagEdits` returns a normalised
   list so the caller can see what actually survived. Do not "fix" this by rejecting collisions.
 - **A trailing unpaired key is on until the end of the clip.** `AnimationTagging.Spans` runs it to
-  `frameCount`. Do not append a closing key to "repair" it - that would make the annotation depend
-  on the trim.
+  `clipFrameCount`. Do not append a closing key to "repair" it - that would make the annotation
+  depend on the trim.
+- **A key outside the slice is not stale data.** It is annotation about a part of the clip that is
+  not currently extracted. Leave it; the user trims and untrims freely, and that is the whole point
+  of the frame space.
 
 `AnimationTagEdits` never mutates in place: every method returns a new normalised list, precisely so
 a caller can compare what it asked for against what it got.

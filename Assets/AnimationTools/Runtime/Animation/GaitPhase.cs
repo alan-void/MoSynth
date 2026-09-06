@@ -36,11 +36,13 @@ public static class GaitPhase
     }
 
     /// <summary>
-    /// The frame a foot was planted on, in the clip's own sliced frame numbering.
+    /// The frame a foot was planted on, numbered against the whole baked clip.
     /// </summary>
     /// <remarks>
-    /// Slice-local, so the markers stay correct when a clip's start or end frame moves. Only the
-    /// slice is ever extracted into a database.
+    /// Clip-local, not slice-local, so that trimming a clip cannot change which moment of the
+    /// animation an anchor names. Slice-local addressing is measured from <c>startFrame</c>, so
+    /// moving the start silently slides every marker across the motion - the encoding least able to
+    /// survive the edit it was once claimed to survive.
     /// </remarks>
     [Serializable]
     public struct Footfall
@@ -123,6 +125,11 @@ public static class GaitPhase
     /// Two footfalls on one frame would make a zero-length segment, and the phase across it
     /// undefined. Keeping the first is arbitrary but total; the alternative is a divide by zero,
     /// which is what the Python side does today on such a clip.
+    /// <para>
+    /// This filter is also why nothing needs to delete an anchor for falling outside the clip: one
+    /// that does is skipped here and costs nothing. An <c>OnValidate</c> that removed them instead
+    /// destroyed a clip's gait data every time its range was touched.
+    /// </para>
     /// </remarks>
     private static List<Footfall> UsableAnchors(IReadOnlyList<Footfall> footfalls, int frameCount)
     {

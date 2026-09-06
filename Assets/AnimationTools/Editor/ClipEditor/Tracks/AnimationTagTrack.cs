@@ -76,8 +76,8 @@ namespace AnimationTools.Editor
                 highest = Mathf.Max(highest, key.Frame);
             }
 
-            firstClipFrame = Editor.SliceToClipFrame(lowest);
-            lastClipFrame = Editor.SliceToClipFrame(highest);
+            firstClipFrame = lowest;
+            lastClipFrame = highest;
             return true;
         }
 
@@ -86,7 +86,7 @@ namespace AnimationTools.Editor
         public override void DrawTrack(in TrackDrawContext context)
         {
             var channels = Channels;
-            if (channels == null || context.Editor.SliceFrameCount <= 0) return;
+            if (channels == null || context.Editor.ClipFrameCount <= 0) return;
 
             // Allocated unconditionally: an id handed out only when a key is pressed would shift
             // every id after it between Layout and Repaint.
@@ -120,11 +120,11 @@ namespace AnimationTools.Editor
             var toggles = PreviewToggles(context, row, channel, modal);
             var colour = ChannelColour(channel);
 
-            AnimationTagging.Spans(toggles, context.Editor.SliceFrameCount, _spans);
+            AnimationTagging.Spans(toggles, context.Editor.ClipFrameCount, _spans);
             foreach (var span in _spans)
             {
-                var left = SliceFrameToX(context, span.StartFrame);
-                var right = SliceFrameToX(context, span.EndFrame);
+                var left = context.Axis.FrameToX(span.StartFrame);
+                var right = context.Axis.FrameToX(span.EndFrame);
 
                 var bar = Rect.MinMaxRect(Mathf.Max(left, rowRect.xMin), rowRect.y + BarInset,
                     Mathf.Min(right, rowRect.xMax), rowRect.yMax - BarInset);
@@ -140,7 +140,7 @@ namespace AnimationTools.Editor
 
             foreach (var frame in toggles)
             {
-                var clipFrame = context.Editor.SliceToClipFrame(frame);
+                var clipFrame = frame;
                 if (clipFrame < context.FirstVisibleClipFrame || clipFrame > context.LastVisibleClipFrame)
                 {
                     continue;
@@ -158,7 +158,7 @@ namespace AnimationTools.Editor
 
             if (modal != null)
             {
-                var frameCount = context.Editor.SliceFrameCount;
+                var frameCount = context.Editor.ClipFrameCount;
                 if (modal.Kind == TimelineModalKind.Grab)
                 {
                     Shift(_rowFrames,
@@ -184,7 +184,7 @@ namespace AnimationTools.Editor
             if (modal == null || !_selection.HasAnyIn(row)) return channel.toggles;
 
             _selection.FramesIn(row, _rowFrames);
-            var frameCount = context.Editor.SliceFrameCount;
+            var frameCount = context.Editor.ClipFrameCount;
 
             return modal.Kind switch
             {
@@ -220,8 +220,8 @@ namespace AnimationTools.Editor
             {
                 if (match.Clip != context.Editor.Clip) continue;
 
-                var left = SliceFrameToX(context, match.StartFrame);
-                var right = SliceFrameToX(context, match.EndFrame);
+                var left = context.Axis.FrameToX(match.StartFrame);
+                var right = context.Axis.FrameToX(match.EndFrame);
 
                 var band = Rect.MinMaxRect(Mathf.Max(left, context.LaneRect.xMin), context.LaneRect.y,
                     Mathf.Min(right, context.LaneRect.xMax), context.LaneRect.yMax);
@@ -282,18 +282,14 @@ namespace AnimationTools.Editor
         private static string TagLabel(GameplayTagSO tag) =>
             string.IsNullOrEmpty(tag.TagFullName) ? tag.name : tag.TagFullName;
 
-        private static float SliceFrameToX(in TrackDrawContext context, int sliceFrame) =>
-            context.Axis.FrameToX(context.Editor.SliceToClipFrame(sliceFrame));
-
         /// <summary>
-        /// The slice-frame-to-pixel mapping as a closure. Built here because the hit testers take a
+        /// The frame-to-pixel mapping as a closure. Built here because the hit testers take a
         /// delegate, and a readonly ref parameter cannot be captured by one.
         /// </summary>
         private static System.Func<int, float> FrameToPixels(in TrackDrawContext context)
         {
             var axis = context.Axis;
-            var editor = context.Editor;
-            return sliceFrame => axis.FrameToX(editor.SliceToClipFrame(sliceFrame));
+            return frame => axis.FrameToX(frame);
         }
 
         // ---- input ----
@@ -363,8 +359,7 @@ namespace AnimationTools.Editor
                 if (e.clickCount == 2 && row >= 0)
                 {
                     InsertKeyAt(context, row,
-                        context.Editor.ClipToSliceFrame(
-                            Mathf.RoundToInt(context.Axis.XToFrame(e.mousePosition.x))));
+                        Mathf.RoundToInt(context.Axis.XToFrame(e.mousePosition.x)));
 
                     e.Use();
                     return;
@@ -380,7 +375,7 @@ namespace AnimationTools.Editor
             if (e.shift) _selection.Toggle(row, picked);
             else _selection.SetTo(row, picked);
 
-            context.Editor.SeekToClipFrame(context.Editor.SliceToClipFrame(picked));
+            context.Editor.SeekToClipFrame(picked);
             e.Use();
         }
 
@@ -427,8 +422,7 @@ namespace AnimationTools.Editor
 
                 case TimelineKeyAction.Delete when _selection.Count > 0:
                     ApplyToSelectedRows(context, channels, "Delete tag keys",
-                        (toggles, frames, frameCount) =>
-                            AnimationTagEdits.Delete(toggles, frames, frameCount));
+                        (toggles, frames, _) => AnimationTagEdits.Delete(toggles, frames));
                     _selection.Clear();
                     break;
 
@@ -481,7 +475,7 @@ namespace AnimationTools.Editor
             var pivotX = context.Axis.FrameToX(editor.PlayheadClipFrame);
 
             editor.ClaimModal(this).Begin(kind, _controlId, e.mousePosition,
-                context.Axis.pixelsPerFrame, editor.ClipToSliceFrame(editor.PlayheadClipFrame),
+                context.Axis.pixelsPerFrame, editor.PlayheadClipFrame,
                 pivotX, extend);
 
             e.Use();
@@ -560,33 +554,33 @@ namespace AnimationTools.Editor
             if (channels.Count == 0) return;
 
             InsertKeyAt(context, Mathf.Clamp(_activeRow, 0, channels.Count - 1),
-                context.Editor.ClipToSliceFrame(context.Editor.PlayheadClipFrame));
+                context.Editor.PlayheadClipFrame);
         }
 
         /// <summary>Adds a key to one channel and selects it, so it can be moved straight away.</summary>
-        private void InsertKeyAt(in TrackDrawContext context, int row, int sliceFrame)
+        private void InsertKeyAt(in TrackDrawContext context, int row, int clipFrame)
         {
             var channels = Channels;
             if (channels == null || row < 0 || row >= channels.Count) return;
 
             var editor = context.Editor;
-            if (sliceFrame < 0 || sliceFrame >= editor.SliceFrameCount) return;
+            if (clipFrame < 0 || clipFrame >= editor.ClipFrameCount) return;
 
             WriteChannel(editor, row,
-                AnimationTagEdits.Insert(channels[row].toggles, sliceFrame, editor.SliceFrameCount));
+                AnimationTagEdits.Insert(channels[row].toggles, clipFrame, editor.ClipFrameCount));
 
             Undo.SetCurrentGroupName("Insert tag key");
             editor.Commit();
 
             _activeRow = row;
-            _selection.SetTo(row, sliceFrame);
+            _selection.SetTo(row, clipFrame);
         }
 
         private void JumpToKey(in TrackDrawContext context, List<AnimationTagging.TagChannel> channels,
             bool forward)
         {
             var editor = context.Editor;
-            var from = editor.ClipToSliceFrame(editor.PlayheadClipFrame);
+            var from = editor.PlayheadClipFrame;
 
             var best = -1;
             foreach (var channel in channels)
@@ -600,7 +594,7 @@ namespace AnimationTools.Editor
                 }
             }
 
-            if (best >= 0) editor.SeekToClipFrame(editor.SliceToClipFrame(best));
+            if (best >= 0) editor.SeekToClipFrame(best);
         }
 
         /// <summary>
@@ -634,7 +628,7 @@ namespace AnimationTools.Editor
             SelectionEdit moveSelection = null)
         {
             var editor = context.Editor;
-            var frameCount = editor.SliceFrameCount;
+            var frameCount = editor.ClipFrameCount;
             var changed = false;
 
             for (var row = 0; row < channels.Count; row++)
@@ -701,7 +695,7 @@ namespace AnimationTools.Editor
             var drawContext = context;
             var editor = context.Editor;
             var row = RowAt(context.LaneRect, mouse.y, channels.Count);
-            var frame = editor.ClipToSliceFrame(Mathf.RoundToInt(context.Axis.XToFrame(mouse.x)));
+            var frame = Mathf.RoundToInt(context.Axis.XToFrame(mouse.x));
 
             var menu = new GenericMenu();
 
@@ -713,7 +707,7 @@ namespace AnimationTools.Editor
                 {
                     WriteChannel(editor, target,
                         AnimationTagEdits.Insert(channels[target].toggles, frame,
-                            editor.SliceFrameCount));
+                            editor.ClipFrameCount));
 
                     Undo.SetCurrentGroupName("Insert tag key");
                     editor.Commit();
@@ -734,8 +728,7 @@ namespace AnimationTools.Editor
                 menu.AddItem(new GUIContent("Delete Selected Keys"), false, () =>
                 {
                     ApplyToSelectedRows(drawContext, channels, "Delete tag keys",
-                        (toggles, frames, frameCount) =>
-                            AnimationTagEdits.Delete(toggles, frames, frameCount));
+                        (toggles, frames, _) => AnimationTagEdits.Delete(toggles, frames));
                     _selection.Clear();
                 });
             }
@@ -868,7 +861,7 @@ namespace AnimationTools.Editor
                 var label = $"frames {match.StartFrame}–{match.EndFrame}  ({match.FrameCount})";
                 if (!GUILayout.Button(label, EditorStyles.miniButton)) continue;
 
-                context.Editor.SeekToClipFrame(context.Editor.SliceToClipFrame(match.StartFrame));
+                context.Editor.SeekToClipFrame(match.StartFrame);
             }
         }
 

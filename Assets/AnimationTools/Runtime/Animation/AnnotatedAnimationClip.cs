@@ -74,8 +74,14 @@ public class AnnotatedAnimationClip : SkeletonAnimation
         if (endFrame >= base.FrameCount)
             endFrame = base.FrameCount;
 
+        // Without this a start past the end survives, FrameCount reports 0, and every lane in the
+        // clip editor bails on its own emptiness guard - a blank window with nothing to explain it.
+        if (startFrame > endFrame)
+            startFrame = endFrame;
+
         // After the clamp, so a component that indexes into the clip sees the range it will
-        // actually be asked about.
+        // actually be asked about. A component must not delete annotation for falling outside it:
+        // trimming changes what is extracted, not what is true about the animation.
         foreach (var component in components)
         {
             component?.OnValidate(this);

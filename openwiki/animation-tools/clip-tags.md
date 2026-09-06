@@ -40,8 +40,16 @@ keys landing on the same frame describe a flip and an immediate flip back, which
 as neither, so they cancel. That cancellation *is* the collision rule, and it is what makes dragging
 one key onto another do something sensible instead of producing a duplicate.
 
-Frames are **slice-local**, numbered from the clip's `startFrame`, exactly as gait phase footfalls
-are. Keys stay correct when the clip's trim moves, and only the slice is ever extracted anyway.
+Frames are **clip-local** — numbered against the whole baked clip, not from `startFrame` — exactly
+as gait phase footfalls are. That is what makes trimming safe: a trim changes which frames get
+extracted and nothing else, so no annotation has to move and none has to be deleted.
+
+They were slice-local once, justified as "the markers stay correct when a clip's start or end frame
+moves". That was backwards twice over. Measuring from `startFrame` is precisely the encoding that
+*cannot* survive the start moving — every marker silently slides across the motion, with no change
+in the asset to notice. And to keep the numbers meaningful, `OnValidate` deleted every marker
+outside the range on every validate, so pulling the slice in and pushing it back out destroyed
+everything between. It cost one clip 44 hand-corrected footfalls before the encoding was changed.
 
 ## Three words that are not interchangeable
 
@@ -82,9 +90,10 @@ Channels are added with **Add Channel**, which opens the same searchable tag dro
 tag field uses, with a *New Tag…* entry — so building the vocabulary does not mean leaving the
 window for the Tags Browser.
 
-One thing to know: like `GaitPhaseComponent`, `OnValidate` **silently drops keys the clip's frame
-range no longer contains**. Re-trim a clip past some keys and they are gone. The track reports what
-it lost rather than leaving you to notice, but the loss itself is not undoable through the trim.
+Annotation outside the slice is drawn and edited exactly like annotation inside it — the timeline
+already dims those regions, which says all that needs saying. Nothing is ever removed for being out
+of range; an edit clamps only the frames it produces, so a key a trim left beyond the end is none of
+an unrelated edit's business. To be rid of one, select it and press `X` like any other.
 
 ## What this does not do yet
 

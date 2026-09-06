@@ -24,7 +24,7 @@ namespace AnimationTools
 [Serializable]
 public sealed class GaitPhaseComponent : AnimationClipComponent
 {
-    [Tooltip("Frames a foot was planted on, in this clip's sliced frame numbering. Detected, then " +
+    [Tooltip("Frames a foot was planted on, numbered against the whole clip. Detected, then " +
              "corrected by hand where the detection was wrong.")]
     public List<GaitPhase.Footfall> footfalls = new();
 
@@ -54,19 +54,14 @@ public sealed class GaitPhaseComponent : AnimationClipComponent
         return repeats == 0 ? summary : $"{summary}, {repeats} missed contacts";
     }
 
-    /// <summary>Drops anchors the clip's frame range no longer contains.</summary>
-    public override void OnValidate(AnnotatedAnimationClip clip)
-    {
-        if (footfalls == null || clip == null) return;
-
-        var frameCount = clip.FrameCount;
-        footfalls.RemoveAll(footfall => footfall.frame < 0 || footfall.frame >= frameCount);
-    }
-
-    /// <summary>Phase and rate per frame of the clip's slice, from the current footfalls.</summary>
+    /// <summary>Phase and rate for every frame of the clip, from the current footfalls.</summary>
+    /// <remarks>
+    /// Covers the whole clip rather than the slice, because the anchors do: an anchor just past the
+    /// trim still tells the frames before it what their cycle is.
+    /// </remarks>
     public void Evaluate(AnnotatedAnimationClip clip, out float[] phase, out float[] phaseRate)
     {
-        var frameCount = Mathf.Max(0, clip != null ? clip.FrameCount : 0);
+        var frameCount = Mathf.Max(0, clip != null ? ((SkeletonAnimation)clip).FrameCount : 0);
         phase = new float[frameCount];
         phaseRate = new float[frameCount];
 
@@ -79,8 +74,10 @@ public sealed class GaitPhaseComponent : AnimationClipComponent
     /// </summary>
     /// <param name="clip">The clip to read. Only its <c>[startFrame, endFrame)</c> slice is used.</param>
     /// <param name="contacts">
-    /// Per frame, whether each foot was planted: index <c>frame * 2</c> is left, <c>+ 1</c> right.
-    /// Smoothed, i.e. what the footfalls were actually detected from.
+    /// Per frame of the <em>whole clip</em>, whether each foot was planted: index <c>frame * 2</c>
+    /// is left, <c>+ 1</c> right, false outside the slice. Smoothed, i.e. what the footfalls were
+    /// actually detected from. Clip-wide so that nothing downstream has to convert between two
+    /// frame spaces.
     /// </param>
     /// <param name="error">Why detection could not run.</param>
     public bool TryDetect(AnnotatedAnimationClip clip, out bool[] contacts, out string error)
@@ -116,8 +113,20 @@ public sealed class GaitPhaseComponent : AnimationClipComponent
             return false;
         }
 
-        contacts = DetectContacts(clip, skeleton, leftBone, rightBone, frameCount);
-        footfalls = GaitPhase.FootfallsFromContacts(contacts, frameCount);
+        var sliceContacts = DetectContacts(clip, skeleton, leftBone, rightBone, frameCount);
+        var detected = GaitPhase.FootfallsFromContacts(sliceContacts, frameCount);
+
+        // Detection reads only the slice - that is what a trim is for - but reports in clip frames,
+        // which is the space the anchors are stored and drawn in.
+        var startFrame = clip.startFrame;
+        footfalls = new List<GaitPhase.Footfall>(detected.Count);
+        foreach (var footfall in detected)
+        {
+            footfalls.Add(new GaitPhase.Footfall(footfall.frame + startFrame, footfall.foot));
+        }
+
+        contacts = new bool[((SkeletonAnimation)clip).FrameCount * 2];
+        Array.Copy(sliceContacts, 0, contacts, startFrame * 2, sliceContacts.Length);
         return true;
     }
 

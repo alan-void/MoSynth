@@ -36,7 +36,7 @@ namespace AnimationTools.Tests
         public void DeleteRemovesOnlyTheNamedFrames()
         {
             Assert.AreEqual(new[] { 2, 14 },
-                AnimationTagEdits.Delete(Keys(2, 9, 14), Keys(9), 100));
+                AnimationTagEdits.Delete(Keys(2, 9, 14), Keys(9)));
         }
 
         [Test]

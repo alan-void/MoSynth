@@ -69,15 +69,15 @@ namespace AnimationTools.Editor
                 highest = Mathf.Max(highest, key.Frame);
             }
 
-            firstClipFrame = Editor.SliceToClipFrame(lowest);
-            lastClipFrame = Editor.SliceToClipFrame(highest);
+            firstClipFrame = lowest;
+            lastClipFrame = highest;
             return true;
         }
 
         public override void DrawTrack(in TrackDrawContext context)
         {
             var phase = Phase;
-            if (phase == null || context.Editor.SliceFrameCount <= 0) return;
+            if (phase == null || context.Editor.ClipFrameCount <= 0) return;
 
             RefreshCaches(context.Editor);
 
@@ -99,12 +99,12 @@ namespace AnimationTools.Editor
             _cachedVersion = version;
             Phase.Evaluate(editor.Clip, out _phase, out _phaseRate);
 
-            var sliceFrames = editor.SliceFrameCount;
+            var clipFrames = editor.ClipFrameCount;
             var phaseValues = _phase;
             var phaseRates = _phaseRate;
             var contacts = _contacts;
 
-            _signal.Rebuild(sliceFrames, GaitPhaseSignalBuilder.Height, version,
+            _signal.Rebuild(clipFrames, GaitPhaseSignalBuilder.Height, version,
                 GaitPhaseSignalBuilder.Background,
                 (pixels, width, _) => GaitPhaseSignalBuilder.Fill(pixels, width, phaseValues, phaseRates,
                     contacts, _signal.ColumnToFrame));
@@ -114,8 +114,10 @@ namespace AnimationTools.Editor
         {
             if (Event.current.type != EventType.Repaint) return;
 
-            if (TimelineSignalTexture.TryMapRange(context.Axis, bandRect, context.Editor.StartFrame,
-                    context.Editor.EndFrame, out var destination, out var uv))
+            // Spans the whole clip, because the phase does: anchors are clip frames and an anchor
+            // past the trim still gives the frames before it a cycle.
+            if (TimelineSignalTexture.TryMapRange(context.Axis, bandRect, 0,
+                    context.Editor.ClipFrameCount, out var destination, out var uv))
             {
                 _signal.Draw(destination, uv);
             }
@@ -139,9 +141,7 @@ namespace AnimationTools.Editor
             {
                 var footfall = phase.footfalls[i];
                 var selected = _selection.Contains(0, footfall.frame);
-                var sliceFrame = footfall.frame + (selected ? delta : 0);
-
-                var clipFrame = context.Editor.SliceToClipFrame(sliceFrame);
+                var clipFrame = footfall.frame + (selected ? delta : 0);
                 if (clipFrame < context.FirstVisibleClipFrame || clipFrame > context.LastVisibleClipFrame)
                 {
                     continue;
@@ -174,7 +174,7 @@ namespace AnimationTools.Editor
             if (modal is not { Kind: TimelineModalKind.Grab }) return 0;
 
             return FootfallEdits.ClampDelta(phase.footfalls, SelectedIndices(phase), modal.FrameDelta,
-                context.Editor.SliceFrameCount);
+                context.Editor.ClipFrameCount);
         }
 
         private static void DrawModalStatus(in TrackDrawContext context, TimelineModalOperator modal)
@@ -239,7 +239,7 @@ namespace AnimationTools.Editor
             var editor = context.Editor;
             var axis = context.Axis;
             var picked = FootfallHitTester.Pick(phase.footfalls, e.mousePosition.x,
-                sliceFrame => axis.FrameToX(editor.SliceToClipFrame(sliceFrame)));
+                clipFrame => axis.FrameToX(clipFrame));
 
             if (e.clickCount == 2 && picked < 0)
             {
@@ -258,7 +258,7 @@ namespace AnimationTools.Editor
             if (e.shift) _selection.Toggle(0, frame);
             else _selection.SetTo(0, frame);
 
-            editor.SeekToClipFrame(editor.SliceToClipFrame(frame));
+            editor.SeekToClipFrame(frame);
             e.Use();
         }
 
@@ -339,7 +339,7 @@ namespace AnimationTools.Editor
             var editor = context.Editor;
 
             editor.ClaimModal(this).Begin(kind, _controlId, e.mousePosition,
-                context.Axis.pixelsPerFrame, editor.ClipToSliceFrame(editor.PlayheadClipFrame),
+                context.Axis.pixelsPerFrame, editor.PlayheadClipFrame,
                 context.Axis.FrameToX(editor.PlayheadClipFrame), extend);
 
             e.Use();
@@ -359,7 +359,7 @@ namespace AnimationTools.Editor
 
                 _scratchFrames.Clear();
                 FootfallHitTester.PickRange(phase.footfalls, box.xMin, box.xMax,
-                    sliceFrame => axis.FrameToX(editor.SliceToClipFrame(sliceFrame)), _scratchFrames);
+                    clipFrame => axis.FrameToX(clipFrame), _scratchFrames);
 
                 // PickRange reports indices; the selection is keyed by frame.
                 foreach (var index in _scratchFrames) _selection.Add(0, phase.footfalls[index].frame);
@@ -369,12 +369,12 @@ namespace AnimationTools.Editor
             if (modal.Kind != TimelineModalKind.Grab) return;
 
             var delta = FootfallEdits.ClampDelta(phase.footfalls, SelectedIndices(phase),
-                modal.FrameDelta, editor.SliceFrameCount);
+                modal.FrameDelta, editor.ClipFrameCount);
             if (delta == 0) return;
 
             _selection.FramesIn(0, _selectedFrames);
             WriteFootfalls(editor,
-                FootfallEdits.Move(phase.footfalls, SelectedIndices(phase), delta, editor.SliceFrameCount),
+                FootfallEdits.Move(phase.footfalls, SelectedIndices(phase), delta, editor.ClipFrameCount),
                 "Move footfalls");
 
             for (var i = 0; i < _selectedFrames.Count; i++) _selectedFrames[i] += delta;
@@ -399,7 +399,7 @@ namespace AnimationTools.Editor
 
         private void JumpToAnchor(ClipEditorContext editor, GaitPhaseComponent phase, bool forward)
         {
-            var from = editor.ClipToSliceFrame(editor.PlayheadClipFrame);
+            var from = editor.PlayheadClipFrame;
 
             var best = -1;
             foreach (var footfall in phase.footfalls)
@@ -410,15 +410,14 @@ namespace AnimationTools.Editor
                 best = footfall.frame;
             }
 
-            if (best >= 0) editor.SeekToClipFrame(editor.SliceToClipFrame(best));
+            if (best >= 0) editor.SeekToClipFrame(best);
         }
 
         private void AddAnchorAt(ClipEditorContext editor, int clipFrame)
         {
-            var sliceFrame = editor.ClipToSliceFrame(clipFrame);
-            WriteFootfalls(editor, FootfallEdits.Add(Phase.footfalls, sliceFrame, editor.SliceFrameCount),
+            WriteFootfalls(editor, FootfallEdits.Add(Phase.footfalls, clipFrame, editor.ClipFrameCount),
                 "Add footfall");
-            _selection.SetTo(0, sliceFrame);
+            _selection.SetTo(0, clipFrame);
         }
 
         private void ShowContextMenu(ClipEditorContext editor, GaitPhaseComponent phase, float mouseX,
@@ -426,7 +425,7 @@ namespace AnimationTools.Editor
         {
             var clipFrame = Mathf.RoundToInt(axis.XToFrame(mouseX));
             var picked = FootfallHitTester.Pick(phase.footfalls, mouseX,
-                sliceFrame => axis.FrameToX(editor.SliceToClipFrame(sliceFrame)));
+                clipFrame => axis.FrameToX(clipFrame));
 
             var menu = new GenericMenu();
             menu.AddItem(new GUIContent("Add Footfall Here"), false, () => AddAnchorAt(editor, clipFrame));
@@ -596,7 +595,7 @@ namespace AnimationTools.Editor
         {
             RefreshCaches(editor);
 
-            var frameCount = Mathf.Max(1, editor.SliceFrameCount);
+            var frameCount = Mathf.Max(1, editor.ClipFrameCount);
             var noCycle = 0;
             foreach (var rate in _phaseRate)
             {
@@ -636,7 +635,7 @@ namespace AnimationTools.Editor
                     _selection.Clear();
                     foreach (var index in repeated) _selection.Add(0, phase.footfalls[index].frame);
 
-                    editor.SeekToClipFrame(editor.SliceToClipFrame(phase.footfalls[repeated[0]].frame));
+                    editor.SeekToClipFrame(phase.footfalls[repeated[0]].frame);
                     editor.Repaint();
                 }
             }
@@ -711,8 +710,7 @@ namespace AnimationTools.Editor
         {
             if (_contacts == null) return false;
 
-            var sliceFrame = editor.ClipToSliceFrame(clipFrame);
-            var index = sliceFrame * 2 + (left ? 0 : 1);
+            var index = clipFrame * 2 + (left ? 0 : 1);
             return index >= 0 && index < _contacts.Length && _contacts[index];
         }
 

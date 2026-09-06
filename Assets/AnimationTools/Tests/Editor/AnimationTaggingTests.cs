@@ -41,10 +41,10 @@ namespace AnimationTools.Tests
         private static AnimationTagging.TagChannel Channel(GameplayTagSO tag, params int[] toggles) =>
             new() { tag = tag, toggles = new List<int>(toggles) };
 
-        private static List<int> Normalised(int frameCount, params int[] toggles)
+        private static List<int> Normalised(params int[] toggles)
         {
             var list = new List<int>(toggles);
-            AnimationTagging.Normalise(list, frameCount);
+            AnimationTagging.Normalise(list);
             return list;
         }
 
@@ -53,7 +53,7 @@ namespace AnimationTools.Tests
         [Test]
         public void NormaliseSortsTheKeys()
         {
-            Assert.AreEqual(new[] { 2, 5, 9 }, Normalised(100, 9, 2, 5));
+            Assert.AreEqual(new[] { 2, 5, 9 }, Normalised(9, 2, 5));
         }
 
         [Test]
@@ -61,25 +61,28 @@ namespace AnimationTools.Tests
         {
             // A flip and an immediate flip back is the same signal as neither, and it is exactly
             // what dragging one key onto another produces.
-            Assert.AreEqual(new[] { 4 }, Normalised(100, 4, 7, 7));
+            Assert.AreEqual(new[] { 4 }, Normalised(4, 7, 7));
         }
 
         [Test]
         public void AnOddRunOnOneFrameLeavesOneKey()
         {
-            Assert.AreEqual(new[] { 7 }, Normalised(100, 7, 7, 7));
+            Assert.AreEqual(new[] { 7 }, Normalised(7, 7, 7));
         }
 
         [Test]
-        public void KeysOutsideTheClipAreDropped()
+        public void KeysBeyondTheClipAreKeptAndOnlyNegativesDropped()
         {
-            Assert.AreEqual(new[] { 0, 10 }, Normalised(10, -3, 0, 10, 14));
+            // The whole point of the frame space: a key past the end survives, because trimming a
+            // clip must not destroy annotation. A negative one is corruption, not range - it would
+            // make IsOn count for every frame from 0 up and invert the channel.
+            Assert.AreEqual(new[] { 0, 10, 14 }, Normalised(-3, 0, 10, 14));
         }
 
         [Test]
         public void NormalisingAnEmptyListIsHarmless()
         {
-            Assert.AreEqual(new int[0], Normalised(10));
+            Assert.AreEqual(new int[0], Normalised());
         }
 
         // ---- reading the signal ----
@@ -127,7 +130,7 @@ namespace AnimationTools.Tests
             params AnimationTagging.TagChannel[] channels)
         {
             var results = new List<AnimationClipSegment>();
-            AnimationTagging.FindSegments(null, channels, query, frameCount, results);
+            AnimationTagging.FindSegments(null, channels, query, 0, frameCount, results);
             return results;
         }
 

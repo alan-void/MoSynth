@@ -45,9 +45,9 @@ public sealed class AnimationTagComponent : AnimationClipComponent
 
     /// <summary>Normalises every channel and merges channels that name the same tag.</summary>
     /// <remarks>
-    /// Like <see cref="GaitPhaseComponent.OnValidate"/> this silently drops keys the clip's frame
-    /// range no longer contains, which is why the editor reports what it lost rather than leaving
-    /// you to notice.
+    /// Deliberately does not touch keys for lying outside the clip's current range. Trimming a clip
+    /// changes which frames are extracted, not what is true about the animation, so it must not
+    /// destroy annotation - and it used to, on every validate, permanently.
     /// </remarks>
     public override void OnValidate(AnnotatedAnimationClip clip)
     {
@@ -68,41 +68,46 @@ public sealed class AnimationTagComponent : AnimationClipComponent
             }
         }
 
-        var frameCount = clip.FrameCount;
         foreach (var channel in channels)
         {
-            AnimationTagging.Normalise(channel.toggles, frameCount);
+            AnimationTagging.Normalise(channel.toggles);
         }
     }
 
-    /// <summary>Whether <paramref name="tag"/>'s own channel is on at a sliced frame.</summary>
+    /// <summary>Whether <paramref name="tag"/>'s own channel is on at a clip frame.</summary>
     /// <remarks>
     /// Exact, not hierarchical: this asks about one channel. Ask a hierarchical question with
     /// <see cref="TagsAt"/> and a <see cref="GameplayTagQuery"/>.
     /// </remarks>
-    public bool IsOn(GameplayTagSO tag, int sliceFrame)
+    public bool IsOn(GameplayTagSO tag, int clipFrame)
     {
         if (channels == null || tag == null) return false;
 
         foreach (var channel in channels)
         {
-            if (channel?.tag == tag) return AnimationTagging.IsOn(channel.toggles, sliceFrame);
+            if (channel?.tag == tag) return AnimationTagging.IsOn(channel.toggles, clipFrame);
         }
 
         return false;
     }
 
-    /// <summary>The tags on at a sliced frame, replacing whatever <paramref name="into"/> held.</summary>
-    public void TagsAt(int sliceFrame, GameplayTagSet into) =>
-        AnimationTagging.CollectTagsAt(channels, sliceFrame, into);
+    /// <summary>The tags on at a clip frame, replacing whatever <paramref name="into"/> held.</summary>
+    public void TagsAt(int clipFrame, GameplayTagSet into) =>
+        AnimationTagging.CollectTagsAt(channels, clipFrame, into);
 
     /// <summary>Appends the runs of <paramref name="clip"/> whose tags satisfy the query.</summary>
+    /// <remarks>
+    /// Searches the clip's <c>[startFrame, endFrame)</c> slice, because that is the part which
+    /// reaches a database, but reports in clip frames like everything else here. Keys outside the
+    /// slice still count towards whether a channel is on inside it.
+    /// </remarks>
     public void FindSegments(AnnotatedAnimationClip clip, GameplayTagQuery query,
         List<AnimationClipSegment> results)
     {
         if (clip == null) return;
 
-        AnimationTagging.FindSegments(clip, channels, query, clip.FrameCount, results);
+        AnimationTagging.FindSegments(clip, channels, query, clip.startFrame,
+            Mathf.Min(clip.endFrame, ((SkeletonAnimation)clip).FrameCount), results);
     }
 
     /// <summary>

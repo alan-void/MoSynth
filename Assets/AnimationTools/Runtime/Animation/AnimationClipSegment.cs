@@ -1,7 +1,7 @@
 namespace AnimationTools
 {
 /// <summary>
-/// A contiguous run of frames within one clip, in that clip's sliced frame numbering.
+/// A contiguous run of frames within one clip, numbered against the whole clip.
 /// </summary>
 /// <remarks>
 /// Nothing about naming part of a clip is specific to tags, so this is the shared result type for
@@ -14,10 +14,10 @@ public readonly struct AnimationClipSegment
 {
     public readonly AnnotatedAnimationClip Clip;
 
-    /// <summary>Inclusive, in <see cref="Clip"/>'s sliced frame numbering.</summary>
+    /// <summary>Inclusive, in <see cref="Clip"/>'s own frame numbering.</summary>
     public readonly int StartFrame;
 
-    /// <summary>Exclusive, in <see cref="Clip"/>'s sliced frame numbering.</summary>
+    /// <summary>Exclusive, in <see cref="Clip"/>'s own frame numbering.</summary>
     public readonly int EndFrame;
 
     public AnimationClipSegment(AnnotatedAnimationClip clip, int startFrame, int endFrame)

@@ -20,9 +20,9 @@ namespace AnimationTools.Editor
         /// the edge rather than pushing anchors off it to be deleted on commit.
         /// </summary>
         public static int ClampDelta(IReadOnlyList<GaitPhase.Footfall> footfalls,
-            ICollection<int> selection, int delta, int sliceFrameCount)
+            ICollection<int> selection, int delta, int clipFrameCount)
         {
-            if (sliceFrameCount <= 0 || selection.Count == 0) return 0;
+            if (clipFrameCount <= 0 || selection.Count == 0) return 0;
 
             var lowest = int.MaxValue;
             var highest = int.MinValue;
@@ -37,7 +37,7 @@ namespace AnimationTools.Editor
 
             if (lowest == int.MaxValue) return 0;
 
-            return Mathf.Clamp(delta, -lowest, sliceFrameCount - 1 - highest);
+            return Mathf.Clamp(delta, -lowest, clipFrameCount - 1 - highest);
         }
 
         /// <summary>
@@ -46,9 +46,9 @@ namespace AnimationTools.Editor
         /// about a repeated frame.
         /// </summary>
         public static List<GaitPhase.Footfall> Move(IReadOnlyList<GaitPhase.Footfall> footfalls,
-            ICollection<int> selection, int delta, int sliceFrameCount)
+            ICollection<int> selection, int delta, int clipFrameCount)
         {
-            var clamped = ClampDelta(footfalls, selection, delta, sliceFrameCount);
+            var clamped = ClampDelta(footfalls, selection, delta, clipFrameCount);
             var moved = new List<GaitPhase.Footfall>(footfalls.Count);
 
             for (var i = 0; i < footfalls.Count; i++)
@@ -57,7 +57,7 @@ namespace AnimationTools.Editor
                 if (selection.Contains(i))
                 {
                     footfall.frame = Mathf.Clamp(footfall.frame + clamped, 0,
-                        Mathf.Max(0, sliceFrameCount - 1));
+                        Mathf.Max(0, clipFrameCount - 1));
                 }
 
                 moved.Add(footfall);
@@ -72,9 +72,9 @@ namespace AnimationTools.Editor
         /// the right guess when the reason you are adding one is a contact detection missed.
         /// </summary>
         public static List<GaitPhase.Footfall> Add(IReadOnlyList<GaitPhase.Footfall> footfalls,
-            int sliceFrame, int sliceFrameCount)
+            int clipFrame, int clipFrameCount)
         {
-            var frame = Mathf.Clamp(sliceFrame, 0, Mathf.Max(0, sliceFrameCount - 1));
+            var frame = Mathf.Clamp(clipFrame, 0, Mathf.Max(0, clipFrameCount - 1));
             var foot = GaitPhase.Foot.Left;
 
             for (var i = footfalls.Count - 1; i >= 0; i--)
