@@ -16,6 +16,10 @@ MonoBehaviour:
   - name: MotionMatching
     characterPrefab: {fileID: 3845155860255659551, guid: f9a9a8a440e2fad4882a14dc0f6bb0ba, type: 3}
     overrides: []
+  - name: MotionMatching+RootFollow
+    characterPrefab: {fileID: 3845155860255659551, guid: f9a9a8a440e2fad4882a14dc0f6bb0ba, type: 3}
+    overrides:
+    - rid: 7100000000000000001
   - name: MotionField
     characterPrefab: {fileID: 5069406635295175760, guid: 6687126675c29064b8a28a522c61f6f9, type: 3}
     overrides: []
@@ -31,4 +35,9 @@ MonoBehaviour:
   outputDirectory: Benchmarks
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 7100000000000000001
+      type: {class: StageEnabledOverride, ns: AnimationTools, asm: AnimationTools}
+      data:
+        stageTypeName: RootFollowStage
+        enabled: 1

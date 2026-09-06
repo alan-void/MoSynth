@@ -1585,6 +1585,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Pfnn::Pfnn.PfnnDirectionControlInput
   synthesisComponent: {fileID: 1087161515}
   maxSpeed: 1
+  steeringHalfLife: 0.25
   velocityHalfLife: 0.2
   facingHalfLife: 0.15
   minimumSpeed: 0.01
@@ -1663,8 +1664,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MotionMatching.SpringControlInput, MotionMatching
+      - m_Target: {fileID: 777692134}
+        m_TargetAssemblyTypeName: MotionField.MotionFieldDirectionControlInput, MotionField
         m_MethodName: SetMovementDirection
         m_Mode: 0
         m_Arguments:
@@ -1675,8 +1676,20 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 777692134}
-        m_TargetAssemblyTypeName: MotionField.MotionFieldDirectionControlInput, MotionField
+      - m_Target: {fileID: 1742686601}
+        m_TargetAssemblyTypeName: Pfnn.PfnnDirectionControlInput, Pfnn
+        m_MethodName: SetMovementDirection
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1562190663}
+        m_TargetAssemblyTypeName: MotionMatching.AnchoredDirectionControlInput, MotionMatching
         m_MethodName: SetMovementDirection
         m_Mode: 0
         m_Arguments:
@@ -1796,6 +1809,10 @@ PrefabInstance:
     - target: {fileID: 5069406635295175760, guid: 3197629167644474bee9f4d290f5e108, type: 3}
       propertyPath: m_Name
       value: Pfnn
+      objectReference: {fileID: 0}
+    - target: {fileID: 5069406635295175760, guid: 3197629167644474bee9f4d290f5e108, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7151292996152871402, guid: 3197629167644474bee9f4d290f5e108, type: 3}
       propertyPath: stages.Array.size
@@ -2186,12 +2203,12 @@ GameObject:
   - component: {fileID: 1381230479}
   - component: {fileID: 1381230478}
   m_Layer: 0
-  m_Name: CharacterController (1)
+  m_Name: SplinePoseFollowController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1381230478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2324,6 +2341,61 @@ Transform:
   - {fileID: 1909276274}
   m_Father: {fileID: 710751156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1562190661
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1562190662}
+  - component: {fileID: 1562190663}
+  m_Layer: 0
+  m_Name: AnchoredDIreControl
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1562190662
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562190661}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1348914131}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1562190663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1562190661}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76a25d1dd8b44048b7167fab2f9becc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MotionMatching::MotionMatching.AnchoredDirectionControlInput
+  motionSynthesizer: {fileID: 1036463035}
+  trajectoryPositionFeatureName: FuturePosition
+  trajectoryDirectionFeatureName: FutureDirection
+  maxSpeed: 1
+  steeringHalfLife: 0.25
+  velocityHalfLife: 0.2
+  facingHalfLife: 0.15
+  minimumSpeed: 0.01
+  inputBigChangeThreshold: 0.5
+  debugCurrent: 1
+  debugPrediction: 1
 --- !u!1 &1569651939
 GameObject:
   m_ObjectHideFlags: 0
@@ -2475,6 +2547,78 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1474767785090834262, guid: 83ea47ce36263db45991fcf29457f4ce, type: 3}
   m_PrefabInstance: {fileID: 397076433220325588}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1742686600
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2646310381574308505, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_Name
+      value: PfnnBandaiCharacter
+      objectReference: {fileID: 0}
+    - target: {fileID: 2646310381574308505, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+--- !u!114 &1742686601 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3193380631802678010, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+  m_PrefabInstance: {fileID: 1742686600}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e1f919c85e6b7d4289217238c5c14f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Pfnn::Pfnn.PfnnDirectionControlInput
 --- !u!1 &1747973700
 GameObject:
   m_ObjectHideFlags: 0
@@ -3079,6 +3223,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 22499920256193937, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
+      propertyPath: managedReferences[6955135129176244291].isEnabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 22499920256193937, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: managedReferences[6955135100694298813].controlInput
       value: 
       objectReference: {fileID: 1226189923}
@@ -3126,6 +3274,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3856712055895550191, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5563818710139133889, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -3140,7 +3292,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8089643214540076982, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3148,6 +3300,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2945333870715592984, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1381230479}
+    - targetCorrespondingSourceObject: {fileID: 2945333870715592984, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1562190662}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
 --- !u!1660057539 &9223372036854775807
@@ -3168,3 +3323,4 @@ SceneRoots:
   - {fileID: 474024369}
   - {fileID: 1970690696}
   - {fileID: 1087161513}
+  - {fileID: 1742686600}

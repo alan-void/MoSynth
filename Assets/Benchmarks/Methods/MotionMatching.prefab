@@ -2854,6 +2854,7 @@ MonoBehaviour:
   stages:
   - rid: 6955135100694298813
   - rid: 6955135129176244290
+  - rid: 6955135129176244291
   rootPositionsMask: 1
   references:
     version: 2
@@ -2906,6 +2907,16 @@ MonoBehaviour:
       data:
         isEnabled: 1
         halfLife: 0.1
+    - rid: 6955135129176244291
+      type: {class: RootFollowStage, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 0
+        target: {fileID: 8926368807140288164}
+        positionHalfLife: 0
+        rotationHalfLife: 0
+        maxCorrectionSpeed: 0
+        maxCorrectionYawRate: 0
+        alignTargetOnInit: 1
 --- !u!1 &8654236811767381141
 GameObject:
   m_ObjectHideFlags: 0
