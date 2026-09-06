@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbf5f946beed480bb3ad99f4c63f1e2a, type: 3}
+  m_Name: animation.action_tag
+  m_EditorClassIdentifier: GameplayTags::GameplayTags.GameplayTagSO
+  tagName: action
+  parentTag: {fileID: 11400000, guid: 6aa4c95b224fdea47b998298eec5f639, type: 2}
+  childTags:
+  - {fileID: 11400000, guid: 34a850499929a674694031ffec05393c, type: 2}
+  - {fileID: 11400000, guid: 6737db8a0eef476459004516901311f3, type: 2}
+  - {fileID: 11400000, guid: 72aa64aaf85e8c54dafc3cb32eee2b23, type: 2}
+  - {fileID: 11400000, guid: bd8192d74313c394fbb1b21d8c242712, type: 2}
+  - {fileID: 11400000, guid: 2e2479b34646e664fb6b7e2487e808de, type: 2}

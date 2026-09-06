@@ -316,17 +316,6 @@ namespace AnimationTools.Editor
             }
         }
 
-        private static int CountVisible(System.Collections.Generic.IReadOnlyList<ClipTrackRow> rows)
-        {
-            var count = 0;
-            foreach (var row in rows)
-            {
-                if (row.Visible) count++;
-            }
-
-            return count;
-        }
-
         private void ScrubTo(float x, ClipEditorContext editor, int frameCount) =>
             editor.SeekToClipFrame(Mathf.Clamp(Mathf.RoundToInt(Axis.XToFrame(x)), 0, frameCount - 1));
 
@@ -338,15 +327,6 @@ namespace AnimationTools.Editor
             rows ??= System.Array.Empty<ClipTrackRow>();
 
             ClaimKeyboardFocus(laneAreaRect, bodyRect);
-
-            if (Event.current.type is EventType.MouseDown or EventType.KeyDown)
-            {
-                ClipEditorDiagnostics.Log(
-                    $"DrawRows {ClipEditorDiagnostics.Describe(Event.current)} rows={rows.Count} " +
-                    $"visible={CountVisible(rows)} focused={FocusedRowIndex} " +
-                    $"keyboardControl={GUIUtility.keyboardControl} lane={_laneKeyboardControlId} " +
-                    $"hot={GUIUtility.hotControl} laneArea={laneAreaRect}");
-            }
 
             // Content x starts at rect.x, so a lane drawn in here and the ruler drawn outside share
             // the same horizontal coordinates and cannot drift apart.

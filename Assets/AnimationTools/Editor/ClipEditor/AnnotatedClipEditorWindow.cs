@@ -271,26 +271,6 @@ namespace AnimationTools.Editor
             }
 
             Repaint();
-
-            ClipEditorDiagnostics.Log(
-                $"AddComponent {componentType.Name}: clip now has {_clip.components.Count} " +
-                $"components, rebuilt {_rows.Count} rows, focused {_focusedRowIndex}\n" +
-                ClipEditorDiagnostics.DescribeRows(_rows));
-        }
-
-        /// <summary>Temporary: the state the input path depends on. See ClipEditorDiagnostics.</summary>
-        internal string DescribeState()
-        {
-            var slice = _context == null
-                ? "(no context)"
-                : $"clipFrames={_context.ClipFrameCount} start={_context.StartFrame} " +
-                  $"end={_context.EndFrame} sliceFrames={_context.SliceFrameCount}";
-
-            return $"[ClipEditorDiag] window '{titleContent.text}' clip={(_clip == null ? "(none)" : _clip.name)}\n" +
-                   $"    {slice}\n" +
-                   $"    focusedRow={_focusedRowIndex} headerWidth={_headerWidth} " +
-                   $"components={_clip?.components.Count ?? 0} rows={_rows?.Count ?? 0}\n" +
-                   ClipEditorDiagnostics.DescribeRows(_rows);
         }
 
         private void RemoveFocusedComponent()

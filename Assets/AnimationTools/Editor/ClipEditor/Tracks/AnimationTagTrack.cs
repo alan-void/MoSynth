@@ -86,17 +86,6 @@ namespace AnimationTools.Editor
         public override void DrawTrack(in TrackDrawContext context)
         {
             var channels = Channels;
-
-            if (Event.current.type is EventType.MouseDown or EventType.KeyDown)
-            {
-                ClipEditorDiagnostics.Log(
-                    $"TagTrack.DrawTrack {ClipEditorDiagnostics.Describe(Event.current)} " +
-                    $"channels={channels?.Count ?? -1} slice={context.Editor.SliceFrameCount} " +
-                    $"focused={context.IsFocused} lane={context.LaneRect} " +
-                    $"contains={context.LaneRect.Contains(Event.current.mousePosition)} " +
-                    $"editingText={EditorGUIUtility.editingTextField}");
-            }
-
             if (channels == null || context.Editor.SliceFrameCount <= 0) return;
 
             // Allocated unconditionally: an id handed out only when a key is pressed would shift
@@ -317,13 +306,6 @@ namespace AnimationTools.Editor
             if (editor.HasModal(this))
             {
                 var result = editor.Modal.HandleEvent(e);
-
-                if (result != TimelineModalResult.None)
-                {
-                    ClipEditorDiagnostics.Log(
-                        $"TagTrack modal {editor.Modal.Kind} -> {result} delta={editor.Modal.FrameDelta}");
-                }
-
                 if (result == TimelineModalResult.Confirmed) ConfirmModal(context, channels);
                 if (result is TimelineModalResult.Confirmed or TimelineModalResult.Cancelled)
                 {
@@ -408,7 +390,6 @@ namespace AnimationTools.Editor
             var editor = context.Editor;
 
             var action = TimelineKeymap.Resolve(e);
-            ClipEditorDiagnostics.Log($"TagTrack.HandleKey {e.keyCode} -> {action}");
 
             switch (action)
             {

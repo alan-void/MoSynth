@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.alanvoid.gameplaytags": {
+      "version": "file:com.alanvoid.gameplaytags",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.github-glitchenzo.nugetforunity": {
       "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
       "depth": 0,
