@@ -1,3 +1,9 @@
+---
+type: "Reference"
+title: "Tagging clips"
+openwiki_generated: true
+---
+
 # Tagging clips
 
 Some things about an animation cannot be read off its curves. That a stretch of a capture is a

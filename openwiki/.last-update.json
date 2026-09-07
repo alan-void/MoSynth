@@ -1,8 +1,8 @@
 {
-  "updatedAt": "2026-09-06T12:38:47.102Z",
+  "updatedAt": "2026-09-07T21:17:43.120Z",
   "command": "update",
-  "gitHead": "04c6014adda88af384dee404dacafc17e6b47b75",
+  "gitHead": "83d883ab230b29dfca4bcca1094f2f79de407ea7",
   "model": "host-agent/claude",
-  "status": "complete",
+  "status": "interrupted",
   "language": "en"
 }

@@ -4,7 +4,7 @@
 - [Benchmarking synthesis methods](benchmarking.md) - The Editor-driven sweep that runs every method against every path, what it measures, and what those numbers may and may not be compared against.
 - [The channel and layout system](channel-layout-system.md) - The typed float-buffer substrate every pose, feature vector and recording is built on, and the rules that keep buffers from being read with the wrong offsets.
 - [The annotated clip editor](clip-editor.md)
-- [Tagging clips](clip-tags.md) - Hierarchical tags over stretches of a clip, why a channel is stored as boolean keyframes rather than intervals, and how a query turns them back into segments.
+- [Tagging clips](clip-tags.md)
 - [Motion recording](motion-recording.md) - Capturing a run to a flat float file plus a self-describing manifest, and the channel model that decides what lands in it.
 - [Neural synthesis readiness](neural-synthesis.md) - What a learned motion model needs from this repository before it can be trained or run, which of those pieces exist, and the failure modes the shared definitions are there to prevent.
 - [On-disk formats](on-disk-formats.md) - The four artefacts MoSynth ships to StreamingAssets, the byte convention that makes them readable from numpy, and how staleness is detected without a version header.

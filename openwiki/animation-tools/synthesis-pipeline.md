@@ -27,9 +27,6 @@ sources:
   - id: openwiki-source-fed6ec6af0a6135c6cbeddce
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs
 generated: {by: "claude-code", at: "2026-09-06T12:33:15.598Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-06T12:33:15.598Z
 ---
 
 # The synthesis pipeline
