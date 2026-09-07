@@ -4,26 +4,40 @@ title: The PFNN stage
 description: Driving a character from a phase-functioned network evaluated in Python — what the model is shown each tick, where the trajectory comes from, and how a predicted pose becomes movement.
 tags: [pfnn, neural, synthesis-pipeline, python-interop, control-input]
 sources:
+  - id: openwiki-source-0b35dfb45ac00c6c6916b1e0
+    resource: repo://Assets/AnimationTools/Runtime/Animation/GaitPhase.cs
+  - id: openwiki-source-a6b9fae1157f771557413c57
+    resource: repo://Assets/AnimationTools/Runtime/ControlInput/MotionSynthesisControlInput.cs
+  - id: openwiki-source-b106a4622123233262d982ae
+    resource: repo://Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs
+  - id: openwiki-source-21b6f7706116d71ad97ea47a
+    resource: repo://Assets/AnimationTools/Runtime/ControlInput/UserInput.cs
   - id: openwiki-source-08ea4bc02364c8785bdd8d8f
     resource: repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs
+  - id: openwiki-source-dd6e345dbf04a74d30240514
+    resource: repo://Assets/AnimationTools/Runtime/Utils/Spring.cs
+  - id: openwiki-source-435bcda353047bbe94bff7d8
+    resource: repo://Assets/AnimationTools/Tests/Editor/TrajectorySteeringTests.cs
   - id: openwiki-source-fed6ec6af0a6135c6cbeddce
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs
   - id: openwiki-source-9ee07a0665219c02876c6ec8
     resource: repo://Assets/Pfnn/PfnnControlInput.cs
+  - id: openwiki-source-aa1128735bb9d950655cd046
+    resource: repo://Assets/Pfnn/PfnnDirectionControlInput.cs
+  - id: openwiki-source-22292ab2d3a290dd1ef7ed79
+    resource: repo://Assets/Pfnn/PfnnSplineControlInput.cs
   - id: openwiki-source-a1ce493914db289593686473
     resource: repo://Assets/Pfnn/PfnnStage.cs
   - id: openwiki-source-b34ac78afb2047f4f15a0e53
     resource: repo://Assets/Pfnn/PfnnTrajectory.cs
   - id: openwiki-source-5d4680328f7da95f88649f31
     resource: repo://Packages/manifest.json
-  - id: openwiki-source-a0893a8625fe95808c0bf2c1
-    resource: repo://Python/gait_phase.py
   - id: openwiki-source-734ba38f801134e792f0e890
     resource: repo://Python/pfnn_runtime.py
-generated: {by: "claude-code", at: "2026-08-31T20:31:56.222Z"}
+generated: {by: "claude-code", at: "2026-09-07T19:31:22.105Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-30T16:03:03.865Z
+    at: 2026-09-07T19:41:02.694Z
 ---
 
 # The PFNN stage
@@ -92,6 +106,86 @@ Two implementations ship:
 - **`PfnnDirectionControlInput`** takes a stick or WASD direction. A spring smooths the requested
   velocity into something a body could do, and running that same spring on with no new input is the
   predicted path — the construction `DirectionControlInput` documents, over the shared `Spring`.
+  There is a second, quieter spring on the request itself, for the reason below.
+
+### A one-second lookahead makes a stepped request visible
+
+A keyboard hands the controller a step: the requested direction goes from nothing to a metre a
+second, or turns ninety degrees, between one frame and the next. The near half of the window barely
+notices, because those samples are dominated by the velocity the character already has. The far end
+is another matter — a sample a full second ahead has converged onto the request, so it inherits the
+step whole. Measured on the demo character, a ninety-degree change moved the +30 sample **1.05 m in
+a single 30 Hz frame** while the samples beside the character did not move at all. What that looks
+like on screen is the tail of the trajectory whipping round a stationary head, and what the network
+is handed is a path no continuous body could take.
+
+The fix is not to smooth the drawing, and not to smooth the window inside the stage. It is to
+rate-limit the *request*, in the one input whose request is a step. A first-order damper on the
+requested velocity — `steeringHalfLife`, a quarter of a second by default — spreads the same change
+over about three half-lives instead of one frame, bringing the worst single-frame movement of the
+far horizon down to **9 cm**. The near/far asymmetry survives for free: the samples close to the
+character stay governed by its actual velocity, the distant ones by a request that now moves
+continuously.
+
+Smoothing inside `PfnnStage` would have been the tempting shared answer, and it is wrong here. It
+would lag `PfnnSplineControlInput` too, and that input is deliberately open-loop so that drift
+against the path is *measurable* rather than steered out. A spline whose samples come off a curve
+the character is advancing along has no step to damp in the first place.
+
+Two related discontinuities were fixed with it, both of which look identical on screen:
+
+- The velocity was driven by a **position** spring handed the requested velocity as its position
+  goal. That construction has a fixed point set by the step size rather than by the request: it
+  settled at **3.26 m/s for a `maxSpeed` of 1**, and drifted to 3.43 m/s at 144 fps. The character
+  was asking a network trained on a 1.10 m/s walk for a sprint, at a speed that changed with the
+  frame rate. `Spring.CharacterPositionUpdate` — the controller written for a velocity goal, and the
+  one `DirectionControlInput` already uses — settles on exactly the requested speed at every frame
+  rate.
+- The facing was **assigned** from the direction of travel rather than damped toward it, despite a
+  `facingHalfLife` field and a comment describing a spring that was not there. On a reversal the
+  velocity passes through the stopped deadzone and its direction inverts in one frame, taking the
+  facing and every direction sample built from it along. Damped, a 170-degree reversal turns over
+  about a second and a half at under ten degrees a frame.
+
+`TrajectorySteering` holds all three as pure functions so the continuity can be measured rather
+than judged by eye; `TrajectorySteeringTests` asserts the bounds, and asserts the undamped case still teleports,
+so the bounds cannot pass vacuously.
+
+### A control input is passive, and that used to be a quiet trap
+
+Nothing in `PfnnDirectionControlInput` polls input. `SetMovementDirection` is called for it from
+outside — by the subscription `MotionSynthesisControlInput` makes to `UserInput`'s move event while
+the input is enabled. That subscription is what closed the trap: the connection used to be a
+persistent `UnityEvent` listener authored in the scene, and forgetting to add one was invisible. An
+undriven input still answers every horizon with a well-formed *stand exactly where you are, facing
+where you already face*, so the stage's own "nothing steering" branch never fires and there is
+nothing to log. The character stands there, or walks off on whatever the network makes of an input it
+never saw in training, and every component involved reports itself healthy.
+
+The warning is kept anyway, because a scene with no `UserInput` in it at all produces exactly that
+silence: the component warns — once, five seconds in — when `SetMovementDirection` has never been
+called at all. Not when the direction is zero: asking a character to stop is legitimate and must stay silent.
+The distinction being drawn is *nobody is driving me*, which is a wiring mistake, against *I have
+been told to stand still*, which is not.
+
+The facing is seeded from the character's own transform for the same class of reason. Starting it at
+world +z, as a plain field initialiser does, tells a character pointing anywhere else that its
+requested heading is a turn — on frame one, before any input arrives.
+
+The input source has a matching trap of its own. `UserInput` used to subscribe only to the input
+action's `performed` edge, so releasing the keys left the last direction latched — the character
+walked on, and every change of input was a step from one held direction to another rather than a
+return through rest. It now publishes `canceled` as well, which is what makes releasing the keys
+mean stop. Every direction control input in the scene reads that same static event.
+
+### The gizmo draws the window, not the wish
+
+`PfnnControlInput` draws the trajectory once for every input, from the packed floats the stage last
+handed the network, taken back out of the character frame they were packed into. It used to be drawn
+per subclass by re-asking the control input for its desired samples, which meant the history half was
+invisible and the frame conversion could not be checked by eye — a picture that would have stayed
+reassuringly correct even if the packing were wrong. Past samples are drawn cool, future samples
+warm, so what the model is actually being asked is legible from the scene view.
 
 ## How a prediction becomes movement
 
@@ -107,11 +201,18 @@ measured the training data.
 
 The character travels because the predicted root delta is written into bone 0's velocity channels,
 which `MotionSynthesisComponent` reads straight back out to advance the Transform. The stage never
-touches `transform` itself. It writes the pose in a frame at the origin, because the component
+touches `transform` itself.
+
+That indirection is also why the **first** tick needs care. Per-bone angular velocities are
+differenced against the previous pose, and at seed time the only previous pose is the rig standing
+at rest — so differencing the first prediction against it produces a whole-pose delta divided by one
+frame time. Bone 0's share of that is not a velocity at all, but the component cannot know it and
+integrates it onto the Transform as a tick of root motion. The stage suppresses the rate channels
+for that one tick instead. It writes the pose in a frame at the origin, because the component
 re-anchors bone 0 against the frame the pose implies before accumulating the travel — an absolute
 frame here would be applied twice.
 
-**The phase only ever advances.** `gait_phase` builds phase as a monotone unwrapped angle, so every
+**The phase only ever advances.** `GaitPhase` builds phase as a monotone unwrapped angle, so every
 training target was non-negative; a negative prediction is the network extrapolating outside what it
 was shown. One was observed on a deliberately out-of-distribution input, and letting it through
 would run the gait backwards, which no number of later frames recovers from. The stage clamps it.
@@ -142,7 +243,8 @@ single ad-hoc run, not a standing measurement: PFNN is not a registered benchmar
 | --- | --- |
 | `Assets/Pfnn/PfnnStage.cs` | the stage: init, the per-tick loop, the pose write |
 | `Assets/Pfnn/PfnnTrajectory.cs` | the history ring and the ground-plane frame transform |
-| `Assets/Pfnn/PfnnControlInput.cs` | the steering contract, plus the spline and direction inputs |
+| `Assets/Pfnn/PfnnControlInput.cs` | the steering contract and the window gizmo, plus the spline and direction inputs |
+| `Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs` | the request damper and the horizon predictions, as pure functions |
 | `Assets/Pfnn/PfnnBoneSelection.cs` | binding a checkpoint's bone names to a live rig |
 | `Assets/Pfnn/PfnnCharacter.prefab` | a rig with the stage and a spline input wired up, to press play on |
 | `Python/pfnn_runtime.py` | the stateless policy, and an offline rollout for judging a checkpoint |

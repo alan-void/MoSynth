@@ -97,15 +97,15 @@ namespace MotionMatching
             {
                 if (_crowdSplineControlInput != null)
                 {
-                    return (_crowdSplineControlInput.motionSynthesizer.GetMainPositionFeature(trajectoryIndex),
+                    return (_crowdSplineControlInput.Synthesizer.GetMainPositionFeature(trajectoryIndex),
                             true,
-                            _crowdSplineControlInput.motionSynthesizer.GetEnvironmentFeature(EllipsesFeatureName, trajectoryIndex));
+                            _crowdSplineControlInput.Synthesizer.GetEnvironmentFeature(EllipsesFeatureName, trajectoryIndex));
                 }
                 else
                 {
-                    return (_crowdCharacter.motionSynthesizer.GetMainPositionFeature(trajectoryIndex),
+                    return (_crowdCharacter.Synthesizer.GetMainPositionFeature(trajectoryIndex),
                             true,
-                            _crowdCharacter.motionSynthesizer.GetEnvironmentFeature(EllipsesFeatureName, trajectoryIndex));
+                            _crowdCharacter.Synthesizer.GetEnvironmentFeature(EllipsesFeatureName, trajectoryIndex));
                 }
             }
         }

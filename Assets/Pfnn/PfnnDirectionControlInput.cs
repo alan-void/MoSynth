@@ -55,7 +55,7 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
 
         // The facing has to start where the character is actually pointing. Starting it at world
         // +z would ask a character facing any other way to turn round on its very first frame.
-        var forward = synthesisComponent != null ? synthesisComponent.transform.forward : Vector3.forward;
+        var forward = synthesizer != null ? synthesizer.transform.forward : Vector3.forward;
         _facing = math.normalizesafe(new float2(forward.x, forward.z), new float2(0f, 1f));
     }
 
@@ -108,9 +108,8 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
 
         Debug.LogWarning(
             $"[PFNN] No movement input has reached '{name}' in {UndrivenWarningDelay:0} seconds. " +
-            "If nothing has touched the controls yet, that is expected; otherwise nothing calls " +
-            "SetMovementDirection on it — in the demo scene that is a persistent listener on " +
-            "UserInput's move event.", this);
+            "If nothing has touched the controls yet, that is expected; otherwise there is no " +
+            "UserInput in the scene to publish the move action.", this);
         _warnedUndriven = true;
     }
 

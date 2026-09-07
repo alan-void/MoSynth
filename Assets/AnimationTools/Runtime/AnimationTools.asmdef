@@ -1,7 +1,7 @@
 {
     "name": "AnimationTools",
     "rootNamespace": "",
-    "references": ["Unity.Burst", "Unity.Mathematics", "Unity.Collections", "MackySoft.SerializeReferenceExtensions", "Unity.Splines", "GameplayTags"],
+    "references": ["Unity.Burst", "Unity.Mathematics", "Unity.Collections", "MackySoft.SerializeReferenceExtensions", "Unity.Splines", "GameplayTags", "Unity.InputSystem"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

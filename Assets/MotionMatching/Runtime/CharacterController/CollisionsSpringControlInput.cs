@@ -119,20 +119,20 @@ public class CollisionsSpringControlInput : MotionMatchingControlInput
         // Get the feature indices
         TrajectoryPosFeatureIndex = -1;
         TrajectoryRotFeatureIndex = -1;
-        for (var i = 0; i < motionSynthesizer.GetMmData().trajectoryFeatures.Count; ++i)
+        for (var i = 0; i < synthesizer.GetMmData().trajectoryFeatures.Count; ++i)
         {
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
+            if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
                 TrajectoryPosFeatureIndex = i;
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
+            if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
                 TrajectoryRotFeatureIndex = i;
         }
 
         Debug.Assert(TrajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
         Debug.Assert(TrajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
 
-        TrajectoryPosPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
+        TrajectoryPosPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
             .predictionFrames;
-        TrajectoryRotPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
+        TrajectoryRotPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
             .predictionFrames;
         // TODO: generalize this... allow different number of prediction frames for different features
         Debug.Assert(TrajectoryPosPredictionFrames.Length == TrajectoryRotPredictionFrames.Length,
@@ -327,39 +327,39 @@ public class CollisionsSpringControlInput : MotionMatchingControlInput
     {
         // Clamp Position
         float3 characterController = transform.position;
-        var mmPos = motionSynthesizer.RootPosition;
+        var mmPos = synthesizer.RootPosition;
         if (math.distance(characterController, mmPos) > MaxDistanceMMAndCharacterController)
         {
             var newMotionMatchingPos =
                 MaxDistanceMMAndCharacterController * math.normalize(mmPos - characterController) + characterController;
-            motionSynthesizer.SetPosAdjustment(newMotionMatchingPos - mmPos);
+            synthesizer.SetPosAdjustment(newMotionMatchingPos - mmPos);
         }
     }
 
     private void AdjustCharacterPosition()
     {
         float3 characterController = transform.position;
-        var mmRot = motionSynthesizer.RootPosition;
+        var mmRot = synthesizer.RootPosition;
         var differencePosition = characterController - mmRot;
         // Damp the difference using the adjustment halflife and dt
         var adjustmentPosition =
             Spring.DampAdjustmentImplicit(differencePosition, PositionAdjustmentHalflife, Time.deltaTime);
         // Clamp adjustment if the length is greater than the character velocity
         // multiplied by the ratio
-        var maxLength = PosMaximumAdjustmentRatio * math.length(motionSynthesizer.RootVelocity) * Time.deltaTime;
+        var maxLength = PosMaximumAdjustmentRatio * math.length(synthesizer.RootVelocity) * Time.deltaTime;
         if (math.length(adjustmentPosition) > maxLength)
         {
             adjustmentPosition = maxLength * math.normalize(adjustmentPosition);
         }
 
         // Move the simulation bone towards the simulation object
-        motionSynthesizer.SetPosAdjustment(adjustmentPosition);
+        synthesizer.SetPosAdjustment(adjustmentPosition);
     }
 
     private void AdjustCharacterRotation()
     {
         quaternion characterController = transform.rotation;
-        var mmRot = motionSynthesizer.RootRotation;
+        var mmRot = synthesizer.RootRotation;
         // Find the difference in rotation (from character to simulation object)
         // Note: if numerically unstable, try quaternion.Normalize(quaternion.Inverse(characterController) * motionMatching)
         var differenceRotation = math.mul(math.inverse(mmRot), characterController);
@@ -368,7 +368,7 @@ public class CollisionsSpringControlInput : MotionMatchingControlInput
             Spring.DampAdjustmentImplicit(differenceRotation, RotationAdjustmentHalflife, Time.deltaTime);
         // Clamp adjustment if the length is greater than the character angular velocity
         // multiplied by the ratio
-        var maxLength = RotMaximumAdjustmentRatio * math.length(motionSynthesizer.RootAngularVelocity) * Time.deltaTime;
+        var maxLength = RotMaximumAdjustmentRatio * math.length(synthesizer.RootAngularVelocity) * Time.deltaTime;
         if (math.length(MathExtensions.QuaternionToScaledAngleAxis(adjustmentRotation)) > maxLength)
         {
             adjustmentRotation = MathExtensions.QuaternionFromScaledAngleAxis(maxLength *
@@ -379,7 +379,7 @@ public class CollisionsSpringControlInput : MotionMatchingControlInput
         }
 
         // Rotate the simulation bone towards the simulation object
-        motionSynthesizer.SetRotAdjustment(adjustmentRotation);
+        synthesizer.SetRotAdjustment(adjustmentRotation);
     }
 
     public quaternion GetCurrentRotation()

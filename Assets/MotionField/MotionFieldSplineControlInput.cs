@@ -57,8 +57,11 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
     private Vector3 _targetWorld;
     private bool _hasTarget;
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
+        if (!IsBound) return;
+
         // Nothing carries over from a previous activation, so the first frame back re-seeds.
         _projector.Reset();
     }

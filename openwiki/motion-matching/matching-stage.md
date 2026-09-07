@@ -4,14 +4,18 @@ title: The motion matching stage
 description: Synthesis by search — playing a database frame by frame while periodically asking whether a better frame exists.
 tags: [motion-matching, stage, search, playback]
 sources:
+  - id: openwiki-source-08ea4bc02364c8785bdd8d8f
+    resource: repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs
+  - id: openwiki-source-fed6ec6af0a6135c6cbeddce
+    resource: repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs
   - id: openwiki-source-c7050471458b93768d777c1b
     resource: repo://Assets/MotionMatching/Runtime/Core/MotionMatchingSearch/MotionMatchingSearch.cs
   - id: openwiki-source-f84c8bceda0edfaac6926af8
     resource: repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-09-07T19:31:22.105Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-09-07T19:31:22.105Z
 ---
 
 # The motion matching stage
@@ -26,7 +30,7 @@ It has three replaceable parts:
 | Part | Field | Covered in |
 | --- | --- | --- |
 | the database | `mmData` | [pose database](../animation-tools/pose-database.md), [feature vectors](feature-vectors.md) |
-| what the character is being asked to do | `controlInput` | [control inputs](control-inputs.md) |
+| what the character is being asked to do | the character's `ControlInput` | [control inputs](control-inputs.md) |
 | how the database is searched | `mmSearch` | [search backends](search-backends.md) |
 
 It is an ordinary [`MoSynthStage`](../animation-tools/synthesis-pipeline.md) — a plain
@@ -47,9 +51,20 @@ The playhead advances every tick; a search runs at most once per `searchInterval
 `10f / 60f` — ten database frames at 60 Hz, about 0.167 s. Searching is the expensive half, and
 between searches the character simply keeps playing the clip it landed on.
 
-A coarse interval only works because there is an escape hatch: a control input raises
-`OnHighInputChange` when the player does something sudden, and the stage subscribes to it and zeroes
-its timer, searching immediately rather than waiting out the interval.
+A coarse interval only works because there is an escape hatch: a control input latches a flag when
+the player does something sudden, and the stage consumes it at the top of `Apply` and zeroes its
+timer, searching immediately rather than waiting out the interval.
+
+A latch rather than an event, because there is no moment at which the stage could reliably have
+subscribed. A control input claims its character in `OnEnable`, and stages are initialised from the
+component's `Awake` — an input on a separate GameObject may not have enabled yet. Consuming a flag
+each tick has the same effect within a frame, since inputs advance in `Update` and the stage applies
+in `LateUpdate`, and it costs nothing to get wrong.
+
+The stage carries no reference to the input at all. It reads `MotionSynthesisComponent.ControlInput`
+and casts, on every read rather than once, so disabling one input and enabling another swaps what
+steers the character with no field to re-point. A character with nothing steering it is warned about
+once and left playing whatever frame it was on.
 
 Playback keeps a float playhead so fractional frame time carries across ticks, which keeps database
 speed correct at any synthesis rate. The integer part is re-seeded from `CurrentFrame` each tick, so

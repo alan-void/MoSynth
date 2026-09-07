@@ -21,19 +21,13 @@ namespace Pfnn
 /// ever true.
 /// </para>
 /// </remarks>
-public abstract class PfnnControlInput : MonoBehaviour, IMotionSynthesisControlInput
+public abstract class PfnnControlInput : MotionSynthesisControlInput
 {
-    [Tooltip("Character to steer. Found on this object or a parent when left empty.")]
-    [SerializeField]
-    protected MotionSynthesisComponent synthesisComponent;
-
-    public MotionSynthesisComponent Synthesizer => synthesisComponent;
-
     private PfnnStage _stage;
     private bool _warnedNoStage;
 
     /// <summary>World position of the character's simulation frame.</summary>
-    protected Vector3 RootPosition => synthesisComponent.transform.position;
+    protected Vector3 RootPosition => synthesizer.transform.position;
 
     /// <summary>The stage this input drives, or null until the synthesis component has woken.</summary>
     protected PfnnStage Stage
@@ -44,7 +38,7 @@ public abstract class PfnnControlInput : MonoBehaviour, IMotionSynthesisControlI
             // component works regardless of Awake ordering.
             if (_stage != null) return _stage;
 
-            _stage = synthesisComponent.stages?.OfType<PfnnStage>().FirstOrDefault();
+            _stage = synthesizer.stages?.OfType<PfnnStage>().FirstOrDefault();
             if (_stage == null && !_warnedNoStage)
             {
                 Debug.LogWarning($"[PFNN] {GetType().Name} on '{name}' found no PfnnStage on the " +
@@ -56,25 +50,9 @@ public abstract class PfnnControlInput : MonoBehaviour, IMotionSynthesisControlI
         }
     }
 
-    protected virtual void Awake()
-    {
-        if (synthesisComponent == null)
-        {
-            synthesisComponent = GetComponentInParent<MotionSynthesisComponent>();
-        }
-
-        if (synthesisComponent == null)
-        {
-            Debug.LogError($"[PFNN] {GetType().Name} on '{name}' has no MotionSynthesisComponent " +
-                           "assigned or in its parents.", this);
-            enabled = false;
-        }
-    }
-
     private void Update()
     {
         if (Stage == null) return;
-        Stage.ControlInput = this;
         OnUpdate();
     }
 
@@ -111,7 +89,7 @@ public abstract class PfnnControlInput : MonoBehaviour, IMotionSynthesisControlI
     /// </remarks>
     protected virtual void OnDrawGizmos()
     {
-        if (!Application.isPlaying || synthesisComponent == null || Stage == null) return;
+        if (!Application.isPlaying || synthesizer == null || Stage == null) return;
 
         var height = RootPosition.y + 0.05f;
         var previous = Vector3.zero;

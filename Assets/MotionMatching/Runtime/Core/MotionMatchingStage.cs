@@ -5,8 +5,6 @@ using AnimationTools;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 
 namespace MotionMatching
 {
@@ -17,8 +15,9 @@ namespace MotionMatching
 /// answer is a clear yes.
 /// </summary>
 /// <remarks>
-/// Three replaceable parts: <see cref="mmData"/> (the database), <see cref="controlInput"/> (what
-/// the character is being asked to do) and <see cref="mmSearch"/> (how the database is searched).
+/// Three replaceable parts: <see cref="mmData"/> (the database), the control input steering the
+/// character (what it is being asked to do) and <see cref="mmSearch"/> (how the database is
+/// searched).
 /// <para>
 /// Playback and search run on separate clocks — playback advances every tick, search at most once
 /// per <see cref="searchInterval"/>. The database's poses are stored over its own rig, so
@@ -29,9 +28,6 @@ namespace MotionMatching
 public class MotionMatchingStage : MoSynthStage
 {
     private MotionSynthesisComponent _owner;
-
-    /// <summary>Supplies the query vector: what the character is being asked to do next.</summary>
-    [FormerlySerializedAs("characterController")] public MotionMatchingControlInput controlInput;
 
     /// <summary>The animation database and its feature configuration.</summary>
     public MotionMatchingData mmData;
@@ -113,6 +109,8 @@ public class MotionMatchingStage : MoSynthStage
 
     private float _databaseFrameRate;
 
+    private bool _warnedNoControlInput;
+
 
     // Contact TODO: this frame? prev frame ?
     public bool IsLeftFootContact { get; private set; }
@@ -130,10 +128,6 @@ public class MotionMatchingStage : MoSynthStage
             Debug.LogError($"MotionMatchingStage: MotionMatchingData \"{mmData.name}\" is not usable — {error}");
             return;
         }
-
-        Assert.IsTrue(controlInput, "mmCharacterController not set");
-        // Force search on significant input change
-        controlInput.OnHighInputChange += () => { _searchTimeLeft = 0; };
 
         if (!Skeleton.StructurallyEqual(motionSynthesisComponent.Skeleton, _poseSet.Skeleton))
         {
@@ -172,8 +166,33 @@ public class MotionMatchingStage : MoSynthStage
         mmSearch.Initialize(featureSet, _tagMask, _featureWeights);
     }
 
+    /// <summary>
+    /// Whatever is steering the character this stage runs on, or null while nothing is. Resolved on
+    /// every read rather than cached: a control input claims its character when it enables, which
+    /// can be long after <see cref="Init"/>, and swapping one for another is done by enabling and
+    /// disabling them.
+    /// </summary>
+    private MotionMatchingControlInput ControlInput => _owner?.ControlInput as MotionMatchingControlInput;
+
     public override bool Apply(PoseBuffer pose, float deltaTime)
     {
+        var controlInput = ControlInput;
+        if (controlInput == null)
+        {
+            if (!_warnedNoControlInput)
+            {
+                Debug.LogWarning($"MotionMatchingStage on \"{_owner.name}\": no MotionMatchingControlInput " +
+                                 "is steering this character, so it cannot search. Add one and point " +
+                                 "it at the character.");
+                _warnedNoControlInput = true;
+            }
+
+            return true;
+        }
+
+        // A large input change searches now rather than waiting out the interval.
+        if (controlInput.ConsumeHighInputChange()) _searchTimeLeft = 0f;
+
         if (_searchTimeLeft <= 0)
         {
             SearchForBetterFrame();
@@ -260,6 +279,9 @@ public class MotionMatchingStage : MoSynthStage
     /// </summary>
     public void FillQueryVector()
     {
+        var controlInput = ControlInput;
+        if (controlInput == null) return;
+
         var character = _owner.transform;
         var queryFeatureSpan = _queryFeatureVector.AsSpan();
         var featureSet = mmData.GetOrImportFeatureSet();

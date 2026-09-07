@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2ad29d789fd09c00192737ceb697e7ce3a061e9aff8c1d9debd84e28a3261b0f",
+  "pageVersion": "sha256:c45eb6d295bbc91b06c8153cd418ea9326a5d49f78eebd4b0650e58a0bebe3e8",
   "claims": [
     {
       "id": "claim_af0fa0a1031d410d9728a71c9ffcfaf1",
       "statement": "PfnnStage runs a phase-functioned network in Python behind PythonNET rather than inside Unity, because that is the path needing no new dependency: Barracuda remains in the manifest, unused and deprecated on Unity 6.",
       "evidence": [
         {
-          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L1-L100",
-          "version": "repo-lines-v1:sha256:51770cbc95ac7d9dfba9f824641a2b928b838b40f0a346210091edc2ede050e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMzU3NTA5ZmIzYTZjYWJmOGYzZGEwYTQ0ZTk1ZTdmN2RmZWY4NmRhOGE2ZjA1NWQ3YzkxM2EyYzdkMjM5MjNjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ZmQ3MjYwYjFlM2JkNmU0MDQwNTRmYTBkNjc1MGMwMGJhNzc1MzNiMDE2ZTNjYWEzMTIwODM5YjY0YzQ4YzRhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1YjgwNjEwOTcwODAyZTI0MDVhYzc2N2U4MDhhNDczZjZlMjA2NmU0MDJlMjZlZjRmNTFlNDAyNmVmNDVlYjJmIn0"
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L1-L40",
+          "version": "repo-lines-v1:sha256:a9bed6d0978e228d934a694052beca52b871e1b8ca24c31a3c91d882136d0605:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1YWJhNDRlYzhmZWMzNGY3OWM0ZmRjMmM1YmM1ZmUwODA1ZjgwMDE2NmEwZWY2ZTg1MDg5ZWMwOGNhMGY4MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4YWZiNzhjMjA5YmQwNjg5ZmY3YTYwYWM2OTc0OTlmZmJhMzc0MmMyMzlmNjk4YzI5Y2U3NDRlYmJlMTZjMjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxOWJhZGZhOTUzOTg1NzU3NDIwZmMyYmNjMDFhMzY4ZjQ5OGQwODhmYWM0Y2IwZTI2YzExZTg2Njk5ODExM2YifQ"
         },
         {
           "resource": "repo://Packages/manifest.json",
@@ -21,12 +21,12 @@
       "statement": "The past half of the stage's trajectory window comes from the character's own movement history ring rather than from the control input, because training sampled the path the character really took either side of the query frame; only the future half is a wish the controller supplies.",
       "evidence": [
         {
-          "resource": "repo://Assets/Pfnn/PfnnTrajectory.cs",
-          "version": "repo-file-v1:sha256:638bc986c060154f142bc4a57aed5b02fbb3dee683437adb3ec74f2504dda73b"
+          "resource": "repo://Assets/Pfnn/PfnnTrajectory.cs#L1-L80",
+          "version": "repo-lines-v1:sha256:e160f19076ef911df6dac174dee52cc3e316472e480d2d09c2efc8e63f5bfd3b:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExNGVmMzlhMjcwZjkzNzU0M2Q4NTY2ZGEyZmRiMmUyYzc3OWM5YjM1MDBjMjAwMWJlMjA1MDUyNTJkODUzN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0NGFkODU0NjA1MDY2ZjA0MmJjN2E3YjJiNjM1ODJjODMyNTg2MjQ4NjA2MWQ0MmUxNjAxYmI1ZTBkZTMxM2UifQ"
         },
         {
-          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L262-L305",
-          "version": "repo-lines-v1:sha256:bab8aa72e8291659a435f01f08141a1e8fa4a4c7bcc5bdeaa324ebd931d16813:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYWUzYzk5ZWFhNzZjZmIyM2ZhZmM0YWMxZmYxYjk5ZDlmZTMyMDIxMzAyNWQ2OGFlYjAxZjE1YjUxOTU5NTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YTVlN2M2MWQwZjBiOWM0ZDAzOGI3YTQxNDdhN2EyOTVkNTI4ZjU1OGVlOWVlMTM1NjNkZWU2NzJkMDg0OTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNGUwZDIzMmYzYWZiMzE2MWY0ZDAzYTk2N2M5NjA2OGIzMDdlNmFjZTAwNmI1NzY2ODkyNzk1OThlYmU4MDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMDA5NDg0NmMyNTQ3MDkzZWU0ZTc3M2Q3NmFlNjMyZjE0NWM2ZjAwY2MxMDFjZmNhYmQzNjE2MmMwNGFlY2MifQ"
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L331-L369",
+          "version": "repo-lines-v1:sha256:126abcd4fbd80608a1c794780b796500d831bbe4a991e8e156a74b6d29d8ec81:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwMjBlYjY2ODU1NWMwZmViZTNiMmUyOWY4ODY3NzAyNTg1MGIwMTA4NDhkYzg5YzE3MTAwYWJiNGNjOWEzODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5NzZjYWFmNTUyMDU1NThmNDhjNTgyZDNlNjQyNzRhYTQwMTI0MmZlYTU0YmIyZmRhMGFlMmU5Nzg0Njg1Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2ZGQxOWNkZjUxMmU2YzVhNDE0ZDVhZGY5Mjk1ZmIwYTIyYzVjNmNmMWNlN2ZjYjMyNzhlNWFlMjFiMmNmMTgifQ"
         }
       ]
     },
@@ -35,8 +35,8 @@
       "statement": "PfnnStage owns the model's state — gait phase, previous joints and trajectory history — while the Python policy is stateless, the opposite of MotionFieldStage, because a PFNN's state is a pose Unity must write into a PoseBuffer anyway whereas a motion field's state is a database index.",
       "evidence": [
         {
-          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L59-L95",
-          "version": "repo-lines-v1:sha256:560b6c93bdbf35283318dd6f522341da09c56322640ca33a12889778b85bd677:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxY2NjMzM5ZjM2MzljZjRhYTEyMWE4ZGM5OGI1ZmQ5YmFmZWFhNzBlZTdiN2M1NmYzMzZiZDY0OGQxN2I1OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5NDE3NTI3NWI0OTkwYTk2ODRiZmZiYWQ4OWExMWE1ZWQ4NGYwMzBkN2YwMzczY2QyMGZkY2IxZDg5M2U2MTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2MzAyMzFjZTIxODhiNGNhMGFjODg1OWI0MGEwYTI5MWI1ZjFiMjc2ZjNmMDY4OWM3MmMzZjkyMmU1M2IwOTcifQ"
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L100-L125",
+          "version": "repo-lines-v1:sha256:6e2e119119fc0d987b4ea7b78958107baa9911f7fb3d98783fdd8a5d034418e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlZjg5OTk0NmQxMjkzZWFkNDM3ODkyZDk3OWZjZTQ2YTFhNjI2ZTUxM2Y2YTkxNjM2YTIzY2NhMGJhNWIzN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5ZjgxZDQ2ZmRiODZjMzE4MTRiNDVkMDRiMzQ4YTBkYTk0YTBhZmNkOTk5ZGM0NmI3ODQ4YzQ5Yjg3YTNhZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3OTNiYzVkMGVhMDEzODVjMTJlMzA4NDE2OGJmZjRjYTU1YTljMjZkMWY2N2QwM2U5NzQzMzNjMTM0YjI2ZGQifQ"
         },
         {
           "resource": "repo://Python/pfnn_runtime.py#L1-L50",
@@ -49,46 +49,208 @@
       "statement": "The stage writes its pose in a frame at the origin and expresses the predicted root delta as bone 0's velocity channels, because MotionSynthesisComponent re-anchors bone 0 against the frame the pose implies and then accumulates the travel onto its own Transform, so an absolute frame would be applied twice.",
       "evidence": [
         {
-          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L216-L262",
-          "version": "repo-lines-v1:sha256:29912ec5cec2fb0f491cd2500765bba83600d7e403dccb4e233eff9ac7066b03:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMzIxODkxYjM5OTAzODQwMGNhYWU3ZTIwNjAwYWQ3NjcwODFkYTI5ZDU4ZWQxYWRmMTM5MTc5YTQzMzJiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYWUzYzk5ZWFhNzZjZmIyM2ZhZmM0YWMxZmYxYjk5ZDlmZTMyMDIxMzAyNWQ2OGFlYjAxZjE1YjUxOTU5NTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0ZGU5MjE2NjUyNTkyOTQzNzZjNzcxMzk3MjJiMDI0OTllMjU2ZTBlYWQxNDI4ODFjMWViNzY3NzUzZGI0OTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2ZmZlNjVhYzhmZDA1MjE0NmI0MTkxMTBhZjA5NWY3NzA1YTA5Yjc0ZDgxNmM1ZjdiYWQyMGZlOWE1YzQzMzcifQ"
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L262-L280",
+          "version": "repo-lines-v1:sha256:911c9c87048c44387f515636618b8e9528ce68b84ff98212fe08066b82f1b2a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmJjOTM5NzBjYTk2ZTgyZDQ5YmUzYTI5MmJiZTJmYjM4NTA5ZWEyNzIzYzA3MDA4YjgyZGNkMjkzMDIzODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5ZjU1MWRkY2YxYWE3NTk5OGU2YzViOTY3YmExZmY4M2I2Nzg0MjY4NTg4NjJkZjg2ZWFlNGM4ZDQ4MjBmM2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiMjUzZWE5ZjA5MDU5M2NkY2IwZGQxNzc4NDE2NzAwZGY2MzM0MzFjY2RhOWQwZDA5OGI1MDc2OGJmOTEzODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1N2UxMWNmMjYyODYzNDNjZDIyYzA2NDBhODNjYTdiMjk1MTdjMTc0ZjExOTkyNDIyNTRhYTUwOGU5YzVhMGIifQ"
         },
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L260-L300",
-          "version": "repo-lines-v1:sha256:6f322ef748726c01811cbc44bffa686fa02d284d8556836528f8365d9631c29b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1OTMyYTc5ZTNiOTMwODk2NGQ3YmUzZmJlY2ExMDJkMzEyNjkxNDFjODgwMmRhNDgyMGIyZDRmYmRiYzQ4ZWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhYzIwMDAxODg1NjcxYmUxYTFmYmM2Yjk0Y2M0Nzk0MzY0NTY2YzJjYTgzYzM5MTlhY2ZkYjFlYmQzMTViNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwN2U3NGFjMTdiYTU1ZTk3OGNhMzY1YzdiYzI1YTgxZWQwYTM3NTNiM2E5N2NlZTUzZTNhYTU2NjA4MjRiZjMifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L299-L340",
+          "version": "repo-lines-v1:sha256:e9b035e33b58e46e5fc71ae493369ca2654facbf25d386cd6eedb735d3978569:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExZTRkOWRhZDM4NTg4ZmIyZDZmMTg1NTQwZTA2ODU2NGExYTI2YjAxNmRlYzdkY2IwY2M0NDA4OWYwZTgzZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3NjlhNWFmZTM0YzNhOWIzZjgzOGIwN2NiNzgwYWNmMDFiMDk5Y2Q3YjQ0ODI3NzQwNTMwMzJkOTVkMGRlNzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1MGU5NzFjMDE3ZGJkOWJiNTVkN2IwNzJlMjFmMmNjMjAxMjZkMzUzYzg4MzIyNzUzOTcwNTg4MjlmNTBiMDkifQ"
         }
       ]
     },
     {
       "id": "claim_b0c2660be9c0479d868ca999f2e7b1bc",
-      "statement": "PfnnStage clamps the predicted phase increment to be non-negative, because gait_phase builds phase as a monotone unwrapped angle so every training target was non-negative, and a negative step would run the gait cycle backwards irrecoverably.",
+      "statement": "PfnnStage clamps the predicted phase increment to be non-negative, because GaitPhase builds phase as a monotone unwrapped angle so every training target was non-negative, and a negative step would run the gait cycle backwards irrecoverably.",
       "evidence": [
         {
-          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L246-L262",
-          "version": "repo-lines-v1:sha256:be21e9972a8dc2532bb9f03842a727dcbbe2c10c337b83b61076986673a1f69d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhMTQyNDU4MDRhOWVhN2Y5OWZlNzMzNjI5YmZjMmFhMDdlOGU0ZGNkMWE3ZjU0OTQ1NWJjYzRlMzVjODYzMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYWUzYzk5ZWFhNzZjZmIyM2ZhZmM0YWMxZmYxYjk5ZDlmZTMyMDIxMzAyNWQ2OGFlYjAxZjE1YjUxOTU5NTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2NWJmMWQ3NmVmNjNhMmE3MTVkZmMxNDA2NzM2Y2U2NTJmZGM1NDdhYzU2M2MxZDY2YjlmNTE5OTA5YTE3YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2ZmZlNjVhYzhmZDA1MjE0NmI0MTkxMTBhZjA5NWY3NzA1YTA5Yjc0ZDgxNmM1ZjdiYWQyMGZlOWE1YzQzMzcifQ"
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L280-L292",
+          "version": "repo-lines-v1:sha256:42c782e190a8d63980481ba6c4b3725789d5e252c874fe6fd6ee326b4e82cc28:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5ZjU1MWRkY2YxYWE3NTk5OGU2YzViOTY3YmExZmY4M2I2Nzg0MjY4NTg4NjJkZjg2ZWFlNGM4ZDQ4MjBmM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjZmM3MTUxODdmMGRlMzg3MmU4MmMzMmZmNzY1ODY4YTA2YzIwM2ZmZTYzNjM2MTA3Y2I2ZDY2MDRiMTQ4ZGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNjg5NWFlZmNhOWIyYjBjNWNkYTQ4NjU0YTllZjQ5M2VjNjEzMGViZmQ0MmRmY2QxNmEwYmI4MGU0ZTI4OTYifQ"
         },
         {
-          "resource": "repo://Python/gait_phase.py#L94-L142",
-          "version": "repo-lines-v1:sha256:ed76647276fc361cf9a7395cbb145879491d514605cae6c262349d28c10ff73e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxODljODAyZDQ4N2VmYzQxZjZjMDM4YTg4ZGJiNWU3YjZjMDkyNmQ3NGFhZDE2ZDcwYTliYjhjZTJhMzMwOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg0NjBiYjhkNGViYmE3ZmE0N2ZlN2ExM2VjODQyODVjZDA3ODlhMTRkYjJiMTg2NjJkZmI4NmI1MzJmMDVhMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3NWVmMWY4ZGY1ZjdjYWJhMTMxYTQ3YWRlYTFkM2JkMWZlZDRjMDE3NzE2MjBkZmZjMDM3ZjIwNDYwZjNkNDcifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/GaitPhase.cs#L190-L280",
+          "version": "repo-lines-v1:sha256:8022beabc63a612253a77f3e4ab0c145ea77e4c7cf35ba5fad1a84adb678ffa3:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiMzgyZGM1ODI4MmJlZTFhMjAwZGEzMWMyMzIwZDNmMjQxZTI3MGM4YjE2NmZkZTMwNGMyZjYzODE0NzcxYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllYzI1ZTg2MDk5YzJlZTFmNjRkOTQ2NWFhODFhMDUzOTYxMWU4MDNmN2FhNTMxNDA4Y2Q0MGE2NDVhMTI5OTAifQ"
         }
       ]
     },
     {
       "id": "claim_3bb444eee11d4851a2d450b38fd30ff5",
-      "statement": "PFNN needs a control-input hierarchy of its own rather than reusing MotionMatchingControlInput, because every motion matching control input resolves its prediction horizons out of a MotionMatchingData during Start and therefore cannot run on a character without a motion matching stage.",
+      "statement": "PFNN needs a control-input hierarchy of its own rather than reusing MotionMatchingControlInput, because every motion matching control input resolves its prediction horizons out of a MotionMatchingData during Start and therefore cannot run on a character without a motion matching stage; the two share only the base that owns the character reference and the player-input subscription.",
       "evidence": [
         {
-          "resource": "repo://Assets/Pfnn/PfnnControlInput.cs",
-          "version": "repo-file-v1:sha256:3b9e0d9c21be2eed874ee2e26aa47cf4fd27f31624d61bb43bd6975aadc756cb"
+          "resource": "repo://Assets/Pfnn/PfnnControlInput.cs#L8-L30",
+          "version": "repo-lines-v1:sha256:f36464f823ca0395a244e42d14894544912be61ec24bd1742112990f82dc8a07:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4N2ZlNmNiODM0NTJiNjVjYzUwYzYxNDI2ZjE2MzY3NjM4ZTgyODI0ZjVkODgxMTIzYTcyY2FmZTFjMTgxM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhOWI0OTU4M2NkNzkxNDI5ZmMyNmQ3YjU2ZTQ3MjlhYjA5Mjg0YWU0NDNlZWYwZjg3NGNjZmRkYmQzZjBiMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlZmQ3ODIxM2U1MDY4ODgwMzNiOTUzOTYzMjM1NWNkNTQzMDkyYWQyODBkM2Y1YjFmMTFlYjMwYmI1ZmI3ZDUifQ"
         },
         {
-          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L41-L60",
-          "version": "repo-lines-v1:sha256:091dc5ef44eefc46d052cc1134f0cfa4e7a644a2eb13f7cb459fb6c3ff7eb814:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2Zjg4ZjJjZjc2MThmZDk2MWY0OWQwN2Q1ZThmYTMyZDUyZjQwNWFlNDU4N2M4NWM5ZTU3ODYxMzM0MmEwN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGViNDgwZTFmMTk4YzQ4MWU5NmZkZGI1Nzc3ODc3YTU0MzhlNDQ5YTllNDM0NGNiYWUwYzU3NGFkZTU3OTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0MjQxMmU5YmNlNjM2MDRmMjE2YTNlZjVjZGFkNzdjNGFjYTQ4OWUyMjcyM2NhYzliNDMxNjBiMjMyZjQ0NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOTIzMjg3N2FjYzM1YmI2ODBlNzRjMmRmN2FjMjdkMDk0MTk4NDJmMjFiZmI3YWM5NTBmMjRlYzY0YmM1OTYifQ"
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L31-L55",
+          "version": "repo-lines-v1:sha256:5a12cedeb6fc89f1405aae4392b0277875cc43614c9f7bb014caef64082cb965:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0MzI3OTM3MzBiYWViMTg4N2M0MDgwZGE4NDNmNjBlNmRjYzI1Zjk1MWUzOWNmZmQ3NjVjYTU4NDMxN2MxMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlMDllOTk1YWViNjY2NmZlZjhjMzE4MjU5MTVlZmNiZGU2NWUwODg0YjYwMWQ3YWJlZWI2NmY3NDQ2NDRkNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmFiMzAxZjNjMDYyYmM5NDc3NzM0OGQzNTRjNGMzM2U1MWJkMDJjYjY5YjcyYTRiMmY5ODhmYzJjN2JjOWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_15565ca135104f619ed20ac61e418d4d",
+      "statement": "PfnnDirectionControlInput polls nothing itself; SetMovementDirection is called for it by the subscription the shared control-input base makes to UserInput's move event, and an input that has never been driven still returns a well-formed \"stand where you are\" trajectory rather than failing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnDirectionControlInput.cs#L60-L120",
+          "version": "repo-lines-v1:sha256:0b99b698f7f19230990c9968913ad8a5fe33ca4e31348a8bbf6179c518ffe84d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ZjcwM2U3MDY3N2MzOTI3ZGQ4YzczNjI3MWVjNWI5MjBmNGE5MWJiMDI3ZThjNzYxNDJhYTQxMzAyMzFjMGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzEyZDU1ODRkYjNlNTcxNDQ3NzQyMDhiNDRkM2FmNjA4YjhhM2VjOTIyM2IzYTE0YWZjYzFkNTRlMGFkMWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiNzUyZjZlNzc3NjE3MjUyYmY5OGM5YTI0OGNkY2VmY2E4NzVhNGQzZWUxZTg4MjkzMDFiZjk0MmEzZDg1MmQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/MotionSynthesisControlInput.cs#L46-L73",
+          "version": "repo-lines-v1:sha256:97e6472ddf75574b8179dd4677c377669ef8c94be65dead7bc2f7fae3ac24baa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZjQ1YzVhMDZjOTliYjJhMTUwYjhjZTI3MjUzZmQxZGE5YTFjMjU5MDViMWQxYzA4NWNmZDU1MDVkZjk3OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a3c809c1dd76445d824e75e2ae850da8",
+      "statement": "PfnnDirectionControlInput warns once, five seconds into play, if SetMovementDirection has never been called at all, which separates a character on which no UserInput is publishing from one legitimately asked to stand still — otherwise the same silence.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnDirectionControlInput.cs#L38-L120",
+          "version": "repo-lines-v1:sha256:d0c5f2658aea6e42b69fced1323f3bb0aaed24e9c463ed3afccc4e6e80042781:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkN2VhOGMyNjVmZWQyMDAwNzUyZjYxY2YxNzU5NzA1ODg0M2UyMWQwOWIzNTFjNzI3NWQ5ZmI2MTE0NTI5ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ZjcwM2U3MDY3N2MzOTI3ZGQ4YzczNjI3MWVjNWI5MjBmNGE5MWJiMDI3ZThjNzYxNDJhYTQxMzAyMzFjMGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzZjllOWE3NGZmOTUxYjBhODhlZGYxNDhlNDI0N2I2ZWMwY2Y0ZGE3YTMzMDVmOTg1OGY0ZDc0MmJlZGFjNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiNzUyZjZlNzc3NjE3MjUyYmY5OGM5YTI0OGNkY2VmY2E4NzVhNGQzZWUxZTg4MjkzMDFiZjk0MmEzZDg1MmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_562f04a94cd64cc3b058f3fbf0d6e3be",
+      "statement": "PfnnDirectionControlInput seeds its facing from the synthesis component's own transform forward at Awake, because a facing initialised to world +z asks a character pointing any other way to turn round on its first frame.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnDirectionControlInput.cs#L50-L62",
+          "version": "repo-lines-v1:sha256:2cbab9807ffeee71ff0419794e5612bcf1abd9b4d842c5e4947c6de09df0b33b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4Njc3NTFmMTc4MDY3ZTY0NjUwN2U1Yjc0NDE3YmE0YTA4MWQ0NjdkZmM5ZTgzZjUyN2UzYTBiOThkMmU0YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwMDUxNzliNmYwZGNlZTE0ZmExZjRhOTg2MmQ0NTQ2NDM5YmZmNDYyZjBkYTU2ODQ5MWIyY2VhM2NiOGE4YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2YTgzNDBmMDkxZTIzYWZmNTNlZDRmOTc4OGM2MTc1MzEzZmFmNGVmY2Y4MzgyNTAyMDUyODJhZTFjODdjMWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkZDU3NzdmNzM2NjIxYzVmYWM5ODE1OTMxZTc1OGNjM2YzNTVlNTQxNzBmNDg4OTY5NzMyMjkzMmI1ODRhMGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b46c689d56ac42cbb372789228278f49",
+      "statement": "PfnnStage zeroes the per-bone angular velocities on the first tick after seeding, because the seed pose is the rig at rest rather than a previous animation frame, and bone 0's share of that whole-pose difference would otherwise be integrated onto the character's Transform as a tick of root motion.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L196-L220",
+          "version": "repo-lines-v1:sha256:563319b9e8c441df43a21d5abe3a5ca0371d859757a6d420e1d1a87af39a177a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiZTYzMjg1NzIyMjE3OWFlZDMzYTFjOWI3M2M2YWRmNDAwMDViYzdmM2Y0ODI3OWNkZjU1ZGM1MDRjYjE1YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzMjQzZDEwMTdhYjQxZTgwMzU1OWY2N2U4MGNmNTg4M2FiZDYwM2ZmM2U0ZjRhZTE3N2VhZDY3ZjVjODA3ZTYifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L348-L392",
+          "version": "repo-lines-v1:sha256:ee577994cd51e02596a7f43b101b37aaac848f71fbd7e9ccf5187bd4c3d70f68:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMzMwOTdjMmRhYjQ5ZGY4NWQxMjQ1NzlkY2U0YTRjYzBjYzkyZmNiMzc4YjNmMzQ0NTc5OGEzODA2ZjYwMjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0ZWZhMzY4NWNmY2I1Yzc2ZGNiN2FlMTY2MmVkY2EwYjRiNzljZDRjZmQwNGM0NDI5OTA4ZjY5OWFkOWFlOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlOTEwMDFkOWI5MTlhMWNmMTI1ZWU5YjcyOWYxMzdjMGU2ZTMwOGUxNjc5ZGUzY2IzMTNmYzkxNTRmM2MwNGMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L320-L335",
+          "version": "repo-lines-v1:sha256:51024b600fe69ef3f0ff428e31da6e21d43b4e07e3a366c696c791cb31152ab4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1OTMyYTc5ZTNiOTMwODk2NGQ3YmUzZmJlY2ExMDJkMzEyNjkxNDFjODgwMmRhNDgyMGIyZDRmYmRiYzQ4ZWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4OGVkMTAzNGZkOWM2NDkzNWUyZmVlNjE5ZmUyOWEzNTM0ZjJiOTFlZDdiMmI1YmRlODliODNjOTgxNmM3N2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_180b41753c9042b5be6cdde09c4dba91",
+      "statement": "PfnnDirectionControlInput rate-limits the requested velocity through a damper before the body's controller sees it, because a keyboard delivers the request as a step and a window sample a second ahead has already converged onto it; the shared TrajectorySteering helpers are pure so the resulting continuity is asserted by tests rather than judged by eye.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnDirectionControlInput.cs#L70-L100",
+          "version": "repo-lines-v1:sha256:9c98d024ef7686916891459258b605d6576f6de413c5f060c3d0bd88e933a078:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZmI3ZGYwZWNiY2M5NDUxZDg0MTM0ZTE0YTBmYzU1YTgyMmJmYWFkMzgwZGQ1MDczZmNmMDFlNmNkZWQxMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxOGM5MmI0Mjg1ZDg5NDE4OWQzMGRjOThmNDhhYzA5MjJlNmJhOGJiZGI4OTdkNjRiZjA0YjQ2NmUzYmQ2MjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2YzZjYjg2Zjc2M2Q2ZTE3NjFlNDYyMTVjOGIzMjJmNWMzNzhiMzhiNjhhNjdiY2JkNGZkNDg4OWFjODc1YTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmFjMjg3MjVlMDQ0MzgzMzAyNTQyMzA0ODM1OTZlMDk0ZGQ3YmVmYzNjMWY2ZDdhOTdlMjE4YzA4Y2E4ZTkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs#L17-L30",
+          "version": "repo-lines-v1:sha256:b5fe296980f188f5085d438dde2a2250be2f4137095c96cbc553fcae67ebf906:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmODM0YmU2NWMwN2YzOWJhY2E3YTU4YTk0MGU2MTljMTQ2MTEwZWYxN2E5NDFjMjc2NDg3YzA5YTAwZWI2OWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyNmVmNGM2MjdlMTU0NDNkMDgwMTM1NzMxZGQxN2IzZjg2MjVkZWMxYjY0MGJhMjU0Mjk0NDhkOTJjYTBmZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4NDYwODBiM2NiYmM5NGQyYTNiZDE3MDExZTQ2Mjg3ZjE1ZWYwYmNjNmNhNTgxMjI3ZGZjYWU0ZTIxYWM3OGQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/TrajectorySteeringTests.cs#L60-L96",
+          "version": "repo-lines-v1:sha256:5842ef76a81c8ed4e16ddc18a72de91e9d40d126000a09bd54b9c3eb1edfa6c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2MzlhNGU0OWI3NWRmZGRmOTMxNWFmMThiZWUzMTIzMDI2NzQ4NjczYWNjZDA0YTNmYjZiMzI3NjBkNDQ3NWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyZDc2ZWZhZTA2NzUxM2JjYmMyZjBiNzQwZTMwZmYxNmYyODExYjViOTg5ZDAyMGMxMWE2NmZmNTA0MWQ1YWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlMzkxN2FiY2EzMjQ3OTM1ZWM3MjY1ZjJiYjQ2MjllM2I3NjI4Mjk3MzU0ZTlmNmJlOGJjZTcxNDAxODZiZjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f12ee96c5f2a4353b111bcd1187d1a6c",
+      "statement": "PfnnDirectionControlInput drives its velocity with Spring.CharacterPositionUpdate, the controller for a velocity goal, rather than a position spring aimed at the requested velocity: the latter's fixed point depends on the step size rather than on the request, settling at 3.26 m/s for a 1 m/s request at 30 fps.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnDirectionControlInput.cs#L80-L95",
+          "version": "repo-lines-v1:sha256:aea15a2f496f4709d8bfaa08a674485ce39edbc37f656da8a914574dd4f43f4e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNDM1OThjYTkyNWI3YTg2NDhlOTljNTkxNjI2ODcyZTgyODg0N2Y4YTNhMjE1YmYxZDgwZGM2ODBjYzYyMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2NzI2ZjdjYzI5MGUxNzQ0ZDZlNzM4Mzc1ZGY4OGM3YWNhNmFhZjRmOWI1M2QwYmIyNjdmNTA5NWJhYzM4MmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1ODU1MWIyM2U2MTk0YjNmZWEyNzQ1N2FjNTA3Y2QxNGUwNzNjZGZhOTEwNTNkZWE4NjdjYjRhOTdhZmUwMzYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Utils/Spring.cs#L39-L60",
+          "version": "repo-lines-v1:sha256:8b691d2e9e1f2952b5d3db5805bdfa30e1b01d2dd1a67b42eca420f94286b449:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3ZWRiZTc5YTU3NDk1N2E3MzU0MGRlNTM3MDlmZjI1ZTc2NzYwNDJhZjA1NjdhZmI3NmZkYTFkNzhhOWM1OWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkMjRiMDkxNjE0MzZlZWFhZGFmOWRlMjQ4MjJiZGIyOWY0OTgxZGNkNTc2NzEyMTQ2NWQwZDQ2YzkwNTI1MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyOWQ0NzQ4YmY3ZjM4YTE1NmU5Zjc4MjY5MGFhMGVkOTE2Y2QwYjhmMjQ3ZTg2ZmIzMmI2YWNlOTJhMzZmNzMifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/TrajectorySteeringTests.cs#L86-L116",
+          "version": "repo-lines-v1:sha256:055db9ef4b1cb2e93a93b5444e692e5dbb7fe8c6db4ff91907e76b6b0da33373:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMjgzY2ZiYjRiMzRjZDRiODc5ZWZkMjdiMjg2YTZiYWZlNzg1NDhiZjA4ZDY0MGIwMmQxM2Q2MzA0YjVmMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGViNDgwZTFmMTk4YzQ4MWU5NmZkZGI1Nzc3ODc3YTU0MzhlNDQ5YTllNDM0NGNiYWUwYzU3NGFkZTU3OTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzZDQ4NWMyY2Q5YzY0MjkxYjc4YmU0MjJiZTY4MmIyMDFkOTUzNmNmNTUxMTllMTI0NjM4MmJmOWMxY2QzNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhZGMxNzY3Nzg1NjRkY2I0NjEwMzNlMWU1YjUyMjk3MWNlZjFjOTVmZWY2MDE5NmI1OTk3N2I1ZTY5NTVlZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5a2af57678e74186a4b8f512fc6066a4",
+      "statement": "PfnnDirectionControlInput damps its facing toward the direction of travel rather than assigning it, because the velocity's direction inverts in one frame as it passes through the stopped deadzone on a reversal; damping turns a 170-degree reversal gradually instead of flipping it whole.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnDirectionControlInput.cs#L88-L100",
+          "version": "repo-lines-v1:sha256:35566f15992c18f7bbc679b3a923aca3fb067197f89a02a4ec81a7d1cc07161a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxOGM5MmI0Mjg1ZDg5NDE4OWQzMGRjOThmNDhhYzA5MjJlNmJhOGJiZGI4OTdkNjRiZjA0YjQ2NmUzYmQ2MjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzZjk4MDYzZjMzMDI3YjMyY2EwNmMzMTQ0MjEyZTZhZjBkNzI3NjEwYzVkOGVmOTQwNDQ0NjExYjliMTUxNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmFjMjg3MjVlMDQ0MzgzMzAyNTQyMzA0ODM1OTZlMDk0ZGQ3YmVmYzNjMWY2ZDdhOTdlMjE4YzA4Y2E4ZTkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs#L23-L30",
+          "version": "repo-lines-v1:sha256:6b26430c24e9e817014a34d268282b18f4ff0db527adcc1095edcb79b0cdad2f:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTljOGVmZDZlOGI5YWZmMDEyODQ1ZTdlY2M2NDFmYmNjYzgzYmMzMTEyYmZhOGI4NzQ0MTYxYjlkMGQyNWI3OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDg0NjA4MGIzY2JiYzk0ZDJhM2JkMTcwMTFlNDYyODdmMTVlZjBiY2M2Y2E1ODEyMjdkZmNhZTRlMjFhYzc4ZCJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Tests/Editor/TrajectorySteeringTests.cs#L117-L140",
+          "version": "repo-lines-v1:sha256:db04b4125abcf6aa2281457514b2f6310bd4df4f680f505d12522b3d9b1c613c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MmU4ZjQyNWIxMGQzN2ViNDcyZTMwNmEyOGJiY2FjY2EzMTI4MmFjM2YxMjY5MzZjYzhjYjQ0NmQ1N2E2NzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MzZlMDY5MWNmZGRjMmM0NWYzNTZmZGQzYWM0MzFjYzM0NmI4NDNhYzVkMjE1NDQzMTBhMWUyOTkzZDc4NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzZGFmMjgyZDAzNGUxYmIzODNjYzk5ODA0ZjQyMGUwZWE5ODZkZTExZGViM2VkMjI3YzA5MTZhYWM5MTcyYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjN2JjYzE4ZDZjZmUxODdhYTE5NDRjNTIzNGQyMDY2ZjliODc0YzZjNGI1YjZkNDUzNTNjZDJkYjkxODU1M2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ab578878dc1e4f4992ec2124b8670e32",
+      "statement": "The trajectory smoothing lives in PfnnDirectionControlInput rather than being shared in PfnnStage, because a stage-level smoother would also lag PfnnSplineControlInput, whose deliberately open-loop path following is what the benchmark's path-following error measures.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnSplineControlInput.cs#L12-L19",
+          "version": "repo-lines-v1:sha256:4fd6d47c2a6de7eabeaf5ee946bf43f1c92e68b057826c529c84634a86dc8e58:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjMyOWQ0ZDVjNTRlNTIwYTM1NzdlOTc0NWIzMjRkNzQ1NTFjMTc1MTc4MDM0OWEyM2Y2ZWNjMDY0NTNjNDllNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzAwZmRkODNlNzA5MzNlMTBhNzk2ZjBlZjFlMzRmNjA5YTdlMGNlM2EwNmZhYWUzNTliNzIyNzcwMTMzOTJlZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODBjYjU5ZjhiMGMxOTRjN2RkNjdmODdkMmJjNzY4MzgwZThhNWUzOTFiZTQyNzM1MDI5NzkzNDUwMDM5NTA5NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjY5ZjhmNzY2NDUxZTY0ZTk4NTk2Y2RmODk5ZGJhOGQ2MzMxMDYwMzcyODE3NDY5Yjg5Zjc0Mzg0NGU1MzJlMyJ9"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnDirectionControlInput.cs#L70-L100",
+          "version": "repo-lines-v1:sha256:9c98d024ef7686916891459258b605d6576f6de413c5f060c3d0bd88e933a078:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZmI3ZGYwZWNiY2M5NDUxZDg0MTM0ZTE0YTBmYzU1YTgyMmJmYWFkMzgwZGQ1MDczZmNmMDFlNmNkZWQxMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxOGM5MmI0Mjg1ZDg5NDE4OWQzMGRjOThmNDhhYzA5MjJlNmJhOGJiZGI4OTdkNjRiZjA0YjQ2NmUzYmQ2MjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2YzZjYjg2Zjc2M2Q2ZTE3NjFlNDYyMTVjOGIzMjJmNWMzNzhiMzhiNjhhNjdiY2JkNGZkNDg4OWFjODc1YTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmFjMjg3MjVlMDQ0MzgzMzAyNTQyMzA0ODM1OTZlMDk0ZGQ3YmVmYzNjMWY2ZDdhOTdlMjE4YzA4Y2E4ZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2ae0bd82c54847f3b3ef893452232946",
+      "statement": "The trajectory gizmo is drawn once on PfnnControlInput from the packed floats PfnnStage last handed the network, taken back out of the character frame it was packed into, rather than per-subclass from each input's own desired samples — so a packing or frame error shows as a wrong picture instead of hiding behind a correct drawing of the intent, and the history half is visible at all.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnControlInput.cs#L80-L110",
+          "version": "repo-lines-v1:sha256:a17db3b77244ce88c8882a32f9f3d06a1d8c5573afbd2f18f1fae1f6b40d0286:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkOTBiZmVkZjFjMTc5MzkxNWU3OTNhMjEwNGRjYjBjODRkNDdhNTBlYzliM2IwY2Y5Y2MzMTRkZTMzNWM2YTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L74-L98",
+          "version": "repo-lines-v1:sha256:c9f4ff1071b967f7950ee4d1884d73ef167e36c5963299c41efa421239a91265:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZmNiODIyNGI3ODM3YjY1NWVmYTc3Yzc2NTgwZWYxYThhZGQ0NGMzOTQ5MjkzYzQ1ZmY3YzEzM2JhYjBiYzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljYjFlMTZkZjM5ZmI4Zjg1OGE3ODUyODEwNzA5MDcwNmQzNDFhYmFjYmQ5MzgzN2YwNjZjNzY5MTUwYzZmZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlODU2OWE5NjNkYjE3MDg0MDc3OGY0MjAwZjE3YzhmNmRlOTU5ZDhlMDMzZmNmN2I5NDdiYWZiOTc4Zjc5OWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjMWFkOGEzOTMwZjE3ODIxM2FjNWNkMzAzMTllMTEzZDY4YTViMzVmZDAxZjMxYWYyNDJiOGY2MTg0MDZhNmUifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnTrajectory.cs#L105-L117",
+          "version": "repo-lines-v1:sha256:1286eff032940705f1cca1f2b1edacea3f413715645d66795964061830ca2f5e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5ZjgzNjI2NGU5NmFlZTUxZTc2MjNhZDMzNWU0M2RjNzhkMDExYjkzNzRkMGI0NzJlMmI0NGE1MzUxNjA1ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1YmEwNTIzYjUxNjNkZmI2ZDg1ZWZjOWI2NGM5ZTg1OWM0MWUwMzMwZjNiZTBkYzNmNzlhOTI1YmRmMjExOTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_390a79755ddd4dc195bf34bd3bc279a6",
+      "statement": "UserInput publishes both Move.performed and Move.canceled, because performed alone latches the last direction when the keys are released and every control input reads that as a stick still being held.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/UserInput.cs#L56-L70",
+          "version": "repo-lines-v1:sha256:dc3c1ab6ba710cfe1b8d71fc3e53ee58657856d435944da066ff6215db136a7f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwMDYyZmY0MzZiM2E4ZTBmMTkyMzM3MDlkNGE3MWUwZDhhOWU5Mzg2NGE5MzZjZWQzMDJmNDU3MGI1MDg3MjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_74a1562b8381418980afd489383f099a",
+      "statement": "PfnnStage no longer has its control input pushed into it once per frame; it reads the character's own ControlInput and casts, so nothing has to run before the stage for the link to exist.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L64-L72",
+          "version": "repo-lines-v1:sha256:36691e67ea95e277b0583b67a10f48191c28ab2d813372f56172ecaf401b6e6f:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI1NjExOWYyNjA0NmIyNTFiNDg0ZGNkYTc2Y2RmMTIxZTg4ZGEwMWVlMTZiNWYxODBlMTQ2MDFjNzMzODc3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDIyYWVlMmE3MGZmYWFkY2Q4ZTNmYTg1OTdjMzUyNDg2YWY5MGRmMDc4NDQ2OGFmMDcyZTViZDhlMTJlOTM5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDdmMzVlZTBmZTY5NGJkYzE5NTlkNGEyNzEzZTAyMzcyMjg2OGRlOTc0NTE4N2Q4YmEyMWZlMzdmMTkzZjJmMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2IwYmI1YzczYWM1MzJkZDljYzhkM2E0Njc4ZmUxYTZkMjYwN2JmZmZjZWIzZTUxNDk2MDU3MzhhMDAwOTdlNyJ9"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnControlInput.cs#L50-L58",
+          "version": "repo-lines-v1:sha256:94ec3bae21dc0cc92a2e0a47b27b940613d427cb08bd3b8e5493b1cb32549b70:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzVhMzU2NWVjMGVkODVjZDYwZGU5MDNhNmRmYTUxOTIzOTEzZDk0ZGRmMTQ1N2NhODViM2Q4OWE5ODVkYjYxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWM5ZmY3MDA0NDkyMDU1ZTAwMjM3YmQxODBjNmNkNzdiNTM5NmE5MzQyMmQwZmVhYmYzODg4Zjg3MWI3NzMwNiJ9"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-30T16:03:03.865Z"
+    "at": "2026-09-07T19:41:02.694Z"
   }
 }

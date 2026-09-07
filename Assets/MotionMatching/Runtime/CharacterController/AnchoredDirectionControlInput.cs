@@ -106,7 +106,7 @@ public class AnchoredDirectionControlInput : MotionMatchingControlInput, IMotion
         _predictedDirections = new float2[PredictionCount];
         _fixedFacing = PlanarForward(Synthesizer.transform);
 
-        var mmData = motionSynthesizer.GetMmData();
+        var mmData = synthesizer.GetMmData();
         var historyFrames = mmData.MaximumFramesHistory;
         if (historyFrames > 0)
         {

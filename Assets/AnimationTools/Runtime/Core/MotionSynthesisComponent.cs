@@ -93,6 +93,45 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     public bool rootPositionsMask = true;
 
     /// <summary>
+    /// The control input steering this character, or null while nothing is. A control input claims
+    /// the character it points at when it enables, so a stage can find it without a reference of
+    /// its own and a character is wired by pointing one component at it.
+    /// </summary>
+    public IMotionSynthesisControlInput ControlInput { get; private set; }
+
+    /// <summary>
+    /// Claims this character for <paramref name="input"/>. Returns false, with a warning, when
+    /// another input already holds it — a character can only be steered by one thing at a time.
+    /// </summary>
+    public bool TryBindControlInput(IMotionSynthesisControlInput input)
+    {
+        if (input == null) return false;
+        if (ReferenceEquals(ControlInput, input)) return true;
+
+        if (ControlInput != null)
+        {
+            Debug.LogWarning($"MotionSynthesisComponent \"{name}\": {Describe(ControlInput)} is already " +
+                             $"steering it, so {Describe(input)} will be disabled. A character takes " +
+                             "one control input.", input as UnityEngine.Object);
+            return false;
+        }
+
+        ControlInput = input;
+        return true;
+    }
+
+    /// <summary>Releases the claim. Does nothing unless <paramref name="input"/> is the one holding it.</summary>
+    public void UnbindControlInput(IMotionSynthesisControlInput input)
+    {
+        if (ReferenceEquals(ControlInput, input)) ControlInput = null;
+    }
+
+    private static string Describe(IMotionSynthesisControlInput input) =>
+        input is Component component
+            ? $"{component.GetType().Name} on '{component.name}'"
+            : input.GetType().Name;
+
+    /// <summary>
     /// True when an upstream stage replaced the pose discontinuously this tick (e.g. a motion
     /// matching search jumped to a new frame). Set by the stage that caused the jump; cleared at
     /// the start of every synthesis tick. Downstream blending stages read it to re-anchor.

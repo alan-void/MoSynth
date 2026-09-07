@@ -104,6 +104,20 @@ how a character behaves:
   `Inertialization`, and it follows in the ground plane only
 - Anchored and capsule authority **do not compose** — an anchored input has no object to follow
 
+**One reference, and it lives on the input.** Every control input derives from
+`MotionSynthesisControlInput` (`AnimationTools`), which holds the only link to the
+`MotionSynthesisComponent` — authored, or found on a parent when the field is empty — and *claims*
+that character in `OnEnable`. A stage never carries a control-input reference of its own: it reads
+`MotionSynthesisComponent.ControlInput` and casts. A second input enabling on a claimed character
+warns and disables itself, so switching between two inputs on one character means deactivating one.
+An override of `OnEnable` that acquires anything must call base and then check `IsBound`.
+
+Stick input needs no wiring either: `UserInput` publishes the move action on a static
+`MoveChanged` event, and the base subscribes any input implementing
+`IMotionSynthesisDirectionControlInput`. That is why `AnimationTools` references `Unity.InputSystem`
+and owns `InputActions.inputactions` — an asmdef assembly cannot reference `Assembly-CSharp`, where
+`UserInput` used to live.
+
 Full detail, including the rejected alternatives: `openwiki/animation-tools/root-following.md`.
 Hazards: `openwiki/agents/motion-matching/root-and-control-input-hazards.md`.
 
@@ -159,6 +173,8 @@ Assets/
 │   │   └── RootFollowStage.cs       [places the character on a capsule or path point, via bone 0's rates]
 │   ├── Runtime/ControlInput/
 │   │   ├── IMotionSynthesisControlInput.cs [synthesis-agnostic steering surfaces]
+│   │   ├── MotionSynthesisControlInput.cs [base for every control input: the one MSC reference, the claim, the input subscription]
+│   │   ├── UserInput.cs             [publishes the move action as a static channel; InputActions.inputactions lives beside it]
 │   │   ├── IFrameTarget.cs          [a target that answers for its own position, not its Transform's]
 │   │   └── TrajectorySteering.cs    [request damping + horizon prediction, shared by MM and PFNN inputs]
 │   ├── Runtime/Python/

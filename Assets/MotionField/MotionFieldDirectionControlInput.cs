@@ -5,8 +5,8 @@ namespace MotionField
 {
 /// <summary>
 /// Steers the motion field from a 2D movement input (gamepad stick or WASD), interpreted
-/// relative to a reference transform's facing. Wire UserInput's Player.Move event to
-/// <see cref="SetMovementDirection"/>.
+/// relative to a reference transform's facing. The base subscribes it to the player's move
+/// action; nothing has to be wired in the scene.
 /// </summary>
 public class MotionFieldDirectionControlInput : MotionFieldControlInput, IMotionSynthesisDirectionControlInput
 {
@@ -16,7 +16,7 @@ public class MotionFieldDirectionControlInput : MotionFieldControlInput, IMotion
 
     private Vector2 _inputMovement;
 
-    /// <summary>Latest 2D movement input; x is strafe, y is forward. Wired to UserInput.</summary>
+    /// <summary>Latest 2D movement input; x is strafe, y is forward.</summary>
     public void SetMovementDirection(Vector2 movementDirection)
     {
         _inputMovement = movementDirection;
@@ -24,9 +24,8 @@ public class MotionFieldDirectionControlInput : MotionFieldControlInput, IMotion
 
     protected override Vector3 GetDesiredWorldDirection()
     {
-        // UserInput only forwards .performed, so a released stick may never report zero;
-        // treating small input as "keep the last heading" matches that, and the policy
-        // cannot stand still anyway.
+        // The policy cannot stand still, so a released stick keeps the last heading rather
+        // than asking for a direction the field has no answer for.
         if (_inputMovement.sqrMagnitude < 1e-4f) return Vector3.zero;
 
         var reference = inputReference;

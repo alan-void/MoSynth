@@ -141,20 +141,20 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         // Get the feature indices
         TrajectoryPosFeatureIndex = -1;
         TrajectoryRotFeatureIndex = -1;
-        for (var i = 0; i < motionSynthesizer.GetMmData().trajectoryFeatures.Count; ++i)
+        for (var i = 0; i < synthesizer.GetMmData().trajectoryFeatures.Count; ++i)
         {
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
+            if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
                 TrajectoryPosFeatureIndex = i;
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
+            if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
                 TrajectoryRotFeatureIndex = i;
         }
 
         Debug.Assert(TrajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
         Debug.Assert(TrajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
 
-        TrajectoryPosPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
+        TrajectoryPosPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
             .predictionFrames;
-        TrajectoryRotPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
+        TrajectoryRotPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
             .predictionFrames;
         // TODO: generalize this... allow different number of prediction frames for different features
         Debug.Assert(TrajectoryPosPredictionFrames.Length == TrajectoryRotPredictionFrames.Length,
@@ -187,13 +187,17 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         OnObstaclesUpdated(ObstacleManager.Instance.GetObstacles());
     }
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
+        if (!IsBound) return;
+
         ObstacleManager.Instance.OnObstaclesUpdated += OnObstaclesUpdated;
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
         ObstacleManager.Instance.OnObstaclesUpdated -= OnObstaclesUpdated;
     }
 
@@ -232,7 +236,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         transform.rotation = newRot;
 
         // Positions
-        float2 currentPos = new(motionSynthesizer.RootPosition.x, motionSynthesizer.RootPosition.z);
+        float2 currentPos = new(synthesizer.RootPosition.x, synthesizer.RootPosition.z);
         var desiredSpeed = InputMovement * MaxSpeed;
         if (DoSteering)
         {
@@ -327,39 +331,39 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     {
         // Clamp Position
         float3 characterController = transform.position;
-        var mmPos = motionSynthesizer.RootPosition;
+        var mmPos = synthesizer.RootPosition;
         if (math.distance(characterController, mmPos) > MaxDistanceMMAndCharacterController)
         {
             var newMotionMatchingPos =
                 MaxDistanceMMAndCharacterController * math.normalize(mmPos - characterController) + characterController;
-            motionSynthesizer.SetPosAdjustment(newMotionMatchingPos - mmPos);
+            synthesizer.SetPosAdjustment(newMotionMatchingPos - mmPos);
         }
     }
 
     private void AdjustCharacterPosition()
     {
         float3 characterController = transform.position;
-        float3 mmPos = base.motionSynthesizer.RootPosition;
+        float3 mmPos = synthesizer.RootPosition;
         var differencePosition = characterController - mmPos;
         // Damp the difference using the adjustment halflife and dt
         var adjustmentPosition =
             Spring.DampAdjustmentImplicit(differencePosition, PositionAdjustmentHalflife, Time.deltaTime);
         // Clamp adjustment if the length is greater than the character velocity
         // multiplied by the ratio
-        var maxLength = PosMaximumAdjustmentRatio * math.length(base.motionSynthesizer.RootVelocity) * Time.deltaTime;
+        var maxLength = PosMaximumAdjustmentRatio * math.length(synthesizer.RootVelocity) * Time.deltaTime;
         if (math.length(adjustmentPosition) > maxLength)
         {
             adjustmentPosition = maxLength * math.normalize(adjustmentPosition);
         }
 
         // Move the simulation bone towards the simulation object
-        base.motionSynthesizer.SetPosAdjustment(adjustmentPosition);
+        synthesizer.SetPosAdjustment(adjustmentPosition);
     }
 
     private void AdjustCharacterRotation()
     {
         quaternion characterController = transform.rotation;
-        quaternion mmRot = base.motionSynthesizer.RootRotation;
+        quaternion mmRot = synthesizer.RootRotation;
         // Find the difference in rotation (from character to simulation object)
         // Note: if numerically unstable, try quaternion.Normalize(quaternion.Inverse(characterController) * motionMatching)
         var differenceRotation = math.mul(math.inverse(mmRot), characterController);
@@ -368,7 +372,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
             Spring.DampAdjustmentImplicit(differenceRotation, RotationAdjustmentHalflife, Time.deltaTime);
         // Clamp adjustment if the length is greater than the character angular velocity
         // multiplied by the ratio
-        var maxLength = RotMaximumAdjustmentRatio * math.length(base.motionSynthesizer.RootAngularVelocity) *
+        var maxLength = RotMaximumAdjustmentRatio * math.length(synthesizer.RootAngularVelocity) *
                         Time.deltaTime;
         if (math.length(MathExtensions.QuaternionToScaledAngleAxis(adjustmentRotation)) > maxLength)
         {
@@ -380,7 +384,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         }
 
         // Rotate the simulation bone towards the simulation object
-        base.motionSynthesizer.SetRotAdjustment(adjustmentRotation);
+        synthesizer.SetRotAdjustment(adjustmentRotation);
     }
 
     /// <summary>
@@ -540,7 +544,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         var candidateThreshold = MaximumEllipseLength + obstacleDistanceThreshold;
         for (var p = 0; p < PredictedPosition.Length; p++)
         {
-            float3 predPos = motionSynthesizer.GetMainPositionFeature(p);
+            float3 predPos = synthesizer.GetMainPositionFeature(p);
             for (var i = 0; i < Obstacles.Length; i++)
             {
                 var obs = Obstacles[i];

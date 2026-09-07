@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:82d253924e6f0c06033c0701c068283ded7a487867ee7ee74a53bec4c330b227",
+  "pageVersion": "sha256:e3e78b5b75eb116f6cb533d45563f3817dd2f4fe75484948fcb427026768cef0",
   "claims": [
     {
       "id": "claim_13de8b8aa44a45fbb2460ef40519c72e",
@@ -21,8 +21,8 @@
       "statement": "Prediction horizons are counted in database frames, so converting one to seconds means multiplying by the database's own frame time rather than by Time.deltaTime.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L45-L61",
-          "version": "repo-lines-v1:sha256:00bd7cf6344334378a2c1f3814a2238abfbbe2cab7f538242ba8a2afeca85589:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0OWQyMGZmM2MyYjYxNDRiODAyNDczOGIyMDM2ZjI0NThmYTY1YmFjNGMyMDQ1MzhhOTljZTMxZjgyOWIzYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmFiMzAxZjNjMDYyYmM5NDc3NzM0OGQzNTRjNGMzM2U1MWJkMDJjYjY5YjcyYTRiMmY5ODhmYzJjN2JjOWIifQ"
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L39-L55",
+          "version": "repo-lines-v1:sha256:7387dc7ba70e025b4645a2c7864d3759fb6fcb5b038a5929ad57d9fcd21ed1d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwMDE1NjM0N2EwZTg1ZTExMjE4MWQ2YjFhOTNhOGVhNGI3N2VjY2RmMzc3NDIwYTE3NjkxZjViZWI4NmQ1YTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmFiMzAxZjNjMDYyYmM5NDc3NzM0OGQzNTRjNGMzM2U1MWJkMDJjYjY5YjcyYTRiMmY5ODhmYzJjN2JjOWIifQ"
         }
       ]
     },
@@ -119,12 +119,12 @@
           "version": "repo-lines-v1:sha256:32a35e609236765746f09ec4fa0abcc5d5d061f4039d00ba3f84e145adb0bd06:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZmI3ZGYwZWNiY2M5NDUxZDg0MTM0ZTE0YTBmYzU1YTgyMmJmYWFkMzgwZGQ1MDczZmNmMDFlNmNkZWQxMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNDkzMjNkYmM4OTk5YTJkYTc0NmY5YzI5MmNjZDBmNjlkZTgzMTQ2MGZlYmUzYmIzNzAyMmYzZWE3M2EyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0ZDllYTI1YzUwMjZkMzMzM2MxYTVlOTBmODZmYzIyOTJkY2FiNGFmYzg3Mjk5NWM5NzQ3MjNjN2UwNTFjOWIifQ"
         },
         {
-          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CrowdControlInput.cs#L225-L262",
-          "version": "repo-lines-v1:sha256:3fe7f5bc53ab380f0942acbceb46ce8d6b5ca602485783297cc43d22c9fb9016:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZmI3ZGYwZWNiY2M5NDUxZDg0MTM0ZTE0YTBmYzU1YTgyMmJmYWFkMzgwZGQ1MDczZmNmMDFlNmNkZWQxMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNDkzMjNkYmM4OTk5YTJkYTc0NmY5YzI5MmNjZDBmNjlkZTgzMTQ2MGZlYmUzYmIzNzAyMmYzZWE3M2EyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5MTFkODllZDhkODYzZDVmMjhmYjI0NTQyZGU0MTVkNjU1MmFjMTg1MThhOTUzNDk2N2U0NDEyZDQwYjBlODkifQ"
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/CrowdControlInput.cs#L229-L266",
+          "version": "repo-lines-v1:sha256:0b933787419208383cea84ad2c4fb384c100b1cee481467e80f9fd06d1de72af:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZmI3ZGYwZWNiY2M5NDUxZDg0MTM0ZTE0YTBmYzU1YTgyMmJmYWFkMzgwZGQ1MDczZmNmMDFlNmNkZWQxMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyNDkzMjNkYmM4OTk5YTJkYTc0NmY5YzI5MmNjZDBmNjlkZTgzMTQ2MGZlYmUzYmIzNzAyMmYzZWE3M2EyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5MTFkODllZDhkODYzZDVmMjhmYjI0NTQyZGU0MTVkNjU1MmFjMTg1MThhOTUzNDk2N2U0NDEyZDQwYjBlODkifQ"
         },
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L352-L402",
-          "version": "repo-lines-v1:sha256:a5cd8dcd1896c6aa81790738aa995df40f89aeb8cfcd530d22b656e40cf542a4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3NmNjYTNlMmNiMGYyNjNhNWMyZTA3MGRhZDRhNTNlMGE4NDE3MTJkMjU4YzM3NmJkYTEyM2U2MDJhZDEyMTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L390-L440",
+          "version": "repo-lines-v1:sha256:2ce55c52e9a30f56346aa902582dc2dc84cf99b4a706fcc721a7a7a22629002e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3YjRkNzc5NWEwNzY5M2M5ZjU5ZTlmNDg3NjgyODQzOTQ0ZTY1MGRlZjljZWYyZjVmNTc5MzUyZmMzYmUwZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         }
       ]
     },
@@ -133,22 +133,26 @@
       "statement": "The four Root members on MotionSynthesisComponent used to be unassigned auto-properties, so a crowd input reading RootPosition silently measured the character at the world origin instead of failing; they now route to the component's Transform and to rates re-derived from the pose each tick.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L330-L350",
-          "version": "repo-lines-v1:sha256:6b5b395180155d0b1f2b548cfc3907ee6f075ea54b18cd11e91f0c54ef2aefa6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NjU2NmU5NmQxYjFkNmUyZGY5YmUzMDJjNTA4YTk1YzQ4YmE0NTBhNTg3MTI2ODE1NzJjNmI0OTc1MzlhNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3OGYzZDE2NzY4NmE4ZmMxMGExNGNhODMzNTAwZTEyN2UyNzViNmJlYmUzMWMyYjVhMGIwYjRhNmQ1ZTcwN2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5YzIwZmQ5OWNlY2U2ZGY5ZTJlNDczMjhhYjc2MWU2NTM5YzAxMWNiNDZiY2JkYjQ4OTE4YmU2MzlkNzA1NzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyNDcwNTgzN2ZiN2NjNTQzOWNjNTFkNTk0N2U5ZGRmNWMwNGM4NzMxYTYzY2Y2MDllZGFiMjg0ZTU4YjU4OWMifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L345-L360",
+          "version": "repo-lines-v1:sha256:a76322389323f60498089066c5fef743bf9c16f216f4debed8f6b215114447d1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4OWY2MTZjYjhiNjlhMjFmMWM1NzU4OTU0ZDlhYWExNDcwNDM0MzdkMDNjMDQ4YzQzN2YzZWM1YWNkODEzMDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2ZWZlNDgzOGI4Y2ViMzY3OGFjNzJiYjlhNGM2ODUxYzQ4MzAyYWU5N2M4MDFkZGZiYTg0NDU3MGI5MmRmYWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiZjVkNjQ3YTUxNTI0YTg1MzIzOGE2YzE0M2I2MDkxNTE2OTZiMDYyNWFkNDVjN2M1MjQ3OTNiZWE1ODQ2ZWQifQ"
         },
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L313-L323",
-          "version": "repo-lines-v1:sha256:6362653b459d951c98aef7061dcbfa9b3c68fcdd29be0a87d9148c7d73d71e7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiYTE5MjA3ZjFjMWE4M2M3MWQ0MjdhZjllYTY5N2Q5OGQ5MDliOGMwZDE5ZmY3OGMzNjQ4YTcxNTgyMzM3YTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlODUxMTgzOWIwZTVlYWUzMWNmYjM1ZjExODcxZWUwYmY4N2UzOGJjMTBhY2QwNjM5NGIzNDQwNzU2MzMwM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2YzQ4YjRiYjIyOWZhZmZkMGIyYzkxNDY3ZGE2MTc5MThlZDljY2I3ZTUwMzY0NTFmZjJlMDM1ZjNlNzFkYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNjkxMDllMjVmYTczZGZjMGRjOTJiOWU2OTY4YThkZGY1MGNkNjVjMGFmYjY3ZTBlMzI0YmVjY2I5MzI4OTAifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L390-L405",
+          "version": "repo-lines-v1:sha256:1c74a75c2c8191807d78183836b8cdebe031fe6228dd9a9601cb2aa8a0bbc407:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhOTI4MDUzNDE2NDQ2MjM4NmMyN2U3MzBhNmRkZWI4YTRhNDdkNTdkZWVlMzExYmM3YTFmZGZhOTkyNDkzMTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3YjRkNzc5NWEwNzY5M2M5ZjU5ZTlmNDg3NjgyODQzOTQ0ZTY1MGRlZjljZWYyZjVmNTc5MzUyZmMzYmUwZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4YmUyM2QyZmYxOWQ5YTRkNmUyMzZiM2ExMmEzNTdhNDFlOTE2NmIxZWM0NmZhM2M1ZDJjZDNiMWU5OTYyN2EifQ"
         }
       ]
     },
     {
       "id": "claim_179432ec21de427c8d3fccc26f7131a9",
-      "statement": "Player input reaches the direction control input through a singleton that wraps the generated InputActions asset and re-broadcasts the Move action as a serialized UnityEvent, so the connection is made in the Inspector rather than in code.",
+      "statement": "Player input reaches a direction control input with no scene wiring: UserInput publishes the move action on a static event, and the shared control-input base subscribes any input implementing IMotionSynthesisDirectionControlInput for as long as it is enabled.",
       "evidence": [
         {
-          "resource": "repo://Assets/Scripts/UserInput.cs",
-          "version": "repo-file-v1:sha256:8947f3ddddff9179d78fd4eff1de7341b399098b2588be511b7a506ac96845b0"
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/UserInput.cs#L20-L70",
+          "version": "repo-lines-v1:sha256:fcc31ab463b191f340a00a2e4553f3a18db80888a43ffc8d32008a857c1e6128:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0OTUxYTE2YmM3NDdlYWE3NzZiZDQzMDM5YWYzZTc4YjdhN2QyMDFjOGIxNzliODZiN2IxMzhkODU5ODk1NGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/MotionSynthesisControlInput.cs#L46-L73",
+          "version": "repo-lines-v1:sha256:97e6472ddf75574b8179dd4677c377669ef8c94be65dead7bc2f7fae3ac24baa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZjQ1YzVhMDZjOTliYjJhMTUwYjhjZTI3MjUzZmQxZGE5YTFjMjU5MDViMWQxYzA4NWNmZDU1MDVkZjk3OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
         }
       ]
     },
@@ -167,8 +171,8 @@
       "statement": "The motion field's spline input returns the vector from the character to its lookahead target, so at the end of an open spline that vector shrinks to near zero — which the stage reads as no opinion and keeps the previous heading rather than snapping.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionField/MotionFieldSplineControlInput.cs#L60-L115",
-          "version": "repo-lines-v1:sha256:4265ba191a2c3077710c175641795cf31cb906f429f6b7ed249ab4a4a7295589:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MDIxMGE3YjQ1YzA5Yzk3NmNkZDYwNzMzZTYwZjEyMTNhMTZlOTMxZDgyYzA1OTcyZWE0YmRlYjM2MzI5ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMzQ5YmJkMWEyMTEwNGYwNTFlMzRiMmM4YTllNzBjYzdmYmI1MGJjMTlhNjc3ODFmMmExNDBjMzg2ZDk0MzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEwMTA1NjM3Y2FiNTAzZDVkZTk4NDdmZTVhMzZiMjU2NGRjZTRjYTRkNTZlZTUyOTA1Mzc4NmE3ZGM0MTlkNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+          "resource": "repo://Assets/MotionField/MotionFieldSplineControlInput.cs#L60-L110",
+          "version": "repo-lines-v1:sha256:66fd4cb9c36fc383d7e697e5aa8b1a9a11df445d225e7c107ac78ee9dedd78eb:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0YzFmN2JjNGY1YjMyZGU1NDY3OTI1ODUwZWU2ODcyNWY5ZjVjZWVhZDZiM2ExOTRmZjRkZTY5MGRmYWNmZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NGI5NDA2Mjc1YjNlOThhZDBmMzI5NDI3ZWZkNWQwMmY3MWI3ZTdhOWM5ZDhjZGFjYzM4MzRjZWU3OGJmNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEwMTA1NjM3Y2FiNTAzZDVkZTk4NDdmZTVhMzZiMjU2NGRjZTRjYTRkNTZlZTUyOTA1Mzc4NmE3ZGM0MTlkNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1Y2NhYmZhYzExYzZhODA2Y2M2YjdhY2E4NjhjNjU2ZDFmOWE0NzJmODlmZGYzNjlhYTg0MTM0N2I3YjBkNzIifQ"
         },
         {
           "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L362-L393",
@@ -209,12 +213,12 @@
       "statement": "Motion matching control inputs advance in Update while the synthesis component ticks in LateUpdate, so the trajectory a search runs against is always the current frame's rather than the previous frame's.",
       "evidence": [
         {
-          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L51-L61",
-          "version": "repo-lines-v1:sha256:7f8eb181b62205222a15d420549f9bef6469261ed15b6bee2890ea0debab90ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4ODJlM2NlZmNkMzdhMmZmODI3Zjk3NzQyYzBiMmM1MTM1MDUxNzhkMTE0N2YxMjlhNjEzNjJhMzhmYmJmYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmFiMzAxZjNjMDYyYmM5NDc3NzM0OGQzNTRjNGMzM2U1MWJkMDJjYjY5YjcyYTRiMmY5ODhmYzJjN2JjOWIifQ"
+          "resource": "repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs#L45-L55",
+          "version": "repo-lines-v1:sha256:1fa7a5137ec6450a67550da10e00d733664e1173ad735e002d7940022b3778a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4ODJlM2NlZmNkMzdhMmZmODI3Zjk3NzQyYzBiMmM1MTM1MDUxNzhkMTE0N2YxMjlhNjEzNjJhMzhmYmJmYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZmFiMzAxZjNjMDYyYmM5NDc3NzM0OGQzNTRjNGMzM2U1MWJkMDJjYjY5YjcyYTRiMmY5ODhmYzJjN2JjOWIifQ"
         },
         {
-          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L186-L212",
-          "version": "repo-lines-v1:sha256:19a11fe4c15e81770f928cf13bb8a67a9b45553bcd252f4761c379f9444beb8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MDNlMzQ3OTcxN2Y2NThmODk1YjU3ZWVjOTBjMGQwZTE5MTQzNWI3M2NkNjRmZjIxODU3ZjQyZjRhN2UyZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYTRkMWIyODVkMzBhZTk2NWQxMmM1ZGFhNzY4OTNkNTAyOTMyZDdkZGVlOWJjNmU0ZmM4MjhhMzNhZTk5MjUifQ"
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L224-L250",
+          "version": "repo-lines-v1:sha256:94c9dfc9331f4e0f8d5d3bad15baa24adbf84d9ba4b9f4ea2ebf3dfc0b26c4e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzZWE0ZjNiN2E4YmFiODRhOGVhNTAzOWJmNzkxNmNiNWY1NTNmYTllNzJjNjQwZTRjNDUzZGExMDM4NmM0NWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhOGM3ZWY5NjBmZmM4Yzk4OWFkM2IwYWIzOGM0MzFhMjdlYzBmMTIxZjViYWRmOWE4YTRjNjEzZjBlN2JiMDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkifQ"
         }
       ]
     },
@@ -231,10 +235,38 @@
           "version": "repo-file-v1:sha256:d7207722292a2ef583a1a0ab7c366a61ec5538b8b994c14d829aff64a9215816"
         }
       ]
+    },
+    {
+      "id": "claim_da17b7502477453fae04ff0d6c0a5741",
+      "statement": "A control input holds the only reference between it and the character it drives, and claims that character in OnEnable; a second input enabling on an already-claimed character is warned about and disables itself, so switching between two inputs on one character means deactivating one.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/MotionSynthesisControlInput.cs#L17-L73",
+          "version": "repo-lines-v1:sha256:63f3fc718067f6eef78bd2e61921f72d8771027fe7e0cae026d24b087120b107:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxZDc1NTNiYWQ4NWU5MGY1ODdmMDZlYTkxZmM5YTljMDA5YjRmYTM2OTNhMWE0YjYwZWNmNGRkMjc5ZjdhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmM2MwMWUxNDZlZTkyMTU3YWI4MWZiNzdmZTYzNzE5NmRjOWVjNDU0Y2NjNmQ3NGM5ODkyMDE0NTg1NzQ3MjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs#L95-L132",
+          "version": "repo-lines-v1:sha256:477cb21d5f4670b82baff9c54c56974459e9f15d46a54d6e792ab119b44b1642:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1ZmUxNmQxMzM3MTMzN2IwMmY4MDY3MzAwYTNlNDRjMzZhNDg5OTlmZGQxNGYyY2VjMDBiMDNjZDUyYTE5NjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlYmQzYjJhMGZhOTA2YjI2OWNlMjkxM2QxYTgyZTA2ZTk5MzhkODY1MDA5YzY0ZWI5YTNhZmVhNTQ0Y2E0ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5ZjI4NjgwNzdhODE0ZmYzMjAwNGRiNDI5MjQ4MjljMTZhY2M1MzNhOWEwZjY2YzhhMjkzNWNhZDlkNWIzYzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8635dca8d569406da42ddef747cd129c",
+      "statement": "UserInput lives in the AnimationTools assembly rather than in Assembly-CSharp because an asmdef assembly cannot reference Assembly-CSharp, which is what a control input subscribing to player input directly requires; AnimationTools therefore carries the Unity.InputSystem reference and the generated InputActions wrapper.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/AnimationTools.asmdef",
+          "version": "repo-file-v1:sha256:c81989720d8d290d35f37fa85021c2be2d3564ad0059229495744d8effab19f8"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/ControlInput/UserInput.cs#L1-L30",
+          "version": "repo-lines-v1:sha256:5466b1e08b3979e21b7bd0878d8e81e6ec4d6bcc5a9fda13b235f138d60190e3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1YWJhNDRlYzhmZWMzNGY3OWM0ZmRjMmM1YmM1ZmUwODA1ZjgwMDE2NmEwZWY2ZTg1MDg5ZWMwOGNhMGY4MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjOTU5YTYwNmY2OTY2MDdhNDM4ZDVjNzg5YmU0NjZhZjlkYjIwMjk2YzE1MjU0NjJlNWYzYzZhZWYxOWQ2MGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVmY2FjOTcwYWNlYWRkMTkyNjM0NGQ1YjkzOTBhZGUzNzVjYzdjN2NkNGUwNzQ4Zjk4OGYyMTUyYjA5ZTlhMDcifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-09-06T12:33:15.598Z"
+    "at": "2026-09-07T19:41:02.694Z"
   }
 }

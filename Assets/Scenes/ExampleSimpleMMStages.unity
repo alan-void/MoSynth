@@ -1177,17 +1177,6 @@ Transform:
   - {fileID: 25943636}
   m_Father: {fileID: 78958682}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &777692134 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2230587507150952856, guid: 83ea47ce36263db45991fcf29457f4ce, type: 3}
-  m_PrefabInstance: {fileID: 397076433220325588}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8e582089b4f51e5479285db9b68042c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: MotionField::MotionField.MotionFieldDirectionControlInput
 --- !u!1 &846882233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1583,7 +1572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e1f919c85e6b7d4289217238c5c14f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Pfnn::Pfnn.PfnnDirectionControlInput
-  synthesisComponent: {fileID: 1087161515}
+  synthesizer: {fileID: 1087161515}
   maxSpeed: 1
   steeringHalfLife: 0.25
   velocityHalfLife: 0.2
@@ -1648,58 +1637,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ed96034766fb4047be7947f94194a3b1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AnimationTools.UserInput
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.UserInput
   inputActionsPlayerMove:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1226189923}
-        m_TargetAssemblyTypeName: MotionMatching.SpringControlInput, MotionMatching
-        m_MethodName: SetMovementDirection
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 777692134}
-        m_TargetAssemblyTypeName: MotionField.MotionFieldDirectionControlInput, MotionField
-        m_MethodName: SetMovementDirection
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1742686601}
-        m_TargetAssemblyTypeName: Pfnn.PfnnDirectionControlInput, Pfnn
-        m_MethodName: SetMovementDirection
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1562190663}
-        m_TargetAssemblyTypeName: MotionMatching.AnchoredDirectionControlInput, MotionMatching
-        m_MethodName: SetMovementDirection
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!4 &1026545713
 Transform:
   m_ObjectHideFlags: 0
@@ -1812,7 +1753,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5069406635295175760, guid: 3197629167644474bee9f4d290f5e108, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7151292996152871402, guid: 3197629167644474bee9f4d290f5e108, type: 3}
       propertyPath: stages.Array.size
@@ -1959,17 +1900,6 @@ Transform:
   - {fileID: 1663624055}
   m_Father: {fileID: 100339400}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1226189923 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1969040318290535849, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
-  m_PrefabInstance: {fileID: 9221307503072061416}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3d559543e917c6d44b4429eb838f6898, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: MotionMatching::MotionMatching.SpringControlInput
 --- !u!1 &1237376169
 GameObject:
   m_ObjectHideFlags: 0
@@ -2208,7 +2138,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1381230478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2221,7 +2151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 048bb10dd774919499e702f73ba8aa4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MotionMatching::MotionMatching.SplinePoseKeypointControlInput
-  motionSynthesizer: {fileID: 1036463035}
+  synthesizer: {fileID: 1036463035}
   trajectoryPositionFeatureName: FuturePosition
   trajectoryDirectionFeatureName: FutureDirection
   splineContainer: {fileID: 0}
@@ -2385,7 +2315,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76a25d1dd8b44048b7167fab2f9becc3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MotionMatching::MotionMatching.AnchoredDirectionControlInput
-  motionSynthesizer: {fileID: 1036463035}
+  synthesizer: {fileID: 1036463035}
   trajectoryPositionFeatureName: FuturePosition
   trajectoryDirectionFeatureName: FutureDirection
   maxSpeed: 1
@@ -2608,17 +2538,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
---- !u!114 &1742686601 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3193380631802678010, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
-  m_PrefabInstance: {fileID: 1742686600}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e1f919c85e6b7d4289217238c5c14f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Pfnn::Pfnn.PfnnDirectionControlInput
 --- !u!1 &1747973700
 GameObject:
   m_ObjectHideFlags: 0
@@ -3224,12 +3143,12 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 22499920256193937, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: managedReferences[6955135129176244291].isEnabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 22499920256193937, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: managedReferences[6955135100694298813].controlInput
       value: 
-      objectReference: {fileID: 1226189923}
+      objectReference: {fileID: 1562190663}
     - target: {fileID: 1969040318290535849, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: m_Enabled
       value: 1
@@ -3276,7 +3195,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3856712055895550191, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5563818710139133889, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3292,7 +3211,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8089643214540076982, guid: 56c52675d8f994c41990428c72ab297d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

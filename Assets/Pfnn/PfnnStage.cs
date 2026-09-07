@@ -65,8 +65,8 @@ public class PfnnStage : MoSynthStage, IDisposable
     private SkeletonData _skeletonData;
     private SimulationFrameDef _frameDef;
 
-    /// <summary>Set by whichever <see cref="PfnnControlInput"/> is steering, once per frame.</summary>
-    public PfnnControlInput ControlInput { get; set; }
+    /// <summary>Whatever is steering the character, when it is a PFNN input; null while nothing is.</summary>
+    public PfnnControlInput ControlInput => _owner?.ControlInput as PfnnControlInput;
 
     /// <summary>Current gait phase in radians, for gizmos and diagnostics.</summary>
     public float Phase { get; private set; }

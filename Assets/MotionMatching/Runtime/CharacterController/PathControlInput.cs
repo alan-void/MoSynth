@@ -59,20 +59,20 @@ public class PathControlInput : MotionMatchingControlInput
         // Get the feature indices
         _trajectoryPosFeatureIndex = -1;
         _trajectoryRotFeatureIndex = -1;
-        for (int i = 0; i < motionSynthesizer.GetMmData().trajectoryFeatures.Count; ++i)
+        for (int i = 0; i < synthesizer.GetMmData().trajectoryFeatures.Count; ++i)
         {
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == trajectoryPositionFeatureName)
+            if (synthesizer.GetMmData().trajectoryFeatures[i].name == trajectoryPositionFeatureName)
                 _trajectoryPosFeatureIndex = i;
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == trajectoryDirectionFeatureName)
+            if (synthesizer.GetMmData().trajectoryFeatures[i].name == trajectoryDirectionFeatureName)
                 _trajectoryRotFeatureIndex = i;
         }
 
         Debug.Assert(_trajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
         Debug.Assert(_trajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
 
-        _trajectoryPosPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[_trajectoryPosFeatureIndex]
+        _trajectoryPosPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[_trajectoryPosFeatureIndex]
             .predictionFrames;
-        _trajectoryRotPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[_trajectoryRotFeatureIndex]
+        _trajectoryRotPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[_trajectoryRotFeatureIndex]
             .predictionFrames;
         // TODO: generalize this, allow for different number of prediction frames
         Debug.Assert(_trajectoryPosPredictionFrames.Length == _trajectoryRotPredictionFrames.Length,

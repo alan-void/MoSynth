@@ -110,20 +110,20 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
         // Get the feature indices
         TrajectoryPosFeatureIndex = -1;
         TrajectoryRotFeatureIndex = -1;
-        for (int i = 0; i < motionSynthesizer.GetMmData().trajectoryFeatures.Count; ++i)
+        for (int i = 0; i < synthesizer.GetMmData().trajectoryFeatures.Count; ++i)
         {
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
+            if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
                 TrajectoryPosFeatureIndex = i;
-            if (motionSynthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
+            if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
                 TrajectoryRotFeatureIndex = i;
         }
 
         Debug.Assert(TrajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
         Debug.Assert(TrajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
 
-        TrajectoryPosPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
+        TrajectoryPosPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
             .predictionFrames;
-        TrajectoryRotPredictionFrames = motionSynthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
+        TrajectoryRotPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
             .predictionFrames;
         // TODO: generalize this, allow for different number of prediction frames
         Debug.Assert(TrajectoryPosPredictionFrames.Length == TrajectoryRotPredictionFrames.Length,
@@ -152,13 +152,17 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
         OnObstaclesUpdated(ObstacleManager.Instance.GetObstacles());
     }
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
+        if (!IsBound) return;
+
         ObstacleManager.Instance.OnObstaclesUpdated += OnObstaclesUpdated;
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
         ObstacleManager.Instance.OnObstaclesUpdated -= OnObstaclesUpdated;
     }
 
@@ -214,7 +218,7 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
 
         if (UpdateOnlyWhenCharacterMoving)
         {
-            float2 characterPos = new(motionSynthesizer.RootPosition.x, motionSynthesizer.RootPosition.z);
+            float2 characterPos = new(synthesizer.RootPosition.x, synthesizer.RootPosition.z);
             float distance = math.length(new float2(nextPos.x - characterPos.x, nextPos.z - characterPos.y));
             float3 deltaPos =
                 SplineContainer.EvaluatePosition(getTDelta(T,
@@ -253,7 +257,7 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
                 }
             }
 
-            float2 steeringPos = new(motionSynthesizer.RootPosition.x, motionSynthesizer.RootPosition.z);
+            float2 steeringPos = new(synthesizer.RootPosition.x, synthesizer.RootPosition.z);
             float2 targetSteering = CrowdControlInput.ComputeSteering(steeringPos,
                 new Vector3(CurrentDirection.x, 0.0f, CurrentDirection.y),
                 Obstacles, SteeringLookAhead, SteeringForce, debug: DebugSteering);
@@ -335,7 +339,7 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
         float candidateThreshold = MaximumEllipseLength + obstacleDistanceThreshold;
         for (int p = 0; p < PredictedPositions.Length; p++)
         {
-            float3 predPos = motionSynthesizer.GetMainPositionFeature(p);
+            float3 predPos = synthesizer.GetMainPositionFeature(p);
             for (int i = 0; i < Obstacles.Length; i++)
             {
                 Obstacle obs = Obstacles[i];
@@ -501,8 +505,8 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
         if (DoSteering && math.lengthsq(Steering) > 0.0001f)
         {
             Gizmos.color = new Color(0.1f, 0.8f, 0.1f, 1.0f);
-            GizmosExtensions.DrawLine(motionSynthesizer.RootPosition,
-                motionSynthesizer.RootPosition + new float3(Steering.x, 0.0f, Steering.y) / SteeringForce, 3);
+            GizmosExtensions.DrawLine(synthesizer.RootPosition,
+                synthesizer.RootPosition + new float3(Steering.x, 0.0f, Steering.y) / SteeringForce, 3);
         }
     }
 #endif

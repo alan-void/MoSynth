@@ -129,7 +129,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         _predictedRotations = new quaternion[PredictionCount];
         _predictedAngularVelocities = new float3[PredictionCount];
 
-        var mmData = motionSynthesizer.GetMmData();
+        var mmData = synthesizer.GetMmData();
         var historyFrames = mmData.MaximumFramesHistory;
         if (historyFrames > 0)
         {
@@ -310,13 +310,13 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     {
         // Clamp Position
         float3 characterController = transform.position;
-        var mmPos = motionSynthesizer.RootPosition;
+        var mmPos = synthesizer.RootPosition;
         if (math.distance(characterController, mmPos) > maxDistanceMmAndCharacterController)
         {
             float3 newMotionMatchingPos =
                 maxDistanceMmAndCharacterController * math.normalize(mmPos - characterController) +
                 characterController;
-            motionSynthesizer.SetPosAdjustment(newMotionMatchingPos - mmPos);
+            synthesizer.SetPosAdjustment(newMotionMatchingPos - mmPos);
         }
     }
 
@@ -327,28 +327,28 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     private void AdjustCharacterPosition()
     {
         float3 characterController = transform.position;
-        var mmPos = motionSynthesizer.RootPosition;
+        var mmPos = synthesizer.RootPosition;
         var differencePosition = characterController - mmPos;
         // Damp the difference using the adjustment halflife and dt
         var adjustmentPosition =
             Spring.DampAdjustmentImplicit(differencePosition, positionAdjustmentHalflife, Time.deltaTime);
         // Clamp adjustment if the length is greater than the character velocity
         // multiplied by the ratio
-        var maxLength = posMaximumAdjustmentRatio * math.length(motionSynthesizer.RootVelocity) * Time.deltaTime;
+        var maxLength = posMaximumAdjustmentRatio * math.length(synthesizer.RootVelocity) * Time.deltaTime;
         if (math.length(adjustmentPosition) > maxLength)
         {
             adjustmentPosition = maxLength * math.normalize(adjustmentPosition);
         }
 
         // Move the simulation bone towards the simulation object
-        motionSynthesizer.SetPosAdjustment(adjustmentPosition);
+        synthesizer.SetPosAdjustment(adjustmentPosition);
     }
 
     /// <summary>As <see cref="AdjustCharacterPosition"/>, for facing.</summary>
     private void AdjustCharacterRotation()
     {
         quaternion characterController = transform.rotation;
-        var mmRot = motionSynthesizer.RootRotation;
+        var mmRot = synthesizer.RootRotation;
         // Find the difference in rotation (from character to simulation object)
         // Note: if numerically unstable, try quaternion.Normalize(quaternion.Inverse(characterController) * motionMatching)
         var differenceRotation = math.mul(math.inverse(mmRot), characterController);
@@ -357,7 +357,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
             Spring.DampAdjustmentImplicit(differenceRotation, rotationAdjustmentHalfLife, Time.deltaTime);
         // Clamp adjustment if the length is greater than the character angular velocity
         // multiplied by the ratio
-        var maxLength = rotMaximumAdjustmentRatio * math.length(motionSynthesizer.RootAngularVelocity) * Time.deltaTime;
+        var maxLength = rotMaximumAdjustmentRatio * math.length(synthesizer.RootAngularVelocity) * Time.deltaTime;
         if (math.length(MathExtensions.QuaternionToScaledAngleAxis(adjustmentRotation)) > maxLength)
         {
             adjustmentRotation = MathExtensions.QuaternionFromScaledAngleAxis(
@@ -366,7 +366,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         }
 
         // Rotate the simulation bone towards the simulation object
-        motionSynthesizer.SetRotAdjustment(adjustmentRotation);
+        synthesizer.SetRotAdjustment(adjustmentRotation);
     }
 
     public quaternion GetCurrentRotation()

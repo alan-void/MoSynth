@@ -4,10 +4,16 @@ title: Control inputs
 description: Turning intent into the trajectory the search matches against, the simulation-object model every input shares, and an honest account of which inputs actually work.
 tags: [control-input, trajectory, crowd, status]
 sources:
+  - id: openwiki-source-c47354627dcbea1099ddbb20
+    resource: repo://Assets/AnimationTools/Runtime/AnimationTools.asmdef
   - id: openwiki-source-20e38e100e36c5379b2eb8ec
     resource: repo://Assets/AnimationTools/Runtime/ControlInput/IFrameTarget.cs
+  - id: openwiki-source-a6b9fae1157f771557413c57
+    resource: repo://Assets/AnimationTools/Runtime/ControlInput/MotionSynthesisControlInput.cs
   - id: openwiki-source-b106a4622123233262d982ae
     resource: repo://Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs
+  - id: openwiki-source-21b6f7706116d71ad97ea47a
+    resource: repo://Assets/AnimationTools/Runtime/ControlInput/UserInput.cs
   - id: openwiki-source-08ea4bc02364c8785bdd8d8f
     resource: repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs
   - id: openwiki-source-1fb0416756719f48922c424e
@@ -26,12 +32,10 @@ sources:
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/MotionMatchingControlInput.cs
   - id: openwiki-source-5a2c119cb47a6d7fc76496cc
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs
-  - id: openwiki-source-cd81b693f918262549b5d6bc
-    resource: repo://Assets/Scripts/UserInput.cs
-generated: {by: "claude-code", at: "2026-09-06T12:33:15.598Z"}
+generated: {by: "claude-code", at: "2026-09-07T19:31:22.105Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-09-06T12:33:15.598Z
+    at: 2026-09-07T19:41:02.694Z
 ---
 
 # Control inputs
@@ -86,8 +90,41 @@ difference is not cosmetic:
   therefore records a `TrajectoryHistory` — a ring of timestamped ground-plane samples, read back
   by interpolation — and answers past horizons from that.
 
-A control input can also raise `OnHighInputChange` to force an immediate search rather than waiting
-out the [search interval](matching-stage.md).
+A control input can also latch a *high input change* flag to force an immediate search rather than
+waiting out the [search interval](matching-stage.md); the stage consumes it each tick.
+
+## How a control input finds its character, and how the player finds it
+
+Every control input — motion matching, PFNN and motion field alike — derives from
+`AnimationTools.MotionSynthesisControlInput`. That base holds **the only reference between an input
+and the character it steers**: a serialized `MotionSynthesisComponent`, falling back to
+`GetComponentInParent` when the field is left empty, so an input dropped on a character prefab is
+already wired.
+
+The link is one-directional on purpose. Nothing downstream carries a reference back: the input
+*claims* the character in `OnEnable`, and a stage that needs it reads
+`MotionSynthesisComponent.ControlInput` and casts. Pairing two serialized fields by hand was the
+older shape, and the two could disagree — a scene could point a stage at one input while a second
+input pointed at the same character.
+
+A character takes one input at a time. A second input enabling on a claimed character is warned
+about by name and disables itself, so choosing between two inputs on one character is done by
+deactivating the one you do not want, which is what the demo scene does. An `OnEnable` override that
+acquires anything of its own must call base and then check `IsBound`, or it will set up state on a
+component that has just switched itself off.
+
+Player input needs no wiring either. `UserInput` publishes the move action on a **static**
+`MoveChanged` event, and the base subscribes any subclass implementing
+`IMotionSynthesisDirectionControlInput` for as long as it is enabled, seeding it with the current
+stick value so an input that enables mid-session does not start from zero. Static rather than a
+reference each listener is handed, because a control input arrives with its character — dropped in as
+a prefab, or spawned by the benchmark sweep — and has no way to reach a scene object it was never
+wired to.
+
+This is why `UserInput` and `InputActions.inputactions` live under `Assets/AnimationTools/`, and why
+`AnimationTools.asmdef` references `Unity.InputSystem`: an asmdef assembly cannot reference
+`Assembly-CSharp`, where `UserInput` used to sit, so subscribing to it directly was impossible until
+it moved.
 
 ## What is actually in use
 
@@ -178,8 +215,9 @@ parameters, which cap the per-frame correction to a fraction of the character's 
 never outruns the animation and looks like sliding*.
 
 Player input arrives through `AnimationTools.UserInput`, a singleton that wraps the generated
-`InputActions` asset and re-broadcasts `Player.Move` as a serialized `UnityEvent<Vector2>`. Nothing
-wires it in code — the hookup is made in the Inspector.
+`InputActions` asset and publishes `Player.Move` on a static event every direction input subscribes
+to itself. The serialized `UnityEvent<Vector2>` beside it remains for listeners that are not control
+inputs.
 
 ## SplineControlInput
 
@@ -267,7 +305,8 @@ shortest-arc correction — see
 | Crowd and collision | `.../CrowdControlInput.cs`, `.../CrowdSplineControlInput.cs`, `.../CollisionsSpringControlInput.cs` |
 | Obstacles | `Assets/MotionMatching/Runtime/Unity/Obstacle.cs`, `ObstacleManager.cs` |
 | Springs | `Assets/AnimationTools/Runtime/Utils/Spring.cs` |
-| Player input | `Assets/Scripts/UserInput.cs`, `Assets/InputActions.cs` |
+| Shared base: the character reference, the claim, the input subscription | `Assets/AnimationTools/Runtime/ControlInput/MotionSynthesisControlInput.cs` |
+| Player input | `Assets/AnimationTools/Runtime/ControlInput/UserInput.cs`, `.../InputActions.cs` |
 
 **Tests.** `ControlInputPlanarHelpersTests` pins the character-frame conversion every input answers
 the query through. `TrajectoryHistoryTests` covers the past-horizon ring, and

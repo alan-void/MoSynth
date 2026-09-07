@@ -10,23 +10,13 @@ namespace MotionMatching
 // exists in a motion matching stack.
 
 /// <summary>
-/// Finds the control input to sample from. Recorder channels are bound to a synthesizer, not to a
-/// stage, so they have to go looking; the first motion matching stage that has one wins.
+/// Finds the control input to sample from: the one steering the character, when it is a motion
+/// matching input. Null on a character driven by something else, or by nothing yet.
 /// </summary>
 internal static class RecorderChannelControlInputLookup
 {
-    internal static MotionMatchingControlInput FindControlInput(MotionSynthesisComponent synthesizer)
-    {
-        foreach (var stage in synthesizer.stages)
-        {
-            if (stage is MotionMatchingStage mmStage && mmStage.controlInput != null)
-            {
-                return mmStage.controlInput;
-            }
-        }
-
-        return null;
-    }
+    internal static MotionMatchingControlInput FindControlInput(MotionSynthesisComponent synthesizer) =>
+        synthesizer.ControlInput as MotionMatchingControlInput;
 }
 
 /// <summary>
@@ -46,7 +36,7 @@ public sealed class PathTargetPositionChannel : RecorderChannel
         _controlInput = RecorderChannelControlInputLookup.FindControlInput(synthesizer);
         if (_controlInput == null)
         {
-            Debug.LogError($"PathTargetPositionChannel \"{name}\": no MotionMatchingStage with a controlInput " +
+            Debug.LogError($"PathTargetPositionChannel \"{name}\": no MotionMatchingControlInput steering the character " +
                             "was found on the synthesizer.");
         }
     }
@@ -95,7 +85,7 @@ public sealed class TargetSpeedChannel : RecorderChannel
         _controlInput = RecorderChannelControlInputLookup.FindControlInput(synthesizer);
         if (_controlInput == null)
         {
-            Debug.LogError($"TargetSpeedChannel \"{name}\": no MotionMatchingStage with a controlInput " +
+            Debug.LogError($"TargetSpeedChannel \"{name}\": no MotionMatchingControlInput steering the character " +
                             "was found on the synthesizer.");
         }
     }

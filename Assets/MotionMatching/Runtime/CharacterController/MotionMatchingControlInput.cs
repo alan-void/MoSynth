@@ -2,7 +2,6 @@ using System;
 using AnimationTools;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace MotionMatching
 {
@@ -29,18 +28,13 @@ namespace MotionMatching
 /// path-following metrics harness, can drive it.
 /// </para>
 /// </remarks>
-public abstract class MotionMatchingControlInput : MonoBehaviour
+public abstract class MotionMatchingControlInput : MotionSynthesisControlInput
 {
     // TODO: Create a OnValidate() (other name because it will collide with Unity's
     //       that validates if the current MMData has the necessary trajectories requeried
     //       by the current controller (eg. simulation bone pos + dir, or HMD + L/R controllers pos + dir)
 
-    /// <summary>The stage subscribes and searches immediately instead of waiting out its interval.</summary>
-    public UnityAction OnHighInputChange;
-
-    [SerializeReference] public MotionSynthesisComponent motionSynthesizer;
-
-    public MotionSynthesisComponent Synthesizer => motionSynthesizer;
+    private bool _highInputChange;
 
     /// <summary>
     /// Frame time of the database. Prediction horizons are counted in database frames, so converting
@@ -55,7 +49,7 @@ public abstract class MotionMatchingControlInput : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        DatabaseDeltaTime = motionSynthesizer.GetMmData().GetOrImportPoseSet().FrameTime;
+        DatabaseDeltaTime = synthesizer.GetMmData().GetOrImportPoseSet().FrameTime;
         OnUpdate();
     }
 
@@ -65,7 +59,23 @@ public abstract class MotionMatchingControlInput : MonoBehaviour
     /// </summary>
     protected void NotifyInputChangedQuickly()
     {
-        OnHighInputChange?.Invoke();
+        _highInputChange = true;
+    }
+
+    /// <summary>
+    /// Whether the input has changed enough since the last call that the stage should search now
+    /// instead of waiting out its interval. Reading it clears it.
+    /// </summary>
+    /// <remarks>
+    /// Latched rather than raised as an event: inputs bind to their character when they enable,
+    /// which can be after the stage was initialised, so there is no moment at which the stage could
+    /// reliably have subscribed.
+    /// </remarks>
+    public bool ConsumeHighInputChange()
+    {
+        var changed = _highInputChange;
+        _highInputChange = false;
+        return changed;
     }
 
     /// <summary>
@@ -160,7 +170,7 @@ public abstract class MotionMatchingControlInput : MonoBehaviour
     protected TrajectoryFeaturePair ResolveTrajectoryFeaturePair(string positionFeatureName,
         string directionFeatureName)
     {
-        var trajectoryFeatures = motionSynthesizer.GetMmData().trajectoryFeatures;
+        var trajectoryFeatures = synthesizer.GetMmData().trajectoryFeatures;
         var positionIndex = -1;
         var directionIndex = -1;
         for (var i = 0; i < trajectoryFeatures.Count; i++)
