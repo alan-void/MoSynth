@@ -156,8 +156,14 @@ Two properties make a batch safe to re-run over a folder it already filled:
   reference their clips by GUID; delete-and-recreate would mint new ones and silently empty every
   list pointing at them.
 - **A `GaitPhaseComponent` is added only to clips that have none.** Detection overwrites the
-  footfall list, so re-running must not touch a clip whose anchors someone has corrected. To
-  re-detect deliberately, use the Detect Footfalls button in [the clip editor](clip-editor.md).
+  footfall list, so re-running must not touch a clip whose anchors someone has corrected.
+
+To re-detect deliberately, either use the Detect Footfalls button in
+[the clip editor](clip-editor.md) for one clip, or select clips or folders of them in the Project
+window and run **Detect Footfalls** from the right-click menu (also `MoSynth/Animation/Detect
+Footfalls In Selection`). The bulk command carries the same caution in the other direction: it seeds
+anchors on clips that have none, but a clip that already holds anchors is skipped unless you
+explicitly choose to redetect, because nothing records that a clip was hand-corrected.
 
 ## BVH import
 

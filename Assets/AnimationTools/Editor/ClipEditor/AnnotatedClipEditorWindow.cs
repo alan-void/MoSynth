@@ -443,7 +443,23 @@ namespace AnimationTools.Editor
             _viewState.Save(_assetGuid);
         }
 
-        private void OnUndoRedo()
+        /// <summary>
+        /// Re-reads every open editor from its asset.
+        /// </summary>
+        /// <remarks>
+        /// A tool that writes to a clip directly rather than through a <c>SerializedObject</c> — a
+        /// batch over selected assets, say — leaves an open window showing a stale copy, and nothing
+        /// else tells it so.
+        /// </remarks>
+        public static void RefreshOpenWindows()
+        {
+            foreach (var window in Resources.FindObjectsOfTypeAll<AnnotatedClipEditorWindow>())
+            {
+                window.RefreshFromAsset();
+            }
+        }
+
+        private void RefreshFromAsset()
         {
             if (_context == null) return;
 
@@ -451,6 +467,8 @@ namespace AnimationTools.Editor
             RebuildTracks();
             Repaint();
         }
+
+        private void OnUndoRedo() => RefreshFromAsset();
 
         private void OnEditorUpdate()
         {
