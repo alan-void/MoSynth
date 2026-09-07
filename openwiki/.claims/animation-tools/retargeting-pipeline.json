@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:e67a2194ea341699a993795fd22c188b230026d9d8333a7b972f94a124229a37",
+  "claims": [
+    {
+      "id": "claim_8ddbb795c86e4da49515e83a653a6ef8",
+      "statement": "A retarget setup's cleaned skeleton is the calibration pose for stage two, because Rokoko builds a helper bone at each target bone's rest transform, parents it to the mapped source bone, and copies its rotation onto the target — making the retarget a pure world-space rotation delta from the source's own rest pose.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L328-L361",
+          "version": "repo-lines-v1:sha256:df53b0ac1370fbb9cdde0e875e900d81395fa23dda75d612901faed659787258:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0YTdmOTQ0ZTJlMmJmMzA4OWYyM2FiZGI4MmJiNTc1YzAwN2M1ODMyNWU5NjU0NzRmMTVlODE1MWQ2ZWQ5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzZTYyNjViZWQ3YTViMjlkMWYxOGNiOGVmNjY0YWExNjIzMTYzMDQ5Zjk3YmY2NmQ4MDBiM2FiYWE0ODQwMjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MWZhMzMwOGY4NjE2OTA2ZjAxMGM2MDJlY2JjZmFmYTI3ZGZlNzBhZjZlMzhjNzNmYTNkZTkwZjM5ODhjOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyYTI4ZTkzYTc2Y2UxNmE4OGZjMjk1NTUyNzJmNzBlYzFjNzA4OTJjY2YyNWJhNmY0MTdmNGVjNmQ3NmM0OTMifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/README.md",
+          "version": "repo-file-v1:sha256:4de281ad07212d7bf9f53e56d8ef5b5462ce9bddae25fd9d23257d27e394be61"
+        }
+      ]
+    },
+    {
+      "id": "claim_b4547abffc704a429bda7a65d05a7f6d",
+      "statement": "Stage one needs IK only when cleaning changed the cleaned skeleton's chain lengths; where the cleaned skeleton is a rotation-only copy of the source and no BVH joint but the root translates, COPY_ROTATION plus COPY_LOCATION on the root reproduces the source exactly.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L311-L325",
+          "version": "repo-lines-v1:sha256:4103c1971e697873b65796e62cf839225f3490c8bd1730c4f9b3b5186155d279:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjNDNkZTMwOTYzZTM0ZTZiY2Q4ZTcwYmU4YWRjYzc2Yzg1ZDkzZTM1N2U4YmExYzhjOGFhOGJmNzdiMzVjZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NTdjOThjNTc4NjVhZmFmZjczNjdkOTcxZjM5YTZlNDAzMzJhNGY0OTU3M2VhYzJmNjlkMmUyZGIwNTY3NjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlYTUyZDI3MjMwYjg5Y2ExYjczMjg2NmFmYmUxMzdhOThlNjUxMDAwNDlhNTZiMzI5M2RlZjhkNWZlN2RkYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2NmZiODgxYjZkMmZiN2VmNDIxMTJkMWQyNTFjM2RlZjI5M2UwOWRmYWQxZGRkODRiOTYwYTFmOTAzZDgwYjkifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/README.md",
+          "version": "repo-file-v1:sha256:4de281ad07212d7bf9f53e56d8ef5b5462ce9bddae25fd9d23257d27e394be61"
+        }
+      ]
+    },
+    {
+      "id": "claim_ffd4a1798d994bc89bbb92da99b28261",
+      "statement": "The Bandai-Namco and LAFAN setups target different model rigs — the corrected 22-bone rig versus the 85-bone Model:* rig — so clips from the two datasets cannot share one MotionMatchingData skeleton until LAFAN is re-retargeted onto the corrected rig.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/Retargeting/RetargetBatchSettings.cs#L16-L29",
+          "version": "repo-lines-v1:sha256:e5ca4fd7ab6bcd6e9570696b080049619ba54a000fbc1585e98de5c3d74bc6b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkNDcyZjUwZjMyZDVjYzk1MGJiYzA2ZTRhYzE0YzhiZTY1ZDA2N2JiNTBkNzFiOWVkMDA5NWJkZGJmM2VjOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzODhiYjgzMzE5NTEzNmU2ZWU4ZjYyZTdkY2IwMTJhNTQ0NmNhMjY2OGNmOThmZjE0YjQ0ZmNmNDIxM2IyZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0MzI0YTM3MDE1ZGY0NTg2Y2Y0NmNiMDMzNzZmNWM5ODJjZTg3Y2ZiYTVkOGMxMGY3MTEzZGE5ZDVjMWM2NTIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L9-L26",
+          "version": "repo-lines-v1:sha256:4ebe0710b42a89cf95b228d2c09e9556a2f3c84babd6001b3bcfd024a6ff10ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0NDBjNTEwMDIwNTgyOGRkYmViZjk3NGQyMTc4NTQ5OTUxZTllNWRkNGRjMjA5MTUxZDNmZjVkY2I5MzAwYzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkOGFjMDk3NWFlMjczMjE1YzhiNWZjMjdkNzAzZWZjZmU0Nzc2YzNjZGNmZGJhNTcwZWE2MjBmOGU4NGY4MTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d9b74ff9d22f429981920ffd84ccb35d",
+      "statement": "A Bandai-Namco BVH's rest Hips OFFSET records capture-volume placement rather than anatomy and varies from clip to clip — three values within dataset-2 alone, up to 8.8m apart — so it must be excluded from the setup's bone-length identity check and compensated in the transplanted action.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L247-L309",
+          "version": "repo-lines-v1:sha256:cf95f98ba3239cc7e0f3630f37040a9623914def03680027bd066dfc99e429b3:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiOTMyN2Q1OWMyMzBmZDYyODQxYTE1Yzg1NTA1NDZiZTM3YzFmYTViNDlmN2U3MjQ1YTA0NGY0YTZjZTkzNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZTJlYzU0NmVhMWU0NzcxOThiMmE0YTEwYjRmY2VlNmI4OGJiOTgxZWJhYTBhZTVjMTAzODQ4MGFlOTNjOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlMGFlMjEwZTM4OTAzZjU1MWU2M2FmYzU2MjRkZmQ3ZDg1ZTRmZWVmMmE0YzY4NDMzODI0YTFkZDRmYWQ1ZTkifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/README.md",
+          "version": "repo-file-v1:sha256:4de281ad07212d7bf9f53e56d8ef5b5462ce9bddae25fd9d23257d27e394be61"
+        }
+      ]
+    },
+    {
+      "id": "claim_54b1354abdff41f29baae2a89de65851",
+      "statement": "batch_retarget.py finds a setup's three armatures by role rather than by name — the Rokoko target scene property is the model, the single armature carrying bone constraints is the cleaned skeleton, and whatever those constraints point at is the source — so a new dataset's blend only has to be wired correctly.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L72-L110",
+          "version": "repo-lines-v1:sha256:769e6f7a2eb145e810650af70c2be4716538db4b846e68343f80561af339001a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyNmQ3OWUwOGE2NDZiN2FmZDM4YzU2ZWQ0ZGVlNTY3MDBlMzQ1YWI4YzQyYWFjYmUwNmExZmRiMjFkZGM5NTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3ZWEzNmEwNmRlNjhkMzYxYmVmOTgxZWE3MzY3ZTRmZWJmNGRlOTU5OWQ2ZDlhMDUyZDk5OTRkNjcwZDYyNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxNTAzMDZkZDMyMTJkMDM5ZDY1YzRjNmQ2ZTAzZGVkODEyZWU4NGQ1ZThhZGZlOGZhZjUyMmZkOWMyYWRiZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjMGYxZWYyNmNjNTA4ZDI4ODIwYjA3MjE4YzY2YTk2N2FhZjY2N2Q1YzFkYTkyYjU1YmM4ZmRmNGJjZDE3M2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c0dd7c4ac3924ffd8d25e8a8f1c5eb42",
+      "statement": "A retarget setup's pose bones use euler rotations in whatever order the source BVH declares its rotation channels in — ZYX for LAFAN and ZXY for Bandai-Namco — which is why the cleaned skeleton must be made by duplicating the source object, so the per-bone rotation mode travels with it.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L328-L345",
+          "version": "repo-lines-v1:sha256:f5aa6e829efa38f7e384535115bbb0f2b4178704fe914008c2a4ff531759378e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0YTdmOTQ0ZTJlMmJmMzA4OWYyM2FiZGI4MmJiNTc1YzAwN2M1ODMyNWU5NjU0NzRmMTVlODE1MWQ2ZWQ5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyNzI2OWNiOTNjZDY5NDhlZTA1ZDYyYWEwOWNlMDhlM2I3MGFiM2NhMTFlOTZkN2Y0ZTFhMzg3MDJiZjkyMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MWZhMzMwOGY4NjE2OTA2ZjAxMGM2MDJlY2JjZmFmYTI3ZGZlNzBhZjZlMzhjNzNmYTNkZTkwZjM5ODhjOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlZDBkNTA4N2RiMzVhNWY0NzFjMWY1ZmFkNzAxZDI4NzczYmZiNDEzNDY4NjI0MDc4N2M1ZWNlYTYzMDY4ZGMifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/README.md",
+          "version": "repo-file-v1:sha256:4de281ad07212d7bf9f53e56d8ef5b5462ce9bddae25fd9d23257d27e394be61"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae62541fa04a477094d196f4929a85fd",
+      "statement": "batch_retarget.py holds every retargeted clip's action on an NLA strip until a single export at the end of the run and accumulates Rokoko rest-pose drift on the model rig, so memory and drift both grow with clip count and reset only when the Blender process exits.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L364-L392",
+          "version": "repo-lines-v1:sha256:6a0dd976ca57dd5a282ecb75dfa26e49bc73dda9e3908a086da0e71c7d0ca368:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOTUwY2FmNjlkZTI5MzcyYjNjNTYyYzJmZTkyYmJlNDM1YmQ5NjEwY2I4OTAzMTQ0ZjA5YTVhNjc1NDJmZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5OTlmNjAyN2MzMDRmODUzNWY3YWUxNWViMGQ3ZGZiMjAwNDVhMzZhMjJlMjYwODIzZGM0YmJhN2U3ZTIyODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4MjQwNDRhYmJhODRlMDA3YTE5MDJmODcyYmE0MTQ4MjlmYTdiNjc3MTFmYzY3ZWYwM2RjZDkyMTYxODIwM2UifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L581-L651",
+          "version": "repo-lines-v1:sha256:6a7f4d7b2b8f52e4f94839522d20d89825c9818b2e16d3d0fda94134fc88df00:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNWI5NDg0N2MxMDUzYTZmMGRkYjIwMDc2N2ZhMDA2NDJhZWRlMTRmMWUwZjBhNDIyZjJmYWM4NGM2ZDI2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwMjJhNjgwYTFhNGQ4MjJhNjVhMGM3OTY1MTRmNmE3OTUzODk5OWU2ZTA2YTM1MGViMzBhNmExMTNhMGViMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzYWI2NGFjYWQxZjZhMjFhNDNkMWQyZjE2MTI5OGM5NGMzMDcwYTkzM2Q2ODFmMmMwZjE2ODZmY2U0YTg1MTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8eceb328bf83443ca83116ae23cc97e4",
+      "statement": "run_batch_all.py retargets a whole dataset by splitting it into shards along the dataset's own motion labels and running one Blender process per shard, which bounds peak memory, resets rest-pose drift per shard, makes an interrupted run resumable by skipping shards whose FBX exists, and allows shards to run in parallel.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/run_batch_all.py#L101-L180",
+          "version": "repo-lines-v1:sha256:2ed1e2719073adb7615e30889d85ae6a39e2b818c65cf579d0fca0e1f447ae7b:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NzMyN2U4OTJmMDFjMWQ4ZGFiMmQyODU5YzQ5MWNmODNiYzdlYzU4OTdlYjJhY2Y5YTliMjFkZTVjN2E1ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlYzIwMjU0YTk4Nzg0MmI4YzE1OGYzZDA1MTM0OTFiOWY1YTA0NzlkN2RjMjAwMWNhNTMzZjRiM2ZjOTE5N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmNTRkNWQ2OGYzZWQyYWI5MzliMjdjYWYxYzdmMDNmNjEzNzI4MTU0MDA0YmM4NjM5MTA2NTQxNjE2ZTM5OWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzZTY0NDc1YTNmMjliMWJmNGMxMWU1NDc1Mzg2YWZmZmZlNDM2ODU2Y2VlZTdkMzIxMTBkZWU4N2JkN2YzYTIifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/run_batch_all.py#L183-L258",
+          "version": "repo-lines-v1:sha256:d98fbe95e454eb0707caceba797d3a59726fbb74e80da6f14cbb380d19eda168:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNWI5NDg0N2MxMDUzYTZmMGRkYjIwMDc2N2ZhMDA2NDJhZWRlMTRmMWUwZjBhNDIyZjJmYWM4NGM2ZDI2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlNzFmOWE2MmNhYTNhOGE4NGFjNDA2ZGY1YTQyMzJlMjg2NzRlMjk5OWU1MGY1NjAyY2NiMTVjOTYxMTVmNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxYzZjMWM0Mjg4ZTU2ZDBmZGVjNWE2ZmQwZjJhZGZlOTczMDVhYTFjZjY5MGM3M2NhOTliMjdhZjI3MzZkMGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9050b32bfc4b4c8d96af6ceb016d3f10",
+      "statement": "batch_retarget.py compares bone lengths only over the bones named in the Rokoko bone list, because a BVH root's length is the offset down to the first real joint and records capture placement rather than the actor's proportions; measuring it rejected 2,058 of Bandai-Namco dataset-2's own 2,902 clips as belonging to another subject.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L279-L309",
+          "version": "repo-lines-v1:sha256:800ed1716a5a3b1e63ed85f0cf3d1dbcd11e22cc7aed936ada80ae4d2a7392d9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4YzhhOWFlYTAxNTdlYmVhOTc0NzZmMmFmNGNhMDNmYTYwYzJhNzUxNWViNjU5ZjQzYjY3ODNhMzA4YTI4MDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjZDUxODA5NDZkMjA1YjQ1MzkwZjdmYTk2NWI2ODcyYWYxYmNiYWU3YmZmYjUzYmIwZjBiOGExYzcyZjVhYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlMGFlMjEwZTM4OTAzZjU1MWU2M2FmYzU2MjRkZmQ3ZDg1ZTRmZWVmMmE0YzY4NDMzODI0YTFkZDRmYWQ1ZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6033b230ccc6461d89628da34d17d17d",
+      "statement": "Because the batch transplants only a BVH's action onto the setup's source skeleton, a clip whose rest offset differs from the setup's is re-framed by exactly that difference; --keep-capture-position compensates the location curves and is off by default so LAFAN's intended normalisation is unchanged.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L192-L227",
+          "version": "repo-lines-v1:sha256:74e6c8a8c2b1fe38024cf2443a9a3d43b5aacbfd89142e380b7bcbc74db6bde1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1MjVhOGJlYTc0OGUxNTJkMTQ0MDJmNjQyMWExN2E0ODk2YmI4NWY4ZmIzY2NkMDVjOTA5N2JmYjA2NmJiY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzZDMyMjhiZjhjOGM2MDI4YjQ0ZmRhNjBmNjkxMTQyZWJkZDNhYTFhNzk4YzhmMmZjMGYxYmFiZjdmMGE4ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0NDc5ZWUzNjEyNDljZTBlYTRhOGJhZGYyNTBmZjdiZDNiMTU1MjRlODljOTZkYzk5ZjhlM2M0OTVjZTI1OTAifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L247-L277",
+          "version": "repo-lines-v1:sha256:515142f94702d72e7fb07e84cf5e942304e70dd45527417df2b2b94092fffce6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiOTMyN2Q1OWMyMzBmZDYyODQxYTE1Yzg1NTA1NDZiZTM3YzFmYTViNDlmN2U3MjQ1YTA0NGY0YTZjZTkzNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZTJlYzU0NmVhMWU0NzcxOThiMmE0YTEwYjRmY2VlNmI4OGJiOTgxZWJhYTBhZTVjMTAzODQ4MGFlOTNjOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiNzU0YTI2ODZiYTRjOGJmMTVjNDhjNzNmYjgwZDdmZjNkYzIxNjQzZmY2ODY2NDA5NmQ1MjM1NzRkNTFkOWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1aa1c0bce909486685b1d9e008018a07",
+      "statement": "batch_retarget.py exports the FBX even when individual clips fail under --continue-on-error and signals the difference through its exit code — 0 all clips retargeted, 2 written with clips skipped, 1 the setup itself unusable — because the export happens only after the loop, so aborting on one bad clip would discard every clip before it.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L46-L52",
+          "version": "repo-lines-v1:sha256:887ebd96a0107e23431109befef8bb70b386219a629ab872374bb1b3cd3c0d65:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ViNzAyNTc1OTNkYTA2ZjY4MmEzZGRkYTU0YTlkMjYwZDRmYzUxNGY2NDUyMzdmNWNhNzRiMDhmOGRhNjFhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmY2Mjc3NDVmNjU2NTMzMzM1NWJiYzM4ZDE2N2FjMTNmMDY0ZTJmYWRlMDc0MTBkZjJmZjg4MjYxMzY3YmRlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjBhZmYyYWQ5Yjc3NGNmYTE3ZmViODU4YWQ5ZDk2NGM3MDVhOTM0NDAzNWI5NDI2OGNlOWM5YmJmMjFiYmMyNSJ9"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L451-L468",
+          "version": "repo-lines-v1:sha256:e41658c6c2c1796def1c48dd6691a3f3b314694651aafe52dbe5e054ed6c5a98:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0OTRjYzg3YTVhNTE2OWQwMzYyMjNjZWNkZWE4NDU5ZjIyZTYxMTc1NTUzMzc3ZjgxMDdiNDE2M2YyYWFiYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlODQxNGJhMzZkNDhhNzJkNzJkOWE3ZmI0ZThjMDA3YWVlYTcwYzBlNzMwMjBmYzNkOThmMDdjMWJhYzI3ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOTNiZjlmOTAzZjRkYjVhZDM5ZDI3YjAzMmRkYmJmMDg2ZjYwOTJlNzNlZTk0YzIyZDViOGI1MmJhZTIwNDMifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L581-L651",
+          "version": "repo-lines-v1:sha256:6a7f4d7b2b8f52e4f94839522d20d89825c9818b2e16d3d0fda94134fc88df00:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNWI5NDg0N2MxMDUzYTZmMGRkYjIwMDc2N2ZhMDA2NDJhZWRlMTRmMWUwZjBhNDIyZjJmYWM4NGM2ZDI2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwMjJhNjgwYTFhNGQ4MjJhNjVhMGM3OTY1MTRmNmE3OTUzODk5OWU2ZTA2YTM1MGViMzBhNmExMTNhMGViMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzYWI2NGFjYWQxZjZhMjFhNDNkMWQyZjE2MTI5OGM5NGMzMDcwYTkzM2Q2ODFmMmMwZjE2ODZmY2U0YTg1MTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4b9cc6c4e90e4157b53c5d4fc40800b4",
+      "statement": "The FBX export must send unit scaling to the file header rather than to each object transform, because apply_scale_options=\"FBX_SCALE_NONE\" writes it as a scale of 100 on the armature node, and Unity's rigid FK ignores scale — so every bone's rest offset imports 100x too small while the root's animated curve stays in metres, collapsing the whole skeleton onto the root with no error beyond a non-unit-scale warning.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L503-L533",
+          "version": "repo-lines-v1:sha256:fbe9db6932b1fe344ded06e62a63de0df9fdf4c01994e626031d056e66cc2294:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NWMzMGYyOGE3MDQ4ZGIwN2U2NGYyMmZkNDA4MmVlNzFlNDNlMmM1ODIwNjJkMjVhNzA5OWJmYzBjMjE1ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwM2MxMTk1ZjUyNjgyYjgyZTUyNGQ1YTkwYmRjNmM1MmE5ZjlmMDc1NTNhNzQyZjJiNzZjMzkwYWY4M2YxZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlMTQ0ODBiNTA2NmQ4MjEzYmFhYmVlNmRmYzg4ZTljZTYyMTc3MDc5NGUxMGJjY2YxNjNjZGQ4YzJlY2QzZTkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L215-L230",
+          "version": "repo-lines-v1:sha256:6a5af5bca2ea86031cdbf22f1dd6debe2ec5af2d1b4c1ce196fb0b880e8066e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5NWFiN2E5NzRjOGQzM2ZhYWYxYjA1ZDkzNjc5YmVjZGQ4MjcwNjFkYjc4MmYwYzIyMGFlMGNhYjQ4MTkwN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxYjhmZmYxN2M5ZGRlNmYwMDBmMjNmYTI1ZDFlYTkyODQ0NDJiMTAzNzM1YTdlNWZiMjUyNjQwODgzZTNiMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjZGNiZTM2MDg5ZmY5NjVhYTJhNmVmZTQxZDdhMmIwZmQzMmI1ODNkNDRmZDU5YjNhOWRhN2Q1NDZlOTJiYTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8aec7395d09c46f09a7d63a114d4f766",
+      "statement": "An exported Bandai-Namco FBX and the corrected rig blend both import as the same 27-bone tree under Hips — the 22 animated bones plus five \"_end\" leaves Blender's exporter synthesises — so a character can take its live rig from the blend while its skeleton comes from the FBX the network was trained on.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L503-L533",
+          "version": "repo-lines-v1:sha256:fbe9db6932b1fe344ded06e62a63de0df9fdf4c01994e626031d056e66cc2294:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NWMzMGYyOGE3MDQ4ZGIwN2U2NGYyMmZkNDA4MmVlNzFlNDNlMmM1ODIwNjJkMjVhNzA5OWJmYzBjMjE1ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwM2MxMTk1ZjUyNjgyYjgyZTUyNGQ1YTkwYmRjNmM1MmE5ZjlmMDc1NTNhNzQyZjJiNzZjMzkwYWY4M2YxZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlMTQ0ODBiNTA2NmQ4MjEzYmFhYmVlNmRmYzg4ZTljZTYyMTc3MDc5NGUxMGJjY2YxNjNjZGQ4YzJlY2QzZTkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonBoneOverrides.cs#L69-L110",
+          "version": "repo-lines-v1:sha256:c809fbfb9639b2eef3fd283b2d552ebfc3a2b649eb319a3fc1f60524b0b32e5d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzMWZlMjAxMzdhYWZkZTgyMjc1NmI4YTI2ZjM0MzRjZGIyNWZiZmJhYWFmMTA4NTFiYWI5MTQ5YjVhNWJhMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkZmJjODQ5MzRlZTRmZDRmZDA2ZTZhMmIzZjNkNGQzYTM5ODZlN2U0ODg5MWQ3NGQyMjc4ZTgxYWVjNjUwMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0YWU0ZDVkYzQ0ZTU4MGI4OTc3OWM1NDdhYzRkYzJiZjI2YWEzMzE1MTNkMzg1MDQ4ZjQzNTBiNGMxMzMyMTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5f1227d240b148ee85e2eb6e763b18b1",
+      "statement": "Unity poses an imported model's hierarchy from the first animation take's first frame rather than from the FBX's bind pose, so whichever take an exported FBX leads with becomes the rig's rest pose for everything that reads it live off the Transforms.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L469-L501",
+          "version": "repo-lines-v1:sha256:92cbe700523b7ccabc8fdf3cb89e62f6032c4d7c89254195903d0d572fef5a70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YzI2OTU3NjAxOGRmOTkxNGM5MmE3NDI5MjE1MTU2MWM2ZGMyYjIxMjE0Y2Y0YjQ4ODFjOGM5MTEzZDQ1MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYWEwMTlkOTJmZmUxMGNiZGRmM2I4ZWFlZmNiYWY4OWQyNWFmYzRhNWM1YWM1ZWQwMWVmYWUxMzRhYjAyODEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwZjI0ZDQ1MzY5ZGQ2MDJhZDcwMzY3YjhkNGRkNDJmZGY4YzQyZGUzZjEwYjI0YzE1NzVmOTdiY2ZmZDk5ODkifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonBone.cs#L66-L74",
+          "version": "repo-lines-v1:sha256:9bf8ef1fe400a32cff67ca5af58465b0bc282f38a1fc8ce9fc779b0b9803c820:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjA4YzgwZDcxYjhhZjQ3MzNlMzk2NjMwMTZmYTdiMTI0OTRlYTYxOTE3OTA3YzIxYjQ2MDViOGZiZGI1ZGU1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJiNmRjOTBiMmY3OTI5NjNkY2RhZGZlZmI0MDg0ODU0OTNjMDNjM2UxYTgwZjE0OWJjNjM4MDNjZGQwNDY4MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjQwZjQxOTA2NTk2NWU2M2Y3MjY4YzRiZWNmMjNlMzk5ODc5N2JmMGQ5YWNmNmU0M2UxYzNiMWJhYjdhOTU0MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmJmNGJmOGMzNmFlZWY3ZWEwZmQ0Yjk3ZWE4NDJhMmRiOGMwMzI3ZDYzOWUzMWVkM2Q2NjAzZWI4OTMxMmQ2MiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fb6d3becc7434db6a9892de77a7e85c4",
+      "statement": "batch_retarget.py moves the T-Pose track to the bottom of the model rig's NLA stack immediately before export, because push_to_nla appends a new track per clip and would otherwise bury the rest track the blend was saved with; a setup lacking that track now raises rather than exporting a posed bind.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L469-L501",
+          "version": "repo-lines-v1:sha256:92cbe700523b7ccabc8fdf3cb89e62f6032c4d7c89254195903d0d572fef5a70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YzI2OTU3NjAxOGRmOTkxNGM5MmE3NDI5MjE1MTU2MWM2ZGMyYjIxMjE0Y2Y0YjQ4ODFjOGM5MTEzZDQ1MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYWEwMTlkOTJmZmUxMGNiZGRmM2I4ZWFlZmNiYWY4OWQyNWFmYzRhNWM1YWM1ZWQwMWVmYWUxMzRhYjAyODEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwZjI0ZDQ1MzY5ZGQ2MDJhZDcwMzY3YjhkNGRkNDJmZGY4YzQyZGUzZjEwYjI0YzE1NzVmOTdiY2ZmZDk5ODkifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L364-L376",
+          "version": "repo-lines-v1:sha256:50da9c8f419c887d82586386cb2b5e429dfc234dcad350601adcd9442d62af1b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOTUwY2FmNjlkZTI5MzcyYjNjNTYyYzJmZTkyYmJlNDM1YmQ5NjEwY2I4OTAzMTQ0ZjA5YTVhNjc1NDJmZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5OTlmNjAyN2MzMDRmODUzNWY3YWUxNWViMGQ3ZGZiMjAwNDVhMzZhMjJlMjYwODIzZGM0YmJhN2U3ZTIyODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhMjIxZDU0NzE2ZjZjNTJkMDZhYjgyYjE2OWNhYmI2MzY3NGIzMzdkZTgxNTAzMDMyZjhlZDJkZDdiMWNmODAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_092a32b079374705921a10522b3667b4",
+      "statement": "A posed FBX bind is invisible to a Blender re-import, which reconstructs the armature from the file's bind-pose data and shows a clean rest pose; only Unity's importer substitutes the first take, so the imported hierarchy has to be checked in Unity.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/batch_retarget.py#L503-L533",
+          "version": "repo-lines-v1:sha256:fbe9db6932b1fe344ded06e62a63de0df9fdf4c01994e626031d056e66cc2294:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NWMzMGYyOGE3MDQ4ZGIwN2U2NGYyMmZkNDA4MmVlNzFlNDNlMmM1ODIwNjJkMjVhNzA5OWJmYzBjMjE1ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwM2MxMTk1ZjUyNjgyYjgyZTUyNGQ1YTkwYmRjNmM1MmE5ZjlmMDc1NTNhNzQyZjJiNzZjMzkwYWY4M2YxZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlMTQ0ODBiNTA2NmQ4MjEzYmFhYmVlNmRmYzg4ZTljZTYyMTc3MDc5NGUxMGJjY2YxNjNjZGQ4YzJlY2QzZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fb5b2c59c8354de28a6286d6ad0b4d47",
+      "statement": "Re-exporting an FBX to the same path preserves its GUID through the surviving .meta but churns the internal file IDs of every bone Transform and AnimationClip, breaking each reference into the model and surfacing only as a skeleton that can no longer resolve its root.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L292-L300",
+          "version": "repo-lines-v1:sha256:bd9174c06f144e9e49e8f68415df05994a48c5e4ac41bcdb224f1083cf53d3ea:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNThkYTllZWIwMTlmN2JmZTNkZDM2MGFhNjA2MzYzOTJjNmM3ZDE3NDI4YzgzNDBkMTZmMzk4ZjFlZDk2NGUzZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWE0ZGY5N2ZlNWRiNGYxODMwNDYxYmVhYWY4YmFjZDI5MGU4MTM1ZGJiNjk1MmRhNWZhZjRkYTc3NGVhZDg3ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjgzOTkzY2Q5NmY2MmM0YmQwNmE2NjNjZGZhNTI3MTNhMjIyYzUzZTA5NTU2Njc1YmU0MDc2MzQ2OWI3NTg1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWI2ZDU4OTdhNzY1NTAxNzYwMmEzNmVmZjgyNTNmZTM3ZjcxNzAwNjNjODdmNWFjZTdlNGY2NDgyNGUwMWZhNiJ9"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs#L86-L116",
+          "version": "repo-lines-v1:sha256:516c3482460ac1bdf6967c5a74bd9cff8046f5acf2b5c900e63d991c3fe34cff:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiMTc5NDI3ZGU2YmIwOTg4NDA2NzUxYzJhYjFlNzdjNWZjNmYwNjc2ZWI5MTJlZjdmZmQzNGFhM2FjZGY2NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUwNDM1ZmFkYTgwNzZlNjhiZTNiNjdiZjkzYzcxMGM1ZmYxMTM0NDMyOGJlMjkwNzVhYWRmZjU0M2M4NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2MGM5YzY3MmZiYjYyMTA2M2Q3YWNiYTczNWNkM2Q5YTZmNDAxMDBjYWIwOGFjN2UwOTU5ZDJmODE0ZWZjZjEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-09-03T11:06:29.275Z"
+  }
+}

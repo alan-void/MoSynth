@@ -12,6 +12,7 @@ Never pass --factory-startup: the Rokoko addon supplies the second retarget stag
 
 import argparse
 import fnmatch
+import json
 import math
 import os
 import sys
@@ -42,6 +43,12 @@ class SetupError(Exception):
 # the exit code alone cannot tell a caller that a batch actually ran. This is the sentinel the
 # Unity launcher looks for.
 DONE = "done"
+
+# Three outcomes a caller has to tell apart, because "some clips were skipped" is neither a
+# success nor a reason to throw the shard away.
+EXIT_OK = 0
+EXIT_FATAL = 1
+EXIT_SKIPPED = 2
 
 
 def log(message):
@@ -182,7 +189,7 @@ def drop_action(action):
 # --- pipeline stages ------------------------------------------------------------------
 
 
-def import_bvh_action(path, setup):
+def import_bvh_action(path, setup, keep_position):
     """Imports a BVH and returns its action, discarding the armature it arrived on.
 
     The setup's source skeleton already carries the rest pose the constraints were authored
@@ -206,7 +213,9 @@ def import_bvh_action(path, setup):
     if action is None:
         raise SetupError("BVH has no animation: " + os.path.basename(path))
 
-    check_skeleton_matches(obj, setup.source, os.path.basename(path))
+    check_skeleton_matches(obj, setup, os.path.basename(path))
+    if keep_position:
+        keep_capture_position(action, obj, setup.source)
 
     # Removing the object would take its single-user action with it.
     action.use_fake_user = True
@@ -217,24 +226,86 @@ def import_bvh_action(path, setup):
     return action
 
 
-def check_skeleton_matches(imported, source, label):
+def action_fcurves(action):
+    """Every fcurve of an action, whichever way this Blender stores them.
+
+    Blender 4.4 moved an action's curves into layers and slots; the flat `fcurves` list is only
+    there for legacy actions.
+    """
+    flat = getattr(action, "fcurves", None)
+    if flat is not None:
+        for curve in flat:
+            yield curve
+        return
+    for layer in action.layers:
+        for strip in layer.strips:
+            for channelbag in getattr(strip, "channelbags", []):
+                for curve in channelbag.fcurves:
+                    yield curve
+
+
+def keep_capture_position(action, imported, source):
+    """Re-expresses location curves against the setup's rest, so a clip keeps the world position
+    it was captured at rather than the one its rest offset implies.
+
+    A BVH carries each joint's rest OFFSET beside absolute position channels, and Blender turns
+    the channels into a location measured from that rest. Bandai-Namco dataset-2 gives the same
+    actor three different Hips OFFSETs, up to 8.8m apart, while the positions it actually
+    recorded all sit within centimetres of the origin - so transplanting an action onto one
+    chosen rest would fling two thirds of the clips metres away from where they were captured.
+    """
+    for bone in imported.data.bones:
+        target = source.data.bones.get(bone.name)
+        if target is None:
+            continue
+        delta = bone.head_local - target.head_local
+        if delta.length < 1e-9:
+            continue
+        # A pose bone's location is read in its own rest frame, so the armature-space
+        # difference has to be rotated into it before it can be added to the curves.
+        local = target.matrix_local.to_3x3().inverted() @ delta
+        data_path = 'pose.bones["{}"].location'.format(bone.name)
+        for curve in action_fcurves(action):
+            if curve.data_path != data_path:
+                continue
+            shift = local[curve.array_index]
+            for key in curve.keyframe_points:
+                key.co[1] += shift
+                key.handle_left[1] += shift
+                key.handle_right[1] += shift
+            curve.update()
+
+
+def check_skeleton_matches(imported, setup, label):
     """Guards against a BVH from another dataset or subject reaching this setup, which would
-    otherwise retarget into plausible-looking nonsense."""
-    missing = sorted({b.name for b in source.data.bones} - {b.name for b in imported.data.bones})
+    otherwise retarget into plausible-looking nonsense.
+
+    Lengths are compared over the bones the retarget actually uses, not every bone. A BVH
+    root's "length" is the offset down to the first real joint, which records where the actor
+    stood in the capture volume rather than anything about the actor: Bandai-Namco dataset-2
+    alone holds three such placements, metres apart, so measuring it would reject most of the
+    very dataset the setup was built from.
+    """
+    missing = sorted({b.name for b in setup.source.data.bones}
+                     - {b.name for b in imported.data.bones})
     if missing:
         raise SetupError("{} is missing bones the setup's source skeleton has: {}".format(
             label, ", ".join(missing[:8]) + (" ..." if len(missing) > 8 else "")))
 
+    measured = {source_name for source_name, _, _, _ in setup.bone_map if source_name}
     worst_name, worst = None, 0.0
-    for bone in source.data.bones:
+    for bone in setup.source.data.bones:
+        if bone.name not in measured:
+            continue
         delta = abs(imported.data.bones[bone.name].length - bone.length)
         if delta > worst:
             worst_name, worst = bone.name, delta
     if worst > MAX_BONE_LENGTH_MISMATCH:
         raise SetupError(
-            '{} has different bone proportions from the setup\'s source skeleton ("{}" differs '
-            "by {:.4f}m). It is probably from another subject or dataset; give it its own setup "
-            "blend.".format(label, worst_name, worst))
+            "{} has different bone proportions from the setup's source skeleton "
+            '("{}" differs by {:.4f}m). It is probably from another subject or dataset; '
+            "give it its own setup blend.".format(label, worst_name, worst))
+
 
 
 def bake_pose(obj, frame_start, frame_end):
@@ -330,11 +401,26 @@ def clear_clip_tracks(obj):
     assign_action(obj, None)
 
 
-def process_clip(scene, setup, path):
+def root_world_position(obj, scene, frame):
+    """Where the model's root bone stands at a frame, in world space.
+
+    Recorded per take because a BVH's rest Hips offset is discarded by the action-only
+    transplant: dataset-2 alone holds three of them, metres apart, and a take landing far from
+    the others is the symptom.
+    """
+    scene.frame_set(frame)
+    bpy.context.view_layer.update()
+    root = next((b for b in obj.pose.bones if b.parent is None), None)
+    if root is None:
+        return None
+    return [round(v, 5) for v in (obj.matrix_world @ root.matrix).to_translation()]
+
+
+def process_clip(scene, setup, path, keep_position):
     clip_name = os.path.splitext(os.path.basename(path))[0]
     started = time.time()
 
-    raw = import_bvh_action(path, setup)
+    raw = import_bvh_action(path, setup, keep_position)
     assign_action(setup.source, raw)
     frame_start, frame_end = action_frame_range(raw)
     scene.frame_start, scene.frame_end = frame_start, frame_end
@@ -344,6 +430,8 @@ def process_clip(scene, setup, path):
 
     retargeted = retarget_to_model(scene, setup, baked, clip_name)
     retargeted.name = clip_name
+    # Only while the action is still linked; push_to_nla unlinks it.
+    root_start = root_world_position(setup.model, scene, frame_start)
     push_to_nla(setup.model, retargeted, clip_name)
 
     assign_action(setup.source, None)
@@ -351,12 +439,70 @@ def process_clip(scene, setup, path):
     drop_action(raw)
     bpy.data.orphans_purge(do_recursive=True)
 
+    seconds = time.time() - started
     log('  {} -> take "{}"  {} frames  {:.1f}s'.format(
-        os.path.basename(path), clip_name, frame_end - frame_start + 1, time.time() - started))
+        os.path.basename(path), clip_name, frame_end - frame_start + 1, seconds))
+    return {"bvh": os.path.basename(path), "take": clip_name,
+            "frames": frame_end - frame_start + 1,
+            "frame_start": frame_start, "frame_end": frame_end,
+            "seconds": round(seconds, 2), "root_start_xyz": root_start}
+
+
+def recover_from_failed_clip(setup, known_objects):
+    """Puts the setup back as process_clip found it, after a clip raised part-way through.
+
+    Anything the run created and did not clean up is debris - most likely the duplicated proxy
+    a failed Rokoko retarget left behind. It is matched against the objects the blend opened
+    with rather than against the setup's own three, because a setup blend may legitimately hold
+    other armatures. Left in place, the debris and any still-linked action would follow the
+    failure into the next clip instead of only costing this one.
+    """
+    for obj in [o for o in bpy.data.objects if o not in known_objects]:
+        bpy.data.objects.remove(obj, do_unlink=True)
+    for obj in (setup.source, setup.target, setup.model):
+        # NLA tracks are deliberately untouched: they hold the takes already retargeted.
+        if obj.animation_data:
+            obj.animation_data.action = None
+    bpy.data.orphans_purge(do_recursive=True)
+
+
+def order_rest_take_first(setup):
+    """Moves the rest-pose track to the bottom of the NLA stack, which makes it the FBX's first
+    take.
+
+    Unity poses an imported model's hierarchy from the first take's first frame, and that pose is
+    what every consumer then reads as the rig's rest -- Skeleton takes its rest live off those
+    Transforms rather than from the FBX's bind pose. Leading with a locomotion take therefore
+    makes a mid-stride capture the rig's rest, which silently rotates the character frame's
+    forward axis and leaves the bind unusable. See
+    openwiki/animation-tools/retargeting-pipeline.md.
+    """
+    anim = setup.model.animation_data
+    tracks = list(anim.nla_tracks) if anim else []
+    rest = next((t for t in tracks if t.name == REST_TRACK_NAME), None)
+    if rest is None or not rest.strips or rest.strips[0].action is None:
+        raise SetupError(
+            'The model rig has no "{}" NLA track holding an action, so the exported FBX would '
+            "lead with a locomotion take and every consumer would read a frame of that as the "
+            "rig's rest pose. Put the rig in its rest pose, push that action to the NLA under "
+            "that name, and save the blend.".format(REST_TRACK_NAME))
+
+    if tracks[0] is rest:
+        return
+
+    # NlaTracks has no reorder, so the stack is rebuilt in the order wanted. Every track here
+    # carries exactly one strip, pushed by push_to_nla.
+    ordered = [(t.name, t.strips[0].action)
+               for t in [rest] + [t for t in tracks if t is not rest] if t.strips]
+    for track in tracks:
+        anim.nla_tracks.remove(track)
+    for name, action in ordered:
+        push_to_nla(setup.model, action, name)
 
 
 def export_fbx(setup, out_path, simplify):
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    order_rest_take_first(setup)
 
     # Selection-scoped, so the source and cleaned skeletons never reach the FBX no matter
     # what else the setup blend holds.
@@ -375,24 +521,93 @@ def export_fbx(setup, out_path, simplify):
         bake_anim_use_all_actions=False,
         bake_anim_force_startend_keying=True,
         bake_anim_simplify_factor=simplify,
-        apply_scale_options="FBX_SCALE_NONE",
+        # Units scaling belongs in the FBX header, not on each object. FBX_SCALE_NONE writes it
+        # as a scale of 100 on the armature node, and rigid FK ignores scale, so every bone rest
+        # offset then reads 100x too small on import while the root curve stays in metres.
+        apply_scale_options="FBX_SCALE_UNITS",
         axis_forward="-Z",
         axis_up="Y",
         path_mode="COPY",
         embed_textures=False)
 
 
+def collect_paths(args):
+    """The clips to process: an explicit list if one was given, else a folder scan."""
+    if args.files_from:
+        if not os.path.isfile(args.files_from):
+            raise SetupError("No such clip list: " + args.files_from)
+        with open(args.files_from, encoding="utf-8") as handle:
+            paths = [line.strip() for line in handle if line.strip()]
+        if not paths:
+            raise SetupError("Clip list is empty: " + args.files_from)
+        missing = [p for p in paths if not os.path.isfile(p)]
+        if missing:
+            raise SetupError("{} path(s) listed in {} do not exist, starting with {}".format(
+                len(missing), args.files_from, missing[0]))
+        return paths
+
+    if not args.bvh_dir:
+        raise SetupError("Pass --bvh-dir or --files-from to say which clips to retarget.")
+    if not os.path.isdir(args.bvh_dir):
+        raise SetupError("No such BVH folder: " + args.bvh_dir)
+    paths = [os.path.join(args.bvh_dir, n) for n in sorted(os.listdir(args.bvh_dir))
+             if fnmatch.fnmatch(n, args.pattern)]
+    if not paths:
+        raise SetupError('No files matching "{}" in {}'.format(args.pattern, args.bvh_dir))
+    return paths
+
+
+def write_manifest(args, setup, takes, skipped, elapsed, drift):
+    """Records what actually went into the FBX, which stdout alone does not survive to say."""
+    folder = os.path.dirname(os.path.abspath(args.manifest))
+    os.makedirs(folder, exist_ok=True)
+    record = {
+        "output": os.path.abspath(args.out),
+        "blend": bpy.data.filepath,
+        "setup": {"source": setup.source.name, "cleaned": setup.target.name,
+                  "model": setup.model.name, "mapped_bones": len(setup.bone_map)},
+        "simplify": args.simplify,
+        "keep_capture_position": args.keep_capture_position,
+        "seconds": round(elapsed, 1),
+        "rest_drift_m": drift,
+        "clips": len(takes),
+        "frames": sum(take["frames"] for take in takes),
+        "takes": takes,
+        "skipped": skipped,
+    }
+    with open(args.manifest, "w", encoding="utf-8") as handle:
+        json.dump(record, handle, indent=2)
+
+
 def parse_args(argv):
     parser = argparse.ArgumentParser(prog="batch_retarget", description=__doc__)
-    parser.add_argument("--bvh-dir", required=True)
+    parser.add_argument("--bvh-dir",
+                        help="folder of BVH files to scan with --pattern; omit when passing "
+                             "--files-from")
     parser.add_argument("--pattern", default="*.bvh",
                         help="glob matched against file names in --bvh-dir")
+    parser.add_argument("--files-from",
+                        help="text file listing BVH paths, one per line, in the order to "
+                             "process. Replaces --bvh-dir/--pattern, so a caller can hand over an "
+                             "arbitrary set of clips rather than one a glob happens to describe; "
+                             "this is how a sharded batch is driven")
     parser.add_argument("--out", required=True, help="destination .fbx")
     parser.add_argument("--limit", type=int, default=0, help="process at most N clips (smoke runs)")
     parser.add_argument("--simplify", type=float, default=0.0,
                         help="FBX keyframe reduction; 0 keeps every key. On a 7840-frame LAFAN "
                              "clip, 1.0 costs about 0.2 degrees and saves roughly two thirds of "
                              "the file size")
+    parser.add_argument("--keep-capture-position", action="store_true",
+                        help="hold each clip at the world position its channels recorded. A "
+                             "BVH's rest offset can differ clip to clip while the recorded "
+                             "positions do not; without this the action is re-framed onto the "
+                             "setup's rest, which moves such clips by that difference")
+    parser.add_argument("--manifest",
+                        help="write a JSON record of the run here: every take with its source "
+                             "BVH and frame range, plus whatever was skipped")
+    parser.add_argument("--continue-on-error", action="store_true",
+                        help="log a clip that fails and carry on, instead of losing the whole "
+                             "run's work to it. The export still happens; the exit code is 2")
     parser.add_argument("--dry-run", action="store_true",
                         help="resolve the setup and list the clips, then stop")
     return parser.parse_args(argv)
@@ -409,50 +624,72 @@ def main():
     log('setup: source "{}" -> cleaned "{}" -> model "{}" ({} mapped bones)'.format(
         setup.source.name, setup.target.name, setup.model.name, len(setup.bone_map)))
 
-    if not os.path.isdir(args.bvh_dir):
-        raise SetupError("No such BVH folder: " + args.bvh_dir)
-    paths = [os.path.join(args.bvh_dir, n) for n in sorted(os.listdir(args.bvh_dir))
-             if fnmatch.fnmatch(n, args.pattern)]
+    paths = collect_paths(args)
     if args.limit:
         paths = paths[:args.limit]
-    if not paths:
-        raise SetupError('No files matching "{}" in {}'.format(args.pattern, args.bvh_dir))
-    log('{} clip(s) matching "{}"'.format(len(paths), args.pattern))
+    log("{} clip(s) to process".format(len(paths)))
 
     if args.dry_run:
         for path in paths:
             log("  would process " + os.path.basename(path))
         log(DONE)
-        return
+        return EXIT_OK
 
     snapshot = rest_snapshot(setup.model)
     clear_clip_tracks(setup.model)
 
+    known_objects = set(bpy.data.objects)
+    takes, skipped = [], []
     started = time.time()
     for index, path in enumerate(paths, 1):
         log("[{}/{}]".format(index, len(paths)))
-        process_clip(scene, setup, path)
+        try:
+            takes.append(process_clip(scene, setup, path, args.keep_capture_position))
+        except Exception as error:
+            if not args.continue_on_error:
+                raise
+            # A clip that fails part-way leaves the setup holding its action and possibly a
+            # stray proxy, which would corrupt the next clip rather than only losing this one.
+            recover_from_failed_clip(setup, known_objects)
+            skipped.append({"bvh": os.path.basename(path), "reason": str(error) or repr(error)})
+            log("  SKIP {}: {}".format(os.path.basename(path), error))
+            continue
 
         drift = rest_drift(setup.model, snapshot)
         if drift > MAX_REST_DRIFT:
             raise SetupError(
-                'The model rig\'s rest pose drifted by {:.6f}m after "{}". Rokoko applies and '
+                "The model rig's rest pose drifted by {:.6f}m after \"{}\". Rokoko applies and "
                 "un-applies the target's object transform on every clip; split the batch into "
                 "smaller runs.".format(drift, os.path.basename(path)))
 
+    elapsed = time.time() - started
+    final_drift = rest_drift(setup.model, snapshot)
     log("retargeted {} clip(s) in {:.0f}s; rest-pose drift {:.2e}m".format(
-        len(paths), time.time() - started, rest_drift(setup.model, snapshot)))
+        len(takes), elapsed, final_drift))
+
+    if not takes:
+        raise SetupError("Every clip failed; there is nothing to export.")
 
     export_fbx(setup, args.out, args.simplify)
     log("wrote {} ({:.1f} MB)".format(args.out, os.path.getsize(args.out) / 1e6))
+
+    if args.manifest:
+        write_manifest(args, setup, takes, skipped, elapsed, final_drift)
+        log("manifest " + args.manifest)
+
+    if skipped:
+        log("WARNING: {} clip(s) skipped: {}{}".format(
+            len(skipped), ", ".join(s["bvh"] for s in skipped[:8]),
+            " ..." if len(skipped) > 8 else ""))
     log(DONE)
+    return EXIT_SKIPPED if skipped else EXIT_OK
 
 
 if __name__ == "__main__":
     # Blender exits 0 after an uncaught exception in --python, so the launcher would read a
     # failed batch as a success. Every failure path has to set the exit code itself.
     try:
-        main()
+        sys.exit(main())
     except SetupError as error:
         log("ERROR: {}".format(error))
         sys.exit(1)
