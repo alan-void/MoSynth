@@ -73,6 +73,10 @@ namespace AnimationTools.Editor
         private Vector3 _targetPos = Vector3.zero;
         private bool _frameOnNextDraw;
 
+        private int _cameraControlId;
+        private bool _orbiting;
+        private CursorWrap _cameraCursor;
+
         private Skeleton _skeleton;
         private int _skeletonContentHash;
         private SkeletonData _skeletonData;
@@ -331,29 +335,59 @@ namespace AnimationTools.Editor
             _overlay.Flush();
         }
 
+        /// <summary>Orbit on left-drag, pan on middle-drag, dolly on the wheel.</summary>
+        /// <remarks>
+        /// The drags take <c>hotControl</c> so they survive the cursor leaving the pane, and
+        /// <see cref="CursorWrap"/> brings it back in at the opposite edge. This preview is often
+        /// 260px tall: without both, an orbit cannot get round a character without letting go and
+        /// starting again.
+        /// </remarks>
         private void HandleCameraControls(Rect rect)
         {
+            _cameraControlId = GUIUtility.GetControlID(FocusType.Passive);
             var e = Event.current;
-            if (!rect.Contains(e.mousePosition)) return;
+            var dragging = GUIUtility.hotControl == _cameraControlId;
 
-            if (e.type == EventType.MouseDrag && e.button == 0)
+            switch (e.GetTypeForControl(_cameraControlId))
             {
-                _drag.x += e.delta.x * 0.5f;
-                _drag.y += e.delta.y * 0.5f;
-                e.Use();
+                case EventType.MouseDown when (e.button is 0 or 2) && rect.Contains(e.mousePosition):
+                    GUIUtility.hotControl = _cameraControlId;
+                    _orbiting = e.button == 0;
+                    EditorGUIUtility.SetWantsMouseJumping(1);
+                    e.Use();
+                    return;
+
+                case EventType.MouseDrag when dragging:
+                    var motion = _cameraCursor.DeltaWithin(rect, e);
+                    if (_orbiting) Orbit(motion);
+                    else Pan(motion);
+
+                    e.Use();
+                    return;
+
+                case EventType.MouseUp when dragging:
+                    GUIUtility.hotControl = 0;
+                    EditorGUIUtility.SetWantsMouseJumping(0);
+                    e.Use();
+                    return;
+
+                case EventType.ScrollWheel when rect.Contains(e.mousePosition):
+                    _distance = Mathf.Max(0.1f, _distance + e.delta.y * 0.1f);
+                    e.Use();
+                    return;
             }
-            else if (e.type == EventType.MouseDrag && e.button == 2)
-            {
-                var right = _previewRenderUtility.camera.transform.right;
-                var up = _previewRenderUtility.camera.transform.up;
-                _targetPos -= (right * e.delta.x - up * e.delta.y) * (0.01f * _distance);
-                e.Use();
-            }
-            else if (e.type == EventType.ScrollWheel)
-            {
-                _distance = Mathf.Max(0.1f, _distance + e.delta.y * 0.1f);
-                e.Use();
-            }
+        }
+
+        private void Orbit(Vector2 delta)
+        {
+            _drag.x += delta.x * 0.5f;
+            _drag.y += delta.y * 0.5f;
+        }
+
+        private void Pan(Vector2 delta)
+        {
+            var camera = _previewRenderUtility.camera.transform;
+            _targetPos -= (camera.right * delta.x - camera.up * delta.y) * (0.01f * _distance);
         }
 
         /// <summary>

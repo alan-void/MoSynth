@@ -137,33 +137,32 @@ public class ClipTimeAxisTests
     }
 
     [Test]
-    public void ClampToContentNeverScrollsPastEitherEndWhileTheClipOverflows()
+    public void PanningIsNotFencedByTheClip()
     {
-        var axis = Axis(scrollFrames: -500f);
-        axis.ClampToContent(FrameCount);
-        Assert.AreEqual(0f, axis.scrollFrames, Tolerance);
+        // The clip is content to look at, not a wall to bump into. A view that has run off the end
+        // of it is one you are allowed to hold; the ruler keeps numbering into it and Home is the
+        // way back.
+        var axis = Axis();
 
-        axis = Axis(scrollFrames: 5000f);
-        axis.ClampToContent(FrameCount);
-        Assert.AreEqual(FrameCount - axis.VisibleFrameSpan, axis.scrollFrames, Tolerance);
+        axis.PanPixels(-1_000_000f);
+        Assert.Less(axis.LeftEdgeFrame, -1000f);
+
+        axis.PanPixels(2_000_000f);
+        Assert.Greater(axis.LeftEdgeFrame, FrameCount + 1000f);
     }
 
     [Test]
-    public void AClipSmallerThanTheViewCanBeSlidAcrossIt()
+    public void TheEdgeFramesReportWhatIsOnScreenEvenOutsideTheClip()
     {
-        // Zoomed out past the clip the scroll range inverts: the clip slides between the left and
-        // right edges instead of being pinned left with dead space beside it.
-        var axis = Axis(pixelsPerFrame: 0.25f);
-        var slack = FrameCount - axis.VisibleFrameSpan;
-        Assert.Less(slack, 0f);
+        // The ruler draws from these, which is what lets it label negative frames; the clamped pair
+        // beside them is what indexes per-frame data and must never leave the clip.
+        var axis = Axis(pixelsPerFrame: 4f, scrollFrames: -200f);
 
-        axis.scrollFrames = 500f;
-        axis.ClampToContent(FrameCount);
-        Assert.AreEqual(0f, axis.scrollFrames, Tolerance);
+        Assert.AreEqual(-200f, axis.LeftEdgeFrame, Tolerance);
+        Assert.AreEqual(-200f + View.width / 4f, axis.RightEdgeFrame, Tolerance);
 
-        axis.scrollFrames = -5000f;
-        axis.ClampToContent(FrameCount);
-        Assert.AreEqual(slack, axis.scrollFrames, Tolerance);
+        Assert.AreEqual(0, axis.FirstVisibleFrame(FrameCount));
+        Assert.GreaterOrEqual(axis.LastVisibleFrame(FrameCount), 0);
     }
 
     [Test]
@@ -172,7 +171,7 @@ public class ClipTimeAxisTests
         var axis = Axis();
         var frameAtLeftEdge = axis.XToFrame(View.xMin);
 
-        axis.PanPixels(40f, FrameCount);
+        axis.PanPixels(40f);
 
         Assert.AreEqual(frameAtLeftEdge + 40f / axis.pixelsPerFrame, axis.scrollFrames, Tolerance);
     }

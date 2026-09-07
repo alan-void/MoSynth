@@ -62,10 +62,27 @@ public class ClipTimelineTickTests
     }
 
     [Test]
+    public void FirstTickHandlesTheFramesBeforeTheClip()
+    {
+        // Panning is unfenced, so the ruler starts left of frame 0 and the loop has to begin on a
+        // real multiple of the step. Integer remainders go negative here, which is the trap.
+        Assert.AreEqual(-25, ClipTimelineTicks.FirstTickAtOrAfter(-26, 25));
+        Assert.AreEqual(-25, ClipTimelineTicks.FirstTickAtOrAfter(-25, 25));
+        Assert.AreEqual(0, ClipTimelineTicks.FirstTickAtOrAfter(-24, 25));
+    }
+
+    [Test]
     public void LabelsSwitchBetweenFramesAndSeconds()
     {
         Assert.AreEqual("120", ClipTimelineTicks.Label(120, 1f / 30f, false));
         StringAssert.EndsWith("s", ClipTimelineTicks.Label(120, 1f / 30f, true));
+    }
+
+    [Test]
+    public void LabelsCountBackwardsBeforeTheClipStarts()
+    {
+        Assert.AreEqual("-120", ClipTimelineTicks.Label(-120, 1f / 30f, false));
+        StringAssert.StartsWith("-", ClipTimelineTicks.Label(-120, 1f / 30f, true));
     }
 }
 }

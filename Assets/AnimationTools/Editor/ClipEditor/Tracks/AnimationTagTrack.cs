@@ -81,6 +81,9 @@ namespace AnimationTools.Editor
             return true;
         }
 
+        public override bool TryGetContentRange(out int firstClipFrame, out int lastClipFrame) =>
+            AnimationTagEdits.ContentRange(Channels, out firstClipFrame, out lastClipFrame);
+
         // ---- lane ----
 
         public override void DrawTrack(in TrackDrawContext context)
@@ -375,7 +378,6 @@ namespace AnimationTools.Editor
             if (e.shift) _selection.Toggle(row, picked);
             else _selection.SetTo(row, picked);
 
-            context.Editor.SeekToClipFrame(picked);
             e.Use();
         }
 

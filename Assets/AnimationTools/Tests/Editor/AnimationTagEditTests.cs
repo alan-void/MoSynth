@@ -18,6 +18,30 @@ namespace AnimationTools.Tests
         private static List<int> Keys(params int[] frames) => new(frames);
 
         [Test]
+        public void ContentRangeSpansEveryChannel()
+        {
+            var channels = new List<AnimationTagging.TagChannel>
+            {
+                new() { toggles = Keys(40, 90) },
+                new() { toggles = Keys(12, 60) }
+            };
+
+            Assert.IsTrue(AnimationTagEdits.ContentRange(channels, out var first, out var last));
+            Assert.AreEqual(12, first);
+            Assert.AreEqual(90, last);
+        }
+
+        [Test]
+        public void ContentRangeOfEmptyChannelsIsFalse()
+        {
+            // Home falls back to framing the whole clip on this, so an empty component must not
+            // report a range at frame 0.
+            Assert.IsFalse(AnimationTagEdits.ContentRange(null, out _, out _));
+            Assert.IsFalse(AnimationTagEdits.ContentRange(
+                new List<AnimationTagging.TagChannel> { new() }, out _, out _));
+        }
+
+        [Test]
         public void InsertAddsAKeyInOrder()
         {
             Assert.AreEqual(new[] { 2, 5, 9 },

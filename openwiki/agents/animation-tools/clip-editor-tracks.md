@@ -44,6 +44,7 @@ public sealed class MyTrack : AnimationClipComponentTrack
     public override bool DrawsPreviewOverlay => false;   // gate; false skips the overlay entirely
 
     public override bool TryGetSelectionRange(out int first, out int last) => false;
+    public override bool TryGetContentRange(out int first, out int last) => false;
 
     public override void OnEnable() { }                  // Editor/Component already assigned
     public override void OnDisable() { }                 // dispose textures HERE
@@ -150,12 +151,42 @@ rect - so `HandleHeaderResize` must run **before** `DrawRows`, not after.
 selected - Blender's own view keys - because `A` is select-all in a keyframe lane and a Blender user
 reaches for it constantly. `F` still frames the slice.
 
-`.` asks the focused row's track via `TryGetSelectionRange`, rather than the track acting on the
-axis itself: `TrackDrawContext.Axis` is a **copy** of the `ClipTimeAxis` struct, so a track cannot
-zoom or scroll the view. A track that wants framing must answer the question, not do the work.
+Both framing keys ask the tracks rather than the tracks acting on the axis: `TrackDrawContext.Axis`
+is a **copy** of the `ClipTimeAxis` struct, so a track cannot zoom or scroll the view. A track that
+wants framing must answer the question, not do the work.
+
+- `.` asks the focused row via `TryGetSelectionRange`.
+- `Home` asks **every visible row** via `TryGetContentRange` and frames the union, falling back to
+  the whole clip when nothing answers. That is Blender's View All: it frames the keys, not the
+  range. `Shift+Home` always frames the whole clip.
+
+The min/max arithmetic behind both content ranges lives in the pure helpers - `AnimationTagEdits`
+and `FootfallEdits` - not in the tracks, so it is unit-tested with the rest of the edit maths.
 
 A track handling keys must therefore leave `Home` and `.` unclaimed - `TimelineKeymap` resolves them
 so they can appear in the summary, but both tag and gait tracks fall through without `e.Use()`.
+
+### Panning is a drag, not a `MouseDrag` case
+
+`HandlePan` runs **before** `DrawRuler` and `DrawRows`, because alt+left is a pan to the timeline and
+a box select to a track, and whichever sees the `MouseDown` first wins it. It takes `hotControl` like
+every other drag in that file.
+
+The cursor is wrapped by `CursorWrap`, which keeps it inside the lane rect and brings it back in at
+the opposite edge - Blender's region wrap. Unity's own `SetWantsMouseJumping` wraps at the edge of the
+*screen* and has no region-scoped variant, so it stays on underneath only as the fallback for
+platforms `CursorWrap.Move` cannot serve; on Windows it can never fire. The window's `OnDisable`
+calls `SetWantsMouseJumping(0)` in case it is closed mid-drag.
+
+**Take the delta from `CursorWrap.DeltaWithin`, never from `Event.delta`, in a drag that wraps.**
+Unity measures delta against the position it last saw, so the event after a wrap reports the jump as
+motion - a visible lurch mid-pan. `DeltaWithin` subtracts it back out, which is why the wrap and the
+delta live behind one call.
+
+Neither the scroll nor the zoom is clamped to the clip any more: `ClipTimeAxis.ClampToContent` is
+gone. Draw the ruler from `LeftEdgeFrame`/`RightEdgeFrame`, which report what is actually on screen
+and go negative; index per-frame data with `FirstVisibleFrame`/`LastVisibleFrame`, which stay clamped
+inside the clip and are what a lane is handed.
 
 ## Rules that lose data silently if broken
 
@@ -214,8 +245,10 @@ The timeline axis is in **clip** frames. `TrackDrawContext.LaneRect` is authorit
 - Draw and input share the method. Take `GUIUtility.hotControl` with a
   `GUIUtility.GetControlID(FocusType.Passive)` for a drag so it survives the cursor leaving the lane,
   and call `GetControlID` unconditionally so IDs stay aligned between Layout and Repaint.
-- Anything the track does not `Use()` falls through to the timeline's own handling, which scrubs the
-  playhead. That is deliberate: clicking a lane always moves the pose.
+- Anything the track does not `Use()` falls through to the timeline's own handling: zoom, pan and the
+  view-framing keys. It does **not** scrub — the playhead moves from the ruler and the step keys only,
+  so a click in a lane is free to mean selection. Do not seek from a click handler; both tracks used
+  to, and selecting an anchor moving the pose under it is the bug that got them stopped.
 
 ## Drawing a preview overlay
 

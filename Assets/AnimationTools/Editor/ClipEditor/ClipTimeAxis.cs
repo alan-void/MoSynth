@@ -64,8 +64,6 @@ namespace AnimationTools.Editor
             pixelsPerFrame = pixelsPerFrame <= 0f
                 ? FitPixelsPerFrame(frameCount)
                 : Mathf.Clamp(pixelsPerFrame, MinPixelsPerFrame, MaxPixelsPerFrameFor(frameCount));
-
-            ClampToContent(frameCount);
         }
 
         public float FrameToX(float frame) =>
@@ -73,6 +71,18 @@ namespace AnimationTools.Editor
 
         public float XToFrame(float x) =>
             pixelsPerFrame <= 0f ? 0f : scrollFrames + (x - ViewRect.xMin) / pixelsPerFrame;
+
+        /// <summary>The fractional frame at the left edge, which may sit outside the clip.</summary>
+        /// <remarks>
+        /// The scroll is deliberately unbounded - the clip is content to look at, not a wall to bump
+        /// into - so these two are the honest answer to "what is on screen" and
+        /// <see cref="FirstVisibleFrame"/> is the answer clamped to frames that actually exist. Draw
+        /// the ruler from these; index anything with the other pair.
+        /// </remarks>
+        public float LeftEdgeFrame => scrollFrames;
+
+        /// <summary>The fractional frame at the right edge, which may sit outside the clip.</summary>
+        public float RightEdgeFrame => scrollFrames + VisibleFrameSpan;
 
         /// <summary>How many frames the view spans, fractional.</summary>
         public float VisibleFrameSpan =>
@@ -110,16 +120,18 @@ namespace AnimationTools.Editor
                 MinPixelsPerFrame, MaxPixelsPerFrameFor(frameCount));
 
             scrollFrames = pivotFrame - (pivotX - ViewRect.xMin) / pixelsPerFrame;
-            ClampToContent(frameCount);
         }
 
         /// <summary>Scrolls by a pixel delta in view space; positive moves the content left.</summary>
-        public void PanPixels(float deltaX, int frameCount)
+        /// <remarks>
+        /// Nothing stops this at the ends of the clip. A pan that runs out of content is a view you
+        /// are allowed to hold, the ruler keeps numbering into it, and <c>Home</c> is the way back.
+        /// </remarks>
+        public void PanPixels(float deltaX)
         {
             if (pixelsPerFrame <= 0f) return;
 
             scrollFrames += deltaX / pixelsPerFrame;
-            ClampToContent(frameCount);
         }
 
         /// <summary>Zooms and scrolls so the inclusive frame range fills the view.</summary>
@@ -131,23 +143,6 @@ namespace AnimationTools.Editor
                 MinPixelsPerFrame, MaxPixelsPerFrameFor(frameCount));
 
             scrollFrames = firstFrame;
-            ClampToContent(frameCount);
-        }
-
-        /// <summary>Keeps the clip in view without pinning it there.</summary>
-        /// <remarks>
-        /// While the clip is larger than the view this is the familiar "never scroll past either
-        /// end". Once zoomed out far enough that the clip is smaller than the view, the range
-        /// inverts into a negative one: the clip can be slid anywhere between the left and right
-        /// edges, rather than being stuck against the left with dead space beside it.
-        /// </remarks>
-        public void ClampToContent(int frameCount)
-        {
-            var slack = frameCount - VisibleFrameSpan;
-
-            scrollFrames = slack >= 0f
-                ? Mathf.Clamp(scrollFrames, 0f, slack)
-                : Mathf.Clamp(scrollFrames, slack, 0f);
         }
     }
 }

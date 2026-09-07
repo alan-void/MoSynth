@@ -36,9 +36,6 @@ sources:
   - id: openwiki-source-e1ad0ab569ae74b451c3418f
     resource: repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs
 generated: {by: "claude-code", at: "2026-09-02T21:44:37.029Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-02T21:44:37.029Z
 ---
 
 # The annotated clip editor
@@ -66,8 +63,22 @@ flowchart LR
     Inspector -->|edits| Timeline
 ```
 
-The timeline is zoomable (wheel), pannable (middle-drag or alt-drag) and scrubbable, and `F` frames
-the slice while `A` frames the whole clip. It stays responsive on clips of several thousand frames —
+The timeline is zoomable (wheel) and pannable (middle-drag or alt-drag). Neither is fenced in by the
+clip: the view goes as far past either end as you push it, and the ruler keeps numbering out there -
+negative to the left of frame 0 - so you always know where you have got to. The cursor wraps inside
+the timeline itself, leaving at one edge and reappearing at the other, so one drag never runs out of
+desk and never wanders off across the display. Vertical panning stops at the ends of the lane list,
+which is the one bound left, and it is the scroll view's.
+
+`Home` frames the keyframes, `Shift+Home` the whole clip, `F` the slice and `.` the selection.
+`Space` plays and pauses the slice from anywhere in the window, and scrubbing while it plays moves
+playback rather than fighting it.
+
+**The playhead moves from the ruler and from the step keys, and from nothing else.** Clicking a lane
+selects a key there; it does not scrub. The two would otherwise fight over every diamond — which is
+what a click on an anchor used to do, seeking and selecting at once.
+
+It stays responsive on clips of several thousand frames —
 see [Why the bands are textures](#why-the-bands-are-textures-and-the-anchors-are-not).
 
 ## The two frame spaces
@@ -75,10 +86,12 @@ see [Why the bands are textures](#why-the-bands-are-textures-and-the-anchors-are
 This is the one thing worth knowing before reading any of the code. There are two ways to number a
 frame, they differ by `startFrame`, and confusing them is the easiest mistake to make here.
 
-- A **clip frame** indexes the whole baked animation. The preview poses clip frames, and the
-  timeline's axis runs over clip frames.
-- A **slice frame** is relative to `startFrame`. `GaitPhase.Footfall.frame` is a slice frame, so
-  that an anchor keeps meaning the same moment of motion when the slice is moved.
+- A **clip frame** indexes the whole baked animation. The preview poses clip frames, the timeline's
+  axis runs over clip frames, and **every piece of annotation is stored in clip frames** — a footfall
+  anchor and a tag key name a moment of the animation, not an offset into the current trim.
+- A **slice frame** is relative to `startFrame`, and survives only where the slice really is the
+  subject: `SkeletonAnimation.GetFrame` reads pose `i` of the trimmed clip, and playback loops the
+  slice rather than the clip.
 
 `ClipEditorContext` owns the conversion — `SliceToClipFrame` and `ClipToSliceFrame` — and exposes
 the two counts under names that say which is which (`ClipFrameCount`, `SliceFrameCount`). Nothing
@@ -135,9 +148,9 @@ Footfalls** button, and the summary — counts, mean stride, the percentage of f
 measurable cycle, and the two warnings that tell you the detection went wrong. That summary is the
 highest-value part of the UI: it is what says whether a clip's phase is usable.
 
-Anchors can be clicked to select and seek, shift-clicked to toggle, rubber-band selected, dragged
+Anchors can be clicked to select, shift-clicked to toggle, rubber-band selected, dragged
 (singly or as a group), added by double-clicking empty space, and deleted. Right-click offers the
-same plus setting an anchor's foot. Dragging is clamped to the slice, and the list is re-sorted on
+same plus setting an anchor's foot. Dragging is clamped to the clip, and the list is re-sorted on
 commit — both for reasons that would otherwise lose data silently, described below.
 
 The preview overlay marks each resolved contact bone and traces where it travels over the next 20

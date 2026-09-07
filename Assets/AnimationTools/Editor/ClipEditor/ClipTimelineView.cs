@@ -63,6 +63,8 @@ namespace AnimationTools.Editor
         private IReadOnlyList<ClipTrackRow> _rows;
 
         private int _draggingSliceHandle; // 0 none, -1 start, 1 end
+        private int _panControlId;
+        private CursorWrap _panCursor;
         private int _sliceHandleControlId;
         private int _scrubControlId;
         private int _headerResizeControlId;
@@ -115,6 +117,10 @@ namespace AnimationTools.Editor
 
             Axis.Prepare(laneAreaRect, frameCount);
 
+            // Before the ruler and the rows, because alt+left is a pan here and a box select to a
+            // track, and whichever sees the MouseDown first wins it.
+            HandlePan(laneAreaRect, editor);
+
             var rulerRect = new Rect(rect.x, rect.y, rect.width, RulerHeight);
             var bodyRect = new Rect(rect.x, rect.y + RulerHeight, rect.width, bodyHeight);
 
@@ -140,7 +146,7 @@ namespace AnimationTools.Editor
                     GutterEdge);
             }
 
-            HandleTimelineInput(rect, laneAreaRect, bodyRect, editor, frameCount);
+            HandleTimelineInput(laneAreaRect, editor, frameCount);
         }
 
         private static float ContentHeight(IReadOnlyList<ClipTrackRow> rows)
@@ -180,8 +186,12 @@ namespace AnimationTools.Editor
                 EditorGUI.DrawRect(rulerRect, RulerBackground);
 
                 ClipTimelineTicks.Choose(Axis.pixelsPerFrame, out var major, out var minor);
-                var first = Axis.FirstVisibleFrame(frameCount);
-                var last = Axis.LastVisibleFrame(frameCount);
+
+                // The screen's own range, not the clip's: panned past either end the ruler keeps
+                // counting - negative on the left - which is the only thing telling you where you
+                // have got to out there.
+                var first = Mathf.FloorToInt(Axis.LeftEdgeFrame);
+                var last = Mathf.CeilToInt(Axis.RightEdgeFrame);
 
                 if (minor > 0) DrawTicks(rulerRect, laneAreaRect, first, last, minor, 4f, MinorTick, false, editor);
                 DrawTicks(rulerRect, laneAreaRect, first, last, major, 8f, MajorTick, true, editor);
@@ -213,8 +223,8 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>
-        /// The two grips that trim the clip. Dragging the end handle can push footfall anchors out
-        /// of range, and the asset deletes those on commit, so the count at risk is shown live.
+        /// The two grips that trim the clip. Annotation outside the new range is left alone - the
+        /// slice says which frames are extracted, not which frames may be annotated.
         /// </summary>
         private void DrawSliceHandles(Rect rulerRect, Rect laneAreaRect, ClipEditorContext editor,
             int frameCount)
@@ -286,6 +296,57 @@ namespace AnimationTools.Editor
             editor.SerializedClip.ApplyModifiedPropertiesWithoutUndo();
             editor.Repaint();
         }
+
+        /// <summary>
+        /// Middle-drag, or alt + left-drag, moves the view: frames horizontally, lanes vertically.
+        /// </summary>
+        /// <remarks>
+        /// A real drag with a control ID and <c>hotControl</c>, rather than a bare <c>MouseDrag</c>
+        /// case testing the rect it started in. That older shape died the moment the cursor left the
+        /// lane area, which on a gesture whose whole purpose is to leave the content behind is most
+        /// of the way to not working at all.
+        /// <para>
+        /// The cursor is what makes it limitless in practice: <see cref="CursorWrap"/> keeps it inside
+        /// the lane area and brings it back in at the opposite edge, so one gesture never runs out of
+        /// desk. <c>SetWantsMouseJumping</c> stays on underneath for the platforms that wrap cannot
+        /// serve. Vertical panning still stops at the ends of the lane list, because those lanes are
+        /// inside a <c>GUI.BeginScrollView</c> that clamps the offset it hands back.
+        /// </para>
+        /// </remarks>
+        private void HandlePan(Rect laneAreaRect, ClipEditorContext editor)
+        {
+            _panControlId = GUIUtility.GetControlID(FocusType.Passive);
+            var e = Event.current;
+
+            var panning = GUIUtility.hotControl == _panControlId;
+            if (panning) EditorGUIUtility.AddCursorRect(laneAreaRect, MouseCursor.Pan);
+
+            switch (e.GetTypeForControl(_panControlId))
+            {
+                case EventType.MouseDown when IsPanGesture(e) && laneAreaRect.Contains(e.mousePosition):
+                    GUIUtility.hotControl = _panControlId;
+                    EditorGUIUtility.SetWantsMouseJumping(1);
+                    e.Use();
+                    return;
+
+                case EventType.MouseDrag when panning:
+                    var motion = _panCursor.DeltaWithin(laneAreaRect, e);
+                    Axis.PanPixels(-motion.x);
+                    Scroll.y -= motion.y;
+                    e.Use();
+                    editor.Repaint();
+                    return;
+
+                case EventType.MouseUp when panning:
+                    GUIUtility.hotControl = 0;
+                    EditorGUIUtility.SetWantsMouseJumping(0);
+                    e.Use();
+                    return;
+            }
+        }
+
+        /// <summary>Both of Blender's pan gestures, neither of which spends the plain left click.</summary>
+        private static bool IsPanGesture(Event e) => e.button == 2 || (e.alt && e.button == 0);
 
         private void HandleRulerScrub(Rect rulerRect, Rect laneAreaRect, ClipEditorContext editor,
             int frameCount)
@@ -481,8 +542,12 @@ namespace AnimationTools.Editor
             EditorGUI.DrawRect(new Rect(x - 3f, overlayRect.y, 7f, 4f), Playhead);
         }
 
-        private void HandleTimelineInput(Rect rect, Rect laneAreaRect, Rect bodyRect,
-            ClipEditorContext editor, int frameCount)
+        /// <summary>
+        /// Zoom, pan and the view-framing keys. Scrubbing is deliberately not here: the playhead
+        /// moves from the ruler and from the step keys, never from a click in a lane, because a lane
+        /// click is how you select a key and the two would fight over every diamond.
+        /// </summary>
+        private void HandleTimelineInput(Rect laneAreaRect, ClipEditorContext editor, int frameCount)
         {
             var e = Event.current;
             var overLanes = laneAreaRect.Contains(e.mousePosition);
@@ -503,18 +568,6 @@ namespace AnimationTools.Editor
                     editor.Repaint();
                     return;
 
-                case EventType.MouseDrag when overLanes && (e.button == 2 || e.alt):
-                    Axis.PanPixels(-e.delta.x, frameCount);
-                    e.Use();
-                    editor.Repaint();
-                    return;
-
-                // Anything a track did not claim scrubs, so clicking a lane always moves the pose.
-                case EventType.MouseDown when e.button == 0 && overLanes && bodyRect.Contains(e.mousePosition):
-                    ScrubTo(e.mousePosition.x, editor, frameCount);
-                    e.Use();
-                    return;
-
                 case EventType.KeyDown when e.keyCode == KeyCode.F:
                     Axis.FrameRange(editor.StartFrame, Mathf.Max(editor.StartFrame, editor.EndFrame - 1),
                         frameCount);
@@ -522,8 +575,19 @@ namespace AnimationTools.Editor
                     editor.Repaint();
                     return;
 
+                // Home is Blender's View All, which frames the keys rather than the scene's range.
+                // The whole clip keeps a key of its own, since a trimmed clip has no other way back
+                // to the material outside its slice.
                 case EventType.KeyDown when e.keyCode == KeyCode.Home:
-                    Axis.FrameRange(0, frameCount - 1, frameCount);
+                    if (e.shift || !TryGetContentRange(out var firstKey, out var lastKey))
+                    {
+                        Axis.FrameRange(0, frameCount - 1, frameCount);
+                    }
+                    else
+                    {
+                        Axis.FrameRange(firstKey, lastKey, frameCount);
+                    }
+
                     e.Use();
                     editor.Repaint();
                     return;
@@ -544,6 +608,29 @@ namespace AnimationTools.Editor
                     editor.Repaint();
                     return;
             }
+        }
+
+        /// <summary>
+        /// The frames every visible lane has annotation on, unioned. False when nothing is
+        /// annotated, which is when framing the whole clip is the only sensible answer.
+        /// </summary>
+        private bool TryGetContentRange(out int firstClipFrame, out int lastClipFrame)
+        {
+            firstClipFrame = int.MaxValue;
+            lastClipFrame = int.MinValue;
+
+            if (_rows == null) return false;
+
+            foreach (var row in _rows)
+            {
+                if (!row.Visible || row.Track == null) continue;
+                if (!row.Track.TryGetContentRange(out var first, out var last)) continue;
+
+                firstClipFrame = Mathf.Min(firstClipFrame, first);
+                lastClipFrame = Mathf.Max(lastClipFrame, last);
+            }
+
+            return firstClipFrame <= lastClipFrame;
         }
 
         private bool TryGetFocusedSelection(out int firstClipFrame, out int lastClipFrame)

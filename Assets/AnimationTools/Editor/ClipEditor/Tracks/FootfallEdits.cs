@@ -8,13 +8,38 @@ namespace AnimationTools.Editor
     /// the drawing so the rules that lose data if they are wrong can be tested.
     /// </summary>
     /// <remarks>
-    /// Two of those rules are silent when broken. <c>GaitPhase</c> drops any anchor that is not
-    /// strictly later than the one before it, and <see cref="GaitPhaseComponent.OnValidate"/> drops
-    /// any anchor outside the slice - neither reports anything. So a move clamps to the slice and
-    /// returns an ascending list, always.
+    /// One of those rules is silent when broken: <c>GaitPhase</c> drops any anchor that is not
+    /// strictly later than the one before it, and reports nothing. So a move returns an ascending
+    /// list, always, and clamps to the clip - never to the slice, which says which frames are
+    /// extracted and not which frames may be annotated.
     /// </remarks>
     public static class FootfallEdits
     {
+        /// <summary>
+        /// The span of frames these anchors cover, for framing the view. False when there are none.
+        /// </summary>
+        public static bool ContentRange(IReadOnlyList<GaitPhase.Footfall> footfalls,
+            out int firstFrame, out int lastFrame)
+        {
+            firstFrame = int.MaxValue;
+            lastFrame = int.MinValue;
+
+            if (footfalls != null)
+            {
+                foreach (var footfall in footfalls)
+                {
+                    firstFrame = Mathf.Min(firstFrame, footfall.frame);
+                    lastFrame = Mathf.Max(lastFrame, footfall.frame);
+                }
+            }
+
+            if (firstFrame <= lastFrame) return true;
+
+            firstFrame = 0;
+            lastFrame = 0;
+            return false;
+        }
+
         /// <summary>
         /// The largest delta that keeps every selected anchor inside the slice, so a drag stops at
         /// the edge rather than pushing anchors off it to be deleted on commit.

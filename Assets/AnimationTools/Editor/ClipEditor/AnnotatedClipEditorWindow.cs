@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEditor.ShortcutManagement;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -46,9 +47,10 @@ namespace AnimationTools.Editor
 
         [NonSerialized] private bool _isPlaying;
         [NonSerialized] private double _lastUpdateTime;
-        [NonSerialized] private float _playbackTime;
+        [NonSerialized] private float _playbackFrames;
 
         private ObjectField _clipField;
+        private ToolbarButton _playButton;
         private Label _frameLabel;
 
         [MenuItem("MoSynth/Animation/Clip Editor...", priority = 100)]
@@ -96,6 +98,10 @@ namespace AnimationTools.Editor
         private void OnDisable()
         {
             _context?.CancelModal();
+
+            // A window closed mid-pan would otherwise leave the whole Editor wrapping the cursor at
+            // the screen edge, with nothing left running to turn it off.
+            EditorGUIUtility.SetWantsMouseJumping(0);
 
             Undo.undoRedoPerformed -= OnUndoRedo;
             EditorApplication.update -= OnEditorUpdate;
@@ -165,9 +171,15 @@ namespace AnimationTools.Editor
             lockToggle.RegisterValueChangedCallback(evt => _locked = evt.newValue);
             toolbar.Add(lockToggle);
 
-            toolbar.Add(new ToolbarButton(() => StepFrames(-1)) { text = "◀" });
-            toolbar.Add(new ToolbarButton(TogglePlayback) { text = "▶ / ❚❚" });
-            toolbar.Add(new ToolbarButton(() => StepFrames(1)) { text = "▶" });
+            toolbar.Add(new ToolbarButton(() => StepFrames(-1))
+                { text = "|◀", tooltip = "Previous frame" });
+
+            _playButton = new ToolbarButton(TogglePlayback) { tooltip = "Play / pause  (Space)" };
+            RefreshPlayButton();
+            toolbar.Add(_playButton);
+
+            toolbar.Add(new ToolbarButton(() => StepFrames(1))
+                { text = "▶|", tooltip = "Next frame" });
 
             _frameLabel = new Label { style = { unityTextAlign = TextAnchor.MiddleLeft, minWidth = 150f, marginLeft = 6f } };
             toolbar.Add(_frameLabel);
@@ -450,25 +462,54 @@ namespace AnimationTools.Editor
 
             // Playback loops the slice rather than the clip: the slice is the part that is kept.
             var sliceFrames = _context.SliceFrameCount;
-            if (sliceFrames <= 1) return;
+            if (sliceFrames <= 1 || _context.FrameTime <= 0f) return;
 
-            _playbackTime += deltaTime;
-            var duration = sliceFrames * _context.FrameTime;
-            if (_playbackTime >= duration) _playbackTime %= duration;
+            _playbackFrames += deltaTime / _context.FrameTime;
+            var steps = Mathf.FloorToInt(_playbackFrames);
+            if (steps <= 0) return;
 
-            var sliceFrame = Mathf.Clamp(Mathf.FloorToInt(_playbackTime / _context.FrameTime),
-                0, sliceFrames - 1);
+            _playbackFrames -= steps;
+
+            // Advanced from the playhead rather than from a clock of its own, so scrubbing while
+            // playing relocates playback instead of being overwritten by it a frame later. The fold
+            // is not decoration: SeekToClipFrame clamps to the clip, not the slice, so the playhead
+            // can legitimately be sitting outside the slice when this reads it.
+            var sliceFrame = _context.ClipToSliceFrame(_context.PlayheadClipFrame) + steps;
+            sliceFrame = (sliceFrame % sliceFrames + sliceFrames) % sliceFrames;
+
             _context.SeekToClipFrame(_context.SliceToClipFrame(sliceFrame));
             Repaint();
+        }
+
+        /// <summary>
+        /// Space, from anywhere in the window. Registered with the shortcut manager rather than
+        /// handled as a key event, because the panes are separate IMGUI containers with their own
+        /// focus and a play key that only worked in whichever one you last clicked would be worse
+        /// than none; it also stays out of the way while a text field is being typed into, and is
+        /// rebindable in Preferences alongside every other Editor shortcut.
+        /// </summary>
+        [Shortcut("MoSynth/Clip Editor/Play or Pause", typeof(AnnotatedClipEditorWindow), KeyCode.Space)]
+        private static void TogglePlaybackShortcut(ShortcutArguments args)
+        {
+            if (args.context is AnnotatedClipEditorWindow window) window.TogglePlayback();
         }
 
         private void TogglePlayback()
         {
             _isPlaying = !_isPlaying;
-            if (!_isPlaying || _context == null) return;
+            RefreshPlayButton();
+            Repaint();
 
-            _playbackTime = _context.ClipToSliceFrame(_context.PlayheadClipFrame) * _context.FrameTime;
+            if (!_isPlaying) return;
+
+            _playbackFrames = 0f;
             _lastUpdateTime = EditorApplication.timeSinceStartup;
+        }
+
+        /// <summary>Keeps the toolbar button showing what Space will do next.</summary>
+        private void RefreshPlayButton()
+        {
+            if (_playButton != null) _playButton.text = _isPlaying ? "❚❚" : "▶";
         }
 
         private void StepFrames(int delta)
@@ -476,6 +517,7 @@ namespace AnimationTools.Editor
             if (_context == null) return;
 
             _isPlaying = false;
+            RefreshPlayButton();
             _context.SeekToClipFrame(_context.PlayheadClipFrame + delta);
             Repaint();
         }

@@ -74,6 +74,9 @@ namespace AnimationTools.Editor
             return true;
         }
 
+        public override bool TryGetContentRange(out int firstClipFrame, out int lastClipFrame) =>
+            FootfallEdits.ContentRange(Phase?.footfalls, out firstClipFrame, out lastClipFrame);
+
         public override void DrawTrack(in TrackDrawContext context)
         {
             var phase = Phase;
@@ -258,7 +261,6 @@ namespace AnimationTools.Editor
             if (e.shift) _selection.Toggle(0, frame);
             else _selection.SetTo(0, frame);
 
-            editor.SeekToClipFrame(frame);
             e.Use();
         }
 

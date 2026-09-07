@@ -8,10 +8,8 @@ namespace AnimationTools.Tests
 /// Picking and editing footfall anchors on the clip editor's timeline.
 /// </summary>
 /// <remarks>
-/// Both failure modes here are silent. <c>GaitPhase</c> drops any anchor that is not strictly later
-/// than the one before it, and <see cref="GaitPhaseComponent.OnValidate"/> drops any anchor outside
-/// the slice, neither with a message - so an unsorted or out-of-range result loses data that nothing
-/// reports.
+/// The failure mode here is silent: <c>GaitPhase</c> drops any anchor that is not strictly later
+/// than the one before it, with no message - so an unsorted result loses data that nothing reports.
 /// </remarks>
 public class FootfallEditTests
 {
@@ -25,6 +23,26 @@ public class FootfallEditTests
     }
 
     private static HashSet<int> Selection(params int[] indices) => new(indices);
+
+    [Test]
+    public void ContentRangeSpansTheAnchors()
+    {
+        var footfalls = Footfalls((40, GaitPhase.Foot.Left), (12, GaitPhase.Foot.Right),
+            (90, GaitPhase.Foot.Left));
+
+        Assert.IsTrue(FootfallEdits.ContentRange(footfalls, out var first, out var last));
+        Assert.AreEqual(12, first);
+        Assert.AreEqual(90, last);
+    }
+
+    [Test]
+    public void ContentRangeOfNoAnchorsIsFalse()
+    {
+        // Home falls back to framing the whole clip on this, so it has to be distinguishable from a
+        // real range that happens to start at 0.
+        Assert.IsFalse(FootfallEdits.ContentRange(Footfalls(), out _, out _));
+        Assert.IsFalse(FootfallEdits.ContentRange(null, out _, out _));
+    }
 
     [Test]
     public void MovePreservesRelativeOffsets()

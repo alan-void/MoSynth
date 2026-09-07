@@ -79,6 +79,10 @@ namespace AnimationTools.Tests
             Assert.AreEqual(TimelineKeyAction.NextKey, Resolve(KeyCode.DownArrow));
             Assert.AreEqual(TimelineKeyAction.StepBack, Resolve(KeyCode.LeftArrow));
             Assert.AreEqual(TimelineKeyAction.StepForward, Resolve(KeyCode.RightArrow));
+
+            // Space is listed there too, and is deliberately not a lane binding: it plays the whole
+            // window, from the shortcut manager, whichever pane has focus.
+            Assert.AreEqual(TimelineKeyAction.None, Resolve(KeyCode.Space));
         }
     }
 }

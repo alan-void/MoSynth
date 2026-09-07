@@ -73,6 +73,21 @@ namespace AnimationTools.Editor
             return false;
         }
 
+        /// <summary>
+        /// The clip-frame range the track's own annotation covers, for the timeline's "frame all".
+        /// False when the track holds nothing to frame.
+        /// </summary>
+        /// <remarks>
+        /// The sibling of <see cref="TryGetSelectionRange"/>, and asked of every visible lane rather
+        /// than only the focused one: Home frames the window's content, not one component's.
+        /// </remarks>
+        public virtual bool TryGetContentRange(out int firstClipFrame, out int lastClipFrame)
+        {
+            firstClipFrame = 0;
+            lastClipFrame = 0;
+            return false;
+        }
+
         public virtual void OnEnable() { }
 
         public virtual void OnDisable() { }

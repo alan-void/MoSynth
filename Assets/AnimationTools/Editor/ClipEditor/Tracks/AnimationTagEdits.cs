@@ -19,6 +19,37 @@ namespace AnimationTools.Editor
     /// </remarks>
     public static class AnimationTagEdits
     {
+        /// <summary>
+        /// The span of frames these channels hold keys on, for framing the view. False when there is
+        /// nothing keyed anywhere.
+        /// </summary>
+        public static bool ContentRange(IReadOnlyList<AnimationTagging.TagChannel> channels,
+            out int firstFrame, out int lastFrame)
+        {
+            firstFrame = int.MaxValue;
+            lastFrame = int.MinValue;
+
+            if (channels != null)
+            {
+                foreach (var channel in channels)
+                {
+                    if (channel?.toggles == null) continue;
+
+                    foreach (var frame in channel.toggles)
+                    {
+                        firstFrame = Mathf.Min(firstFrame, frame);
+                        lastFrame = Mathf.Max(lastFrame, frame);
+                    }
+                }
+            }
+
+            if (firstFrame <= lastFrame) return true;
+
+            firstFrame = 0;
+            lastFrame = 0;
+            return false;
+        }
+
         public static List<int> Insert(IReadOnlyList<int> toggles, int frame, int clipFrameCount) =>
             Normalised(toggles, InRange(frame, clipFrameCount));
 
