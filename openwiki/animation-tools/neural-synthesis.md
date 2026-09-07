@@ -24,9 +24,6 @@ sources:
     resource: repo://Python/tests/test_training_data.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-31T11:48:44.020Z
 generated: {by: "claude-code", at: "2026-08-31T11:48:44.020Z"}
 ---
 
@@ -78,20 +75,37 @@ contacts; and a gait phase. It builds neither network's input tensor — the pac
 the model, not of the database — though `TrainingSet.pose_vector` offers one for a decompressor
 target.
 
-**Gait phase.** Reconstructed from the foot contacts by `Python/gait_phase.py`: π per footfall,
-linear between, per clip. A clip with fewer than two
-footfalls is reported as having *no measurable cycle* rather than being given a made-up one, which is
-what `phase_rate == 0` marks. See [on-disk formats](on-disk-formats.md) for where the contacts come
-from.
+**Gait phase, decided once and carried.** `AnimationTools.GaitPhase` turns a clip's footfalls into a
+phase — π per footfall, linear between, per clip — and the bake writes the result into the `.mmpose`
+beside the poses. Python reads it rather than deriving it. That is the point: a clip's footfalls are
+*authored*, corrected by hand where detection was wrong, and a second implementation working from
+the baked contacts would quietly disagree with what the editor drew. It is the same argument that
+put the skeleton in that file.
 
-**Phase you can look at and correct.** A clip now carries its footfalls as a
+**Phase you can look at and correct.** A clip carries its footfalls as a
 [clip component](animation-sources.md), detected from the clip itself and editable, with a timeline
-in the inspector showing the phase, the contacts behind it, and the two ways the phase is known to
-go wrong. This is authoring only so far — **the anchors do not reach the database yet**, so training
-still reconstructs phase from baked contacts. Two defects the tool makes visible: on the untrimmed
-`walk1_subject1` clip the first footfall is at frame 132, so 4.4 s of standing was being given 2.87
-invented gait cycles; and every missed contact clusters where root speed exceeds 1.6 m/s, each one
-making the phase jump a whole cycle instead of half.
+in the inspector showing the phase, the contacts behind it, and the ways the phase is known to go
+wrong. Both the timeline and the database now run on one measurement, `GaitMeasure`, so what an
+author corrects against is what a model trains on. The defect the tool still makes visible is missed
+contacts, which cluster where root speed exceeds 1.6 m/s and make the phase jump a whole cycle
+instead of half.
+
+**Standing.** A stretch with no footfalls in it is not automatically unusable, because standing and
+a missed contact leave the same hole in the anchors. How fast the character was travelling separates
+them: below `standingSpeed` the stretch sweeps its phase at a fixed period, and above it the phase is
+held at a rate of zero — the *no measurable cycle* sentinel that drops the frame.
+
+Sweeping standing frames rather than dropping them is what Holden et al. do, and the reason is not
+that the phase means anything there. It is that a model shown the whole cycle against a stationary
+trajectory learns that its output does not depend on phase in that region, and therefore stands still
+instead of paddling its legs when asked to stop. The alternative — extrapolating the neighbouring
+walking rate outward — invents gait: on the untrimmed `walk1_subject1` clip the first footfall is at
+frame 132, and 4.4 s of standing was once given 2.87 cycles the character never walked.
+
+We are not taking the paper's other two answers. Its one-hot gait label is [deliberately
+absent](../pfnn/training-and-checkpoints.md) — the trajectory window already shows a stationary
+character as a window of zeros — and its runtime damping of the phase advance is unnecessary if the
+network has learned to predict a small increment there itself.
 
 **A trajectory window.** `TrainingSet.trajectory_window(offsets)` samples where the character was
 and will be, around every frame, in that frame's own space — the input a phase-functioned network is

@@ -63,6 +63,7 @@ public class PoseSerializerTests
 
                 frame.SetBool(poseSet.LeftFootContactHandle, f % 2 == 0);
                 frame.SetBool(poseSet.RightFootContactHandle, f % 2 == 1);
+                poseSet.SetPhase(frames.Start + f, clip + f * 0.125f, clip * 10f + f);
             }
         }
 
@@ -107,6 +108,9 @@ public class PoseSerializerTests
                 actual.GetBool(read.LeftFootContactHandle), $"left contact, pose {p}");
             Assert.AreEqual(expected.GetBool(written.RightFootContactHandle),
                 actual.GetBool(read.RightFootContactHandle), $"right contact, pose {p}");
+
+            Assert.AreEqual(written.GetPhase(p), read.GetPhase(p), 1e-6f, $"phase, pose {p}");
+            Assert.AreEqual(written.GetPhaseRate(p), read.GetPhaseRate(p), 1e-6f, $"phase rate, pose {p}");
         }
 
         written.Dispose();

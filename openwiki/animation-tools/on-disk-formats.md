@@ -111,7 +111,12 @@ codebase.
 3. `uint numberPoses`, `uint boneCount` *(again)*, `uint numberTags`.
 4. Per pose: positions, rotations, velocities, angular velocities (all `boneCount` long), then
    `uint` left contact and `uint` right contact. That is `boneCount * 13 * 4 + 8` bytes per pose.
-5. Per tag: name, `uint numberRanges`, then range pairs.
+5. **Gait phase block** — `numberPoses` pairs of `float phase, float phaseRate`.
+6. Per tag: name, `uint numberRanges`, then range pairs.
+
+Phase is a block of its own rather than two more floats on each pose, because it is not a pose
+channel: every channel in the layout system is keyed to a bone, and nothing in C# reads phase back
+out of a database. It exists in the file for the Python training set.
 
 Bone 0's parent index of −1 is written as an unsigned `0xFFFFFFFF` and read back as signed −1 by C#.
 Python reads the same bytes directly as a signed int — the same value, spelled two ways.
@@ -245,5 +250,7 @@ on every shipped target, but not actually checked at write time.
 **Tests.** `PoseSerializerTests` round-trips every channel with per-frame, per-bone distinct values so
 a misaligned read cannot pass by coincidence, and covers all four rejection cases.
 `FeatureSerializerTests` round-trips the demo database and covers the two refusals — a file written
-for another feature configuration, and a truncated one. There are **no** tests for the recording round
-trip, and none checking that the C# and Python `.mmpose` readers agree.
+for another feature configuration, and a truncated one. `Python/tests/test_pose_set_importer.py`
+writes a `.mmpose` by this layout and reads it back, which is the only check that the Python reader
+follows the format rather than merely follows itself. There are **no** tests for the recording round
+trip, and none that run both readers over the same real file.

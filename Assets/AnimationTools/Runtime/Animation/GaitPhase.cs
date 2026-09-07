@@ -9,21 +9,22 @@ namespace AnimationTools
 /// around, saying where in the walk cycle a frame sits.
 /// </summary>
 /// <remarks>
-/// The rule is the one <c>Python/gait_phase.py</c> uses, because a model trained on one definition
-/// and run on another does not throw, it just moves badly: half a cycle per footfall, a whole cycle
-/// when the same foot falls twice running (which is what a missed contact looks like), linear
-/// between anchors, and the cycle zeroed on a right footfall.
+/// This is the project's only definition of phase: evaluated here, written into the pose database,
+/// and read back from there by the training set. Half a cycle per footfall, a whole cycle when the
+/// same foot falls twice running (which is what a missed contact looks like), linear between
+/// anchors, and the cycle zeroed on a right footfall.
 /// <para>
-/// One deliberate difference. Python extrapolates outward from the first and last anchor so a clip
-/// has no flat ends; this holds the phase still there and reports a rate of zero. Extrapolating
-/// invents gait: on the untrimmed <c>walk1_subject1</c> clip the first real footfall is at frame
-/// 132, and the 4.4 s of standing before it were being given 2.87 complete cycles of phase that the
-/// character never walked. A model trained on that learns to cycle its legs while stationary.
+/// A stretch with no footfalls in it is answered by how fast the character was moving, because
+/// standing and a missed contact are indistinguishable in the anchors alone. Standing sweeps at a
+/// fixed rate, so a model sees the whole cycle against a stationary trajectory and can learn that
+/// its output does not depend on phase there. Anything else is held at a rate of zero, which marks
+/// it unusable — extrapolating a walking rate over a stand invents gait: on the untrimmed
+/// <c>walk1_subject1</c> clip the first real footfall is at frame 132, and the 4.4 s of standing
+/// before it were once given 2.87 complete cycles of phase the character never walked. A model
+/// trained on that learns to cycle its legs while stationary.
 /// </para>
 /// <para>
-/// The rate is likewise the exact slope of the segment a frame sits in, rather than Python's
-/// central difference of the unwrapped phase, which smears one frame of ramp across every anchor.
-/// The two agree everywhere except at the anchors themselves.
+/// See <c>openwiki/animation-tools/neural-synthesis.md</c> for the standing rule and what it buys.
 /// </para>
 /// </remarks>
 public static class GaitPhase
@@ -61,17 +62,35 @@ public static class GaitPhase
     public const float Tau = 2f * math.PI;
 
     /// <summary>
-    /// Fills <paramref name="phase"/> and <paramref name="phaseRate"/> from a clip's footfalls.
+    /// Fills <paramref name="phase"/> and <paramref name="phaseRate"/> from a clip's footfalls,
+    /// with no measure of speed, so every stretch outside the anchors is held at a rate of zero.
     /// </summary>
-    /// <param name="footfalls">Anchors in ascending frame order. Fewer than two means no cycle.</param>
+    public static void Evaluate(IReadOnlyList<Footfall> footfalls, float frameTime,
+        float[] phase, float[] phaseRate)
+        => Evaluate(footfalls, frameTime, null, 0f, 0f, phase, phaseRate);
+
+    /// <summary>
+    /// Fills <paramref name="phase"/> and <paramref name="phaseRate"/> from a clip's footfalls and
+    /// how fast the character was travelling.
+    /// </summary>
+    /// <param name="footfalls">Anchors in ascending frame order.</param>
     /// <param name="frameTime">Seconds per frame, so the rate comes out per second.</param>
+    /// <param name="speed">
+    /// The character frame's ground speed per frame, in m/s, indexed as <paramref name="phase"/> is.
+    /// Null switches the standing rule off entirely.
+    /// </param>
+    /// <param name="standingSpeed">Speed below which a frame counts as standing.</param>
+    /// <param name="standingPeriod">
+    /// Seconds per cycle a standing stretch sweeps at. Zero switches the standing rule off.
+    /// </param>
     /// <param name="phase">Filled with radians in <c>[0, Tau)</c>. Length sets the frame count.</param>
     /// <param name="phaseRate">
-    /// Filled with radians per second. <b>Zero marks a frame with no measurable cycle</b> — outside
-    /// the anchors, or on a clip that has none — which is the sentinel training uses to drop a
-    /// frame.
+    /// Filled with radians per second. <b>Zero marks a frame with no measurable cycle</b> — a
+    /// stretch with no footfalls that the character was moving through — which is the sentinel
+    /// training uses to drop a frame. A standing stretch reports the standing rate and is kept.
     /// </param>
     public static void Evaluate(IReadOnlyList<Footfall> footfalls, float frameTime,
+        IReadOnlyList<float> speed, float standingSpeed, float standingPeriod,
         float[] phase, float[] phaseRate)
     {
         if (phase == null) throw new ArgumentNullException(nameof(phase));
@@ -84,10 +103,29 @@ public static class GaitPhase
         Array.Clear(phase, 0, phase.Length);
         Array.Clear(phaseRate, 0, phaseRate.Length);
 
-        var anchors = UsableAnchors(footfalls, phase.Length);
-        if (anchors.Count < 2 || frameTime <= 0f) return;
+        if (frameTime <= 0f) return;
 
-        var targets = UnwrappedTargets(anchors);
+        // Radians per frame while standing. Zero is the switch that leaves every anchorless stretch
+        // held, which is what a caller with no speed measurement gets.
+        var standingSlope = speed != null && standingPeriod > 0f
+            ? Tau * frameTime / standingPeriod
+            : 0f;
+
+        var anchors = UsableAnchors(footfalls, phase.Length);
+        if (anchors.Count == 0)
+        {
+            // A clip the character stood through still teaches a stationary pose, so it sweeps from
+            // zero -- there is no anchor to line up with. A clip with real motion and no anchors is
+            // one whose contacts were missed, and stays unusable.
+            if (IsStanding(speed, 0, phase.Length, standingSpeed, standingSlope))
+            {
+                FillSweep(phase, phaseRate, 0, phase.Length, 0f, standingSlope, frameTime);
+            }
+
+            return;
+        }
+
+        var targets = UnwrappedTargets(anchors, speed, standingSpeed, standingSlope);
 
         for (var i = 0; i < anchors.Count - 1; i++)
         {
@@ -106,15 +144,62 @@ public static class GaitPhase
             }
         }
 
-        // The outer frames hold the boundary anchors' phase at a rate of zero: the clip contains no
-        // evidence of a cycle there, and inventing one is the failure this exists to avoid.
+        // The lead-in and lead-out have no second anchor to land on, so a standing stretch sweeps at
+        // exactly the standing rate, wound back from -- or forward off -- the footfall it meets, and
+        // the phase stays continuous there. Anything else holds the boundary anchor at a rate of
+        // zero: the clip carries no evidence of a cycle, and inventing one is the failure this
+        // exists to avoid.
         var firstFrame = anchors[0].frame;
         var lastFrame = anchors[anchors.Count - 1].frame;
+        var lastTarget = targets[targets.Count - 1];
 
-        for (var frame = 0; frame < firstFrame; frame++) phase[frame] = Wrap(targets[0]);
-        for (var frame = lastFrame; frame < phase.Length; frame++)
+        if (IsStanding(speed, 0, firstFrame, standingSpeed, standingSlope))
         {
-            phase[frame] = Wrap(targets[targets.Count - 1]);
+            FillSweep(phase, phaseRate, 0, firstFrame,
+                targets[0] - firstFrame * standingSlope, standingSlope, frameTime);
+        }
+        else
+        {
+            for (var frame = 0; frame < firstFrame; frame++) phase[frame] = Wrap(targets[0]);
+        }
+
+        if (IsStanding(speed, lastFrame, phase.Length, standingSpeed, standingSlope))
+        {
+            FillSweep(phase, phaseRate, lastFrame, phase.Length, lastTarget, standingSlope, frameTime);
+        }
+        else
+        {
+            for (var frame = lastFrame; frame < phase.Length; frame++) phase[frame] = Wrap(lastTarget);
+        }
+    }
+
+    /// <summary>
+    /// Whether every frame of <c>[from, to)</c> was slow enough to count as standing. False when
+    /// nothing measured speed or the standing rule is switched off, so those callers keep the
+    /// held-and-unusable answer.
+    /// </summary>
+    private static bool IsStanding(IReadOnlyList<float> speed, int from, int to,
+        float standingSpeed, float standingSlope)
+    {
+        if (speed == null || standingSlope <= 0f || to <= from) return false;
+
+        for (var frame = from; frame < to; frame++)
+        {
+            if (frame >= speed.Count || speed[frame] >= standingSpeed) return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>Fills <c>[from, to)</c> with a constant-rate sweep starting at an unwrapped target.</summary>
+    private static void FillSweep(float[] phase, float[] phaseRate, int from, int to,
+        float startTarget, float slope, float frameTime)
+    {
+        var rate = slope / frameTime;
+        for (var frame = from; frame < to; frame++)
+        {
+            phase[frame] = Wrap(startTarget + slope * (frame - from));
+            phaseRate[frame] = rate;
         }
     }
 
@@ -150,12 +235,25 @@ public static class GaitPhase
     /// The unwrapped phase each anchor lands on: half a cycle when the feet alternate, a whole one
     /// when the same foot falls twice, which is how a missed contact shows up.
     /// </summary>
-    private static List<float> UnwrappedTargets(IReadOnlyList<Footfall> anchors)
+    private static List<float> UnwrappedTargets(IReadOnlyList<Footfall> anchors,
+        IReadOnlyList<float> speed, float standingSpeed, float standingSlope)
     {
         var targets = new List<float>(anchors.Count) { 0f };
         for (var i = 1; i < anchors.Count; i++)
         {
             var step = anchors[i].foot != anchors[i - 1].foot ? math.PI : Tau;
+
+            // A gap the character stood through is not one stride taken slowly. Sweeping it at the
+            // standing rate outright would miss the anchor it has to land on, so the step grows by
+            // whole cycles instead: as near that rate as landing on the anchor allows, and still
+            // the correct foot. Handling it here is what keeps the fill loop below a straight line
+            // between two targets.
+            if (IsStanding(speed, anchors[i - 1].frame, anchors[i].frame, standingSpeed, standingSlope))
+            {
+                var span = anchors[i].frame - anchors[i - 1].frame;
+                step += math.max(0f, math.round((span * standingSlope - step) / Tau)) * Tau;
+            }
+
             targets.Add(targets[i - 1] + step);
         }
 

@@ -4,6 +4,10 @@ title: Training a PFNN, and what a checkpoint holds
 description: From a generated pose database to a trained phase-functioned network — which bones it covers and who decides, how the input and output vectors are packed, and why the checkpoint stores names rather than indices.
 tags: [pfnn, neural, training, on-disk-formats, config]
 sources:
+  - id: openwiki-source-2cab5ee24d405d8240d13641
+    resource: repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs
+  - id: openwiki-source-e3854efddedde038431e9a6b
+    resource: repo://Assets/Pfnn/Editor/PfnnAgreementCheck.cs
   - id: openwiki-source-bd27f9f1ae47d93c1df22ffd
     resource: repo://Assets/Pfnn/Editor/PfnnConfigEditor.cs
   - id: openwiki-source-d1d9910b321c79bf0cb42361
@@ -22,14 +26,13 @@ sources:
     resource: repo://Python/pfnn_model.py
   - id: openwiki-source-28e2d896c07a4fa8c47e273d
     resource: repo://Python/pfnn_trainer.py
+  - id: openwiki-source-1110a5319fdf997c0acf8f29
+    resource: repo://Python/pose_set_importer.py
   - id: openwiki-source-33ee0478665cfbc83218ffbe
     resource: repo://Python/tests/test_pfnn_model.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-generated: {by: "claude-code", at: "2026-08-30T16:03:03.865Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-30T16:03:03.865Z
+generated: {by: "claude-code", at: "2026-09-03T11:06:29.275Z"}
 ---
 
 # Training a PFNN, and what a checkpoint holds
@@ -117,8 +120,16 @@ Three details worth keeping:
   rotations, which removes 72 outputs and guarantees the pose respects the rig's bone lengths.
 - **Frames with no measurable gait cycle are dropped.** `TrainingSet.usable()` checks only the
   matching feature vector; a phase-functioned network additionally needs `phase_rate != 0`, which is
-  how [gait phase](../animation-tools/neural-synthesis.md) marks a clip it could not find a stride
-  in.
+  how [gait phase](../animation-tools/neural-synthesis.md) marks a stretch it could not find a stride
+  in. Note what that now excludes and what it does not: a stretch with no footfalls that the
+  character *moved* through is a missed contact and is dropped, while one the character *stood*
+  through carries a real rate and is kept, so the network sees stationary poses across the whole
+  cycle. Standing is trained; unexplained is not.
+- **There is no gait label.** The paper feeds a one-hot vector — stand, walk, jog, crouch, jump —
+  authored per clip. Nothing here is labelled that way. The contacts the phase was built from carry
+  the part of that signal a locomotion model can use, and a stationary character is already legible
+  in the input as a trajectory window of zeros. The one-hot earns its place mainly when *walk* and
+  *jog* have to be told apart at the same speed, which is not something this dataset models.
 
 ## The network
 
@@ -164,6 +175,52 @@ what is inside it. A missing or unreadable one returns `None` with a logged reas
 raising, because callers run inside `Py.GIL()` from Unity, where an exception arrives as an opaque
 managed error.
 
+## More than one config
+
+A `PfnnConfig` derives both its `.mmpose` and its `.pfnn.npz` from its own asset name, under
+`StreamingAssets/Pfnn/<config name>/`. Two configs over different datasets and different rigs
+therefore coexist without either overwriting the other's artefacts, which is how a new dataset gets
+trained and compared without destroying the checkpoint you already have.
+
+The one thing that changes once a second config exists: `MoSynth/Pfnn/Check Training Agreement`
+auto-picks a config only when the project holds exactly one, so from then on it wants one selected
+in the Project window.
+
+`PfnnBandaiWalk` is the second: 93 Bandai-Namco takes on the corrected rig — 24 `walk_normal` plus
+69 `walk-turn-left`/`walk-turn-right` — giving 17043 poses, 22 predicted bones once the five `_end`
+leaves are excluded, 186 inputs to 205 outputs, 665k parameters. It fits in about 270 s on a GPU to
+a train/validation loss of 0.108/0.065, and its rollout holds 1.07 m/s against the database's 1.10.
+
+Note the shape of the frame budget with many short clips rather than one long one: of 17043 poses,
+16950 have a successor within their own clip, and on this dataset every one of those also had a
+measurable gait cycle — none was dropped for `phase_rate == 0`. That count predates the standing
+rule and the move of phase into the database, so it will have shifted; re-measure it rather than
+quoting it. Clip boundaries are respected
+everywhere that matters — `trajectory_window` clamps its offsets to the containing clip, so a window
+near an edge repeats its last real sample instead of reading across a cut.
+
+## The dataset has to contain the motion you want
+
+The turns were not an enrichment; they were a correction. The first `PfnnBandaiWalk` held only the
+24 `walk_normal` takes, and those walk in straight lines: measured as net heading change from a
+clip's first frame to its last, they average **−2.4°**. The root-delta target's yaw component is
+read out of the trajectory sampler one frame ahead, so across that entire dataset it carried
+essentially no turning signal. The resulting model walked convincingly and could not turn — which is
+not a tuning failure, and no amount of hidden units or epochs would have addressed it.
+
+The 69 turn takes average about **+96°** (left) and **−101°** (right), which is the signal that was
+missing. Beware the obvious diagnostic here: per-frame yaw *rate* does **not** separate the two sets
+— every clip in the combined database averages over 20°/s, because the pelvis swings back and forth
+with each stride and that oscillation swamps the path's actual curvature. Net heading change over a
+whole clip is the measure that distinguishes a straight walk from a turn.
+
+Two other things came free with the larger set. Validation loss now sits *below* training loss,
+which is the expected direction when dropout is active during training only; on the 5524-sample
+walk-only set it sat above, the signature of a model with more capacity than data. And the
+validation split is a contiguous **tail**, so appending 69 turn clips to 24 walk clips would have
+made the held-out set pure turning and the number meaningless — the config's clip list is shuffled
+with a fixed seed so the tail is representative.
+
 ## Checking the two sides still agree
 
 `MoSynth/Pfnn/Check Training Agreement` runs the same frames of the same database through
@@ -172,11 +229,19 @@ far apart they are. It is a diagnostic rather than a test, because it needs a ge
 a working interpreter — neither of which the edit-mode suites may assume.
 
 On the demo database it reports positions agreeing to **1.8 × 10⁻⁶ m** and rotations to **0.079°**
-at worst, 0.0026° on average. The worst bones are at depth 10 and 12 of a maximum 13, which is what
+at worst, 0.0026° on average; on the shallower corrected rig, 1.2 × 10⁻⁶ m and 0.074°. The worst
+bones are at depth 10 and 12 of a maximum 13, which is what
 identifies the residual as float32-versus-float64 accumulation down the chain rather than a
 disagreement about the definition — a real one would not care how deep a joint sits. That is why the
 report names the depth. Rates are deliberately not compared: the two sides differ there by
 construction, and the difference is already documented.
+
+What it cannot catch is the two sides agreeing on the *wrong* frame. Both derive the character
+frame's forward axis from the same rest pose in the same `.mmpose`, so a rig exported holding a
+frame of motion rather than its bind pose yields a rotated frame that both halves reproduce exactly:
+the check passes at 10⁻⁶ m while every pose in the database is measured against the wrong facing.
+The symptom shows up only in Unity, where the pose is written onto a live rig that does sit at a real
+bind. See [skeletons and rig binding](../animation-tools/skeletons-and-rig-binding.md).
 
 ## Running it outside Unity
 

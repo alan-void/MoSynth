@@ -1,8 +1,5 @@
 using UnityEngine;
 using Unity.Collections;
-using Unity.Mathematics;
-using System;
-using AnimationTools;
 
 namespace AnimationTools
 {
@@ -38,9 +35,6 @@ public static class PoseExtractor
         // Set Poses
         var nFrames = animationClip.FrameCount;
 
-        var leftToesIndex = ResolveContactBoneIndex(animationClip.Skeleton, source.LeftContactBoneName, true);
-        var rightToesIndex = ResolveContactBoneIndex(animationClip.Skeleton, source.RightContactBoneName, false);
-
         var frames = poseSet.BeginClip(nFrames - 1, animationClip.FrameTime);
 
         for (var i = 0; i < nFrames - 1; i++)
@@ -64,22 +58,66 @@ public static class PoseExtractor
             lastPose.Dispose();
         }
 
-        var poseSkeletonData = poseSkeleton.GetSkeletonData();
-        for (var i = 0; i < nFrames - 1; i++)
-        {
-            // Note: this requires velocities to be pre-calculated
-            ExtractPoseContacts(frames[i],
-                poseSkeletonData,
-                leftToesIndex,
-                rightToesIndex,
-                source.ContactVelocityThreshold,
-                poseSet.LeftFootContactHandle,
-                poseSet.RightFootContactHandle);
-        }
-
-        SmoothContacts(frames, poseSet.LeftFootContactHandle, poseSet.RightFootContactHandle);
+        WriteContactsAndPhase(animationClip, poseSet, frames, source);
 
         return true;
+    }
+
+    /// <summary>
+    /// Writes the clip's foot contacts and gait phase into the database frames it just filled.
+    /// </summary>
+    /// <remarks>
+    /// Both come from the clip's <see cref="GaitPhaseComponent"/> when it has one, measured by
+    /// <see cref="GaitMeasure"/> — so what a database records is what the clip editor drew when the
+    /// footfalls were corrected. A clip with no component still gets contacts, measured the same way
+    /// against the config's threshold, and a phase of zero at a rate of zero: the "no measurable
+    /// cycle" sentinel that keeps those frames out of training.
+    /// </remarks>
+    private static void WriteContactsAndPhase(AnnotatedAnimationClip animationClip, PoseSet poseSet,
+        PoseSet.PoseFrameRange frames, IPoseSetSource source)
+    {
+        var gait = animationClip.GetComponent<GaitPhaseComponent>();
+
+        bool[] contacts;
+        if (gait == null)
+        {
+            contacts = ConfiguredContacts(animationClip, source);
+        }
+        else if (!gait.TryDetectSliceContacts(animationClip, out contacts, out var error))
+        {
+            Debug.LogWarning($"Clip \"{animationClip.name}\": {error} No foot contacts written.");
+            contacts = null;
+        }
+
+        for (var i = 0; i < frames.Count; i++)
+        {
+            var frame = frames[i];
+            frame.SetBool(poseSet.LeftFootContactHandle, contacts != null && contacts[i * 2]);
+            frame.SetBool(poseSet.RightFootContactHandle, contacts != null && contacts[i * 2 + 1]);
+        }
+
+        if (gait == null) return;
+
+        // Anchors are numbered against the whole clip, so database frame i of this clip reads clip
+        // frame startFrame + i.
+        gait.Evaluate(animationClip, out var phase, out var phaseRate);
+        for (var i = 0; i < frames.Count; i++)
+        {
+            var clipFrame = animationClip.startFrame + i;
+            if (clipFrame >= phase.Length) break;
+            poseSet.SetPhase(frames.Start + i, phase[clipFrame], phaseRate[clipFrame]);
+        }
+    }
+
+    /// <summary>Contacts for a clip with no <see cref="GaitPhaseComponent"/> to take settings from.</summary>
+    private static bool[] ConfiguredContacts(AnnotatedAnimationClip animationClip, IPoseSetSource source)
+    {
+        var skeleton = animationClip.Skeleton;
+        return GaitMeasure.Contacts(animationClip, skeleton,
+            ResolveContactBoneIndex(skeleton, source.LeftContactBoneName, true),
+            ResolveContactBoneIndex(skeleton, source.RightContactBoneName, false),
+            animationClip.startFrame, animationClip.FrameCount,
+            source.ContactVelocityThreshold, GaitMeasure.DefaultSmoothingRadius);
     }
 
     /// <summary>
@@ -99,81 +137,6 @@ public static class PoseExtractor
 
         Debug.LogError($"{(left ? "Left" : "Right")}Toes not found in BVHAnimation");
         return 0; // legacy TryFind left a default joint (index 0) on failure
-    }
-
-    private static void SmoothContacts(PoseSet.PoseFrameRange frames, ChannelHandle leftHandle, ChannelHandle rightHandle)
-    {
-        const int windowsRadius = 6;
-        // Median filter to remove small regions where contact is either active or inactive
-        var count = frames.Count;
-        var leftFootContact = new bool[count];
-        var rightFootContact = new bool[count];
-        for (var i = 0; i < count; i++)
-        {
-            var frame = frames[i];
-            leftFootContact[i] = frame.GetBool(leftHandle);
-            rightFootContact[i] = frame.GetBool(rightHandle);
-        }
-
-        // Median Filter
-        Span<bool> leftFootContactWindow = stackalloc bool[windowsRadius * 2 + 1];
-        Span<bool> rightFootContactWindow = stackalloc bool[windowsRadius * 2 + 1];
-        for (var i = 0; i < count; i++)
-        {
-            var windowIndex = 0;
-            for (var j = -windowsRadius; j <= windowsRadius; j++)
-            {
-                var index = i + j;
-                if (index < 0)
-                {
-                    leftFootContactWindow[windowIndex] = leftFootContact[0];
-                    rightFootContactWindow[windowIndex] = rightFootContact[0];
-                }
-                else if (index >= count)
-                {
-                    leftFootContactWindow[windowIndex] = leftFootContact[count - 1];
-                    rightFootContactWindow[windowIndex] = rightFootContact[count - 1];
-                }
-                else
-                {
-                    leftFootContactWindow[windowIndex] = leftFootContact[index];
-                    rightFootContactWindow[windowIndex] = rightFootContact[index];
-                }
-
-                windowIndex += 1;
-            }
-
-            // Sort
-            var lastFalseIndex = 0;
-            for (var j = 0; j < windowsRadius * 2 + 1; j++)
-            {
-                if (!leftFootContactWindow[j])
-                {
-                    var aux = leftFootContactWindow[lastFalseIndex];
-                    leftFootContactWindow[lastFalseIndex] = false;
-                    leftFootContactWindow[j] = aux;
-                    lastFalseIndex += 1;
-                }
-            }
-
-            lastFalseIndex = 0;
-            for (var j = 0; j < windowsRadius * 2 + 1; j++)
-            {
-                if (!rightFootContactWindow[j])
-                {
-                    var aux = rightFootContactWindow[lastFalseIndex];
-                    rightFootContactWindow[lastFalseIndex] = false;
-                    rightFootContactWindow[j] = aux;
-                    lastFalseIndex += 1;
-                }
-            }
-
-            // Find median
-            var medianIndex = windowsRadius;
-            var frame = frames[i];
-            frame.SetBool(leftHandle, leftFootContactWindow[medianIndex]);
-            frame.SetBool(rightHandle, rightFootContactWindow[medianIndex]);
-        }
     }
 
     /// <summary>
@@ -216,18 +179,6 @@ public static class PoseExtractor
             angularVelocities[jointIdx] =
                 MathExtensions.AngularVelocity(rot, nextRot, animationClip.FrameTime);
         }
-    }
-
-    private static void ExtractPoseContacts(PoseBuffer pose, in SkeletonData skeleton, int leftToesIndex,
-        int rightToesIndex, float contactVelocityThreshold, ChannelHandle leftHandle, ChannelHandle rightHandle)
-    {
-        // Contact with the ground when the joint is below a velocity threshold
-        // TODO: Consider distance from the ground/contact when the joint is below a velocity threshold
-        var leftToeVel = skeleton.CharacterSpaceVelocity(pose, leftToesIndex);
-        var rightToeVel = skeleton.CharacterSpaceVelocity(pose, rightToesIndex);
-
-        pose.SetBool(leftHandle, math.length(leftToeVel) < contactVelocityThreshold);
-        pose.SetBool(rightHandle, math.length(rightToeVel) < contactVelocityThreshold);
     }
 }
 }

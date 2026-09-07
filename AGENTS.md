@@ -163,7 +163,8 @@ Assets/
 │   │   ├── AnnotatedAnimationClip.cs [a clip + skeleton, a frame slice, and a clip component list]
 │   │   ├── AnimationClipComponent.cs [base for polymorphic per-clip annotation]
 │   │   ├── GaitPhaseComponent.cs    [footfall anchors + how they were detected]
-│   │   └── GaitPhase.cs             [footfalls -> phase; the C# half of Python/gait_phase.py]
+│   │   ├── GaitPhase.cs             [footfalls -> phase; the project's only definition of it]
+│   │   └── GaitMeasure.cs           [foot contacts + ground speed off a baked clip, for the editor and the bake]
 │   ├── Runtime/Pose/
 │   │   ├── PoseBuffer.cs            [mutable pose in motion synthesis]
 │   │   ├── CharacterSpacePose.cs    [Extract/Apply: a pose measured in, and written back from, its character frame]
@@ -231,7 +232,6 @@ Python/
 ├── pose_set_importer.py             [.mmpose reader]
 ├── feature_set_importer.py          [.mmfeatures reader: matching feature vectors + schema]
 ├── simulation_frame.py              [character frames, FK, and per-frame rates]
-├── gait_phase.py                    [gait phase reconstructed from foot contacts]
 ├── training_data.py                 [per-frame arrays a PFNN/LMM model trains on, + .npz]
 ├── pfnn_dataset.py                  [bone selection and the PFNN input/output vector layouts]
 ├── pfnn_model.py                    [the phase function and the network it drives]
@@ -403,9 +403,13 @@ When adding a new `MoSynthStage`:
   authored instance and drops the data on the next save. `[FormerlySerializedAs]` renames fields,
   not types — `[MovedFrom]` is the tool, and is not yet used anywhere here
 - `GaitPhaseComponent` is the first one: a clip's footfall anchors plus the per-clip settings they
-  were detected with. `GaitPhase` turns anchors into phase by the same rule as
-  `Python/gait_phase.py`, except that it refuses to extrapolate past the outer anchors — see
-  `openwiki/animation-tools/animation-sources.md`. The anchors do **not** reach the database yet
+  were detected with. `GaitPhase` turns anchors into phase, and **is the only implementation of that
+  rule** — `PoseExtractor` evaluates it at bake time and writes phase and its rate into the
+  `.mmpose`, so Python reads it instead of reconstructing it from contacts. A stretch with no anchors
+  is answered by ground speed: standing sweeps at a fixed period so a model can learn a stationary
+  pose across the whole cycle, moving holds the phase at rate 0 and the frame is dropped. Contacts
+  for both the editor and the bake come from one routine, `GaitMeasure` — see
+  `openwiki/animation-tools/animation-sources.md`
 - **Annotation frames are clip-local, and nothing may delete annotation for falling outside the
   clip's `[startFrame, endFrame)` slice.** Both were once the other way round, and trimming a clip
   destroyed the anchors beyond the new end — permanently, on every `OnValidate`. `GaitPhase.Evaluate`

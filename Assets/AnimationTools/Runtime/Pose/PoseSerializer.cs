@@ -55,6 +55,8 @@ public class PoseSerializer
                     writer.Write(frame.GetBool(poseSet.RightFootContactHandle) ? 1u : 0u);
                 }
 
+                WritePhase(writer, poseSet);
+
                 // Serialize Tags
                 for (int i = 0; i < poseSet.NumberTags; ++i)
                 {
@@ -209,6 +211,8 @@ public class PoseSerializer
                     frame.SetBool(poseSet.RightFootContactHandle, reader.ReadUInt32() == 1u);
                 }
 
+                if (!ReadPhase(reader, ms, fileName, poseSet, (int)nPoses)) return false;
+
                 for (int i = 0; i < nTags; i++)
                 {
                     string name = reader.ReadString();
@@ -226,6 +230,46 @@ public class PoseSerializer
 
                 poseSet.ConvertTagsToNativeArrays();
             }
+        }
+
+        return true;
+    }
+
+    // --- Gait phase block -------------------------------------------------------------------
+    //
+    // Phase and its rate, one pair per pose, after the poses. It is evaluated once in C# from the
+    // clips' authored footfalls and carried here rather than reconstructed on the Python side from
+    // the contact flags, so what the clip editor draws is what a model trains on — the same
+    // argument that put the skeleton in this file. C# never reads it back; it exists for the
+    // training set. A rate of zero marks a frame with no measurable cycle.
+
+    private static void WritePhase(BinaryWriter writer, PoseSet poseSet)
+    {
+        for (var i = 0; i < poseSet.NumberPoses; ++i)
+        {
+            writer.Write(poseSet.GetPhase(i));
+            writer.Write(poseSet.GetPhaseRate(i));
+        }
+    }
+
+    /// <summary>
+    /// Reads the gait phase block, refusing a file that stops short of it. The format carries no
+    /// version, so a database written before the block existed is caught by checking the content is
+    /// actually there — which also catches a truncated write.
+    /// </summary>
+    private static bool ReadPhase(BinaryReader reader, Stream stream, string fileName, PoseSet poseSet,
+        int poseCount)
+    {
+        if (stream.Length - stream.Position < (long)poseCount * 2 * sizeof(float))
+        {
+            Debug.LogError($"\"{fileName}.mmpose\" ends before its gait phase block; it is truncated, or " +
+                           "predates the block. Regenerate the databases.");
+            return false;
+        }
+
+        for (var i = 0; i < poseCount; i++)
+        {
+            poseSet.SetPhase(i, reader.ReadSingle(), reader.ReadSingle());
         }
 
         return true;

@@ -39,7 +39,7 @@ MonoBehaviour:
           foot: 0
         - frame: 70
           foot: 1
-        - frame: 92
+        - frame: 94
           foot: 0
         - frame: 105
           foot: 1
@@ -59,3 +59,5 @@ MonoBehaviour:
         rightContactBoneName: 
         contactVelocityThreshold: 0.15
         smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

@@ -129,6 +129,18 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
             right_contact = struct.unpack('<I', f.read(4))[0] == 1
             foot_contacts[i] = [left_contact, right_contact]
 
+        # Gait phase and its rate, one pair per pose. Unity evaluates these from each clip's
+        # authored footfalls and writes them here so that nothing on this side reconstructs
+        # phase from the contacts -- which is how the two definitions used to drift apart.
+        phase_block = f.read(n_poses * 8)
+        if len(phase_block) < n_poses * 8:
+            raise ValueError(
+                f"{file_name}.mmpose ends before its gait phase block; it is truncated, or "
+                f"predates the block. Regenerate the databases.")
+
+        phase_pairs = np.frombuffer(phase_block, dtype=np.float32).reshape(n_poses, 2)
+        phase, phase_rate = phase_pairs[:, 0].copy(), phase_pairs[:, 1].copy()
+
         # Read Tags
         tags = []
         for _ in range(n_tags):
@@ -156,6 +168,8 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
         local_vel=vel,
         local_angular_vel=ang_vel,
         clips=clips,
+        phase=phase,
+        phase_rate=phase_rate,
     )
 
     # Optionally attach data not directly in the __init__ definition to the python object

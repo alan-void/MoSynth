@@ -8,15 +8,22 @@ namespace AnimationTools.Tests
 /// Turning footfalls into a gait phase.
 /// </summary>
 /// <remarks>
-/// The fixtures mirror <c>Python/tests/test_gait_phase.py</c>, because the two implementations have
-/// to agree on this definition and a disagreement does not throw — it just makes a trained network
-/// wrong. The one place they deliberately differ is outside the outer anchors, which has its own
-/// tests here.
+/// This is the only implementation of the rule, and the database carries its output to the training
+/// set, so a mistake here does not throw — it makes a trained network wrong. The stretches with no
+/// anchors in them are the interesting half, and have their own section below.
 /// </remarks>
 public class GaitPhaseTests
 {
     private const float FrameTime = 1f / 30f;
     private const float Tolerance = 1e-4f;
+    private const float StandingSpeed = 0.1f;
+    private const float StandingPeriod = 1f;
+
+    /// <summary>Radians per frame a standing stretch sweeps at, for these settings.</summary>
+    private const float StandingSlope = GaitPhase.Tau * FrameTime / StandingPeriod;
+
+    /// <summary>Radians per second the same sweep reports.</summary>
+    private const float StandingRate = GaitPhase.Tau / StandingPeriod;
 
     private static List<GaitPhase.Footfall> Footfalls(params (int frame, GaitPhase.Foot foot)[] entries)
     {
@@ -31,6 +38,22 @@ public class GaitPhaseTests
         phase = new float[frameCount];
         rate = new float[frameCount];
         GaitPhase.Evaluate(footfalls, FrameTime, phase, rate);
+    }
+
+    private static void Evaluate(List<GaitPhase.Footfall> footfalls, float[] speed,
+        out float[] phase, out float[] rate)
+    {
+        phase = new float[speed.Length];
+        rate = new float[speed.Length];
+        GaitPhase.Evaluate(footfalls, FrameTime, speed, StandingSpeed, StandingPeriod, phase, rate);
+    }
+
+    /// <summary>Speeds for a character standing still except over <c>[from, to)</c>.</summary>
+    private static float[] MovingBetween(int frameCount, int from, int to)
+    {
+        var speed = new float[frameCount];
+        for (var frame = from; frame < to; frame++) speed[frame] = 1f;
+        return speed;
     }
 
     [Test]
@@ -108,7 +131,10 @@ public class GaitPhaseTests
         Assert.That(rate[15], Is.EqualTo(math.PI / (20f * FrameTime)).Within(Tolerance));
     }
 
-    // --- The deliberate difference from the Python side ------------------------------------------
+    // --- Stretches with no anchors in them -------------------------------------------------------
+    //
+    // Standing and a missed contact look identical in the anchors alone, so how fast the character
+    // was travelling is what separates them. With no speed measured at all, everything is held.
 
     [Test]
     public void FramesOutsideTheAnchorsReportNoCycle()
@@ -136,6 +162,102 @@ public class GaitPhaseTests
 
         Assert.That(phase[0], Is.EqualTo(phase[10]).Within(Tolerance));
         Assert.That(phase[49], Is.EqualTo(phase[30]).Within(Tolerance));
+    }
+
+    [Test]
+    public void AStandingLeadInSweepsAndLandsOnTheFirstFootfall()
+    {
+        // The character stands, then walks from frame 10. Standing frames still teach a model a
+        // stationary pose, so they sweep the cycle rather than sitting at one point of it — but the
+        // sweep is wound back from the footfall, so the phase stays continuous where the walk starts.
+        var footfalls = Footfalls((10, GaitPhase.Foot.Right), (30, GaitPhase.Foot.Left));
+
+        Evaluate(footfalls, MovingBetween(50, 10, 50), out var phase, out var rate);
+
+        Assert.That(rate[0], Is.EqualTo(StandingRate).Within(Tolerance));
+        Assert.That(rate[9], Is.EqualTo(StandingRate).Within(Tolerance));
+        Assert.That(phase[10], Is.EqualTo(0f).Within(Tolerance), "the anchor itself");
+        Assert.That(phase[9], Is.EqualTo(GaitPhase.Tau - StandingSlope).Within(Tolerance),
+            "one frame short of it, wound back at the standing rate");
+    }
+
+    [Test]
+    public void AStandingLeadOutSweepsOnFromTheLastFootfall()
+    {
+        var footfalls = Footfalls((10, GaitPhase.Foot.Right), (30, GaitPhase.Foot.Left));
+
+        Evaluate(footfalls, MovingBetween(50, 0, 30), out var phase, out var rate);
+
+        Assert.That(rate[30], Is.EqualTo(StandingRate).Within(Tolerance));
+        Assert.That(rate[49], Is.EqualTo(StandingRate).Within(Tolerance));
+        Assert.That(phase[30], Is.EqualTo(math.PI).Within(Tolerance), "the anchor itself");
+        Assert.That(phase[31], Is.EqualTo(math.PI + StandingSlope).Within(Tolerance));
+    }
+
+    [Test]
+    public void AnAnchorlessStretchTheCharacterMovedThroughIsStillRefused()
+    {
+        // A missed contact leaves the same hole in the anchors that standing does, and it must stay
+        // a missed contact: there is no evidence of a cycle, so the frames are held and dropped.
+        var footfalls = Footfalls((10, GaitPhase.Foot.Right), (30, GaitPhase.Foot.Left));
+
+        Evaluate(footfalls, MovingBetween(50, 0, 50), out var phase, out var rate);
+
+        Assert.That(rate[0], Is.EqualTo(0f));
+        Assert.That(rate[49], Is.EqualTo(0f));
+        Assert.That(phase[0], Is.EqualTo(phase[10]).Within(Tolerance));
+    }
+
+    [Test]
+    public void AStandingGapAdvancesWholeCyclesRatherThanOneSlowStride()
+    {
+        // Four seconds of standing between two footfalls is not one stride taken slowly. The gap
+        // sweeps near the standing rate instead, by whole cycles, so it still lands on the foot the
+        // anchor names.
+        var footfalls = Footfalls((10, GaitPhase.Foot.Right), (130, GaitPhase.Foot.Left));
+
+        Evaluate(footfalls, MovingBetween(140, 0, 10), out var phase, out var rate);
+
+        var oneStride = math.PI / (120f * FrameTime);
+        Assert.That(rate[50], Is.EqualTo(StandingRate).Within(StandingRate * 0.25f));
+        Assert.That(rate[50], Is.GreaterThan(oneStride * 2f));
+        Assert.That(phase[130], Is.EqualTo(math.PI).Within(Tolerance), "still the left foot");
+    }
+
+    [Test]
+    public void AMovingGapKeepsTheMissedContactRule()
+    {
+        var footfalls = Footfalls((10, GaitPhase.Foot.Right), (130, GaitPhase.Foot.Left));
+
+        Evaluate(footfalls, MovingBetween(140, 0, 140), out _, out var rate);
+
+        Assert.That(rate[50], Is.EqualTo(math.PI / (120f * FrameTime)).Within(Tolerance));
+    }
+
+    [Test]
+    public void AClipStoodThroughEndToEndSweepsFromZero()
+    {
+        // No anchor to line up with, which is what decides the standing rate is a fixed period
+        // rather than one carried from a neighbouring segment: here there is no neighbour.
+        Evaluate(new List<GaitPhase.Footfall>(), new float[30], out var phase, out var rate);
+
+        Assert.That(rate[0], Is.EqualTo(StandingRate).Within(Tolerance));
+        Assert.That(phase[0], Is.EqualTo(0f).Within(Tolerance));
+        Assert.That(phase[1], Is.EqualTo(StandingSlope).Within(Tolerance));
+    }
+
+    [Test]
+    public void AZeroStandingPeriodLeavesEverythingHeld()
+    {
+        // The switch that turns the rule off, for a caller that would rather drop those frames.
+        var footfalls = Footfalls((10, GaitPhase.Foot.Right), (30, GaitPhase.Foot.Left));
+        var phase = new float[50];
+        var rate = new float[50];
+
+        GaitPhase.Evaluate(footfalls, FrameTime, new float[50], StandingSpeed, 0f, phase, rate);
+
+        Assert.That(rate[0], Is.EqualTo(0f));
+        Assert.That(rate[49], Is.EqualTo(0f));
     }
 
     // --- Degenerate input -------------------------------------------------------------------------

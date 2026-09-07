@@ -23,8 +23,6 @@ What is *derived* here, and why it cannot simply be read out of the ``.mmpose``:
   character frame need forward kinematics and then the frame transform.
 * The stored per-bone velocities are parent-local channel differences, which is not the
   same quantity as a joint's velocity within the character frame.
-* Gait phase is not stored at all; it is reconstructed from the foot contacts by
-  :mod:`gait_phase`.
 * A trajectory window is where the character was and will be relative to now, which the
   frame transform is precisely what removes -- so it is derived from the world frames,
   which are kept for exactly that.
@@ -62,7 +60,6 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-import gait_phase
 from Animation import PoseSet
 from feature_set_importer import FeatureSet, read_feature_set
 from pose_set_importer import deserialize_pose_set
@@ -142,7 +139,8 @@ class TrainingSet:
         space, m/s.
     :param root_yaw_rate: (n,) rate of change of the character frame's heading, rad/s.
     :param contacts: (n, 2) float32 foot contact flags, left then right.
-    :param phase: (n,) gait phase in [0, 2*pi), from :mod:`gait_phase`.
+    :param phase: (n,) gait phase in [0, 2*pi), read off the ``.mmpose`` -- Unity evaluates
+        it from each clip's authored footfalls.
     :param phase_rate: (n,) rate of change of the unwrapped phase, rad/s. Zero marks a
         clip with no measurable gait cycle.
     :param frame_position: (n, 3) **world** position of the character frame's origin, on the
@@ -421,7 +419,12 @@ def build_training_set(pose_set: PoseSet, feature_set: FeatureSet | None = None)
         out_frame_yaw[start:end] = frames.yaw[:-1]
 
     contacts = np.asarray(pose_set.foot_contacts).astype(np.float32)
-    phase, phase_rate = gait_phase.pose_set_phase(contacts, ranges, frame_time)
+
+    # Gait phase is read off the database rather than reconstructed here: Unity evaluates it
+    # from each clip's authored footfalls, so the phase a model trains on is the phase the
+    # clip editor drew.
+    phase = np.asarray(pose_set.phase, dtype=np.float32)
+    phase_rate = np.asarray(pose_set.phase_rate, dtype=np.float32)
 
     training_set = TrainingSet(
         frame_time=frame_time,

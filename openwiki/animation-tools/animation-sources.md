@@ -238,25 +238,37 @@ used anywhere in this repository.
 
 The first component. It stores a clip's **footfalls** — which frame each foot was planted on — and
 the settings used to find them. [Gait phase](neural-synthesis.md) is what a phase-functioned network
-is organised around, and it was previously reconstructed only at training time, in Python, from
-contacts baked with one global threshold. Nothing could see it and nothing could correct it.
+is organised around, and it was once reconstructed only at training time, in Python, from contacts
+baked with one global threshold. Nothing could see it and nothing could correct it.
 
 Anchors are stored rather than a baked phase curve: a few hundred markers say the same thing as
 thousands of floats, they are the direct input to the phase rule, and they are what a person would
-correct. Both known defects in the shipped clips are anchor-level — contacts missed where the
-character moves fast, and phase invented across a standing intro that has no anchors at all.
+correct.
 
-`GaitPhase` turns anchors into phase using the same rule as `Python/gait_phase.py`: half a cycle per
-alternating footfall, a whole cycle when the same foot falls twice running (which is what a missed
-contact looks like), linear between, zeroed on a right footfall. **It deliberately differs in one
-place**: Python extrapolates outward from the first and last anchor "so a clip has no flat ends",
-while this holds the phase and reports a rate of zero. Extrapolation invents gait — on the untrimmed
-`walk1_subject1` clip the first real footfall is at frame 132, and the 4.4 s of standing before it
-was being given 2.87 complete cycles the character never walked.
+`GaitPhase` turns anchors into phase — half a cycle per alternating footfall, a whole cycle when the
+same foot falls twice running (which is what a missed contact looks like), linear between, zeroed on
+a right footfall — and the pose-database bake writes the result into the `.mmpose`. **This is now
+the only implementation of the rule.** It used to be mirrored in Python, and the two had drifted:
+the Python side extrapolated the neighbouring walking rate outward past the first and last anchor
+"so a clip has no flat ends", which invented gait — on the untrimmed `walk1_subject1` clip the first
+real footfall is at frame 132, and the 4.4 s of standing before it was given 2.87 complete cycles
+the character never walked. That is what a model trained to cycle its legs while standing was
+learning from.
+
+A stretch with no anchors is now answered by how fast the character was travelling, since standing
+and a missed contact leave the same hole. Standing sweeps the phase at a fixed period so a model can
+learn a stationary pose across the whole cycle; moving holds the phase at a rate of zero, which
+drops the frame.
 
 Detection settings live on the clip rather than on a database config, because one threshold cannot
 serve two clips at different speeds: `walk1_subject5` travels at 1.27 m/s against
-`walk1_subject1`'s 0.675 m/s.
+`walk1_subject1`'s 0.675 m/s. The bake reads those same settings, and both the timeline and the
+database measure contacts through one routine, `GaitMeasure` — so what an author corrects a clip
+against is what the database records. That was not true before: the bake composed per-bone velocity
+channels while the editor differenced character-space positions, and the two disagreed badly, the
+bake reporting a toe planted 0.22/0.17 of the time on `walk1_subject5` where the editor reported
+0.40/0.36. Differencing is the more direct measurement of whether a toe moved, so it is the one that
+survived.
 
 Neither defect is inherent to the detector, and the Bandai-Namco `walk_normal` set is the
 counter-example worth knowing about. Its 24 takes walk continuously from the first frame — 0.5% of

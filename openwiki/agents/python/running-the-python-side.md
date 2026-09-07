@@ -13,9 +13,6 @@ sources:
   - id: openwiki-source-030d30d689203655d06f8a6b
     resource: repo://Python/tests/test_gait_phase.py
 generated: {by: "claude-code", at: "2026-08-30T13:08:18.116Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-30T16:12:55.820Z
 ---
 
 # Running the Python side
@@ -48,7 +45,7 @@ and does **not** have pytest — the test suites are stdlib `unittest` for exact
 
 ## The modules are flat, not a package
 
-`Python/` has no `__init__.py`. Modules import each other by bare name (`import gait_phase`,
+`Python/` has no `__init__.py`. Modules import each other by bare name (`import training_data`,
 `from Animation import PoseSet`), so anything importing them needs `Python/` on `sys.path`:
 
 - **Unity** appends it in `PythonRuntime.EnsureInitialized`.

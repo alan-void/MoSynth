@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bb5c63e63402f666040fb4183b308fe8519c922151fa93cbeee867bfec28bae0",
+  "pageVersion": "sha256:dd7a88af33d56c02d12d32d38527e0b5bd7a4caacdf90ac8bf8e3c597acb30ef",
   "claims": [
     {
       "id": "claim_cf1499b2d2274e769a0a1dc21877cd6c",
@@ -39,8 +39,8 @@
           "version": "repo-lines-v1:sha256:fc9c20e8eb29e505fb21b7a462acea31da4d6f611da13e6fb6b30b36e24a8754:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NWQ0NTg5ZTkxY2M4Y2I5NzQ4ODlkYWIwMWRlMTVkYjE1NzRjYTEwZWVjNzI5MGExMDliZjU4OGM5NGUwMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyYmI5Zjg4ZTIwZDk3MzA2NmRjNDU4ZDVjMTk0YmUwYWRhMDAwMDFkYzMyYzUyNGQxNDYwNzM1NDJkYzk5MTYifQ"
         },
         {
-          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L305-L370",
-          "version": "repo-lines-v1:sha256:90e02972a8df1f1515b22e3cc7ee064a08e1f0db622e840d9a40c68d6cb9fcfb:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YTVlN2M2MWQwZjBiOWM0ZDAzOGI3YTQxNDdhN2EyOTVkNTI4ZjU1OGVlOWVlMTM1NjNkZWU2NzJkMDg0OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmN2U2MzIwMTY5ZDZmMjY1NzlmNzUyN2Q5ZDM2ZTU4ZDI0NTMyMTk4OWEzNzNiOGE5NzJhMTk3YWM2OTIzOWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxYWM1NWI5Y2YyZjY1NDM0M2YzYTI0NTdlNmI1MDhlNzhjODNjYTY1ZTBmY2JhNDVjMWVmYzU5ZjE0NTM3OTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzNDY5N2YwNjQ4N2U4MGU1N2FkMjY2Y2QxMDlhZGY0OGIzM2NiNDc4N2U0OWIyMWI5NGZmYjJhZmE2ZjkwMzIifQ"
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs#L348-L406",
+          "version": "repo-lines-v1:sha256:7e51827b4032c4ac9412ef78e90477d59ed0191bd3b059a4f6ba2072d50fb676:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlN2VkZWE2NjJjNzJlMGVlOTc1M2M0NGNlMTFkNTNkOGEzOWNjNWNhYjcyOGJjNThkNzZjZjk1Y2EyNDhhOGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1OTc1YWQ0MjZkMmVmOWJiZDAyNzdkNzI4MmI3YjFiZjM2ZjZhMTM2ZDhjNzM1YzU5ZmVhY2M2MmYyOWQxNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjNWMzMzExOTM3YmJiODU4MzljZGZiYzg5MGIyODQzMDM4MDkxNzY5YWYyNTlkNDc0MTQ1M2FlMTk2ZDQ5MWUifQ"
         }
       ]
     },
@@ -123,10 +123,66 @@
           "version": "repo-lines-v1:sha256:bc30e98e9ddc6f2c1bf52ab2a7571363a03e743f5c00b1e0e8f67fdfa6f0e956:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyYzUwZjY5MGZjYzFhMDZiZjFlNjBhYmRjODBkYmZmMDNkZTJhMmExNGM4NzAyMjc3NmJkNzhjZWI4NDkxZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGI2MzQwZTU4N2NkZmNkNTFmZjRkMzY2MzJmMWYzYzBjYTU1ZDZiNmY1MGE0N2Q2YmNjNzQwM2RjYzMwNjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1MmJjZDcxZmY5OTU2MzJkYTVhYzAyNjZmMjQ5ZWFhYjY1YmZiNTZjZDUwNWY0MjdlODZhZWIyYmY4YTljY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYTBiODRmMGUxYWQ2MzFkYjM3ZDZmMDc3ZjIzMDk3MjM3MmJlMWFiOTUyZDdjMTFlNDA4MTBjNzNhNDZmNDAifQ"
         }
       ]
+    },
+    {
+      "id": "claim_c857868042e24bfda2c3f8eee1f1850a",
+      "statement": "A PfnnConfig derives its pose database and checkpoint paths from its own asset name, so two configs over different datasets and different rigs coexist without either overwriting the other's artefacts; the agreement check then needs one selected explicitly, since it only auto-picks a config when the project holds exactly one.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Pfnn/PfnnConfig.cs#L110-L125",
+          "version": "repo-lines-v1:sha256:102663dd3bf595acfc5d43b929007f9f292640bd516965f22e9b915e0c3edb39:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1YTMxNDdjNDhmNmU0OWY1YjM3OWE5M2EyOTFiZTcxNDE3NmJlOTBmYmE3NmU3OGMwNWEyZDM1OGY3YWM0ODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2NDEzOTc4YmE3MjEzODVlNDU1MTdmZDM3Y2Y2Zjk0MmY2YjYxZjA5ZWNiNjc1OGJjMTAzMTAyNzE5OWRlNGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzMGUxZDRjYWVmMDY3NzI0ODJlNTMwMWU4M2Y3NDYyODdjZjFhNWYyYTMyMmMxNTI0YTZhYmUyNzk3MWNjZGQifQ"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/Editor/PfnnAgreementCheck.cs#L35-L77",
+          "version": "repo-lines-v1:sha256:ac325aedc85ccb667980ccb8b4d24fac3bdc3fcde402d22d58f7923d3cde1292:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ODAyNThmOTkyOGZjZTY4NGE4NGU1MzkxNjU1MGUzNGM4MzQyNzM1M2UxZWFlZGM3ZDM0OWUwNzc2ODhmMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxZmFhZWU4ZGRhODYzNGMxOWJkMTIwYzI1NDUyZTQ0ZjJhM2MxZjE3YTZmNDNmMTc5YTc2MmYyZWE3MjYyNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1MTY2ODA0NGQ4ZWMyM2Y4MGQ3OGJhYThjYzdiZDI3OWFhNzJhNjkwYTVjMDAzNzQxMzU4NzIwNDAwNDY4ZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b5acfd18830418a8e674fbc2ce9d47f",
+      "statement": "A PFNN trained only on straight walking cannot turn, because the root-delta yaw component read out of the trajectory sampler is near zero across every sample; supplying turning therefore means adding clips that actually turn rather than tuning the network.",
+      "evidence": [
+        {
+          "resource": "repo://Python/pfnn_dataset.py#L217-L226",
+          "version": "repo-lines-v1:sha256:3e1da7e97b2de0d39ca765e85a0bdfaeaa9b584fc6cd5c83675a9e4c783a85b1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhZjNlNjMzNTg1MWU3MjAxYTQ0NzhlMjQ3ZjBkM2FmNzNkZjFlMDQwNWUyMTA2ODQ4YjYwNjJmOWQwMjRkMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4NzZhMTc3MzZiMDIzZTk0OGNiODhjMDRkYmJiYjExM2NlMzU4MTVkMjAwZWIyOTNhOGFiYjNmNTZmYzY0MDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmOTBiY2M4MDZlZWMxNGQ2ZWE0YjUwOGZiZWY5MTc5MjQxZDAwMjY0ZjczYTBlZDM3NTc4ZWNkNzQ5NTQ1MDMifQ"
+        },
+        {
+          "resource": "repo://Python/training_data.py#L248-L299",
+          "version": "repo-lines-v1:sha256:70a05aa0f04ec2de81d8a4c81396a1e2e76a00259ce229d52a11b6ff369ed722:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MGRmOWRjOGY2YTYxOTI0NzNhNjZlODU2NTQ3NGZjNDAwNDA3YTAzMDMwOTdmYzU4MTIxMWE1Y2Q2MzIzOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllYmExOWE5ZjgzYzA1YjY0YTMzYjc3YTJlYzJiZDQ2ODYyOWQyYzdhZTc3ZmY2ODk0NmRhM2VhNmZlYWRkZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxNWRiMWI0NmExOGRjNGNhOWE4YTQ0YzNjYjM4NjA0ZDc2MjI4NTY5YzQxZWQwYTg2MzNjY2M5NGVhMmY4NzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8e7a40f0a58941a6b9f0b17795b25cb8",
+      "statement": "The training-agreement check cannot detect the C# and Python sides agreeing on a wrong character frame, because both derive the forward axis from the same rest pose stored in the .mmpose; a rig exported holding a frame of motion therefore passes the check at micrometre agreement while every pose in the database is measured against the wrong facing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L17-L23",
+          "version": "repo-lines-v1:sha256:2b70fb8138c587f5c6ea1fb44eab3f360d165f27514558171881da0881597755:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjE1MWZiNWM1ZTMxOTdjYzQwYWIyM2RlOTZhOGVlZjkwMWE5MzdlMjM2NzBlNTIxOGE2ZGRhNzVkMjg0MzBhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjFkYTU3Y2VhYjUxOWYzZjU4NWU4MjEyMjZlN2YyMTE2OTg1YTI4YTBjYmY2YTkzYTMwZGQ3NzU2NWJjZjVjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjg2YmJlM2I0OWIwZWY4MDIwNDcwMmNiNzcyYmY4MjU4NzEzMmNjZTMxM2VlZWE0YzUwY2ZjZTA4ZmMxNGI0YiJ9"
+        },
+        {
+          "resource": "repo://Python/pose_set_importer.py#L60-L69",
+          "version": "repo-lines-v1:sha256:258444405ba3dbf70295d7e6b23472e552fe332e804414b73a09155b52f44154:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5MTM0MjQ4MDg1MGE5N2Q1YjM4MTgxOTI1OGE1NDM2OTE0YzI5MDdlOGZhMWUyYTZhZDM2OTJjNzgwOTYzYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0NGRhNDljNWQ5YTk4Mzk5ZGZmNzU2YjE5OWY4ZjRiMDVhZGNkNzI3NjUyZmRlNmQyYzVhMGFmNWYxMjk2Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczY2E2ZTUxZGRhYmU1OTZhYWM5YWI3Nzc1MmRmYjdmNWVkNjk2N2MzZmE2ZGE5MzljOTUyNmU4MTdkYWRjYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0YzM1YTg3N2I5NDcwMTA3NWM2YzEzNmQzZTQ2MDk0YzI3OWJhODI5YjhmYWU2YmRiY2YzYzNkMjBjNGYwOWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_57460bd45a0b45b0805f065d7187c511",
+      "statement": "The training-agreement check cannot detect the C# and Python sides agreeing on a wrong character frame, because both derive the forward axis from the same rest pose stored in the .mmpose; a rig exported holding a frame of motion therefore passes the check at micrometre agreement while every pose in the database is measured against the wrong facing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs#L17-L23",
+          "version": "repo-lines-v1:sha256:2b70fb8138c587f5c6ea1fb44eab3f360d165f27514558171881da0881597755:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjE1MWZiNWM1ZTMxOTdjYzQwYWIyM2RlOTZhOGVlZjkwMWE5MzdlMjM2NzBlNTIxOGE2ZGRhNzVkMjg0MzBhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjFkYTU3Y2VhYjUxOWYzZjU4NWU4MjEyMjZlN2YyMTE2OTg1YTI4YTBjYmY2YTkzYTMwZGQ3NzU2NWJjZjVjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjg2YmJlM2I0OWIwZWY4MDIwNDcwMmNiNzcyYmY4MjU4NzEzMmNjZTMxM2VlZWE0YzUwY2ZjZTA4ZmMxNGI0YiJ9"
+        },
+        {
+          "resource": "repo://Python/pose_set_importer.py#L60-L69",
+          "version": "repo-lines-v1:sha256:258444405ba3dbf70295d7e6b23472e552fe332e804414b73a09155b52f44154:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5MTM0MjQ4MDg1MGE5N2Q1YjM4MTgxOTI1OGE1NDM2OTE0YzI5MDdlOGZhMWUyYTZhZDM2OTJjNzgwOTYzYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0NGRhNDljNWQ5YTk4Mzk5ZGZmNzU2YjE5OWY4ZjRiMDVhZGNkNzI3NjUyZmRlNmQyYzVhMGFmNWYxMjk2Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczY2E2ZTUxZGRhYmU1OTZhYWM5YWI3Nzc1MmRmYjdmNWVkNjk2N2MzZmE2ZGE5MzljOTUyNmU4MTdkYWRjYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0YzM1YTg3N2I5NDcwMTA3NWM2YzEzNmQzZTQ2MDk0YzI3OWJhODI5YjhmYWU2YmRiY2YzYzNkMjBjNGYwOWEifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-30T16:03:03.865Z"
+    "at": "2026-09-03T11:06:29.275Z"
   }
 }

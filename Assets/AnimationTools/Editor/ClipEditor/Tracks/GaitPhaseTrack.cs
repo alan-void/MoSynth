@@ -513,6 +513,19 @@ namespace AnimationTools.Editor
             }
 
             EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Standing", EditorStyles.boldLabel);
+
+            var standingSpeedProperty = context.ComponentProperty.FindPropertyRelative("standingSpeed");
+            EditorGUILayout.Slider(standingSpeedProperty, 0f, 1f, new GUIContent("Standing Speed",
+                "Travel speed below which a stretch with no footfalls is a stand rather than a missed " +
+                "contact, in m/s"));
+
+            var standingPeriodProperty = context.ComponentProperty.FindPropertyRelative("standingPeriod");
+            EditorGUILayout.Slider(standingPeriodProperty, 0f, 4f, new GUIContent("Standing Period",
+                "Seconds per cycle a standing stretch sweeps at. Zero holds the phase still instead, " +
+                "which drops those frames from training"));
+
+            EditorGUILayout.Space();
             DrawSummary(editor, phase);
             DrawKeymap();
         }

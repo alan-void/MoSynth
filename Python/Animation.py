@@ -28,6 +28,14 @@ class PoseSet:
     :param local_angular_vel: (n_frames, n_bones, 3) angular velocities as rotation
         vectors, rad/s
     :param clips: per-clip frame ranges, as dicts with ``start`` and ``end``
+    :param phase: (n_frames,) gait phase in radians in [0, 2*pi), or None for a database
+        that carries none
+    :param phase_rate: (n_frames,) its rate in rad/s. **Zero marks a frame with no
+        measurable gait cycle**, which is the sentinel training uses to drop it
+
+    Phase is evaluated in Unity from each clip's authored footfalls and read off the file
+    rather than reconstructed here, so that what the clip editor draws is what a model
+    trains on. Two implementations of one rule is how the two halves drift apart.
 
     The character frame these poses are matched in is not stored. Its definition is
     structural -- joint 0, faced along the forward axis of its rest rotation -- and
@@ -44,6 +52,8 @@ class PoseSet:
                  local_vel,
                  local_angular_vel,
                  clips,
+                 phase=None,
+                 phase_rate=None,
                  ):
         self.skeleton: Skeleton = skeleton
         self.frameTime: float = frame_time
@@ -53,3 +63,9 @@ class PoseSet:
         self.local_angular_velocities: np.ndarray = local_angular_vel
         self.foot_contacts: np.ndarray = foot_contacts
         self.clips: list = clips
+
+        n_frames = len(local_pos)
+        self.phase: np.ndarray = np.zeros(n_frames, dtype=np.float32) if phase is None \
+            else np.asarray(phase, dtype=np.float32)
+        self.phase_rate: np.ndarray = np.zeros(n_frames, dtype=np.float32) if phase_rate is None \
+            else np.asarray(phase_rate, dtype=np.float32)

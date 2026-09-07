@@ -19,8 +19,9 @@ import training_data  # noqa: E402
 from test_training_data import (FRAME_TIME, build_pose_set,  # noqa: E402
                                 walking_straight)
 
-# Enough footfalls that gait_phase reports a real cycle; a clip with fewer is reported as having no
-# measurable one, and pfnn_dataset drops those frames on purpose.
+# Frames per half-cycle, so a fixture walks with alternating footfalls and a phase that turns over
+# steadily. A clip with no measurable cycle carries a rate of zero, and pfnn_dataset drops those
+# frames on purpose.
 CONTACT_PERIOD = 10
 
 
@@ -33,13 +34,27 @@ def contacts_for(n_frames: int) -> np.ndarray:
     return contacts
 
 
+def phase_for(n_frames: int):
+    """
+    The steady cycle those footfalls imply -- half a turn per footfall -- as Unity would have
+    evaluated and written it. Authored here because this side no longer derives phase.
+    """
+    slope = np.pi / CONTACT_PERIOD
+    unwrapped = np.arange(n_frames, dtype=np.float64) * slope
+    return (np.mod(unwrapped, 2.0 * np.pi).astype(np.float32),
+            np.full(n_frames, slope / FRAME_TIME, dtype=np.float32))
+
+
 def straight_walk_set(n_frames: int = 80, speed: float = 1.5,
                       clips=None) -> training_data.TrainingSet:
     clips = clips or [(0, n_frames)]
+    phase, phase_rate = phase_for(n_frames)
     pose_set = build_pose_set(walking_straight(n_frames, speed),
                               np.zeros(n_frames, dtype=np.float32),
                               clips,
-                              foot_contacts=contacts_for(n_frames))
+                              foot_contacts=contacts_for(n_frames),
+                              phase=phase,
+                              phase_rate=phase_rate)
     return training_data.build_training_set(pose_set)
 
 
@@ -123,8 +138,8 @@ class SampleSelectionTests(unittest.TestCase):
         self.assertNotIn(n_frames - 1, frames.tolist())
 
     def test_frames_with_no_measurable_gait_cycle_are_dropped(self):
-        # A clip with fewer than two footfalls has no cycle, which gait_phase marks as phase_rate 0.
-        # TrainingSet.usable() does not check that, so the packing has to.
+        # A clip with no measurable cycle is marked by a phase rate of zero, and
+        # TrainingSet.usable() does not check that -- so the packing has to.
         n_frames = 40
         pose_set = build_pose_set(walking_straight(n_frames, 1.5),
                                   np.zeros(n_frames, dtype=np.float32),

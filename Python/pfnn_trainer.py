@@ -76,7 +76,7 @@ def train(data_dir: str,
     x, y, phase, _ = pfnn_dataset.build_vectors(training_set, spec)
     if x.shape[0] < 2:
         raise ValueError(f'{x.shape[0]} usable frames in {db_name}: nothing to train on. A clip '
-                         'with no measurable gait cycle contributes none -- see gait_phase.')
+                         'with no measurable gait cycle contributes none -- see GaitPhase in Unity.')
 
     # The split is by index, and the packed samples are still in database order, so this is the tail
     # of the animation rather than a scattering of frames from all over it.

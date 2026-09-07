@@ -61,3 +61,5 @@ MonoBehaviour:
         rightContactBoneName: 
         contactVelocityThreshold: 0.15
         smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

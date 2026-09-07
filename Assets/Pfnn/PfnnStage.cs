@@ -308,7 +308,7 @@ public class PfnnStage : MoSynthStage, IDisposable
             _contacts[0] = leftContact ? 1f : 0f;
             _contacts[1] = rightContact ? 1f : 0f;
 
-            // Gait phase only ever advances: gait_phase builds it as a monotone unwrapped angle, so
+            // Gait phase only ever advances: GaitPhase builds it as a monotone unwrapped angle, so
             // every training target was non-negative and a negative prediction is the network
             // extrapolating outside what it was shown. Letting one through would run the cycle
             // backwards, which no amount of later frames recovers from.

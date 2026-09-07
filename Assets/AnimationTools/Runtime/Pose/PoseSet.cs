@@ -39,6 +39,27 @@ public class PoseSet
     public ChannelHandle LeftFootContactHandle => _leftFootContactHandle;
     public ChannelHandle RightFootContactHandle => _rightFootContactHandle;
 
+    /// <summary>Gait phase of a stored pose, in radians in <c>[0, Tau)</c>.</summary>
+    /// <remarks>
+    /// Not a pose channel: every channel is bone-keyed, and nothing in C# reads phase back out of a
+    /// database. It rides alongside the poses because the Python training set reads it rather than
+    /// reconstructing it — one evaluation of <see cref="GaitPhase"/>, from the clips' authored
+    /// footfalls, is what stops the two halves drifting apart.
+    /// </remarks>
+    public float GetPhase(int poseIndex) => _phase[poseIndex];
+
+    /// <summary>
+    /// Rate of the gait phase at a stored pose, in radians per second. <b>Zero marks a frame with no
+    /// measurable cycle</b>, the sentinel training uses to drop it.
+    /// </summary>
+    public float GetPhaseRate(int poseIndex) => _phaseRate[poseIndex];
+
+    public void SetPhase(int poseIndex, float phase, float phaseRate)
+    {
+        _phase[poseIndex] = phase;
+        _phaseRate[poseIndex] = phaseRate;
+    }
+
     // Private ---
     private readonly List<AnimationClip> _clips = new();
     private readonly List<AnimationTag> _tags = new();
@@ -51,6 +72,9 @@ public class PoseSet
     private int _poseCount;
     private ChannelHandle _leftFootContactHandle;
     private ChannelHandle _rightFootContactHandle;
+    // Parallel to the pose storage, and grown with it. See GetPhase.
+    private float[] _phase;
+    private float[] _phaseRate;
 
     /// <summary>
     /// Adopts an already-complete skeleton and rebuilds the layout over it. Pose storage starts
@@ -71,6 +95,8 @@ public class PoseSet
 
         _poseStorage = null;
         _poseCount = 0;
+        _phase = null;
+        _phaseRate = null;
     }
 
     /// <summary>
@@ -156,6 +182,17 @@ public class PoseSet
         }
 
         _poseStorage = new PoseSequence(_layout, newData);
+
+        var newPhase = new float[newCapacity];
+        var newPhaseRate = new float[newCapacity];
+        if (_phase != null)
+        {
+            System.Array.Copy(_phase, newPhase, _poseCount);
+            System.Array.Copy(_phaseRate, newPhaseRate, _poseCount);
+        }
+
+        _phase = newPhase;
+        _phaseRate = newPhaseRate;
     }
 
     /// <summary>

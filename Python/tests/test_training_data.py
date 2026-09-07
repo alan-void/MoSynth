@@ -36,12 +36,18 @@ def build_skeleton() -> Skeleton:
 def build_pose_set(root_positions: np.ndarray,
                    root_yaws: np.ndarray,
                    clips,
-                   foot_contacts: np.ndarray | None = None) -> PoseSet:
+                   foot_contacts: np.ndarray | None = None,
+                   phase: np.ndarray | None = None,
+                   phase_rate: np.ndarray | None = None) -> PoseSet:
     """
     A database whose rig is rigid: every bone holds its rest offset and identity rotation,
     and only bone 0 moves. Stored velocities are the per-channel differences the extractor
     would have written, including the last frame of each clip, which is what
     ``extend_by_one_frame`` reconstructs the frame past the end from.
+
+    Phase is authored here rather than derived, because Unity evaluates it from a clip's
+    footfalls and this side only reads it. Leaving it out means a rate of zero, which is
+    the "no measurable cycle" sentinel.
     """
     skeleton = build_skeleton()
     joints = list(skeleton)
@@ -76,7 +82,9 @@ def build_pose_set(root_positions: np.ndarray,
                        foot_contacts=foot_contacts,
                        local_vel=velocities,
                        local_angular_vel=angular_velocities,
-                       clips=[{'start': start, 'end': end} for start, end in clips])
+                       clips=[{'start': start, 'end': end} for start, end in clips],
+                       phase=phase,
+                       phase_rate=phase_rate)
     pose_set.sim_frame_bone_index = 0
     pose_set.sim_frame_forward = np.array([0.0, 0.0, 1.0], dtype=np.float32)
     return pose_set
