@@ -718,12 +718,22 @@ MonoBehaviour:
         rightContactBoneName: 
         contactVelocityThreshold: 0.15
         smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1
     - rid: 4326262852383146083
       type: {class: AnimationTagComponent, ns: AnimationTools, asm: AnimationTools}
       data:
         isEnabled: 1
         channels:
         - tag: {fileID: 11400000, guid: 6737db8a0eef476459004516901311f3, type: 2}
-          toggles: ac0a00001f0e0000
+          toggles: 
         - tag: {fileID: 11400000, guid: 34a850499929a674694031ffec05393c, type: 2}
-          toggles: 3508000041110000
+          toggles: 650000005b1100007f1700007b1e0000
+        - tag: {fileID: 11400000, guid: 8e8ad113f083a184283b0d0a9cf0fb6c, type: 2}
+          toggles: 8a050000a3090000
+        - tag: {fileID: 11400000, guid: ae925f0f5f9f6d44d9022c6fed9d3508, type: 2}
+          toggles: 660e00005b110000
+        - tag: {fileID: 11400000, guid: 2e2479b34646e664fb6b7e2487e808de, type: 2}
+          toggles: 791100007d170000
+        - tag: {fileID: 11400000, guid: 674777b776c8a0c4b91065bbc4ab421b, type: 2}
+          toggles: 411900007c1e0000

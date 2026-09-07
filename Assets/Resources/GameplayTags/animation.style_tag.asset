@@ -17,3 +17,5 @@ MonoBehaviour:
   childTags:
   - {fileID: 11400000, guid: ae925f0f5f9f6d44d9022c6fed9d3508, type: 2}
   - {fileID: 11400000, guid: 5537e0247b625ee4e92877ce2912fd36, type: 2}
+  - {fileID: 11400000, guid: 8e8ad113f083a184283b0d0a9cf0fb6c, type: 2}
+  - {fileID: 11400000, guid: 674777b776c8a0c4b91065bbc4ab421b, type: 2}
