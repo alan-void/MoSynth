@@ -24,6 +24,8 @@ public static class PoseSetImporter
             return false;
         }
 
+        if (!skeleton.TryValidateRestPose(out error)) return false;
+
         var clips = source.AnimationClips;
         if (clips == null || clips.Count == 0)
         {

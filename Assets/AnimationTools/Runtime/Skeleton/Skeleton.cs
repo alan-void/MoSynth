@@ -25,6 +25,12 @@ namespace AnimationTools
 [Serializable]
 public sealed class Skeleton
 {
+    /// <summary>
+    /// How far the root bone may stand from the rig's origin, horizontally, and still be taken
+    /// for a rest pose. Comfortably clear of a bind pose, well under a captured stride.
+    /// </summary>
+    private const float MaxRestRootOffset = 1f;
+
     [SerializeField] private Transform root;
 
     public Skeleton()
@@ -131,6 +137,34 @@ public sealed class Skeleton
     /// </summary>
     public float3 RestLocalAxis(int boneIndex, float3 characterAxis) =>
         math.mul(math.inverse(RestCharacterRotation(boneIndex)), characterAxis);
+
+    /// <summary>
+    /// Rejects a rig that is holding a frame of captured motion instead of its rest pose. Returns
+    /// false with a message suitable for an Inspector HelpBox.
+    /// </summary>
+    /// <remarks>
+    /// The rest pose is read live off these Transforms, so a posed rig quietly becomes the rest
+    /// pose, and <see cref="RestLocalAxis"/> derives the character frame's forward axis from it —
+    /// which puts every pose in the database in a frame rotated away from the character's actual
+    /// facing. Nothing downstream can detect that, because both halves of the pipeline agree on
+    /// the same wrong frame. A captured frame stands the character where the actor was standing;
+    /// a rest pose stands it over the rig's origin, which is what this measures. See
+    /// openwiki/animation-tools/retargeting-pipeline.md.
+    /// </remarks>
+    public bool TryValidateRestPose(out string error)
+    {
+        error = null;
+        if (!IsSet) return true;
+
+        var offset = GetBone(0).RestLocalPosition;
+        var fromOrigin = math.length(new float2(offset.x, offset.z));
+        if (fromOrigin <= MaxRestRootOffset) return true;
+
+        error = $"\"{Name}\" stands {fromOrigin:0.##} m from its rig's origin at rest, so this rig " +
+                "is posed at a frame of motion rather than at rest. Re-export it with its " +
+                "rest-pose take first — an imported model takes its hierarchy from the first take.";
+        return false;
+    }
 
     /// <summary>
     /// Returns the unmanaged mirror of this skeleton, built once and shared by every

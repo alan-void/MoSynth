@@ -64,7 +64,13 @@ public class SkeletonAnimation : ScriptableObject
 
     // Plain arithmetic; must not materialize the sequence, since OnValidate and inspectors call
     // this every repaint.
-    public int FrameCount => clip == null ? 0 : Mathf.Max(1, Mathf.RoundToInt(clip.length * clip.frameRate) + 1);
+    public int FrameCount => FrameCountOf(clip);
+
+    /// <summary>How many frames a clip bakes to, without an asset having to hold it first.</summary>
+    public static int FrameCountOf(AnimationClip animationClip) =>
+        animationClip == null
+            ? 0
+            : Mathf.Max(1, Mathf.RoundToInt(animationClip.length * animationClip.frameRate) + 1);
 
     /// <summary>
     /// Null when the asset is not configured well enough to produce one — see
@@ -105,6 +111,8 @@ public class SkeletonAnimation : ScriptableObject
             return false;
         }
 #endif
+
+        if (!skeleton.TryValidateRestPose(out error)) return false;
 
         // Last, because it is the only check that has to read the clip's curves.
         return TryValidateClipCached(out error);

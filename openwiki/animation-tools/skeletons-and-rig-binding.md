@@ -12,6 +12,8 @@ sources:
     resource: repo://Assets/AnimationTools/Runtime/Animation/SkeletonAnimation.cs
   - id: openwiki-source-08ea4bc02364c8785bdd8d8f
     resource: repo://Assets/AnimationTools/Runtime/Core/MotionSynthesisComponent.cs
+  - id: openwiki-source-eedea5a32a3cded8ecfd1876
+    resource: repo://Assets/AnimationTools/Runtime/Pose/PoseSetImporter.cs
   - id: openwiki-source-88c3b2718587d20ac4831d81
     resource: repo://Assets/AnimationTools/Runtime/Skeleton/BoneNameConventions.cs
   - id: openwiki-source-54f745ff7f6016dea0150c17
@@ -32,7 +34,10 @@ sources:
     resource: repo://Assets/Scripts/BoneUIElements.cs
   - id: openwiki-source-057bf19a9464594dde1397c6
     resource: repo://Assets/Scripts/SkeletonUIManager.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-09-03T11:06:29.275Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-03T11:06:29.275Z
 ---
 
 # Skeletons and rig binding
@@ -77,6 +82,21 @@ asset, and the scene rig it drives is bound to that skeleton through `characterR
 no runtime check at all, and `MotionSynthesisComponent`'s own skeleton field has no equivalent. The
 practical defence is the drawer refusing scene drops — which a script assignment or a prefab-variant
 edit bypasses entirely.
+
+**Persistent is not the same as at rest.** `IsPersistent` asks only whether the Transform belongs to
+an asset, and an asset rig can itself be posed. Unity poses an imported model's hierarchy from its
+first animation take, so an FBX whose takes lead with locomotion imports holding a mid-stride pose,
+passes the check, and hands that pose over as the rest pose. That is how `PfnnBandaiWalk` came to
+derive its character frame from a frame of walking, 173.6° away from the rig's real bind, with every
+downstream check still passing — see
+[the retargeting pipeline](retargeting-pipeline.md) for the export-side fix.
+
+`Skeleton.TryValidateRestPose` closes the half of the gap that can be measured from the rig alone: a
+rest pose stands the character over the rig's origin, while a captured frame stands it where the
+actor was — 5.4 m away, in that case. Both `SkeletonAnimation.TryValidate` and
+`PoseSetImporter.TryValidate` call it, so a posed rig is refused before a database is built over it.
+It is a floor rather than a proof: a rig posed at a frame that happens to sit near the origin still
+passes.
 
 ## Nothing but bones under the root
 
