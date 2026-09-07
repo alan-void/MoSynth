@@ -4,6 +4,10 @@ title: Animation sources and clip baking
 description: How clips and BVH files become poses, why a clip is accepted on one animated bone, and what baking does and does not capture.
 tags: [clips, baking, bvh, import]
 sources:
+  - id: openwiki-source-22146543a8998d684667efbc
+    resource: repo://Assets/AnimationTools/Editor/AnnotatedClipFactory.cs
+  - id: openwiki-source-610664f4e17fffc5dfb7d14c
+    resource: repo://Assets/AnimationTools/Editor/BatchAnnotatedClipWindow.cs
   - id: openwiki-source-3de15f937f7e1dfc53c7ec56
     resource: repo://Assets/AnimationTools/Editor/CreateAnnotatedClipMenu.cs
   - id: openwiki-source-eaff015da326d13eeef3a663
@@ -30,10 +34,7 @@ sources:
     resource: repo://Assets/AnimationTools/Tests/Editor/GaitPhaseTests.cs
   - id: openwiki-source-5cd85933c91658849ca6377d
     resource: repo://Assets/Scripts/Editor/BioVisionHierarchyToAnimClip.cs
-generated: {by: "claude-code", at: "2026-08-31T11:48:44.020Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-31T11:48:44.020Z
+generated: {by: "claude-code", at: "2026-09-02T22:53:10.494Z"}
 ---
 
 # Animation sources and clip baking
@@ -127,7 +128,7 @@ re-runs.
 
 ## Creating an annotated clip
 
-`Assets/Create/MotionMatching/Annotated Clip From Selection` is the one place the root bone is
+`Assets/Create/MoSynth/Annotated Clip From Selection` is the one place the root bone is
 **guessed**. The asset stores the result, so a rig the heuristic cannot read has to fail here rather
 than later with an empty skeleton.
 
@@ -137,6 +138,26 @@ for.
 
 The menu also warns when the source model uses keyframe reduction, since setting Anim. Compression to
 Off improves bake fidelity.
+
+### A whole model at a time
+
+That menu takes one clip per invocation and writes beside the source model, which is the wrong
+shape for a retargeted capture session: those arrive as hundreds of takes inside a single FBX, under
+a source tree that is not where the assets belong. `MoSynth/Animation/Create Annotated Clips From
+Model...` takes a model, a case-insensitive name filter and an output folder, and writes one asset
+per matching take. Preview lists what matched and its total frame count before anything is written.
+
+Both routes share `AnnotatedClipFactory`, so the root-bone guess and the humanoid refusal are the
+same code and cannot drift apart.
+
+Two properties make a batch safe to re-run over a folder it already filled:
+
+- **Each take maps to a fixed path, and the asset there is updated rather than replaced.** Configs
+  reference their clips by GUID; delete-and-recreate would mint new ones and silently empty every
+  list pointing at them.
+- **A `GaitPhaseComponent` is added only to clips that have none.** Detection overwrites the
+  footfall list, so re-running must not touch a clip whose anchors someone has corrected. To
+  re-detect deliberately, use the Detect Footfalls button in [the clip editor](clip-editor.md).
 
 ## BVH import
 
@@ -237,6 +258,15 @@ Detection settings live on the clip rather than on a database config, because on
 serve two clips at different speeds: `walk1_subject5` travels at 1.27 m/s against
 `walk1_subject1`'s 0.675 m/s.
 
+Neither defect is inherent to the detector, and the Bandai-Namco `walk_normal` set is the
+counter-example worth knowing about. Its 24 takes walk continuously from the first frame — 0.5% of
+frames are stationary, so there is no standing intro to invent gait across — and they sit in a tight
+speed band of 1.05–1.25 m/s, which is the case where one global threshold genuinely is enough. At
+the same 0.15 m/s, detection finds 372 anchors over 6186 frames with **no** same-foot-twice span at
+all, on a half-cycle of 17 frames. When a clip set reports nothing like that, suspect the import
+before the threshold — a rig whose FK has collapsed reports zero anchors, not bad ones. See
+[the retargeting pipeline](retargeting-pipeline.md).
+
 **The clip-side and bake-side contact measurements do not agree, and the gap is unexplained.** A
 clip's baked poses carry no velocity channels, so the component differences consecutive
 character-space toe positions, where `PoseExtractor.ExtractPoseContacts` composes the per-bone
@@ -245,6 +275,9 @@ often — duty 0.40/0.36 against 0.22/0.17 on `walk1_subject5`, and 0.57/0.56 ag
 `walk1_subject1` — and finds half as many missed contacts. Differencing the composed position is the
 more direct measure of whether a toe moved, so this is a reason to distrust the bake-time contacts;
 why the composition inflates the speed has not been established.
+
+Anchors are authored and corrected in [the annotated clip editor](clip-editor.md), which draws the
+phase, the contacts it was read from, and the anchors themselves against a preview of the motion.
 
 Downstream, baked frames feed [the pose database](pose-database.md). The footfalls do **not** reach
 it yet: the database still derives its own contacts, and Python still reconstructs phase from them.

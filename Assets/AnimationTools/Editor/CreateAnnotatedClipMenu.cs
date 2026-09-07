@@ -6,7 +6,7 @@ namespace AnimationTools.Editor
 {
 public static class CreateAnnotatedClipMenu
 {
-    [MenuItem("Assets/Create/MotionMatching/Annotated Clip From Selection", true)]
+    [MenuItem("Assets/Create/MoSynth/Annotated Clip From Selection", true)]
     private static bool ValidateCreateFromSelection()
     {
         var selected = Selection.activeObject;
@@ -21,14 +21,13 @@ public static class CreateAnnotatedClipMenu
         return false;
     }
 
-    [MenuItem("Assets/Create/MotionMatching/Annotated Clip From Selection")]
+    [MenuItem("Assets/Create/MoSynth/Annotated Clip From Selection")]
     private static void CreateFromSelection()
     {
         if (!TryResolveClipAndRig(Selection.activeObject, out var clip, out var rig, out var assetPath))
             return;
 
-        var modelImporter = AssetImporter.GetAtPath(assetPath) as ModelImporter;
-        if (modelImporter != null && modelImporter.animationType == ModelImporterAnimationType.Human)
+        if (AnnotatedClipFactory.IsHumanoid(assetPath))
         {
             EditorUtility.DisplayDialog("Annotated Clip",
                 "Humanoid rigs are not supported — muscle clips can't sample onto a plain Transform hierarchy. Set the rig to Generic.",
@@ -36,10 +35,9 @@ public static class CreateAnnotatedClipMenu
             return;
         }
 
-        // The only place the root bone is guessed. The asset stores the result, so a rig this
-        // heuristic cannot read has to be caught here rather than failing later with an empty
-        // skeleton.
-        var rootBone = GuessRootBone(rig.transform);
+        // The asset stores the guessed root, so a rig the heuristic cannot read has to be caught
+        // here rather than failing later with an empty skeleton.
+        var rootBone = AnnotatedClipFactory.GuessRootBone(rig);
         if (rootBone == null)
         {
             EditorUtility.DisplayDialog("Annotated Clip",
@@ -50,18 +48,14 @@ public static class CreateAnnotatedClipMenu
             return;
         }
 
-        var asset = ScriptableObject.CreateInstance<AnnotatedAnimationClip>();
-        asset.SetSource(clip, rootBone);
-        asset.endFrame = ((SkeletonAnimation)asset).FrameCount;
-
         var dir = Path.GetDirectoryName(assetPath);
         var newAssetPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(dir, clip.name + "_annotated.asset"));
-        AssetDatabase.CreateAsset(asset, newAssetPath);
+        var asset = AnnotatedClipFactory.CreateOrUpdate(clip, rootBone, newAssetPath, out _);
 
         Selection.activeObject = asset;
         EditorGUIUtility.PingObject(asset);
 
-        if (modelImporter != null && modelImporter.animationCompression != ModelImporterAnimationCompression.Off)
+        if (AnnotatedClipFactory.UsesKeyframeReduction(assetPath))
         {
             Debug.Log($"'{assetPath}' uses keyframe reduction (Anim. Compression is not Off); setting Anim. Compression " +
                       "to Off on the model importer improves bake fidelity.");
@@ -94,55 +88,18 @@ public static class CreateAnnotatedClipMenu
             rig = selectedRig.transform;
             assetPath = AssetDatabase.GetAssetPath(rig);
 
-            foreach (var representation in AssetDatabase.LoadAllAssetRepresentationsAtPath(assetPath))
-            {
-                if (representation is AnimationClip representationClip)
-                {
-                    clip = representationClip;
-                    break;
-                }
-            }
-
-            if (clip == null)
+            var clips = AnnotatedClipFactory.LoadClips(assetPath);
+            if (clips.Count == 0)
             {
                 EditorUtility.DisplayDialog("Annotated Clip", "No AnimationClip found in this asset.", "OK");
                 return false;
             }
 
+            clip = clips[0];
             return true;
         }
 
         return false;
-    }
-
-    private static Transform GuessRootBone(Transform rig)
-    {
-        var hips = FindHipsRecursive(rig);
-        if (hips != null) return hips;
-
-        if (rig.childCount != 1) return null;
-
-        var current = rig.GetChild(0);
-        while (current.childCount == 1)
-        {
-            current = current.GetChild(0);
-        }
-
-        return current;
-    }
-
-    private static Transform FindHipsRecursive(Transform transform)
-    {
-        for (var i = 0; i < transform.childCount; i++)
-        {
-            var child = transform.GetChild(i);
-            if (child.name.EndsWith("Hips", System.StringComparison.OrdinalIgnoreCase)) return child;
-
-            var found = FindHipsRecursive(child);
-            if (found != null) return found;
-        }
-
-        return null;
     }
 }
 }

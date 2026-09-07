@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:41d306265368fc89567d405309f45350c31eb843bc11cbf2c64a6f9f04c7dce5",
+  "pageVersion": "sha256:dd388d46c848f0894dac059df59da57b31c096848240f70fb609c7c904006ff6",
   "claims": [
     {
       "id": "claim_17247bd5de454603bc610632907b8738",
@@ -28,15 +28,19 @@
     },
     {
       "id": "claim_380cade4de364093819fe7058d1d117a",
-      "statement": "Humanoid muscle-curve clips are unsupported because they produce no transform motion on a plain hierarchy, and this is enforced at asset-creation time by CreateAnnotatedClipMenu rejecting Humanoid rigs with a dialog rather than failing later during bake.",
+      "statement": "Humanoid muscle-curve clips are unsupported because they produce no transform motion on a plain hierarchy, and this is enforced at asset-creation time by AnnotatedClipFactory.IsHumanoid, which both the single-clip menu and the batch window check before writing anything, rather than failing later during bake.",
       "evidence": [
         {
           "resource": "repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs#L7-L18",
           "version": "repo-lines-v1:sha256:72000c774b459d0ece1030f6364c28a58461d34cab9b364839d71151e7cfe65f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTk3YjE5MDQ4M2YxYjcwZDQxNDEwNmFlNjEyYzk5ODdlMjczMjY3MDE1MGJjYTBjMmM5NzRmNzkzYzBhMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMGZkZDgzZTcwOTMzZTEwYTc5NmYwZWYxZTM0ZjYwOWE3ZTBjZTNhMDZmYWFlMzU5YjcyMjc3MDEzMzkyZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTE3ZjJiNzYxYzdkYmFjNmQyZGI0ODY1ZjE2YjVmZDQ2MTBiZWY4NWY4YTcwNmM1NDdhZGY0YzM0Njc1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlZjA5NjFiYjU5MjlhMjMzZmI3ZjljOWE2ZmYwNjkyZTYzOWRlNWJjM2Y3MzExZmIzN2M0YmU2OTE4OTAzMzIifQ"
         },
         {
-          "resource": "repo://Assets/AnimationTools/Editor/CreateAnnotatedClipMenu.cs#L30-L69",
-          "version": "repo-lines-v1:sha256:a17e5585cfec9fab864e3819f7d73e2ff2489aa5296a4c216554e79e35e488cc:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0NmRlNzc0NWNkODNkZTkxMTJjYTdlNzY3NWQ1NzJmNjQyNzlhN2RiNmZjNDg4NzQ1YTEzMzAyMDdlZWRmNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlNjQyMmZkYjU1NWZhMzVmMzdkOWFkZDlhMGNlMzNlMzRiODljNGNlZWJiODQ5ZDZkMDQ2N2U2YjU3NTllNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZDg5MzQwM2VmODYyNmI5MzFiMTMzZWJlOGZkZTYxNDdhNDAyMGZhNzgwYWI3Yzk1NTE1NGQ3YzlkNzU5YzcifQ"
+          "resource": "repo://Assets/AnimationTools/Editor/AnnotatedClipFactory.cs#L79-L92",
+          "version": "repo-lines-v1:sha256:dbbcdadb7500785405155847cea9a48a49713a561930bbc8f22cfa611230158d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5Y2E4OTFiZmY3YWMxZjdjZWFhZTQwZWYwNTEwNjZiZTllZmU0N2I0ZTQyODFlODZjMzE5YmUyYzU1ZWJjZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkODI0MjAzMWNkMDNiN2E0YzIzMDM5Y2I2MGQxOWIyYjg0MzI1NzE4N2E2NzY3YWQ0ZWRkNGUzYjYzNjM4ZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiODg2NWEzZWYzYjRhNmM5MzA4ZjM2ZDNhNTZkOTVkMjI5ZTQ2NThjN2RhNGVhY2MwYzFiMjJmMzVhMjA3MGIifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/CreateAnnotatedClipMenu.cs#L24-L50",
+          "version": "repo-lines-v1:sha256:74022cb6e8cbc232b8c5e80b595b947584f5dd26247cfe71d895036363ee4dc5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2ODRkN2MzZWU5N2ZkYTE4ZGZjNTExMzY1ZjI5MDlhMTE3MzQwZDdjOTYxMjMzMzllMWUyMzQ1ZTczOGY1NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwMWU5NmNkMjQ0NWU3NjRjOTg3YmVjOGQ2MDM1OTZjMTNlNjY1YTMzMDU1MTA2MzFhMWFkZjI4OWU2OTJkZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlNTE4N2I0NzM0ZjAwNzdkNDBlMGRlN2U2NjNjMTdlNjA5NjZmZWZkNmY1OTFlNzkwYjU3ZGIzOTMyNGFiODEifQ"
         }
       ]
     },
@@ -245,10 +249,48 @@
           "version": "repo-lines-v1:sha256:89e80bd796f0f55a123d8755a3c86f858dfff7a0de40f1310ab7c435a3e612e6:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzNTc1MDlmYjNhNmNhYmY4ZjNkYTBhNDRlOTVlN2Y3ZGZlZjg2ZGE4YTZmMDU1ZDdjOTEzYTJjN2QyMzkyM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlNmM4YmQ1ZjAxMWM4OTQyYjM3ZGYzNGQ4NGE3MTdlNDhlZmJiMjAyNGUxOTYzNDQ2OTgwYmUxNmJlZjI0ZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlMWY5YTU5ODIwNzc3NGRjZDY0NTc1YWEwNDZmYTM3ZmUyM2MwZTkyOTBiYzFiY2QzMDQ4ZWQ0ZjY2NjM0YTgifQ"
         }
       ]
+    },
+    {
+      "id": "claim_92b35ac53be84b85b8d33cf518881dda",
+      "statement": "Annotated clips can be created a whole model at a time, one asset per take whose name matches a filter, into a chosen folder — the shape a retargeted capture session actually arrives in, where hundreds of takes share one FBX under a source tree that is not where the assets belong.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/BatchAnnotatedClipWindow.cs#L26-L60",
+          "version": "repo-lines-v1:sha256:c4e42666b844cb0cc9460a0c444eccee5d2cc7b2d0c784824d68431d6e3f846a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmODM5MTExM2JiNWVlNzY4NGYxZTNiNDViNGE3OGM4ZDlmOTE4YjAzN2U4N2FhNDdkODM1MGZkYjVmODZlZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MzI1NTY4ZmM4YzUwODgzYTg2MTg2ZTYzMGU3YjgzZDhkM2Y5MTBiOGExM2U5MDYwODIyNDAwMDcwMjJmY2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3MGI2N2FlNDQ3YWM5ZDI3OTQyMzAxNmUwODk3MzY0YmFmMjVhNmRkMWM4OWZhYzU0ZjY1OTZlNGE3MTdiOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlMzZmODY3NjFiN2UyYjlmYzBmOGVhMDliMWE2OTNhNDEyNTViOGZlODk2MzgyNGJkNzQ0NDRmMjBmNzlkY2UifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnnotatedClipFactory.cs#L274-L350",
+          "version": "repo-lines-v1:sha256:bff45b2f266fc8b4f82389f33710467332de356de1f48a9426dd76d03ee2750d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NDFlMjg0MmI5ZjI0NzJlMjkzOGNlOGQ5ZjA0NWQzMjg3NmIyZWJlYTVkNTM1ODQ1OGRmZmE3NWNhMmEzMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3NDc3YzhiNjViMGVhMTg2OGQ5MTEzNzRkMDRmZDEwOTk5MzIwZWEzYWQ1OTMzNDk1YThlZjJmODBhNDhiOWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_da9882d988534f48af9fba67e8c268d5",
+      "statement": "A batch run maps each take to a fixed asset path and updates the asset already there instead of replacing it, because configs reference their clips by GUID and a delete-and-recreate would mint new ones and silently empty every list pointing at them.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnnotatedClipFactory.cs#L179-L200",
+          "version": "repo-lines-v1:sha256:daf2096c23d28f0189a23411b103dc653eab0eb1f61acb48fe84e8582b1fafa4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5MTA5MjA5YzVkMWU0OGFmYmY2NmFkZTY2Y2MxM2I2YmU5OGJkODE2MTcwODVjZGI0N2U0MmYxMjk3YmZlYjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlZTE4MjdlZTkzOTk1NGMyNmMwMjdjZjQzNDRjZGJhZjk4NDZmM2QxNGJhOTRmYzUzMGQ3ZTM1YzI2M2NhZDgifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnnotatedClipFactory.cs#L236-L272",
+          "version": "repo-lines-v1:sha256:e25b9fab95110437c66b4ad6d9366bad4784998394e668cd9aa421592739e5e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMDVhZWIyNWY1NmRmZWJhNmYyOGQ4ZWQ3OTUxZDZhNjU3YWZkMWRjNGEzZmNmOTllNTFjM2VlM2MwOTQ3ZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3Yzg1YjdjM2NmOTgwZDgxZjk1N2Q1NzNmNzlkMzQyNDZmNWU1YjRmNGVjZjY1N2Y5ZWJhODNjYTk3OGY4OWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlZDQ0N2M4M2YxNzY4YWRkNjM5YWIxYmUyYjRmMmNkMDQ2Mzk2MjdmNTg5OThlOGE0MzUyZTc4NjhkNGQ2NTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7c0c99fa565b4d84bc1686ffac592bc3",
+      "statement": "A batch run adds a GaitPhaseComponent only to clips that carry none, so re-running it over a folder cannot overwrite anchors someone corrected by hand.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AnnotatedClipFactory.cs#L274-L350",
+          "version": "repo-lines-v1:sha256:bff45b2f266fc8b4f82389f33710467332de356de1f48a9426dd76d03ee2750d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NDFlMjg0MmI5ZjI0NzJlMjkzOGNlOGQ5ZjA0NWQzMjg3NmIyZWJlYTVkNTM1ODQ1OGRmZmE3NWNhMmEzMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3NDc3YzhiNjViMGVhMTg2OGQ5MTEzNzRkMDRmZDEwOTk5MzIwZWEzYWQ1OTMzNDk1YThlZjJmODBhNDhiOWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4NTU3NzU2OGFjMzVkNjA4MzBjZjkyNWJlYjIyYmFiZmZmZGY4MGMzNWJmZDQ1YTEyZTg4ZmRiYTMwNTY5NGQifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-31T11:48:44.020Z"
+    "at": "2026-09-02T22:53:10.494Z"
   }
 }
