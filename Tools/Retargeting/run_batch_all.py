@@ -21,6 +21,7 @@ import concurrent.futures
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -37,6 +38,11 @@ BLENDER_CANDIDATES = [
 
 # batch_retarget.py's exit codes.
 EXIT_OK, EXIT_FATAL, EXIT_SKIPPED = 0, 1, 2
+
+# How a clip's file name is read to decide which shard it belongs to. One per source dataset
+# naming convention; picked with --shard-by rather than sniffed, because two conventions that
+# both split on underscores cannot be told apart from a file name alone.
+SHARD_SCHEMES = ("dataset-motion", "action")
 
 # Everything the driver writes that is not an FBX. The leading dot keeps Unity from importing any
 # of it, since the output folder lives under Assets/.
@@ -69,16 +75,25 @@ def find_blender(explicit):
 # --- sharding -------------------------------------------------------------------------
 
 
-def parse_clip_name(filename):
-    """`dataset-2_walk-turn-left_normal_005.bvh` -> ("dataset-2", "walk-turn-left").
+def parse_clip_name(filename, scheme):
+    """Splits a clip's file name into the namespace its output file is named under, which may be
+    nothing, and the motion label a shard groups by -- the label --only matches.
 
-    The underscore is the field separator and never appears inside a token, so the dataset and
-    motion labels can be read straight off the name; `cfg/content_label.txt` lists the same
+    `dataset-motion` reads Bandai-Namco's `dataset-2_walk-turn-left_normal_005.bvh` as
+    ("dataset-2", "walk-turn-left"). The underscore is the field separator and never appears inside
+    a token, so the labels can be read straight off the name; `cfg/content_label.txt` lists the same
     vocabulary.
+
+    `action` reads LAFAN's `walk1_subject1.bvh` as (None, "walk"). There the first token is an
+    action with a take number glued to it and the second names the performer -- and since every
+    LAFAN subject was retargeted onto one skeleton before release, the performer says nothing about
+    the motion and would otherwise put every clip in a shard of its own.
     """
     parts = os.path.splitext(filename)[0].split("_")
     if len(parts) < 2:
         return None, None
+    if scheme == "action":
+        return None, re.sub("[0-9]+$", "", parts[0]) or None
     return parts[0], parts[1]
 
 
@@ -98,7 +113,7 @@ def split_evenly(items, maximum):
     return parts
 
 
-def build_shards(bvh_dir, prefix, max_per_file, only, limit):
+def build_shards(bvh_dir, prefix, max_per_file, only, limit, scheme):
     """Groups the folder's clips by motion label into the shards a run is made of."""
     names = sorted(n for n in os.listdir(bvh_dir) if n.lower().endswith(".bvh"))
     if not names:
@@ -106,24 +121,24 @@ def build_shards(bvh_dir, prefix, max_per_file, only, limit):
 
     groups = {}
     for name in names:
-        dataset, motion = parse_clip_name(name)
+        namespace, motion = parse_clip_name(name, scheme)
         if motion is None:
             say("  ignoring unparseable name: " + name)
             continue
         if only and motion not in only:
             continue
-        groups.setdefault((dataset, motion), []).append(name)
+        groups.setdefault((namespace, motion), []).append(name)
 
     if not groups:
         sys.exit("No clips left after --only " + ",".join(sorted(only)))
 
     shards = []
-    for (dataset, motion), clips in sorted(groups.items()):
+    for (namespace, motion), clips in sorted(groups.items(), key=lambda g: (g[0][1], g[0][0] or "")):
         parts = split_evenly(clips, max_per_file)
         for index, part in enumerate(parts, 1):
             if limit:
                 part = part[:limit]
-            stem = "{}_{}_{}".format(prefix, dataset, motion)
+            stem = "_".join(token for token in (prefix, namespace, motion) if token)
             if len(parts) > 1:
                 stem += "_part{:02d}".format(index)
             shards.append({"name": stem,
@@ -162,6 +177,9 @@ def run_shard(shard, options):
         for line in process.stdout:
             line = line.rstrip("\n")
             log.write(line + "\n")
+            # Unflushed, a shard log stays empty until the shard ends, which on a run measured
+            # in hours is the difference between watching progress and guessing at it.
+            log.flush()
             # Blender's own chatter is dropped; of the rest, the per-clip counters would be six
             # interleaved streams of noise, so only real events are echoed.
             if not line.startswith("[retarget]"):
@@ -193,6 +211,10 @@ def main():
                         help="Blender processes to run at once (default: 6)")
     parser.add_argument("--simplify", type=float, default=0.0,
                         help="FBX keyframe reduction passed to each shard; 0 keeps every key")
+    parser.add_argument("--shard-by", choices=SHARD_SCHEMES, default="dataset-motion",
+                        help="how a file name maps to a shard: dataset-motion for "
+                             "Bandai-Namco's dataset_motion_style_index (default), action for "
+                             "LAFAN's action_subject")
     parser.add_argument("--only", default="",
                         help="comma-separated motion labels to include, e.g. walk,run")
     parser.add_argument("--limit", type=int, default=0,
@@ -219,7 +241,7 @@ def main():
 
     only = {token.strip() for token in options.only.split(",") if token.strip()}
     shards = build_shards(options.bvh_dir, options.prefix, options.max_per_file,
-                          only, options.limit)
+                          only, options.limit, options.shard_by)
 
     options.work_dir = os.path.join(options.out_dir, WORK_DIRNAME)
     for shard in shards:

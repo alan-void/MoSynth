@@ -56,7 +56,7 @@ public class AnimationClipBakerTests
 
     /// <summary>
     /// The regression guard against over-strictness. Rigs routinely leave leaf bones uncurved — the
-    /// project's own clips animate 72 of 85 bones, the rest being FBX "_end" markers — so demanding
+    /// project's own clips animate 22 of 27 bones, the rest being FBX "_end" markers — so demanding
     /// full coverage would reject every asset in this repository.
     /// </summary>
     [Test]

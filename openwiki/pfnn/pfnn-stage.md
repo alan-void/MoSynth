@@ -34,7 +34,7 @@ sources:
     resource: repo://Packages/manifest.json
   - id: openwiki-source-734ba38f801134e792f0e890
     resource: repo://Python/pfnn_runtime.py
-generated: {by: "claude-code", at: "2026-09-07T19:31:22.105Z"}
+generated: {by: "claude-code", at: "2026-09-07T21:17:41.812Z"}
 verified:
   - by: openwiki/0.3.3
     at: 2026-09-07T19:41:02.694Z

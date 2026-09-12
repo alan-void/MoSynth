@@ -32,12 +32,44 @@ python Tools/Retargeting/run_batch_all.py \
     --keep-capture-position --simplify 1 --workers 6
 ```
 
-Shards follow the dataset's own motion labels — `dataset-2_<motion>_<style>_<index>.bvh` — with
-any motion over `--max-per-file` (default 250) split into numbered parts, so dataset-2's 2,902
-clips become 14 files named after what is in them. Start with `--dry-run` to see that split.
+Shards follow the dataset's own motion labels, with any motion over `--max-per-file` (default 250)
+split into numbered parts, so an output file is named after what is in it. Start with `--dry-run`
+to see the split.
+
+**`--shard-by` picks how a file name is read**, because two datasets that both separate fields with
+underscores cannot be told apart from a name alone:
+
+| Scheme | Convention | `walk1_subject1.bvh` / `dataset-2_walk_normal_001.bvh` becomes |
+| --- | --- | --- |
+| `dataset-motion` (default) | Bandai-Namco's `<dataset>_<motion>_<style>_<index>` | `bandai_dataset-2_walk` |
+| `action` | LAFAN's `<action><take>_subject<n>` | `lafan_walk` |
+
+Under `action` the trailing take number is stripped from the first token, so `walk1` … `walk4` all
+land in one shard, and the performer is ignored — every LAFAN subject was retargeted onto one
+skeleton before release, so it says nothing about the motion and would otherwise put each clip in
+a shard of its own. `--only` matches the motion label either way.
+
+LAFAN's 77 clips are long (496,672 frames, mean 6,450), so the cap is what keeps a shard's peak
+memory near Bandai's rather than the clip count:
+
+```
+python Tools/Retargeting/run_batch_all.py \
+    --setup   Assets/LFS/Retargeting/lafan_bvh_to_lafan_corrected.blend \
+    --bvh-dir Assets/LFS/Animation/lafan1/bvh \
+    --out-dir Assets/LFS/Animation/LafanCorrected \
+    --prefix lafan --shard-by action --max-per-file 10 --simplify 1 --workers 4
+```
+
+That gives 17 shards peaking at 59,613 frames, about twice a Bandai shard. No
+`--keep-capture-position`: on LAFAN the rest-offset re-framing is the intended normalisation.
 
 - **Resumable**: a shard whose FBX already exists is skipped, so a run interrupted at shard 12
   costs only the shards it had not reached. `--force` rebuilds regardless.
+- **Resume is the wrong tool for replacing output that is already there.** The predicate is only
+  whether the shard's FBX exists, so re-running to fix bad output reports nothing to do and skips
+  exactly the files that need replacing. Use `--only <labels> --force` to name the shards to
+  rebuild, or delete their FBX files first. A shard writes its FBX only at the very end, so an
+  interrupted shard leaves the old file in place and looks finished.
 - **`--workers`** is how many Blender processes run at once; each holds roughly a gigabyte.
 - **`--only walk,run`** limits the run to named motions, and **`--limit N`** takes only the first
   N clips of each shard. Together they make a smoke run.

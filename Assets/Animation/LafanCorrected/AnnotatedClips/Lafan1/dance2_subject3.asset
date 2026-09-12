@@ -1,0 +1,465 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b81a3691c81c50d41858624eac4a6299, type: 3}
+  m_Name: dance2_subject3
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.AnnotatedAnimationClip
+  clip: {fileID: 8569448798308623996, guid: bdd9f81c15714341a57c4949b63a9668, type: 3}
+  skeleton:
+    root: {fileID: -1031852490016989477, guid: bdd9f81c15714341a57c4949b63a9668, type: 3}
+  rootMotionBone:
+    skeleton:
+      root: {fileID: -1031852490016989477, guid: bdd9f81c15714341a57c4949b63a9668, type: 3}
+    bone: {fileID: -1031852490016989477, guid: bdd9f81c15714341a57c4949b63a9668, type: 3}
+  startFrame: 0
+  endFrame: 6771
+  components:
+  - rid: 4326262872794464364
+  references:
+    version: 2
+    RefIds:
+    - rid: 4326262872794464364
+      type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        footfalls:
+        - frame: 276
+          foot: 0
+        - frame: 303
+          foot: 1
+        - frame: 343
+          foot: 0
+        - frame: 370
+          foot: 1
+        - frame: 716
+          foot: 0
+        - frame: 740
+          foot: 1
+        - frame: 760
+          foot: 0
+        - frame: 910
+          foot: 1
+        - frame: 1002
+          foot: 1
+        - frame: 1028
+          foot: 0
+        - frame: 1057
+          foot: 1
+        - frame: 1148
+          foot: 1
+        - frame: 1170
+          foot: 0
+        - frame: 1216
+          foot: 1
+        - frame: 1231
+          foot: 0
+        - frame: 1248
+          foot: 1
+        - frame: 1259
+          foot: 0
+        - frame: 1275
+          foot: 1
+        - frame: 1289
+          foot: 0
+        - frame: 1310
+          foot: 0
+        - frame: 1310
+          foot: 1
+        - frame: 1329
+          foot: 0
+        - frame: 1343
+          foot: 0
+        - frame: 1459
+          foot: 0
+        - frame: 1543
+          foot: 0
+        - frame: 1556
+          foot: 1
+        - frame: 1570
+          foot: 0
+        - frame: 1603
+          foot: 1
+        - frame: 1610
+          foot: 1
+        - frame: 1629
+          foot: 0
+        - frame: 1656
+          foot: 1
+        - frame: 1670
+          foot: 0
+        - frame: 1685
+          foot: 1
+        - frame: 1700
+          foot: 0
+        - frame: 1715
+          foot: 1
+        - frame: 1744
+          foot: 0
+        - frame: 1772
+          foot: 0
+        - frame: 1786
+          foot: 1
+        - frame: 1799
+          foot: 0
+        - frame: 1814
+          foot: 1
+        - frame: 2029
+          foot: 1
+        - frame: 2044
+          foot: 0
+        - frame: 2062
+          foot: 1
+        - frame: 2078
+          foot: 0
+        - frame: 2105
+          foot: 1
+        - frame: 2124
+          foot: 0
+        - frame: 2152
+          foot: 1
+        - frame: 2176
+          foot: 0
+        - frame: 2193
+          foot: 1
+        - frame: 2217
+          foot: 0
+        - frame: 2238
+          foot: 1
+        - frame: 2262
+          foot: 0
+        - frame: 2289
+          foot: 1
+        - frame: 2324
+          foot: 0
+        - frame: 2350
+          foot: 1
+        - frame: 2379
+          foot: 0
+        - frame: 2391
+          foot: 1
+        - frame: 2413
+          foot: 0
+        - frame: 2503
+          foot: 0
+        - frame: 2515
+          foot: 0
+        - frame: 2520
+          foot: 1
+        - frame: 2533
+          foot: 0
+        - frame: 2557
+          foot: 1
+        - frame: 2577
+          foot: 0
+        - frame: 2596
+          foot: 1
+        - frame: 2623
+          foot: 0
+        - frame: 2652
+          foot: 1
+        - frame: 2672
+          foot: 1
+        - frame: 2686
+          foot: 0
+        - frame: 2715
+          foot: 0
+        - frame: 2729
+          foot: 1
+        - frame: 2743
+          foot: 0
+        - frame: 2743
+          foot: 1
+        - frame: 2787
+          foot: 1
+        - frame: 2802
+          foot: 0
+        - frame: 2819
+          foot: 1
+        - frame: 2839
+          foot: 0
+        - frame: 2857
+          foot: 1
+        - frame: 2978
+          foot: 0
+        - frame: 2988
+          foot: 1
+        - frame: 3018
+          foot: 0
+        - frame: 3044
+          foot: 1
+        - frame: 3074
+          foot: 0
+        - frame: 3101
+          foot: 1
+        - frame: 3131
+          foot: 0
+        - frame: 3158
+          foot: 1
+        - frame: 3189
+          foot: 0
+        - frame: 3216
+          foot: 1
+        - frame: 3245
+          foot: 0
+        - frame: 3274
+          foot: 1
+        - frame: 3302
+          foot: 0
+        - frame: 3318
+          foot: 1
+        - frame: 3388
+          foot: 0
+        - frame: 3407
+          foot: 0
+        - frame: 3432
+          foot: 0
+        - frame: 3446
+          foot: 1
+        - frame: 3478
+          foot: 1
+        - frame: 3488
+          foot: 0
+        - frame: 3515
+          foot: 1
+        - frame: 3532
+          foot: 0
+        - frame: 3557
+          foot: 0
+        - frame: 3586
+          foot: 1
+        - frame: 3623
+          foot: 0
+        - frame: 3656
+          foot: 1
+        - frame: 3670
+          foot: 1
+        - frame: 3713
+          foot: 0
+        - frame: 3743
+          foot: 1
+        - frame: 3776
+          foot: 0
+        - frame: 3800
+          foot: 0
+        - frame: 3812
+          foot: 1
+        - frame: 3844
+          foot: 0
+        - frame: 3874
+          foot: 1
+        - frame: 3909
+          foot: 0
+        - frame: 3928
+          foot: 1
+        - frame: 3946
+          foot: 0
+        - frame: 3952
+          foot: 0
+        - frame: 3970
+          foot: 1
+        - frame: 3987
+          foot: 0
+        - frame: 4016
+          foot: 1
+        - frame: 4031
+          foot: 0
+        - frame: 4045
+          foot: 1
+        - frame: 4058
+          foot: 0
+        - frame: 4195
+          foot: 0
+        - frame: 4213
+          foot: 1
+        - frame: 4240
+          foot: 0
+        - frame: 4271
+          foot: 1
+        - frame: 4302
+          foot: 0
+        - frame: 4323
+          foot: 0
+        - frame: 4326
+          foot: 0
+        - frame: 4334
+          foot: 1
+        - frame: 4364
+          foot: 0
+        - frame: 4374
+          foot: 1
+        - frame: 4395
+          foot: 1
+        - frame: 4425
+          foot: 0
+        - frame: 4439
+          foot: 1
+        - frame: 4460
+          foot: 1
+        - frame: 4488
+          foot: 0
+        - frame: 4515
+          foot: 1
+        - frame: 4550
+          foot: 0
+        - frame: 4572
+          foot: 1
+        - frame: 4596
+          foot: 1
+        - frame: 4603
+          foot: 0
+        - frame: 4629
+          foot: 1
+        - frame: 4648
+          foot: 0
+        - frame: 4667
+          foot: 1
+        - frame: 4676
+          foot: 0
+        - frame: 4691
+          foot: 1
+        - frame: 4705
+          foot: 0
+        - frame: 4719
+          foot: 1
+        - frame: 4733
+          foot: 0
+        - frame: 4760
+          foot: 0
+        - frame: 4791
+          foot: 0
+        - frame: 4808
+          foot: 1
+        - frame: 4816
+          foot: 0
+        - frame: 4841
+          foot: 1
+        - frame: 4875
+          foot: 0
+        - frame: 4899
+          foot: 1
+        - frame: 4905
+          foot: 0
+        - frame: 4921
+          foot: 1
+        - frame: 4926
+          foot: 0
+        - frame: 4945
+          foot: 1
+        - frame: 4966
+          foot: 0
+        - frame: 4967
+          foot: 1
+        - frame: 5272
+          foot: 0
+        - frame: 5318
+          foot: 1
+        - frame: 5357
+          foot: 0
+        - frame: 5378
+          foot: 1
+        - frame: 5402
+          foot: 0
+        - frame: 5423
+          foot: 1
+        - frame: 5428
+          foot: 1
+        - frame: 5479
+          foot: 1
+        - frame: 5496
+          foot: 0
+        - frame: 5519
+          foot: 1
+        - frame: 5561
+          foot: 0
+        - frame: 5582
+          foot: 0
+        - frame: 5585
+          foot: 0
+        - frame: 5585
+          foot: 1
+        - frame: 5591
+          foot: 0
+        - frame: 5591
+          foot: 1
+        - frame: 5601
+          foot: 0
+        - frame: 5601
+          foot: 1
+        - frame: 5607
+          foot: 1
+        - frame: 5609
+          foot: 0
+        - frame: 5618
+          foot: 0
+        - frame: 5618
+          foot: 1
+        - frame: 5636
+          foot: 1
+        - frame: 5636
+          foot: 0
+        - frame: 5639
+          foot: 0
+        - frame: 5639
+          foot: 1
+        - frame: 5662
+          foot: 0
+        - frame: 5662
+          foot: 1
+        - frame: 5678
+          foot: 0
+        - frame: 5678
+          foot: 1
+        - frame: 5699
+          foot: 0
+        - frame: 5718
+          foot: 1
+        - frame: 5738
+          foot: 1
+        - frame: 5748
+          foot: 0
+        - frame: 5757
+          foot: 0
+        - frame: 5776
+          foot: 1
+        - frame: 5813
+          foot: 0
+        - frame: 5836
+          foot: 1
+        - frame: 5857
+          foot: 0
+        - frame: 5873
+          foot: 1
+        - frame: 5888
+          foot: 0
+        - frame: 5915
+          foot: 0
+        - frame: 5969
+          foot: 0
+        - frame: 6065
+          foot: 1
+        - frame: 6072
+          foot: 0
+        - frame: 6123
+          foot: 1
+        - frame: 6128
+          foot: 0
+        - frame: 6516
+          foot: 0
+        - frame: 6708
+          foot: 0
+        - frame: 6711
+          foot: 1
+        leftContactBoneName: 
+        rightContactBoneName: 
+        contactVelocityThreshold: 0.15
+        smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

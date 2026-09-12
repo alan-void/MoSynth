@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e67a2194ea341699a993795fd22c188b230026d9d8333a7b972f94a124229a37",
+  "pageVersion": "sha256:f00f3b9c6b506f56732379e51ea89a109c6b46e3846cfcec1e285af7e5734561",
   "claims": [
     {
       "id": "claim_8ddbb795c86e4da49515e83a653a6ef8",
@@ -12,7 +12,7 @@
         },
         {
           "resource": "repo://Tools/Retargeting/README.md",
-          "version": "repo-file-v1:sha256:4de281ad07212d7bf9f53e56d8ef5b5462ce9bddae25fd9d23257d27e394be61"
+          "version": "repo-file-v1:sha256:a658b8690db951993eec84b191a0d7c82cc879fb34be7e0a0bb5580f4ea0223e"
         }
       ]
     },
@@ -26,17 +26,17 @@
         },
         {
           "resource": "repo://Tools/Retargeting/README.md",
-          "version": "repo-file-v1:sha256:4de281ad07212d7bf9f53e56d8ef5b5462ce9bddae25fd9d23257d27e394be61"
+          "version": "repo-file-v1:sha256:a658b8690db951993eec84b191a0d7c82cc879fb34be7e0a0bb5580f4ea0223e"
         }
       ]
     },
     {
       "id": "claim_ffd4a1798d994bc89bbb92da99b28261",
-      "statement": "The Bandai-Namco and LAFAN setups target different model rigs — the corrected 22-bone rig versus the 85-bone Model:* rig — so clips from the two datasets cannot share one MotionMatchingData skeleton until LAFAN is re-retargeted onto the corrected rig.",
+      "statement": "Both dataset setups now retarget onto the same corrected 22-bone rig, so LAFAN and Bandai-Namco clips can share one MotionMatchingData skeleton; LAFAN's setup reaches it in a single Rokoko pass from the BVH rather than through the retired 85-bone Model:* rig.",
       "evidence": [
         {
-          "resource": "repo://Assets/AnimationTools/Editor/Retargeting/RetargetBatchSettings.cs#L16-L29",
-          "version": "repo-lines-v1:sha256:e5ca4fd7ab6bcd6e9570696b080049619ba54a000fbc1585e98de5c3d74bc6b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkNDcyZjUwZjMyZDVjYzk1MGJiYzA2ZTRhYzE0YzhiZTY1ZDA2N2JiNTBkNzFiOWVkMDA5NWJkZGJmM2VjOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzODhiYjgzMzE5NTEzNmU2ZWU4ZjYyZTdkY2IwMTJhNTQ0NmNhMjY2OGNmOThmZjE0YjQ0ZmNmNDIxM2IyZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0MzI0YTM3MDE1ZGY0NTg2Y2Y0NmNiMDMzNzZmNWM5ODJjZTg3Y2ZiYTVkOGMxMGY3MTEzZGE5ZDVjMWM2NTIifQ"
+          "resource": "repo://Tools/Retargeting/make_lafan_corrected_setup.py#L29-L39",
+          "version": "repo-lines-v1:sha256:c27be4155d510e6bd716909f32cf97c63798369505d8ec01eb0bdcd5d3e3ad62:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliYWY1M2VkNzQxNGEyYWY5MDkzNjNhYzE1ZmU0OTY0MGRlY2QxZjBlYTIzNGIwZWRmYTU3MWY4MTU1YzU3ZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiNjAwN2Y3Y2E5NmFkNjNjODhhNjlmNmZmMmM5ODY1M2NiODM1OTFkOGQzMDdkMjRlOWI3MzRiNzI4ZjJiMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiMjUwNWIxNmFiMDE1MWI4N2U0NGU4ODAzNzhkNDQ2NDE1ZDAxYTZjNDAzZGQ5ZmQ2YWQ4MDhhZWZjZGU5ZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwNDEwYzY3ODE4YmUxNGIxN2M3OTA1Y2MwMjM0MmQxMzNjN2E0NmEwMzk4NTYyNzE1YWM5NjIzNmJkZGZhMTgifQ"
         },
         {
           "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/Skeleton.cs#L9-L26",
@@ -54,7 +54,7 @@
         },
         {
           "resource": "repo://Tools/Retargeting/README.md",
-          "version": "repo-file-v1:sha256:4de281ad07212d7bf9f53e56d8ef5b5462ce9bddae25fd9d23257d27e394be61"
+          "version": "repo-file-v1:sha256:a658b8690db951993eec84b191a0d7c82cc879fb34be7e0a0bb5580f4ea0223e"
         }
       ]
     },
@@ -78,7 +78,7 @@
         },
         {
           "resource": "repo://Tools/Retargeting/README.md",
-          "version": "repo-file-v1:sha256:4de281ad07212d7bf9f53e56d8ef5b5462ce9bddae25fd9d23257d27e394be61"
+          "version": "repo-file-v1:sha256:a658b8690db951993eec84b191a0d7c82cc879fb34be7e0a0bb5580f4ea0223e"
         }
       ]
     },
@@ -101,12 +101,12 @@
       "statement": "run_batch_all.py retargets a whole dataset by splitting it into shards along the dataset's own motion labels and running one Blender process per shard, which bounds peak memory, resets rest-pose drift per shard, makes an interrupted run resumable by skipping shards whose FBX exists, and allows shards to run in parallel.",
       "evidence": [
         {
-          "resource": "repo://Tools/Retargeting/run_batch_all.py#L101-L180",
-          "version": "repo-lines-v1:sha256:2ed1e2719073adb7615e30889d85ae6a39e2b818c65cf579d0fca0e1f447ae7b:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NzMyN2U4OTJmMDFjMWQ4ZGFiMmQyODU5YzQ5MWNmODNiYzdlYzU4OTdlYjJhY2Y5YTliMjFkZTVjN2E1ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlYzIwMjU0YTk4Nzg0MmI4YzE1OGYzZDA1MTM0OTFiOWY1YTA0NzlkN2RjMjAwMWNhNTMzZjRiM2ZjOTE5N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmNTRkNWQ2OGYzZWQyYWI5MzliMjdjYWYxYzdmMDNmNjEzNzI4MTU0MDA0YmM4NjM5MTA2NTQxNjE2ZTM5OWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzZTY0NDc1YTNmMjliMWJmNGMxMWU1NDc1Mzg2YWZmZmZlNDM2ODU2Y2VlZTdkMzIxMTBkZWU4N2JkN2YzYTIifQ"
+          "resource": "repo://Tools/Retargeting/run_batch_all.py#L116-L146",
+          "version": "repo-lines-v1:sha256:15a29e5f921f6ab477af947b34b79d61569f075ec3eb280514c850638a842126:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjNDVkMjBiYTQwMWMwNGY2M2VmZDZkMGVhNDkwNGVkZjhmNDYxNWRlZjFiNTg4Y2NkNDFiNDYyZTJlNDlhMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZjA4N2Y0MzE0ZWFjNDg0ZTFhYTE1ZDcxYTNiYjUyY2ZhZDQyZWQyODliOGY0ZGQyYzJkNDAwMTAxMjhiYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwYTJhY2Q4OWNhZjlmYjUwZmM5NDAwNjc4ODU5ZWMwODNlZjBmMmJlODRlZDYyYTI1MTkxMGYwMDljODc3NmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0OWJhY2I2MGRjN2Q3ZGQ0ZmY5OGMyNDgzOWNlN2U1NGY3MmFmNDJmMTQwMzEwZDJmMzg4ZDVmYzNhMGMzZmIifQ"
         },
         {
-          "resource": "repo://Tools/Retargeting/run_batch_all.py#L183-L258",
-          "version": "repo-lines-v1:sha256:d98fbe95e454eb0707caceba797d3a59726fbb74e80da6f14cbb380d19eda168:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNWI5NDg0N2MxMDUzYTZmMGRkYjIwMDc2N2ZhMDA2NDJhZWRlMTRmMWUwZjBhNDIyZjJmYWM4NGM2ZDI2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYjcwMjU3NTkzZGEwNmY2ODJhM2RkZGE1NGE5ZDI2MGQ0ZmM1MTRmNjQ1MjM3ZjVjYTc0YjA4ZjhkYTYxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlNzFmOWE2MmNhYTNhOGE4NGFjNDA2ZGY1YTQyMzJlMjg2NzRlMjk5OWU1MGY1NjAyY2NiMTVjOTYxMTVmNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxYzZjMWM0Mjg4ZTU2ZDBmZGVjNWE2ZmQwZjJhZGZlOTczMDVhYTFjZjY5MGM3M2NhOTliMjdhZjI3MzZkMGUifQ"
+          "resource": "repo://Tools/Retargeting/run_batch_all.py#L201-L276",
+          "version": "repo-lines-v1:sha256:d6ab09318b0a3ec82675a926400f0f2d308a1f2816ff05ae5d96b909b57ead5e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyZTMxMjU3ZGMwYWUxZDU5MzAzN2MyODBjOWFkNTA4MTliOGE2YzhjZjcyOGJlMDcxNmQwMGEzZWVjYzA0YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0NWMyOGIxNGExNjk5ZTZlZDAzNzZkZDkwNGMyNDQ0NDBmM2MyNDRlNTA2MzIyNGRlZjAwZDY4NjYyZWM3Y2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjNjNlMmRiM2JhODhmMGUyOGMzMGUwNDVmY2YxZjkwYjBiYmRmZWU2Yzk5NGY0OGRlZjllYjc3NGQxYTBlZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyZjI4NzExZTNiYWYwZWVjYTNmNWY1ODUwZWYzYzE2YmRmYmMxYTAzZjJmMTkzNTdjOGQ4Mzk1NWJmOGEzYjQifQ"
         }
       ]
     },
@@ -168,7 +168,7 @@
     },
     {
       "id": "claim_8aec7395d09c46f09a7d63a114d4f766",
-      "statement": "An exported Bandai-Namco FBX and the corrected rig blend both import as the same 27-bone tree under Hips — the 22 animated bones plus five \"_end\" leaves Blender's exporter synthesises — so a character can take its live rig from the blend while its skeleton comes from the FBX the network was trained on.",
+      "statement": "An exported FBX from either dataset setup and the corrected rig blend all import as the same 27-bone tree under Hips — 22 animated bones plus five \"_end\" leaves Blender's exporter synthesises — so a character can take its live rig from the blend while its skeleton comes from the FBX the network was trained on.",
       "evidence": [
         {
           "resource": "repo://Tools/Retargeting/batch_retarget.py#L503-L533",
@@ -231,10 +231,66 @@
           "version": "repo-lines-v1:sha256:516c3482460ac1bdf6967c5a74bd9cff8046f5acf2b5c900e63d991c3fe34cff:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiMTc5NDI3ZGU2YmIwOTg4NDA2NzUxYzJhYjFlNzdjNWZjNmYwNjc2ZWI5MTJlZjdmZmQzNGFhM2FjZGY2NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDUwNDM1ZmFkYTgwNzZlNjhiZTNiNjdiZjkzYzcxMGM1ZmYxMTM0NDMyOGJlMjkwNzVhYWRmZjU0M2M4NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2MGM5YzY3MmZiYjYyMTA2M2Q3YWNiYTczNWNkM2Q5YTZmNDAxMDBjYWIwOGFjN2UwOTU5ZDJmODE0ZWZjZjEifQ"
         }
       ]
+    },
+    {
+      "id": "claim_d3fb96dcc9f34f0fa1f2df5bd42437b0",
+      "statement": "How a clip file name maps to a shard label is a named scheme chosen with --shard-by rather than inferred, because Bandai-Namco's dataset_motion_style_index and LAFAN's action_subject conventions both separate fields with underscores and cannot be told apart from a name alone; the action scheme strips the trailing take number so walk1 through walk4 share one shard, and ignores the performer because every LAFAN subject was retargeted onto one skeleton before release.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/run_batch_all.py#L41-L45",
+          "version": "repo-lines-v1:sha256:d6a12ea27fa199d5682d73fc40955678e67e540b27aa74a0d33750b3ff45d640:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWIzMzU1MDE2MDFjNGQ1YWQ5MjI1YTA1ODRiNzc5NWNiNzFiOTg3NTRhMWJiNDBiMGNkZGViMWVkNDgxODc2NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQyOWFlMjA4ZGI1NmU1NmI2MmI1YTdkZTY0YzdmZmQ1ODIxZTBkZmFhMWNiMDJhNjlhMTBjMTlmMjQwMGMwOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzE4NTI3YWJlZTgxY2JiMmE0NmNhY2VmMDNhNzU0MjFmMTczNzExODE3YmUyOTIyZWM4ZDk4ODg5YmEwNzUxYSJ9"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/run_batch_all.py#L78-L98",
+          "version": "repo-lines-v1:sha256:de89a93c77d1d0b711237cbf831d0935325481df7014523cd7c6fa6aa664a520:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNDQ1MjkzYjZkNTQyMGEyOTY1YzRhOGNhZjkxOWIwMGZjMGJjOGNlZDIxNThlNGNkYTMzZmRmODI5NmMyY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyODA3M2U1NWI5NTkzOTk5YzdjZmYwOGNlZTgyYjBiMjQ5ODRkZDNiMGI5MjVlZGY1YjZjNzlmZDUyOTE1ZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmNjE5OTFkZGMxZDI2OTc2YzVmNWU4NDJiODVjYTEzYTY4YmIwMTRiNDhmM2NjNzIwMDA5MGY3ZDIwOTYxNmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d6a889a23ca140d6b5ae292c2a445b65",
+      "statement": "A LAFAN shard's peak memory is governed by frames rather than clip count, because its clips average 6,450 frames against Bandai-Namco's ~133, so the per-shard clip cap has to be set roughly twenty times lower to keep a shard's working set comparable.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/run_batch_all.py#L100-L114",
+          "version": "repo-lines-v1:sha256:5a5f380c8c4a887cc90b14c29bcf744414ac3878b8058df382f112eb4a3ea5b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmOGM2OTFmM2RhYmRjMjYwYzRkMTkwOTA0YjAzYmRkMmE0MDVjY2Q2NTgyNjRlOTZkYTlmNTZiZGJlODc1ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmZmJiNzcyNzQzNGVkMmNlMmI4YWRjYTUzMDJlNjZlMzIzNTQ1ZDVlODg3YjY3MzI0ODY1OGNlNzhhMGE0YmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlZjRmYTdmMTlhNzEwZGUwOWEyODA0YTY0ZWIzMzQ1NDhlZDgzODZlNmM5ZjViZTRhM2Y4ZTU2OGU2NzQ5ZTcifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/README.md",
+          "version": "repo-file-v1:sha256:a658b8690db951993eec84b191a0d7c82cc879fb34be7e0a0bb5580f4ea0223e"
+        }
+      ]
+    },
+    {
+      "id": "claim_953607b3210f4ed2b15ff88dff9f128b",
+      "statement": "A retarget setup for a new target rig is composed from existing blends by script rather than authored by hand when no judgement remains: the cleaned skeleton that serves as stage two's calibration pose already exists in the old setup, and the target rig already exists as a proven export configuration in another setup, so only the Rokoko target pointer and the bone list's target names change.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/make_lafan_corrected_setup.py#L1-L15",
+          "version": "repo-lines-v1:sha256:c306aaca52e051c78b0df101c223ed7ef60e2528f9ea08491ece65347284833a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2YmUwZmY5Yzg5MDBhMjYzZDU1ZDA1MjIwZmUyNTIxYjI4MmUxNzdkZDVmZDJjNzY3OWNhZTI0YTYyYmY5YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhMzU5ZDQ5YzQxZGM5N2VjNmVhZDgyZDJmMjRhODU0YmViMDU0N2Y5YjdlNGRlNWRhYmU3ZjIzMTc0N2ZkNjIifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/make_lafan_corrected_setup.py#L117-L161",
+          "version": "repo-lines-v1:sha256:83f24f31f1f78284719efdc81abc071775e47917ade8e7317b89e7eb0b0d8cc7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMzMzZjEwN2QyMDg1OWFhYjI4MzYzYjY3ODg2OGM4MTcxZDMwMmNkMThiOTcwODdiMGVjZTMzNDFjNGZhNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWY5ODg4ZTNkOTRmMDhiOTk2OWQ5YzA3NmQ3YmE3MTQ1MDkxNzg3YzBkZDFhMThhYzJmZGVhMzg2NDA3OTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjODJmZTA1NzI4M2YzNzkyZDFlODFmZTkxYWUyNmYzYmE0N2NlMDE3MWE0NzRkM2NjZGI1NTBiZWRiODJjMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViMTFkYzJmNDM0YjRmNjUzMTgwOWE4NzUzNWZmOTc1ZGI3ZGY0MDBmOTA5MmU3NTc0Y2JkYzczMTExMmZjYTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_56f70525dc054a4681fc4037ab369a20",
+      "statement": "A composition script that derives one setup blend from another must refuse to write back over its input and must empty the blend of pre-existing actions before appending the new model rig, because several are held alive by a fake user and survive a purge, and a surviving action named T-Pose renames the appended rest-pose action so the export leads with a take under the wrong name.",
+      "evidence": [
+        {
+          "resource": "repo://Tools/Retargeting/make_lafan_corrected_setup.py#L148-L161",
+          "version": "repo-lines-v1:sha256:1fe938573ae93eae35f58a53de831c335ecba8bd661903cd7b4d013295d1dbe3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmRhZmMwOTE1NjMyNWQwOGQzMzA4MWNiMGY5ZjcwMDg4YmNlYWNmOWMxNjAxOTk3ZWVhNGRmZDk0YWJhMGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWY5ODg4ZTNkOTRmMDhiOTk2OWQ5YzA3NmQ3YmE3MTQ1MDkxNzg3YzBkZDFhMThhYzJmZGVhMzg2NDA3OTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5MmU3NGRkNDEwZDFmYjlhNTNkYWNmYTIzYWIxODUzMzVkYWVkM2VjZmI0OWY5NWE2OTg4N2YyMGE4ZmRlNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViMTFkYzJmNDM0YjRmNjUzMTgwOWE4NzUzNWZmOTc1ZGI3ZGY0MDBmOTA5MmU3NTc0Y2JkYzczMTExMmZjYTUifQ"
+        },
+        {
+          "resource": "repo://Tools/Retargeting/make_lafan_corrected_setup.py#L194-L215",
+          "version": "repo-lines-v1:sha256:26806e113ca4734e3810848452f3d9be1ac85b041fa554ec0850cf2750d53c10:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhMmUwMzVlNTkzZmU0MDY2YmRkMGNjMjVmYzFmYWIzMDkzMGQ5MmU0NTMyMWVhOWE4M2QzZWY0NzFjMThkNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMjUwMDFjNzgxZDQ5ZTlkMDk2MTVkNTg3MjkwZTJiYzk5ODFjZWRkMzc0OTJmZmVlZTUxYzJmNmQ5MmVhMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3YTNiZDM4NjlkM2M4MWQ0MTEzMjQyOTY5N2I1NjFmY2NiYjliOTlkMmJhNWZlZWNhMjA4ZjQ1YzBhZjc5NWEifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-09-03T11:06:29.275Z"
+    "at": "2026-09-07T21:17:41.812Z"
   }
 }

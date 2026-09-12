@@ -4,8 +4,6 @@ title: Retargeting BVH onto the shared target rig
 description: Why source motion is retargeted in Blender before it reaches Unity, what the two stages do, and which hidden inputs decide whether the result is right.
 tags: [retargeting, bvh, blender, rokoko, import]
 sources:
-  - id: openwiki-source-4b4c7626aee592b0133aadec
-    resource: repo://Assets/AnimationTools/Editor/Retargeting/RetargetBatchSettings.cs
   - id: openwiki-source-2e0d28f6a1ee99e6e464a576
     resource: repo://Assets/AnimationTools/Runtime/Animation/AnimationClipBaker.cs
   - id: openwiki-source-e1ad0ab569ae74b451c3418f
@@ -18,14 +16,16 @@ sources:
     resource: repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonBoneOverrides.cs
   - id: openwiki-source-3c35eadfeff4e039a271f8ae
     resource: repo://Tools/Retargeting/batch_retarget.py
+  - id: openwiki-source-31ba5a7a051e33f0aaa4981b
+    resource: repo://Tools/Retargeting/make_lafan_corrected_setup.py
   - id: openwiki-source-c6bd9da2c59d3b0501214cc4
     resource: repo://Tools/Retargeting/README.md
   - id: openwiki-source-0077e64b8f7c29bf1001e97a
     resource: repo://Tools/Retargeting/run_batch_all.py
-generated: {by: "claude-code", at: "2026-09-03T11:06:29.275Z"}
+generated: {by: "claude-code", at: "2026-09-07T21:17:41.812Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-09-03T11:06:29.275Z
+    at: 2026-09-07T21:17:41.812Z
 ---
 
 # Retargeting BVH onto the shared target rig
@@ -87,7 +87,9 @@ comes out at exactly 90°.
 reads only the cleaned bone's rotation, so a rig-to-rig comparison of bone frames reads a flawless
 0.000° while the character's torso is square. Frame equality only means something once the two rigs
 share an axis convention. The check that works is geometric: limb directions expressed in a body
-frame, or simply the angle between the two rigs' shoulder lines.
+frame, or the shoulder-to-hip line angle computed inside each rig and then compared. Compare the
+shoulder lines themselves across rigs in world space and you measure the rigid transform between
+them, not the torso.
 
 Two smaller traps sit alongside it. A BVH's zero-length `End Site` joints (`Head`, hands, toes)
 import with an arbitrary bone direction — Bandai-Namco's `Head` points *forward* at rest where the
@@ -121,6 +123,21 @@ Shards follow the dataset's own motion labels, so an output file is named after 
 rather than by an index. Because each shard is a separate process writing a separate FBX, a run is
 resumable — an existing output is skipped — and shards run in parallel.
 
+**How a file name maps to a label is a named scheme, chosen with `--shard-by`, not inferred.**
+Bandai-Namco's `dataset-2_walk_normal_001` and LAFAN's `walk1_subject1` both separate fields with
+underscores and cannot be told apart from a name alone, so sniffing would be a guess. The `action`
+scheme strips the trailing take number from the first token, putting `walk1` through `walk4` in one
+shard, and ignores the performer — every LAFAN subject was retargeted onto a single skeleton before
+the dataset was released, so the subject says nothing about the motion and would otherwise give
+every clip a shard of its own.
+
+**The clip cap is a proxy for frames, and the two datasets are twenty times apart.** A Bandai clip
+averages ~133 frames; a LAFAN clip averages 6,450, and the dataset is 496,672 frames over 77 clips.
+The 250-clip default that puts a Bandai shard at ~1 GB has to drop to 10 for LAFAN to keep a shard's
+working set comparable — which yields 17 shards peaking at 59,613 frames, about twice a Bandai
+shard. Drift is a non-issue at that size: a 9-clip LAFAN shard ends around 2e-06 m, two orders of
+magnitude inside the budget.
+
 Three things a run at this scale needs that a single run does not:
 
 - **A clip failure must not discard the run.** The export happens only at the end, so without
@@ -145,18 +162,47 @@ to another subject — the same three Hips offsets, seen through a different che
 
 ## The two setups today
 
-`Assets/LFS/Retargeting/retargeting.blend` covers LAFAN and
-`Assets/LFS/Retargeting/bandai-namco/bandai_namco_retarget_to_corrected_lafan_claude.blend`
-covers Bandai-Namco. They target **different model rigs**, and that is a migration in progress
-rather than an oversight: LAFAN retargets onto the 85-bone `Model:*` rig, whose bones all point
-along −Y in world and carry no anatomical direction, while Bandai-Namco retargets onto the
-corrected 22-bone rig (`Root`, rest identical to `Skeleton` in `lafan_rig_correction.blend`)
-whose bones are properly oriented. The corrected rig supersedes the old one; until LAFAN is
-re-retargeted onto it, clips from the two datasets **cannot go in one `MotionMatchingData`**,
-because its `skeleton` is a single skeleton and the bone names differ by the `Model:` prefix
-alone before the extra 50 bones are counted.
+Both datasets retarget onto the same corrected 22-bone rig, which is what lets their clips
+share one `MotionMatchingData`: its `skeleton` is a single skeleton, and until this was true the
+datasets' bone names differed by the `Model:` prefix alone before the extra bones were counted.
 
-Bandai-Namco is also the first setup where source and model proportions genuinely differ. LAFAN's
+| Dataset | Setup blend |
+| --- | --- |
+| LAFAN | `Assets/LFS/Retargeting/lafan_bvh_to_lafan_corrected.blend` |
+| Bandai-Namco | `Assets/LFS/Retargeting/bandai-namco/bandai_namco_retarget_to_corrected_lafan_claude.blend` |
+
+LAFAN reaches the corrected rig in **one** Rokoko pass from the BVH. Going through the old
+`Model:*` rig first and correcting afterwards was rejected: it costs a second Rokoko pass whose
+source is the badly-oriented rig the correction exists to replace, and the two passes' errors
+compound. The retired `Assets/LFS/Retargeting/retargeting.blend` is kept unmodified as the record
+of how its cleaned skeleton was authored.
+
+Nothing about the LAFAN setup needed authoring by hand, because no judgement was left in it. The
+part that needs judgement — the cleaned skeleton whose rest pose is stage two's calibration pose —
+already existed in the retired blend, and the corrected rig already existed as a proven export
+configuration in the Bandai setup. Only stage two's target changes, so
+`Tools/Retargeting/make_lafan_corrected_setup.py` composes the new blend from the two: it drops the
+old model rig and any stale per-clip proxy, empties the file of actions, appends `Lafan_corrected`
+with its `Mesh` child, re-points the Rokoko pointers, and rewrites the 22 bone-list rows by
+stripping the `Model:` namespace from each target name. Re-run it if either input moves.
+
+Three things that composition has to get right, each of which fails quietly otherwise:
+
+- **The corrected rig must come from the Bandai setup, not from `lafan_rig_correction.blend`.**
+  Both hold the same 22-bone armature at the same transform, but only the Bandai copy carries the
+  `T-Pose` NLA track. The correction blend has no animation data at all, and
+  `order_rest_take_first` is a hard error without that track.
+- **Pre-existing actions have to be removed, not purged.** Several are held alive by a fake user
+  and survive `orphans_purge`, and a surviving action named `T-Pose` renames the appended one to
+  `T-Pose.001`, which then exports as a take under that name.
+- **Appending the rig also brings whatever action it was last posed with** — on the Bandai setup,
+  one of its own retarget results.
+
+Because the corrected rig *is* the LAFAN skeleton re-oriented — `LeftUpLeg` 0.435 m and `LeftLeg`
+0.42372 m against the BVHs' 43.500 cm and 42.372 cm — LAFAN's retarget is near-identity in
+proportion, and auto-scaling has nothing to correct. It is set off regardless, matching Bandai.
+
+Bandai-Namco is the setup where source and model proportions genuinely differ. LAFAN's
 `source_skeleton` has bone lengths identical to its model rig — the capture was done on that rig —
 so its IK never compensated for size, only for the rest-pose re-orientation. The Bandai actor is
 shorter: torso ×1.47, arms ×1.25, legs ×1.12, hip width ×1.64 against the corrected rig. What
@@ -217,10 +263,24 @@ those bones at identity scale.
 The fix does not reach back into output already on disk. Everything exported before it carries the
 collapsed scale and is silently useless downstream, and re-exporting is the only remedy — the setup
 blend and each shard's clip list survive in `.batch/`, so it costs a re-run rather than re-authoring
-a retarget. Two selections have been re-exported: `bandai_walk_normal` (24 takes) and
-`bandai_walk_turn_normal` (69 takes, the `normal` style of both turn directions, ~60 s). Both were
-then exported again for the rest-pose fix below, so they now carry 25 and 70 takes — the extra one
-being the `T-Pose` reference. Every other Bandai shard predates both fixes.
+a retarget.
+
+**Read the FBX records to tell a fixed export from a broken one; a Blender re-import cannot.** A
+good file has `UnitScaleFactor` 100 with every node at unit scale; a broken one has
+`UnitScaleFactor` 1 with the armature node at `Lcl Scaling` 100. Blender's importer normalises that
+away, so the file looks clean on re-import either way. The same read shows which take the file leads
+with, which is the second fix below.
+
+Every Bandai shard has now been re-exported under both fixes, and LAFAN was retargeted onto the
+corrected rig under them from the start. The cost of the Bandai re-export was nothing but compute:
+none of the stale shards was referenced by any asset, so no clip, config or prefab had to be
+re-pointed. That was luck of timing rather than a property of the pipeline — see the file-ID churn
+below.
+
+One file is deliberately not covered by that. `bandai_walk-turn-left_normal_005.fbx` was exported
+by hand from a single clip rather than by the driver, so a `--force` run does not reach it; it is
+unreferenced, and its one take now also lives in `bandai_dataset-2_walk-turn-left.fbx`. It is
+redundant rather than pending.
 
 **Re-exporting churns the FBX's internal file IDs.** The `.meta` survives, so the asset GUID is
 stable and nothing loses track of the *file* — but every reference to a bone Transform or an
@@ -294,8 +354,12 @@ For a change where exact equality is not expected, compare **joint angles** (kne
 shoulder, spine) between the stage-one source and the retargeted result. Joint angles are
 geometric, so they survive the two rigs' differing bone-axis conventions, where a direct
 comparison of bone directions does not: both a good and a bad retarget sit near 90° there,
-separated only by spread. On LAFAN `walk1_subject1` a correct run scores **5.3° mean joint-angle
-error**, which is the inherent source-to-model rig difference and not pipeline error.
+separated only by spread. On LAFAN `walk1_subject1` onto the corrected rig a correct run scores
+**3.24° mean joint-angle error**, against 5.3° for the same clip onto the retired `Model:*` rig.
+The residual is not uniform and should not be: spine 0.12° and neck 0.27° against ankles 5.5° and
+elbows 4.5°. The large ones are exactly the chains stage one drives with IK, which is where the
+cleaned skeleton is allowed to differ from the source — so the shape of the residual is itself the
+evidence, not just its size.
 
 **Comparing bone frames between the two rigs proves nothing.** It is the obvious check and it
 certified a 90°-yawed torso as flawless. Use geometric checks, which survive the rigs' differing
@@ -303,12 +367,22 @@ bone-axis conventions:
 
 | Check | What it catches | Reading it |
 | --- | --- | --- |
-| joint angles (knee, elbow, ankle, spine) vs the source | the retarget actually following the motion | 3.91° mean on Bandai-Namco dataset-2, against LAFAN's 5.3° for a correct run |
+| joint angles (knee, elbow, ankle, spine) vs the source | the retarget actually following the motion | 3.91° mean on Bandai-Namco dataset-2; 3.24° for LAFAN onto the corrected rig |
 | limb directions in a body frame built from the hips | any limb or torso rotated in the body | a difference that is **constant** across frames is a rest convention, not an error |
-| angle between the two rigs' shoulder lines | torso yaw specifically | 0.000° every frame |
+| shoulder-to-hip line angle, computed **inside each rig** and then compared | torso yaw specifically | source 13.849° vs retargeted 13.772° on LAFAN `walk1_subject1` |
 | cleaned rest, left/right joint pairs mirrored | a rest that is not a T-pose | 0.0000 m asymmetry |
 | constrained cleaned joints vs the source's | stage one drifting | 0.0 mm on every bone |
-| lowest toe height over the clip | the character floating or sinking | −0.5 cm to +1.2 cm on a walk |
+| hip height above the lowest toe **joint**, source vs retargeted | the character floating, sinking, or rescaled | 88.0 cm vs 86.8 cm on LAFAN `walk1_subject1` |
+
+**Two of those rows are written the way they are because the obvious version measures something
+else.** A raw `import_anim.bvh` sits a half turn about Z from the setup's source rest, so comparing
+the two rigs' shoulder lines in world space reads that rigid transform — about 167° on a clip whose
+torso is in fact square. Computing the shoulder-to-hip angle within each rig and comparing the two
+scalars removes it. Likewise a BVH root offset records where the actor stood in the capture volume,
+not a ground plane, so absolute toe height against z=0 is meaningless for the source; hip height
+above the toe is the comparable quantity. Measure the toe **head** and not the bone's tail: LAFAN's
+`End Site` joints are zero-length, so the source's toe tail is a direction Blender invented, and
+including it turns a 1.3 cm agreement into a spurious 4.8 cm one.
 
 The distinction in row two is what makes the check usable across rigs. On
 `dataset-2_walk-turn-left_normal_005` the current Bandai setup reads 0.000° at both knees and
@@ -326,10 +400,10 @@ For contrast, the raw bone-frame comparison now reads **90° at the chest** and 
 that difference *is* the roll correction, and seeing it there is the sign the setup is right, not
 wrong.
 
-On the Unity side, an exported FBX imports as a **Generic** rig with no importer setup. The LAFAN
-takes validate with **72 of 85 bones animated** — the figure `AnimationClipBakerTests` guards, the
-other 13 being the FBX `_end` leaves. The corrected rig is smaller, so a Bandai FBX carries 27
-bones with 22 animated, and that test's expectation belongs to the old rig until LAFAN moves over.
+On the Unity side, an exported FBX imports as a **Generic** rig with no importer setup. Both
+datasets now produce the same shape: 27 bones with **22 animated**, the other five being the FBX
+`_end` leaves. The 72-of-85 figure that `AnimationClipBakerTests` cites belonged to the retired
+`Model:*` rig.
 Note that Unity defaults the model importer to `KeyframeReduction`, which stacks a second lossy
 pass on top of the exporter's `--simplify`; set Anim. Compression to Off if both are not wanted.
 
@@ -339,10 +413,10 @@ height. The cheapest end-to-end check is to add a `GaitPhaseComponent` to one an
 press Detect: a correct import on a walk gives an alternating anchor every ~17 frames, and a
 collapsed one gives none at all.
 
-Both `bandai_walk_normal.fbx` and the corrected rig blend now import as the same 27-bone tree
-under `Hips` — the 22 animated bones plus the five `_end` leaves the exporter synthesises. That
-match is what lets a character take its live rig from the blend while its skeleton comes from the
-FBX the network was trained on; `SkeletonBoneOverrides` binds them by name, and
+Every retargeted FBX — from either dataset — and the corrected rig blend import as the same
+27-bone tree under `Hips`: the 22 animated bones plus the five `_end` leaves the exporter
+synthesises. That match is what lets a character take its live rig from the blend while its
+skeleton comes from the FBX the network was trained on; `SkeletonBoneOverrides` binds them by name, and
 `MotionSynthesisComponent` disables itself outright if even one bone fails to bind, so a rig
 missing the leaves would be a hard stop rather than a degraded mode.
 
@@ -353,6 +427,7 @@ missing the leaves would be a hard stop rather than a degraded mode.
 | Batch engine, one FBX per run | `Tools/Retargeting/batch_retarget.py` |
 | Whole-dataset driver: sharding, parallelism, resume, manifest | `Tools/Retargeting/run_batch_all.py` |
 | Setup authoring procedure | `Tools/Retargeting/README.md` |
+| Composing the LAFAN corrected setup from existing blends | `Tools/Retargeting/make_lafan_corrected_setup.py` |
 | Unity launcher | `Assets/AnimationTools/Editor/Retargeting/RetargetBatchWindow.cs` |
 | Per-dataset run settings | `Assets/AnimationTools/Editor/Retargeting/RetargetBatchSettings.cs` |
 
