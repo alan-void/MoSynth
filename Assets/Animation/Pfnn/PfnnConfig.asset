@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PfnnConfig
   m_EditorClassIdentifier: 
   animationClips:
-  - {fileID: 11400000, guid: 83f13ab2065eeee41b3cbf97abcf0914, type: 2}
+  - {fileID: 11400000, guid: 3242dfa08bb3cf248987ae6021c3666a, type: 2}
   skeleton:
     root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
   contactVelocityThreshold: 0.15

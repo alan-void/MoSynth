@@ -19,7 +19,7 @@ MonoBehaviour:
     skeleton:
       root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
     bone: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-  startFrame: 100
+  startFrame: 0
   endFrame: 2800
   components:
   - rid: 5432756900224041273
