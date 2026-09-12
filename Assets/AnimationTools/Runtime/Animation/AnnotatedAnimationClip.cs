@@ -13,7 +13,7 @@ namespace AnimationTools
 /// Stores annotation using tags and other information for a raw animation clip.
 /// To be used by Motion Synthesis Systems.
 /// </summary>
-[CreateAssetMenu(fileName = "AnimationData", menuName = "MotionMatching/AnimationData")]
+[CreateAssetMenu(fileName = "New Annotated Clip", menuName = "MoSynth/AnnotatedAnimationClip")]
 public class AnnotatedAnimationClip : SkeletonAnimation
 {
 
