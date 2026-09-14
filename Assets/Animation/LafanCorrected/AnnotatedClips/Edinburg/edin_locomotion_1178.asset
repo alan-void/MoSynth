@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b81a3691c81c50d41858624eac4a6299, type: 3}
+  m_Name: edin_locomotion_1178
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.AnnotatedAnimationClip
+  clip: {fileID: -2178506088041820715, guid: 9131aa4ce32742adb01c90d7c642d6b0, type: 3}
+  skeleton:
+    root: {fileID: -1031852490016989477, guid: 9131aa4ce32742adb01c90d7c642d6b0, type: 3}
+  rootMotionBone:
+    skeleton:
+      root: {fileID: -1031852490016989477, guid: 9131aa4ce32742adb01c90d7c642d6b0, type: 3}
+    bone: {fileID: -1031852490016989477, guid: 9131aa4ce32742adb01c90d7c642d6b0, type: 3}
+  startFrame: 0
+  endFrame: 120
+  components:
+  - rid: 4326263008701972498
+  references:
+    version: 2
+    RefIds:
+    - rid: 4326263008701972498
+      type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        footfalls:
+        - frame: 1
+          foot: 0
+        - frame: 19
+          foot: 1
+        - frame: 41
+          foot: 0
+        - frame: 63
+          foot: 1
+        - frame: 90
+          foot: 0
+        - frame: 109
+          foot: 1
+        leftContactBoneName: 
+        rightContactBoneName: 
+        contactVelocityThreshold: 0.15
+        smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

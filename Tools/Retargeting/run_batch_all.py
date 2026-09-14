@@ -1,4 +1,4 @@
-"""Retargets a whole BVH dataset by running batch_retarget.py over it in shards.
+"""Retargets a whole BVH dataset by running a retarget script over it in shards.
 
     python Tools/Retargeting/run_batch_all.py \
         --setup   Assets/LFS/Retargeting/bandai-namco/bandai_namco_retarget_to_corrected_lafan_claude.blend \
@@ -6,7 +6,9 @@
         --out-dir Assets/LFS/Animation/bandai-namco/retargeted \
         --simplify 1 --workers 6
 
-batch_retarget.py exports one FBX holding a take per clip, which does not scale to a few thousand:
+`--script direct` runs direct_retarget.py instead, for a setup carrying its own helper rig.
+
+A retarget script exports one FBX holding a take per clip, which does not scale to a few thousand:
 every retargeted action stays resident until that single export, and Rokoko's rest-pose drift
 accumulates across the run until it trips the guard. Both reset only when the process exits, so a
 dataset is retargeted as several independent runs rather than one long one. That also makes the
@@ -28,7 +30,15 @@ import threading
 import time
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-BATCH_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "batch_retarget.py")
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# The per-shard retarget scripts --script chooses between. They take the same command line, so the
+# driver needs to know nothing about them beyond the path; which one a setup needs is decided by
+# whether it carries its own helper rig, and direct_retarget.py refuses a setup that does not.
+RETARGET_SCRIPTS = {
+    "batch": os.path.join(TOOLS_DIR, "batch_retarget.py"),
+    "direct": os.path.join(TOOLS_DIR, "direct_retarget.py"),
+}
 
 # The same candidates RetargetBatchWindow probes, so the two launchers agree on which Blender runs.
 BLENDER_CANDIDATES = [
@@ -158,7 +168,7 @@ def run_shard(shard, options):
 
     command = [
         options.blender, "--background", options.setup,
-        "--python", BATCH_SCRIPT, "--",
+        "--python", options.script_path, "--",
         "--files-from", listing,
         "--out", shard["fbx"],
         "--manifest", shard["manifest"],
@@ -223,6 +233,9 @@ def main():
                         help="hold each clip where its channels were recorded; needed when a "
                              "dataset varies the rest offset from clip to clip, as "
                              "Bandai-Namco dataset-2 does")
+    parser.add_argument("--script", choices=sorted(RETARGET_SCRIPTS), default="batch",
+                        help="which retarget script each shard runs: batch for a setup Rokoko "
+                             "drives (default), direct for one carrying its own helper rig")
     parser.add_argument("--blender", default="", help="path to blender.exe")
     parser.add_argument("--force", action="store_true",
                         help="redo shards whose FBX already exists")
@@ -236,8 +249,10 @@ def main():
     for label, path in (("setup blend", options.setup), ("BVH folder", options.bvh_dir)):
         if not os.path.exists(path):
             sys.exit("No such {}: {}".format(label, path))
-    if not os.path.isfile(BATCH_SCRIPT):
-        sys.exit("No batch_retarget.py beside this script: " + BATCH_SCRIPT)
+    options.script_path = RETARGET_SCRIPTS[options.script]
+    if not os.path.isfile(options.script_path):
+        sys.exit("No {} beside this script: {}".format(
+            os.path.basename(options.script_path), options.script_path))
 
     only = {token.strip() for token in options.only.split(",") if token.strip()}
     shards = build_shards(options.bvh_dir, options.prefix, options.max_per_file,
@@ -300,7 +315,7 @@ def report(shards, attempted, options, elapsed):
     merged_path = os.path.join(options.work_dir, "manifest.json")
     with open(merged_path, "w", encoding="utf-8") as handle:
         json.dump({"out_dir": options.out_dir, "setup": options.setup,
-                   "simplify": options.simplify,
+                   "script": options.script, "simplify": options.simplify,
                    "keep_capture_position": options.keep_capture_position, "shards": merged,
                    "clips": clips, "frames": frames, "skipped": skipped},
                   handle, indent=2)

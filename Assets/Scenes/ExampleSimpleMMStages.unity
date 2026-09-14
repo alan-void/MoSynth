@@ -1577,6 +1577,7 @@ MonoBehaviour:
   steeringHalfLife: 0.25
   velocityHalfLife: 0.2
   facingHalfLife: 0.15
+  maxRequestAngle: 90
   minimumSpeed: 0.01
 --- !u!1 &1025890985
 GameObject:
@@ -2493,6 +2494,18 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3193380631802678010, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: maxSpeed
+      value: 2.52
+      objectReference: {fileID: 0}
+    - target: {fileID: 3193380631802678010, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: maxRequestAngle
+      value: 114.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7193003143738492502, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
+      propertyPath: managedReferences[4326262761038807298].config
+      value: 
+      objectReference: {fileID: 11400000, guid: 0bb1432079fd2ef4db42a55add095914, type: 2}
     - target: {fileID: 8809768790971187618, guid: 38c2c85c6c6871f4a8a68b14799532dd, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

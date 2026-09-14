@@ -92,8 +92,14 @@ instead of half.
 
 **Standing.** A stretch with no footfalls in it is not automatically unusable, because standing and
 a missed contact leave the same hole in the anchors. How fast the character was travelling separates
-them: below `standingSpeed` the stretch sweeps its phase at a fixed period, and above it the phase is
-held at a rate of zero — the *no measurable cycle* sentinel that drops the frame.
+them, frame by frame: below `standingSpeed` a frame sweeps its phase at a fixed period, and above it
+the phase is held at a rate of zero — the *no measurable cycle* sentinel that drops the frame.
+
+Frame by frame rather than over the stretch, because the two are almost never the same stretch. The
+run-up to a clip's first footfall contains the stand *and* the acceleration out of it, and asking
+whether all of it was slow answers no. See
+[animation-sources](animation-sources.md#gait-phase) for what that cost on the
+Edinburgh set.
 
 Sweeping standing frames rather than dropping them is what Holden et al. do, and the reason is not
 that the phase means anything there. It is that a model shown the whole cycle against a stationary

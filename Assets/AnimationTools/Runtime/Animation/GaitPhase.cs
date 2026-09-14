@@ -14,11 +14,11 @@ namespace AnimationTools
 /// same foot falls twice running (which is what a missed contact looks like), linear between
 /// anchors, and the cycle zeroed on a right footfall.
 /// <para>
-/// A stretch with no footfalls in it is answered by how fast the character was moving, because
-/// standing and a missed contact are indistinguishable in the anchors alone. Standing sweeps at a
-/// fixed rate, so a model sees the whole cycle against a stationary trajectory and can learn that
-/// its output does not depend on phase there. Anything else is held at a rate of zero, which marks
-/// it unusable — extrapolating a walking rate over a stand invents gait: on the untrimmed
+/// A stretch with no footfalls in it is answered frame by frame, by how fast the character was
+/// moving, because standing and a missed contact are indistinguishable in the anchors alone. A
+/// standing frame sweeps at a fixed rate, so a model sees the whole cycle against a stationary
+/// trajectory and can learn that its output does not depend on phase there. Anything else is held
+/// at a rate of zero, which marks it unusable — extrapolating a walking rate over a stand invents gait: on the untrimmed
 /// <c>walk1_subject1</c> clip the first real footfall is at frame 132, and the 4.4 s of standing
 /// before it were once given 2.87 complete cycles of phase the character never walked. A model
 /// trained on that learns to cycle its legs while stationary.
@@ -85,9 +85,10 @@ public static class GaitPhase
     /// </param>
     /// <param name="phase">Filled with radians in <c>[0, Tau)</c>. Length sets the frame count.</param>
     /// <param name="phaseRate">
-    /// Filled with radians per second. <b>Zero marks a frame with no measurable cycle</b> — a
-    /// stretch with no footfalls that the character was moving through — which is the sentinel
-    /// training uses to drop a frame. A standing stretch reports the standing rate and is kept.
+    /// Filled with radians per second. <b>Zero marks a frame with no measurable cycle</b> — one
+    /// with no footfalls around it that the character was moving through — which is the
+    /// sentinel training uses to drop a frame. A standing frame reports the standing rate and is
+    /// kept.
     /// </param>
     public static void Evaluate(IReadOnlyList<Footfall> footfalls, float frameTime,
         IReadOnlyList<float> speed, float standingSpeed, float standingPeriod,
@@ -115,13 +116,10 @@ public static class GaitPhase
         if (anchors.Count == 0)
         {
             // A clip the character stood through still teaches a stationary pose, so it sweeps from
-            // zero -- there is no anchor to line up with. A clip with real motion and no anchors is
-            // one whose contacts were missed, and stays unusable.
-            if (IsStanding(speed, 0, phase.Length, standingSpeed, standingSlope))
-            {
-                FillSweep(phase, phaseRate, 0, phase.Length, 0f, standingSlope, frameTime);
-            }
-
+            // zero -- there is no anchor to line up with. Frames it moved through are ones whose
+            // contacts were missed, and stay unusable.
+            SweepForward(phase, phaseRate, 0, phase.Length, 0f,
+                speed, standingSpeed, standingSlope, frameTime);
             return;
         }
 
@@ -144,62 +142,84 @@ public static class GaitPhase
             }
         }
 
-        // The lead-in and lead-out have no second anchor to land on, so a standing stretch sweeps at
-        // exactly the standing rate, wound back from -- or forward off -- the footfall it meets, and
-        // the phase stays continuous there. Anything else holds the boundary anchor at a rate of
-        // zero: the clip carries no evidence of a cycle, and inventing one is the failure this
-        // exists to avoid.
+        // The lead-in and lead-out have no second anchor to land on, so every frame there answers
+        // for itself: one the character stood through sweeps at exactly the standing rate, wound
+        // back from -- or forward off -- the footfall it meets, and one it moved through holds the
+        // phase it inherits at a rate of zero. Frame by frame rather than all-or-nothing over the
+        // stretch, because a clip that stands and then walks off accelerates before its first heel
+        // strike: judged whole, those few moving frames condemn the entire stand behind them.
         var firstFrame = anchors[0].frame;
         var lastFrame = anchors[anchors.Count - 1].frame;
         var lastTarget = targets[targets.Count - 1];
 
-        if (IsStanding(speed, 0, firstFrame, standingSpeed, standingSlope))
+        SweepBackward(phase, phaseRate, 0, firstFrame, targets[0],
+            speed, standingSpeed, standingSlope, frameTime);
+        SweepForward(phase, phaseRate, lastFrame, phase.Length, lastTarget,
+            speed, standingSpeed, standingSlope, frameTime);
+    }
+
+    /// <summary>
+    /// Whether one frame was slow enough to count as standing. False when nothing measured speed or
+    /// the standing rule is switched off, so those callers keep the held-and-unusable answer.
+    /// </summary>
+    private static bool IsStandingFrame(IReadOnlyList<float> speed, int frame,
+        float standingSpeed, float standingSlope) =>
+        speed != null && standingSlope > 0f && frame < speed.Count && speed[frame] < standingSpeed;
+
+    /// <summary>How many frames of <c>[from, to)</c> the character stood through.</summary>
+    private static int StandingFrames(IReadOnlyList<float> speed, int from, int to,
+        float standingSpeed, float standingSlope)
+    {
+        var standing = 0;
+        for (var frame = from; frame < to; frame++)
         {
-            FillSweep(phase, phaseRate, 0, firstFrame,
-                targets[0] - firstFrame * standingSlope, standingSlope, frameTime);
-        }
-        else
-        {
-            for (var frame = 0; frame < firstFrame; frame++) phase[frame] = Wrap(targets[0]);
+            if (IsStandingFrame(speed, frame, standingSpeed, standingSlope)) standing++;
         }
 
-        if (IsStanding(speed, lastFrame, phase.Length, standingSpeed, standingSlope))
+        return standing;
+    }
+
+    /// <summary>
+    /// Fills <c>[from, to)</c> running forward from an unwrapped target: a standing frame advances
+    /// the phase at the standing rate, a moving one holds it and reports a rate of zero.
+    /// </summary>
+    private static void SweepForward(float[] phase, float[] phaseRate, int from, int to,
+        float startTarget, IReadOnlyList<float> speed, float standingSpeed, float standingSlope,
+        float frameTime)
+    {
+        var rate = standingSlope / frameTime;
+        var target = startTarget;
+
+        for (var frame = from; frame < to; frame++)
         {
-            FillSweep(phase, phaseRate, lastFrame, phase.Length, lastTarget, standingSlope, frameTime);
-        }
-        else
-        {
-            for (var frame = lastFrame; frame < phase.Length; frame++) phase[frame] = Wrap(lastTarget);
+            phase[frame] = Wrap(target);
+            if (!IsStandingFrame(speed, frame, standingSpeed, standingSlope)) continue;
+
+            phaseRate[frame] = rate;
+            target += standingSlope;
         }
     }
 
     /// <summary>
-    /// Whether every frame of <c>[from, to)</c> was slow enough to count as standing. False when
-    /// nothing measured speed or the standing rule is switched off, so those callers keep the
-    /// held-and-unusable answer.
+    /// Fills <c>[from, to)</c> running backward from the unwrapped target the frame at
+    /// <paramref name="to"/> lands on, so the sweep meets the anchor it runs up to.
     /// </summary>
-    private static bool IsStanding(IReadOnlyList<float> speed, int from, int to,
-        float standingSpeed, float standingSlope)
+    private static void SweepBackward(float[] phase, float[] phaseRate, int from, int to,
+        float endTarget, IReadOnlyList<float> speed, float standingSpeed, float standingSlope,
+        float frameTime)
     {
-        if (speed == null || standingSlope <= 0f || to <= from) return false;
+        var rate = standingSlope / frameTime;
+        var target = endTarget;
 
-        for (var frame = from; frame < to; frame++)
+        for (var frame = to - 1; frame >= from; frame--)
         {
-            if (frame >= speed.Count || speed[frame] >= standingSpeed) return false;
-        }
+            if (IsStandingFrame(speed, frame, standingSpeed, standingSlope))
+            {
+                target -= standingSlope;
+                phaseRate[frame] = rate;
+            }
 
-        return true;
-    }
-
-    /// <summary>Fills <c>[from, to)</c> with a constant-rate sweep starting at an unwrapped target.</summary>
-    private static void FillSweep(float[] phase, float[] phaseRate, int from, int to,
-        float startTarget, float slope, float frameTime)
-    {
-        var rate = slope / frameTime;
-        for (var frame = from; frame < to; frame++)
-        {
-            phase[frame] = Wrap(startTarget + slope * (frame - from));
-            phaseRate[frame] = rate;
+            phase[frame] = Wrap(target);
         }
     }
 
@@ -248,10 +268,15 @@ public static class GaitPhase
             // whole cycles instead: as near that rate as landing on the anchor allows, and still
             // the correct foot. Handling it here is what keeps the fill loop below a straight line
             // between two targets.
-            if (IsStanding(speed, anchors[i - 1].frame, anchors[i].frame, standingSpeed, standingSlope))
+            //
+            // Counted per frame, because a stand mid-clip is bracketed by the deceleration into it
+            // and the acceleration out again: demanding the whole gap be slow finds no stand at all
+            // and interpolates a stride across the stillness, which is the very thing this avoids.
+            var standing = StandingFrames(speed, anchors[i - 1].frame, anchors[i].frame,
+                standingSpeed, standingSlope);
+            if (standing > 0)
             {
-                var span = anchors[i].frame - anchors[i - 1].frame;
-                step += math.max(0f, math.round((span * standingSlope - step) / Tau)) * Tau;
+                step += math.max(0f, math.round((standing * standingSlope - step) / Tau)) * Tau;
             }
 
             targets.Add(targets[i - 1] + step);

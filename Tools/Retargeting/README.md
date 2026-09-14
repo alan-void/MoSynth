@@ -36,6 +36,11 @@ Shards follow the dataset's own motion labels, with any motion over `--max-per-f
 split into numbered parts, so an output file is named after what is in it. Start with `--dry-run`
 to see the split.
 
+**`--script` picks which retarget engine each shard runs.** The default `batch` is
+`batch_retarget.py`, the Rokoko path. `direct` is `direct_retarget.py`, for a setup that carries
+its own helper rig — see *Retargeting without Rokoko* below. Both take the same command line, so
+nothing else about a run changes.
+
 **`--shard-by` picks how a file name is read**, because two datasets that both separate fields with
 underscores cannot be told apart from a name alone:
 
@@ -62,6 +67,17 @@ python Tools/Retargeting/run_batch_all.py \
 
 That gives 17 shards peaking at 59,613 frames, about twice a Bandai shard. No
 `--keep-capture-position`: on LAFAN the rest-offset re-framing is the intended normalisation.
+
+Edinburgh's 1855 clips are short and uniform, and its file names carry no motion label, so the
+default scheme reads them as one motion and splits it on the clip cap alone:
+
+```
+python Tools/Retargeting/run_batch_all.py     --setup   Assets/LFS/Retargeting/edinburgh_bvh_to_lafan_corrected.blend     --bvh-dir Assets/LFS/Animation/Edinburgh/bvh     --out-dir Assets/LFS/Animation/LafanCorrected/edinburgh     --prefix "" --max-per-file 250 --simplify 1 --workers 4
+```
+
+That gives 9 shards — eight of `edin_locomotion` and one of `edin_test` — peaking at 27,600
+frames, half a LAFAN shard. `--prefix ""` is deliberate: the converter already names its files
+`edin_<split>_<index>`, so the default `bandai` prefix would only repeat itself.
 
 - **Resumable**: a shard whose FBX already exists is skipped, so a run interrupted at shard 12
   costs only the shards it had not reached. `--force` rebuilds regardless.
@@ -118,6 +134,128 @@ Plus a Rokoko bone list mapping cleaned-skeleton bones to model bones. All the R
 settings — source, target, auto-scale, pose mode and the bone list — are **scene properties,
 so they are saved in the blend**; nothing is duplicated into a config file.
 
+## When the source has no rotations
+
+A dataset may ship joint *positions* and nothing else — the Edinburgh Locomotion database is two
+`.npz` files of 21 points per frame. `edinburgh_npz_to_bvh.py` solves that into BVH, and because it
+authors the file it also picks the rest pose and the bone names, which changes what the setup blend
+has to do:
+
+- The rest pose is written as a genuine T-pose with the target rig's own bone names, so stage one
+  has nothing to clean. Its cleaned skeleton is a plain duplicate wired through with
+  `COPY_ROTATION` and no IK, and the Rokoko map is 21 identity rows.
+- `make_edinburgh_setup.py` composes that blend from one converted BVH plus the shared rig, and
+  verifies it by re-opening the saved file and resolving it with `batch_retarget`'s own code.
+- **Every file the converter writes must declare the same skeleton**, since
+  `check_skeleton_matches` rejects a millimetre of disagreement. It fits one skeleton across every
+  clip of every split in a single run, which is why both `.npz` are passed at once.
+- **The rest pose must be the actor's own posture, not canonical axes.** A clean T-pose is right
+  for the limbs and wrong for the torso and the root: this actor's pelvis-up axis sits 17 degrees
+  ahead of vertical, and calling it vertical added that lean to every retargeted frame. Torso pitch
+  went from 19.3 degrees to 7.3 against the target rig's 2-degree rest once the root and spine took
+  their rest directions from the data. Limb rows in `SKELETON` keep a canonical `rest_dir`; torso
+  rows set it to `None`.
+- **The spine bend is scaled down in the setup blend, by `SPINE_LEAN_SCALE`.** Edinburgh's
+  hip-to-neck axis reads about 2.4x the actor's real lean, so copying it verbatim hunches the
+  character. Nearly all of it sits in the root segment, which also carries heading, so that bone's
+  rotation is split: local Y (the pelvis-up axis) copied whole to keep the turns, X and Z damped.
+  A scale rather than an offset, because the lean varies per clip and one subtracted angle can only
+  ever suit one of them.
+- **The root's euler order is `YXZ`, deliberately.** Damping its lean per axis makes Blender
+  decompose to euler, and an euler order gimbal-locks on its middle axis; the BVH's `ZYX` puts that
+  on Y, the heading axis, so a turning clip snapped 94 degrees. If a retarget is ever jumpier than
+  the BVH it came from, the setup is adding it -- compare the two before touching the converter.
+- **Clavicles and hip joints inherit their parent's roll** (`PARENT_ROLL` in `SKELETON`). Each
+  reaches one marker, so its roll is a convention rather than a measurement; borrowing a
+  neighbour's direction let them twist 28-38 degrees against the body part they hang off. This
+  changes roll only, so joint positions and the `OFFSET` block are untouched -- which is what lets
+  a regenerated dataset drop under a hand-authored rest pose without invalidating it.
+- **Watch the movement, not the joint positions.** Positions fix a bone's direction and say nothing
+  about its roll, so `--verify` reports the worst frame-to-frame *whole-bone* step beside the
+  position error, with how much of it was twist. Every visible artefact in this conversion was a roll artefact, and none of them moved a
+  joint by a millimetre. `edinburgh_solve_preview.py` builds a blend with the solved skeleton
+  overlaid on the source points, with bone axes shown, for judging one by eye.
+- Expect worse foot contact than a rotational source. Edinburgh's own released root trajectory
+  already slides a planted toe 5.5 cm/s, and retargeting onto an actor of different proportions
+  roughly doubles it: 10.8 cm/s against LAFAN's 1.9 cm/s measured the same way.
+
+## Authoring a rest pose with live feedback
+
+The cleaned skeleton's rest pose is the calibration pose, and it is the one thing in a setup that
+has to be judged by eye. `make_edinburgh_setup.py --live --no-damping --clips <bvh...>` builds a
+blend for exactly that:
+
+```
+blender --background --python Tools/Retargeting/make_edinburgh_setup.py -- \
+    --bvh Assets/LFS/Animation/Edinburgh/bvh/edin_locomotion_0000.bvh \
+    --no-damping --live --clips <a few bvh> \
+    --out Assets/LFS/Retargeting/edinburgh_rest_authoring.blend
+```
+
+Edit `edinburgh_cleaned`'s rest in Edit Mode and the character follows immediately. The rig is
+Rokoko's own: one helper bone per mapped bone, sitting at the model bone's rest but parented to the
+cleaned bone, so Blender evaluates `cleaned_world @ cleaned_rest^-1 @ helper_rest` -- the delta
+Rokoko bakes. Rokoko builds this, bakes through it and deletes it; keeping it makes the retarget
+live, and because the rest matrices are read fresh every evaluation, an edit shows up at once.
+
+- **Helpers live in a hidden `Retarget` bone collection and are disconnected.** Both matter. A
+  connected child moves with its parent in Edit Mode, so a helper dragged along by the bone being
+  edited would show no change at all.
+- **Switch clips** by unmuting a different NLA track on `edinburgh_source`, and note that the
+  batch mutes them all before a run: an assigned action evaluates on top of the NLA stack rather
+  than instead of it, so a take left parked here would blend into every clip of the run.
+- **`RT_ground` is where the character's height above the floor is set.** It is a helper bone
+  parented to the bridge's `Hips` that the model's `Hips` copies its location from, so the whole
+  character rides on it and the target rig is never edited. It rests along `+Y` with zero roll, so
+  its local axes are the world's and its Z field reads in world metres, and it does not inherit
+  rotation, so the offset stays vertical instead of tipping with the pelvis. `use_offset` on the
+  Copy Location constraint is not the same knob and does not work: it adds the bone's own 93 cm
+  rest height.
+- **A live blend is a run's setup, not just an editing aid.** `direct_retarget.py` retargets
+  straight through this rig, so a preview cannot disagree with the output.
+- Rokoko cannot be trusted to retarget from a constraint-driven rig in the first place: with
+  `use_pose = REST` it clears a bone's pose by zeroing `rotation_quaternion`, which a constraint
+  re-applies on the next evaluation, so it builds its helpers against whatever frame the playhead
+  is on. That is why the batch bakes stage one and strips the constraints before stage two.
+
+## Retargeting without Rokoko
+
+A setup built with `--live` already holds the rig Rokoko would build and throw away, so
+`direct_retarget.py` runs the whole chain as one bake:
+
+```
+blender --background Assets/LFS/Retargeting/edinburgh_rest_authoring.blend \
+    --python Tools/Retargeting/direct_retarget.py -- \
+    --bvh-dir Assets/LFS/Animation/Edinburgh/bvh --pattern "edin_test_*.bvh" \
+    --out Assets/LFS/Animation/LafanCorrected/edinburgh/edin_test.fbx
+```
+
+Same command line and the same FBX as `batch_retarget.py`, which it imports as a library for
+everything except the retarget itself. It finds the rig structurally — the one armature carrying
+`RT_*` helper bones — and reads the bone map off the model's own constraints, so the wiring *is*
+the mapping and the two cannot drift apart. A setup with no helper rig is refused rather than
+retargeted badly; `batch_retarget.py` still owns those.
+
+What it buys:
+
+- **The rest-pose drift is gone, not merely small.** Rokoko applies and un-applies the target's
+  object transform on every clip, which is identity only in exact arithmetic; that is the drift the
+  guard watches and the reason shard size is capped. With no such mechanism here, 1855 clips across
+  9 shards ended at `0.00e+00 m`, against about `5.2e-05` per 220-clip Bandai shard.
+- **Roughly 3x faster**, because one bake of the model replaces stage one's bake, the
+  constraint-free proxy, and Rokoko's own duplicate-and-bake.
+- **The authoring blend and the batch run the same code**, so a rest pose judged by eye is the rest
+  pose that ships.
+- Nothing depends on the addon being installed.
+
+Measured against a real Rokoko bake of the same clip and rest pose, the two agree to **0.016
+degrees mean, 0.079 max**.
+
+**Takes already on the model are muted before each clip.** Constraints override an action
+underneath them, so a stacked take cannot disturb a *mapped* bone — but an unmapped one (here the
+target's `Spine2`) has no constraint, so it would be posed by whatever the previous clips left on
+the stack, and everything hanging off it moves with it. The error compounds clip by clip.
+
 ## Setting one up for a new dataset
 
 1. Import one representative BVH with the same settings the batch uses (`global_scale=0.01`,
@@ -157,6 +295,8 @@ The script refuses to run on a blend that fails any of this, naming what it expe
 3. Duplicates the cleaned skeleton, strips its constraints, and runs Rokoko onto the model rig
    (stage two).
 4. Pushes the result to an NLA track named after the clip.
+
+`direct_retarget.py` collapses 2 and 3 into a single bake of the model through the live rig.
 
 Then it exports every track as an FBX take, keeping the setup's `T-Pose` track as a bind-pose
 reference.

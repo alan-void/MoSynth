@@ -199,6 +199,37 @@ quoting it. Clip boundaries are respected
 everywhere that matters — `trajectory_window` clamps its offsets to the containing clip, so a window
 near an edge repeats its last real sample instead of reading across a cut.
 
+## What the loss spends itself on
+
+Targets are normalised before the loss sees them, so no block dominates through its units — a joint
+velocity in metres per second cannot drown a phase increment in radians. That is necessary and it is
+not sufficient, because it equalises the *floats*, and the blocks are wildly different widths. On a
+22-bone model the output is 205 floats, of which 132 are joint rotations and 66 are joint velocities.
+The root delta is three. An unweighted mean square error therefore spends 1.5% of its gradient on the
+only block that decides whether the character travels, stands still, or turns, and 0.5% on the phase
+increment — which the trainer's own docstring had already identified as the float that "controls
+whether the character walks at all".
+
+A model fitted that way learns exactly what it was asked to: a very good pose, and root motion good
+enough. Measured on the Edinburgh checkpoint, feeding it the collapsed trajectory window that a
+neutral stick produces — the literal *stand still* query — it predicted **0.179 m/s of forward
+travel** averaged over the phase cycle, against the 0.032 m/s the standing frames in its own database
+actually carry. Worse, that drift was *modulated by phase*: 0.04 m/s at 5.24 rad and 0.39 m/s at 2.62
+rad. Standing frames sweep the phase at a fixed period precisely so a model can learn that its output
+does not depend on phase there (see
+[animation-sources](../animation-tools/animation-sources.md#gait-phase)), and it had not learned it,
+because getting it wrong was nearly free.
+
+`pfnn_dataset.block_weights` fixes the accounting: each block is weighted by the reciprocal of its
+width, so a block counts for what it is worth rather than for how many floats it happens to be
+written as, and the weights are scaled to average one so an existing learning rate carries over.
+`DEFAULT_BLOCK_IMPORTANCE` is the dial — all ones, meaning the six blocks split the loss evenly, and
+raising one entry buys accuracy there at the cost of the rest.
+
+**Loss numbers either side of this change are not comparable.** The weighting redefines the
+quantity; judge a checkpoint by a rollout and by what it does at a neutral stick, not by comparing
+its validation loss to one from before.
+
 ## The dataset has to contain the motion you want
 
 The turns were not an enrichment; they were a correction. The first `PfnnBandaiWalk` held only the
@@ -213,6 +244,36 @@ missing. Beware the obvious diagnostic here: per-frame yaw *rate* does **not** s
 — every clip in the combined database averages over 20°/s, because the pelvis swings back and forth
 with each stride and that oscillation swamps the path's actual curvature. Net heading change over a
 whole clip is the measure that distinguishes a straight walk from a turn.
+
+The same trap caught the Edinburgh set from the other side. It teaches standing and gentle
+locomotion well, and the model tracks it closely for as long as the request stays inside what the
+data contains: asked to turn 15°, 30°, 60° and 90°, the Edinburgh checkpoint answers 14.5, 32.6,
+61.5 and 70.8 °/s against the 18.5, 33.9, 55.5 and 71.0 °/s its own frames carry at those
+curvatures. Past 90° it falls apart — 39.6 °/s where the data says 83.7 at 135°, and at a full
+reversal **−26 °/s, turning the wrong way**. The reason is coverage, not capacity: of 155752 usable
+query frames only 3533 request more than about 123° and 387 request a reversal. Edinburgh is
+four-second locomotion segments, and it has essentially no pivots in it.
+
+That has a consequence for the controller, not just for the dataset. A stick flipped from forward to
+backward sweeps the requested trajectory straight through the 135°–180° band where the prediction is
+unreliable and its yaw inverts, which is what a violent pose change on a fast direction reversal
+actually is.
+
+`PfnnDirectionControlInput.maxRequestAngle` is the guard: `TrajectorySteering.ClampToCone` holds the
+requested velocity inside a cone about the character's own facing — 90° by default, the edge of the
+band measured above — before the steering spring ever sees it. The cone is re-centred on the facing
+every frame, so it travels with the character, and a request it refuses does not disappear: the
+character turns toward the cone's edge, the cone turns with it, and a full reversal comes out as a
+continuous pivot taking about 1.4 s at the default `facingHalfLife` instead of a step the pose has to
+absorb in one frame. Directly astern is the one request with two equally good answers, and the sign
+of an exact zero decides it rather than letting it dither. Setting the angle to 180° lifts the limit.
+
+It is a guard, not a cure. The character still cannot pivot faster than the data pivots, and the
+honest fix is the one the paper uses: predict the future trajectory as part of the output and blend
+that prediction with the request before feeding it back, so the window handed to the network stays on
+the manifold of paths the character can actually follow. This output carries no trajectory block, so
+there is nothing to blend against yet.
+
 
 Two other things came free with the larger set. Validation loss now sits *below* training loss,
 which is the expected direction when dropout is active during training only; on the 5524-sample

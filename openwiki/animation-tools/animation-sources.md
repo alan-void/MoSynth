@@ -262,9 +262,18 @@ the character never walked. That is what a model trained to cycle its legs while
 learning from.
 
 A stretch with no anchors is now answered by how fast the character was travelling, since standing
-and a missed contact leave the same hole. Standing sweeps the phase at a fixed period so a model can
-learn a stationary pose across the whole cycle; moving holds the phase at a rate of zero, which
-drops the frame.
+and a missed contact leave the same hole. A standing frame sweeps the phase at a fixed period so a
+model can learn a stationary pose across the whole cycle; a moving one holds the phase at a rate of
+zero, which drops the frame.
+
+The judgement is per frame, and that matters more than it sounds. A character that stands and then
+walks off is already accelerating when it takes its first step, so the anchorless lead-in is part
+stand and part run-up; a stand in the middle of a clip is bracketed by the deceleration into it and
+the acceleration out again. Asking whether the *whole* stretch was slow answers no in both cases, and
+the stand is thrown out along with the movement around it. Measured over the 1,928-clip Edinburgh
+database: 13,951 frames were below `standingSpeed`, and judging by the stretch kept 5,022 of them —
+of which only 2,946 were actually swept, the other 2,076 having been interpolated across as though
+they were one stride taken slowly.
 
 Detection settings live on the clip rather than on a database config, because one threshold cannot
 serve two clips at different speeds: `walk1_subject5` travels at 1.27 m/s against

@@ -406,8 +406,10 @@ When adding a new `MoSynthStage`:
   were detected with. `GaitPhase` turns anchors into phase, and **is the only implementation of that
   rule** — `PoseExtractor` evaluates it at bake time and writes phase and its rate into the
   `.mmpose`, so Python reads it instead of reconstructing it from contacts. A stretch with no anchors
-  is answered by ground speed: standing sweeps at a fixed period so a model can learn a stationary
-  pose across the whole cycle, moving holds the phase at rate 0 and the frame is dropped. Contacts
+  is answered by ground speed, **one frame at a time**: a standing frame sweeps at a fixed period so
+  a model can learn a stationary pose across the whole cycle, a moving one holds the phase at rate 0
+  and is dropped. Judging the stretch as a whole instead discards the stand with it, because a clip
+  that stands and then walks off is already accelerating before its first heel strike. Contacts
   for both the editor and the bake come from one routine, `GaitMeasure` — see
   `openwiki/animation-tools/animation-sources.md`
 - **Annotation frames are clip-local, and nothing may delete annotation for falling outside the

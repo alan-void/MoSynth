@@ -34,6 +34,12 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
     [Range(0.01f, 1f)]
     public float facingHalfLife = 0.15f;
 
+    [Tooltip("How far off the character's own facing the requested trajectory may bend, in " +
+             "degrees. The cone turns with the character, so a sharper request is spent as a " +
+             "sustained turn instead of a path the network was never trained on. 180 lifts it.")]
+    [Range(15f, 180f)]
+    public float maxRequestAngle = 90f;
+
     [Tooltip("Speed below which the character is treated as stopped, so it settles cleanly.")]
     public float minimumSpeed = 0.01f;
 
@@ -73,10 +79,16 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
 
         var deltaTime = Time.deltaTime;
 
+        // Held inside a cone around the character's own facing before it is damped, because the
+        // network extrapolates badly on a path that bends further than its training data ever did.
+        // See openwiki/pfnn/training-and-checkpoints.md.
+        var request = TrajectorySteering.ClampToCone(_desiredDirection * maxSpeed, CharacterForward(),
+            math.radians(maxRequestAngle));
+
         // The request is rate-limited before the body ever sees it, because a keyboard delivers it
         // as a step. A trajectory sample a second ahead has converged onto the goal, so it inherits
         // any step in the goal whole, while the samples near the character do not move at all.
-        _goalVelocity = TrajectorySteering.DampToward(_goalVelocity, _desiredDirection * maxSpeed,
+        _goalVelocity = TrajectorySteering.DampToward(_goalVelocity, request,
             steeringHalfLife, deltaTime);
 
         // The controller for a *velocity* goal, which is what a stick gives. A position spring aimed
@@ -92,6 +104,16 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
             _facing = TrajectorySteering.DampFacing(_facing, math.normalizesafe(_velocity, _facing),
                 facingHalfLife, deltaTime);
         }
+    }
+
+    /// <summary>
+    /// The character's own facing on the ground plane, which is the axis the stage measures the
+    /// trajectory window against — so it is the axis the cone has to be centred on.
+    /// </summary>
+    private float2 CharacterForward()
+    {
+        var forward = synthesizer.transform.forward;
+        return math.normalizesafe(new float2(forward.x, forward.z), _facing);
     }
 
     /// <summary>

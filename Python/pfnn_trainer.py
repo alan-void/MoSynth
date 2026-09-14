@@ -3,9 +3,11 @@ Trains a phase-functioned network on a generated pose database.
 
 The loop is ordinary supervised regression -- the interesting parts are all upstream, in what
 :mod:`pfnn_dataset` decides an input and a target are. Loss is mean squared error on the
-**normalised** output, so every block of the target counts equally regardless of its units; a raw
-loss would let the joint velocities, which are numerically the largest block, drown out the phase
-increment, which is one float and controls whether the character walks at all.
+**normalised** output, so no block drowns the others through its units, and it is weighted per block
+by :func:`pfnn_dataset.block_weights`, so none drowns the others through its width either. Both are
+needed: normalising alone equalises the floats, which leaves the root delta -- three floats against
+a hundred and thirty-two of joint rotation -- holding 1.5% of the gradient despite being the block
+that decides whether the character travels at all.
 
 Validation holds out a **contiguous tail** rather than a random subset. Neighbouring frames of an
 animation are nearly the same pose, so a random split puts near-duplicates of the validation set
@@ -44,8 +46,8 @@ def train(data_dir: str,
           hidden_units: int = 256,
           dropout: float = 0.3,
           epochs: int = 150,
-          batch_size: int = 32,
-          learning_rate: float = 1e-4,
+          batch_size: int = 512,
+          learning_rate: float = 4e-4,
           weight_decay: float = 2.5e-3,
           validation_fraction: float = 0.1,
           seed: int = 42,
@@ -89,6 +91,12 @@ def train(data_dir: str,
     y_t = torch.from_numpy((y - y_mean) / y_std).to(torch_device)
     phase_t = torch.from_numpy(phase).to(torch_device)
 
+    loss_weights = torch.from_numpy(
+        pfnn_dataset.block_weights(spec.output_layout())).to(torch_device)
+
+    def weighted_mse(predicted, target):
+        return (loss_weights * (predicted - target).square()).mean()
+
     network = PhaseFunctionedNetwork(spec.input_size, spec.output_size,
                                      hidden_units, dropout).to(torch_device)
     optimizer = torch.optim.AdamW(network.parameters(), lr=learning_rate,
@@ -105,8 +113,7 @@ def train(data_dir: str,
         for start in range(0, split, batch_size):
             batch = order[start:start + batch_size]
             optimizer.zero_grad(set_to_none=True)
-            loss = torch.nn.functional.mse_loss(
-                network(x_t[batch], phase_t[batch]), y_t[batch])
+            loss = weighted_mse(network(x_t[batch], phase_t[batch]), y_t[batch])
             loss.backward()
             optimizer.step()
             total += float(loss.detach())
@@ -114,7 +121,7 @@ def train(data_dir: str,
 
         network.eval()
         with torch.no_grad():
-            validation = float(torch.nn.functional.mse_loss(
+            validation = float(weighted_mse(
                 network(x_t[split:], phase_t[split:]), y_t[split:])) if split < x.shape[0] \
                 else float('nan')
 

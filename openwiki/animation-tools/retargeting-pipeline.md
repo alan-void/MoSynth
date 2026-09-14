@@ -155,6 +155,13 @@ Three things a run at this scale needs that a single run does not:
   would land metres from where they were captured. `--keep-capture-position` compensates the
   location curves; it is off by default so LAFAN's behaviour is untouched.
 
+**One of those two reasons is Rokoko's, and a setup can be built that does not have it.**
+`--script direct` runs `direct_retarget.py` instead, which needs a setup carrying its own helper
+rig and bakes the model straight through it. Nothing applies or un-applies an object transform, so
+the drift has no mechanism: the full Edinburgh dataset — 1,855 clips over 9 shards — ended at
+`0.00e+00 m`, where a comparable Bandai shard ends at 5.2e-05. The shard cap still earns its keep
+there, but only for memory. See *A live rig, and no Rokoko* below.
+
 **The bone-length guard measures only the bones the retarget uses.** A BVH root's "length" is the
 offset down to the first real joint, which records where the actor stood in the capture volume, not
 anything about the actor. Measuring it rejected 2,058 of dataset-2's own 2,902 clips as belonging
@@ -236,6 +243,188 @@ first; dataset-2 is unaffected.
 Its bone map is 21 rows. `Chest` maps to `Spine2`, which leaves the model's `Spine1` unmapped and
 riding at rest, so the spine bends in two places instead of three; the source's `joint_Root` is
 static at the origin and is unmapped too.
+
+### Edinburgh, where the source had no rotations at all
+
+The Edinburgh Locomotion database ships no motion files. It is two `.npz` arrays of 21 joint
+*positions* per frame, with no rotations, no hierarchy and no skeleton, so before any of this
+pipeline can touch it a skeleton has to be solved out of the point cloud.
+`Tools/Retargeting/edinburgh_npz_to_bvh.py` does that, and the interesting part is what it changes
+downstream: because the converter authors the BVH, it also chooses the rest pose and the bone
+names, and it chooses both to make the retarget easy. The rest is written as a real T-pose, and the
+joints carry the target rig's own names.
+
+That removes the reason stage one exists. There is no degenerate rest to clean, so the cleaned
+skeleton is a plain duplicate wired through with `COPY_ROTATION` and no IK, and the Rokoko map is
+21 identity rows. `Tools/Retargeting/make_edinburgh_setup.py` composes the blend from one converted
+clip plus the shared rig, then verifies it by re-opening the saved file and resolving it with
+`batch_retarget`'s own code rather than a reimplementation that could drift.
+
+**A joint whose children move independently cannot be one BVH joint.** The hip joints and the
+clavicles are rotating segments in this source, not fixed offsets — the distance across the hip
+joints swings by 7.9 cm — while every parent-child bone length is constant to the last digit. Each
+of those four therefore gets a bone of its own, sitting on its parent at a zero offset and carrying
+the rotation that aims it. Modelling them cut the error between the written BVH and the source
+point cloud from 2.0 cm to 0.9 mm, and it is what lets the clavicles drive the target's
+`LeftShoulder`/`RightShoulder` instead of freezing them. Only `Spine2` is left riding at rest.
+
+**A rest pose made of canonical axes is a claim about the actor, and it was wrong.** Writing the
+BVH's rest as a clean T-pose is right for the limbs — arms out and legs down is what a T-pose
+*means*, and the target rig agrees. It is wrong for the torso, and worst of all for the root. The
+Edinburgh actor's pelvis-up axis, from his hip joint to his lower back, sits about 17 degrees ahead
+of vertical; his spine carries its own curve on top. Declaring those straight made a rest pose no
+human stands in, and since a rotation retarget applies *delta-from-source-rest* onto *target-rest*,
+the entire difference was added to every frame. The character came out hunched, chest thrust
+forward, head jutting — the symptom looked like a broken spine and was in fact a broken rest.
+
+The measurement that settles it is torso pitch, the lean of hips-to-neck away from vertical.
+LAFAN's rig rests at about 2 degrees. The retargeted Edinburgh character sat at **19.3 degrees**;
+deriving the spine's rest directions from the actor's mean pose barely moved it (24.2), because the
+root was carrying the lean. Deriving the root's too brought it to **7.3 degrees**.
+
+The root is the awkward one: every other bone derives its rest against its parent, and the root has
+none, which is exactly why it was left canonical and why it was the last thing suspected. Measuring
+it against the world vertical and the hip line gives a frame independent of which way the character
+faces, and so a mean worth taking. Note what this does *not* say: the source's own torso pitch is
+21.6 degrees and should not transfer, because it describes where this marker set puts its neck
+joint, not how the actor stood.
+
+**The actor's lean is real, and it still has to be scaled down.** Edinburgh's hip-to-neck axis
+reads about 2.4 times the lean his body actually had — checked against where his head sits over his
+ankles, the one indicator on this skeleton that involves no pelvis marker: at a hip-to-neck pitch of
+15–25 degrees his head is 7.7 degrees forward, at 25–40 it is 13.7. The marker set samples the spine
+differently from the target rig, so copying that axis verbatim puts a 20–30 degree hunch on a
+character whose body leaned 8–14.
+
+**A scale, not an offset.** Subtracting a fixed angle is the obvious move and cannot work: tuned for
+a level walk it tips a strongly-leaning clip backwards, and tuned for that clip it hunches the walk.
+Two rounds of this went past before the shape of the error was clear — it is a gain. Scaling each
+frame's bend by one constant fixes both at once and keeps every clip's own lean in proportion; one
+factor covers the dataset, and nothing about it is per clip.
+
+It belongs in the setup blend, not the BVH, which stays exactly faithful to the point cloud. And
+almost all of it is in **one bone**: the hip-to-lower-back segment reads 24.0 degrees where
+hip-to-neck reads 23.7, so the spine above it is nearly straight and damping only the spine bones
+changed nothing measurable. That segment is the root, which also carries the character's heading, so
+its rotation is split — a bone points along its own local Y, which here is the pelvis-up axis, so
+copying Y whole keeps the turns and damping X and Z brings only the lean down. Torso pitch lands at
+6–8 degrees against LAFAN's 2-degree rest, heading survives intact (a clip that turns 341 degrees
+retargets to 340), and the limbs come out slightly *better* than before.
+
+**A segment whose roll nothing measures should inherit its parent's.** The clavicles and the
+hip-joint segments each reach a single marker, which fixes where they point and says nothing about
+how they are rolled — so whatever roll they get is a convention. Borrowing a neighbouring direction
+for it (the clavicles took the head's, the hip joints the pelvis-up axis) looked reasonable and let
+each segment twist against the very body part it is rigidly attached to, because its *parent's* roll
+was pinned to something else again. Measured on the source: the clavicles drifted 28 to 35 degrees
+against the chest over a single clip and the hip joints 38 against the pelvis, symmetric and
+opposite left to right — the signature of a reference that belongs to a different body part. Built
+instead by carrying the parent's own roll axis onto the segment, the drift is 0.0 degrees by
+construction. Note what this is not: a fix for noise, but a choice about which convention is
+honest when the data is silent.
+
+Two things that make the change safe to land on top of hand-authored work. Joint positions are
+untouched, because roll never moves a joint — the forward-kinematics error stayed at 0.0881 cm to
+the digit. And the `OFFSET` block is *invariant* under a roll convention change: the measured frame
+and the rest frame both rotate by the same amount about the bone, so `rest @ mean_local` cancels it
+out. The regenerated files declared a byte-identical skeleton, which is what let an authored rest
+pose carry straight over.
+
+**Roll is where every visible artefact came from**, and they looked like one bug with three
+different causes. A bone direction fixes two of three degrees of freedom; the third needs a second
+measured direction, and no joint position can supply it — roll about a bone leaves every joint
+exactly where it was. So `--verify` reports the worst frame-to-frame roll step beside the position
+error, and that is the number to watch: position error stayed at 0.9 mm while the worst roll step
+came down from 163° to 13.6°.
+
+- **A straight limb has no bend plane**, so the measurement must fade out as the joint straightens.
+  Holding the last good normal instead looks reasonable and is the worst option: it freezes a
+  *world-space* direction while the body keeps turning, so the held vector drifts further the longer
+  the limb stays straight, and the whole difference lands in the one frame the measurement resumes
+  on. A knee that sat just under the threshold for eight frames jumped 18° in a single frame.
+- **A foot's roll is pinned by its shin, not by the knee's bend plane.** Nothing keeps a noisy knee
+  normal off the foot's own axis, and when it lands there the frame is built from two nearly
+  parallel vectors: a foot swung through 163° in one frame while its perpendicular component
+  collapsed to 0.19. The ankle hinges perpendicular to the shin, which is never parallel to the foot.
+- **What a limb falls back on must follow the limb.** A body-fixed axis is a fair guess for a thigh,
+  which stays near its rest direction, and badly wrong for an arm: during a stride the arms hang
+  about 90° from the T-pose, so a body-fixed reference drags their roll a quarter turn off. Carrying
+  the rest reference onto the bone's current direction by the shortest rotation — its zero-twist
+  pose — is what fixed it, and only then did tuning become monotonic instead of blowing up at half
+  the settings tried.
+
+**Splitting a bone's rotation per axis puts you at the mercy of an euler order.** Damping the
+root's lean while keeping its heading means enabling some axes of a `COPY_ROTATION` and not others,
+and Blender does that by decomposing to euler -- which gimbal-locks on its *middle* axis. The BVH's
+bones are `ZYX`, whose middle axis is Y, the very one carrying the heading, so a clip that turned
+far enough snapped the damped axes through 94 degrees as its yaw crossed 90. Setting that one bone
+to `YXZ` puts the middle on X, where a pelvis would have to pitch 90 degrees to reach it. The source
+BVH's own `Hips` never moved more than 12.6 degrees between frames while the retargeted one moved
+93.9: whenever a retarget is jumpier than its source, the setup is adding it.
+
+**Measure the whole rotation, not the part you suspect.** The converter reported worst-roll-step for
+a while, and it read a clean 13.6 degrees on a dataset where a hand was visibly snapping through 125
+-- because most of that was swing, not twist. A check aimed at the failure you have in mind will
+confirm it is absent and tell you nothing about the one you have not thought of.
+
+Two things that look like the obvious fix and are not. Snapping a reversed normal into the
+fallback's hemisphere steps by 180° every time a noisy normal crosses perpendicular, which made the
+worst case three times worse; fading it out instead is continuous, and also removes the blend's one
+unstable case of two opposed vectors cancelling to no length at all. And measuring roll by rolling a
+seed vector reads a bone's *swing* as twist whenever the swing is large — the check needs a
+swing-twist decomposition.
+
+Which way round a knee or an elbow bends at rest is anatomy rather than data, so the converter
+states it and then checks it against the dataset: knees must lean backwards and elbows forwards. A
+wrong sign there moves nothing by a millimetre and simply delivers a limb inside out.
+
+**Expect worse foot contact than a rotational source.** The released root trajectory already slides
+a planted toe 5.5 cm/s on its own, and retargeting onto an actor of different proportions roughly
+doubles it. Measured the same way, a retargeted Edinburgh clip slides 10.8 cm/s against LAFAN's
+1.9 cm/s — LAFAN being near-identity because its capture rig *is* the corrected rig. Decimating
+60 Hz to 30 Hz costs nothing here (5.6 against 5.4 cm/s); the gap is the data and the proportions.
+
+### A live rig, and no Rokoko
+
+Rokoko retargets by building a helper bone per mapped bone — parented to the source bone, sitting
+at the target bone's rest — baking the target through them, and deleting the lot. Blender evaluates
+those helpers as `source_world @ source_rest^-1 @ helper_rest`, which is the rotation delta the
+retarget is defined as. **Keeping the helpers instead of deleting them makes the whole chain live**,
+and because Blender reads the rest matrices fresh on every evaluation, editing the cleaned rest pose
+in Edit Mode moves the target character immediately. That is what `make_edinburgh_setup.py --live`
+builds, and it is the only way the one thing in a setup that must be judged by eye can be judged
+while it is being changed.
+
+The same rig then turns out to be a complete retarget engine. `direct_retarget.py` bakes the model
+once through it, replacing stage one's bake, the constraint-free proxy and Rokoko's
+duplicate-and-bake — roughly 3x faster, with the drift gone rather than merely small, and with no
+dependency on the addon. Against a real Rokoko bake of the same clip and rest pose the two agree to
+**0.016 degrees mean, 0.079 max**. The part that matters more than the speed: the blend used to
+author a rest pose runs the same code as the batch, so a preview cannot disagree with the output.
+
+It reads the bone map off the model's own constraints rather than from a stored list, and finds the
+rig by looking for the `RT_*` helpers rather than by name, so the wiring *is* the mapping. A setup
+without helpers is refused outright instead of retargeted badly.
+
+**An unmapped target bone is the one thing constraints do not protect.** Takes already stacked on
+the model have to be muted before each clip: a constraint overrides an action underneath it, so a
+*mapped* bone is safe, but the target's `Spine2` has no constraint and would be posed by whatever
+the previous clips left on the NLA stack — and the whole upper body hangs off it. The error
+compounds clip by clip rather than showing up at once.
+
+**Standing the character on the floor belongs in the bridge, not the target rig.** The retargeted
+character floats, because the source actor's hip-to-toe chain is 109.6 cm against the target's
+113.9. The fix is a helper bone, `RT_ground`, parented to the bridge's `Hips` and used as the Copy
+Location target for the model's `Hips`, so the offset is a single authored number and the shared
+target rig is never touched. Two details make it behave as a world-space dial: it rests along `+Y`
+with zero roll, which makes its local axes the world's, and it does not inherit rotation, so the
+offset stays vertical instead of tipping with the pelvis. `use_offset` on the constraint is a
+different mechanism and the wrong one — it adds the bone's own 93 cm rest height.
+
+It corrects a constant, and the residue is not constant: across 24 clips spanning the dataset the
+lowest toe averaged +0.2 mm with the offset set, but individual clips ranged from −5.2 cm to
++4.7 cm. That spread is in the capture, and closing it is a footlock problem rather than a rest-pose
+one.
 
 ## Hidden inputs that decide correctness
 
@@ -425,9 +614,13 @@ missing the leaves would be a hard stop rather than a degraded mode.
 | Concern | File |
 | --- | --- |
 | Batch engine, one FBX per run | `Tools/Retargeting/batch_retarget.py` |
+| The same, through a setup's own helper rig instead of Rokoko | `Tools/Retargeting/direct_retarget.py` |
 | Whole-dataset driver: sharding, parallelism, resume, manifest | `Tools/Retargeting/run_batch_all.py` |
 | Setup authoring procedure | `Tools/Retargeting/README.md` |
 | Composing the LAFAN corrected setup from existing blends | `Tools/Retargeting/make_lafan_corrected_setup.py` |
+| Solving BVH out of the Edinburgh point clouds | `Tools/Retargeting/edinburgh_npz_to_bvh.py` |
+| Composing the Edinburgh setup from one converted clip | `Tools/Retargeting/make_edinburgh_setup.py` |
+| Overlaying a solved skeleton on the points it came from | `Tools/Retargeting/edinburgh_solve_preview.py` |
 | Unity launcher | `Assets/AnimationTools/Editor/Retargeting/RetargetBatchWindow.cs` |
 | Per-dataset run settings | `Assets/AnimationTools/Editor/Retargeting/RetargetBatchSettings.cs` |
 

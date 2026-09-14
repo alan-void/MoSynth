@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55cf7c996f1876c488c1aa7622b5b34f, type: 3}
+  m_Name: MotionMatchingData
+  m_EditorClassIdentifier: MotionMatching::MotionMatching.MotionMatchingData
+  animationClips:
+  - {fileID: 11400000, guid: 29d73c7c96460ea48963fe0bf8ad049d, type: 2}
+  skeleton:
+    root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
+  contactVelocityThreshold: 0.15
+  leftContactBone:
+    skeleton:
+      root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
+    bone: {fileID: 8292156279083153751, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
+  rightContactBone:
+    skeleton:
+      root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
+    bone: {fileID: 549183080246094770, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
+  trajectoryFeatures: []
+  poseFeatures: []
+  jointsLocalForward: []

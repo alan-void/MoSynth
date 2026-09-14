@@ -195,6 +195,73 @@ public class GaitPhaseTests
     }
 
     [Test]
+    public void AStandingLeadInSurvivesTheAccelerationBeforeTheFirstFootfall()
+    {
+        // A character that stands and then walks off is already moving when it takes its first
+        // step, so the lead-in is part stand and part acceleration. Judged as one stretch those few
+        // moving frames condemn the whole stand: on the Edinburgh set that threw away 8,929 of the
+        // 13,951 frames the character was actually still for.
+        var footfalls = Footfalls((30, GaitPhase.Foot.Right), (45, GaitPhase.Foot.Left));
+
+        Evaluate(footfalls, MovingBetween(50, 20, 50), out var phase, out var rate);
+
+        Assert.That(rate[0], Is.EqualTo(StandingRate).Within(Tolerance), "stood through");
+        Assert.That(rate[19], Is.EqualTo(StandingRate).Within(Tolerance), "the last still frame");
+        Assert.That(rate[20], Is.EqualTo(0f), "accelerating, with no anchor to measure against");
+        Assert.That(rate[29], Is.EqualTo(0f));
+        Assert.That(phase[29], Is.EqualTo(0f).Within(Tolerance),
+            "a moving frame holds the phase it inherits from the anchor ahead of it");
+        Assert.That(phase[19], Is.EqualTo(GaitPhase.Tau - StandingSlope).Within(Tolerance),
+            "and the stand behind it is wound back from there, so the phase stays continuous");
+    }
+
+    [Test]
+    public void ALeadOutKeepsTheStandItSettlesIntoAfterDecelerating()
+    {
+        var footfalls = Footfalls((5, GaitPhase.Foot.Right), (20, GaitPhase.Foot.Left));
+
+        Evaluate(footfalls, MovingBetween(50, 0, 30), out var phase, out var rate);
+
+        Assert.That(rate[29], Is.EqualTo(0f), "still slowing down");
+        Assert.That(rate[30], Is.EqualTo(StandingRate).Within(Tolerance), "stopped");
+        Assert.That(phase[30], Is.EqualTo(math.PI).Within(Tolerance));
+        Assert.That(phase[31], Is.EqualTo(math.PI + StandingSlope).Within(Tolerance));
+    }
+
+    [Test]
+    public void AStandBetweenTwoAnchorsIsNotOneStrideTakenSlowly()
+    {
+        // The stand is bracketed by the deceleration into it and the acceleration out again, so the
+        // gap is not slow end to end. Interpolating it as a single stride would walk the phase a
+        // half cycle across two seconds of stillness, which is the gait this rule exists to refuse.
+        var footfalls = Footfalls((10, GaitPhase.Foot.Right), (70, GaitPhase.Foot.Left));
+        var speed = MovingBetween(100, 0, 15);
+        for (var frame = 65; frame < 100; frame++) speed[frame] = 1f;
+
+        Evaluate(footfalls, speed, out var phase, out var rate);
+
+        var oneStride = math.PI / (60f * FrameTime);
+        Assert.That(rate[40], Is.GreaterThan(oneStride * 2f),
+            "the stand is crossed in whole cycles, near the standing rate");
+        Assert.That(phase[70], Is.EqualTo(math.PI).Within(Tolerance),
+            "and still lands on the left foot");
+    }
+
+    [Test]
+    public void AnAnchorlessClipKeepsOnlyTheFramesItStoodThrough()
+    {
+        // No footfalls at all, but the character was not still the whole way through: the stand is
+        // usable and the rest is not, which an all-or-nothing test cannot express.
+        Evaluate(new List<GaitPhase.Footfall>(), MovingBetween(50, 25, 50),
+            out var phase, out var rate);
+
+        Assert.That(rate[0], Is.EqualTo(StandingRate).Within(Tolerance));
+        Assert.That(rate[24], Is.EqualTo(StandingRate).Within(Tolerance));
+        Assert.That(rate[25], Is.EqualTo(0f), "walked off, and nothing anchors the cycle");
+        Assert.That(phase[0], Is.EqualTo(0f).Within(Tolerance), "swept from zero, there being no anchor");
+    }
+
+    [Test]
     public void AnAnchorlessStretchTheCharacterMovedThroughIsStillRefused()
     {
         // A missed contact leaves the same hole in the anchors that standing does, and it must stay

@@ -56,6 +56,38 @@ public static class TrajectorySteering
     }
 
     /// <summary>
+    /// <paramref name="request"/> turned back toward <paramref name="reference"/> until it lies
+    /// within <paramref name="maxAngle"/> radians of it, at its original length.
+    /// </summary>
+    /// <remarks>
+    /// A network answers a trajectory that bends further from the character's facing than its
+    /// training data ever did by extrapolating, which is not a graceful failure — see
+    /// <c>openwiki/pfnn/training-and-checkpoints.md</c>. Holding the request inside a cone that
+    /// turns with the character keeps it on ground the model has seen, and spends a reversal as a
+    /// sustained turn rather than as one step the pose has to absorb.
+    /// </remarks>
+    /// <param name="reference">A unit vector the cone is centred on, normally the character's facing.</param>
+    public static float2 ClampToCone(float2 request, float2 reference, float maxAngle)
+    {
+        var length = math.length(request);
+        if (length < 1e-6f) return request;
+
+        var direction = request / length;
+        if (math.dot(direction, reference) >= math.cos(maxAngle)) return request;
+
+        // Directly astern is the one request with two equally good answers, and an unstable choice
+        // there would dither instead of turning. Taking the sign of an exact zero decides it, and
+        // the first frame of the turn makes the cross product unambiguous from then on.
+        var cross = reference.x * direction.y - reference.y * direction.x;
+        var angle = cross >= 0f ? maxAngle : -maxAngle;
+        var sin = math.sin(angle);
+        var cos = math.cos(angle);
+
+        return new float2(reference.x * cos - reference.y * sin,
+                          reference.x * sin + reference.y * cos) * length;
+    }
+
+    /// <summary>
     /// The facing at a horizon: the same damper as <see cref="DampFacing"/>, jumped straight to that
     /// horizon in one step, which is exact for an exponential.
     /// </summary>

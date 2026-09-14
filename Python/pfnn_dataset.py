@@ -252,6 +252,51 @@ def build_vectors(training_set: TrainingSet, spec: PfnnSpec):
     return x, y, training_set.phase[queries].astype(np.float32), queries
 
 
+# How much each output block is worth relative to the others, for the training loss. Equal by
+# default: a block is one thing the network has to get right, and how many floats it happens to be
+# written as says nothing about how much it matters. Raise an entry to buy accuracy in that block at
+# the cost of the rest.
+DEFAULT_BLOCK_IMPORTANCE = {
+    'joint_rotations_6d': 1.0,
+    'joint_velocities': 1.0,
+    'root_height': 1.0,
+    'root_delta': 1.0,
+    'phase_delta': 1.0,
+    'contacts': 1.0,
+}
+
+
+def block_weights(layout, importance=None) -> np.ndarray:
+    """
+    Per-float weights that make each output block count for what it is worth, not for how wide it is.
+
+    Normalising the targets equalises the *floats*, which is not the same thing and is the trap this
+    exists to avoid: the root delta is three floats beside a hundred and thirty-two of joint
+    rotation, so an unweighted mean square error spends 1.5% of its gradient on the only block that
+    decides whether the character travels, stands still, or turns. A model fitted that way stands
+    and creeps forward, because creeping costs it almost nothing.
+
+    Weights are scaled so they average one, which keeps the loss the same order of magnitude as the
+    unweighted mean and lets an existing learning rate carry over.
+
+    :param layout: ``(name, offset, count)`` per block, from :meth:`PfnnSpec.output_layout`.
+    :param importance: what each block is worth, defaulting to :data:`DEFAULT_BLOCK_IMPORTANCE`.
+    :raises KeyError: if a block has no importance, rather than silently weighting it zero.
+    """
+    importance = DEFAULT_BLOCK_IMPORTANCE if importance is None else importance
+    total = sum(count for _, _, count in layout)
+    weights = np.zeros(total, dtype=np.float32)
+
+    for name, offset, count in layout:
+        if name not in importance:
+            raise KeyError(f'no loss importance given for the {name!r} block; '
+                           f'have {sorted(importance)}')
+        if count:
+            weights[offset:offset + count] = importance[name] / count
+
+    return (weights * (total / weights.sum())).astype(np.float32)
+
+
 def normalization(vectors: np.ndarray):
     """
     ``(mean, std)`` over a set of packed vectors, with constant columns left alone.

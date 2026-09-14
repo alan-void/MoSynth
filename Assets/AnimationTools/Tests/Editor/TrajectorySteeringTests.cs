@@ -151,6 +151,91 @@ public class TrajectorySteeringTests
         Assert.That(previous, Is.GreaterThan(85f), "a full second should be all but there");
     }
 
+    [Test]
+    public void ARequestInsideTheConeIsLeftExactlyAsItWas()
+    {
+        var request = new float2(0.4f, 0.9f);
+
+        var clamped = TrajectorySteering.ClampToCone(request, Forward, math.radians(90f));
+
+        Assert.That(clamped.x, Is.EqualTo(request.x).Within(1e-5f));
+        Assert.That(clamped.y, Is.EqualTo(request.y).Within(1e-5f));
+    }
+
+    [Test]
+    public void ARequestOutsideTheConeComesBackToItsEdgeAtTheSameSpeed()
+    {
+        var request = Left * 2f;
+
+        var clamped = TrajectorySteering.ClampToCone(request, Forward, math.radians(45f));
+
+        Assert.That(AngleBetween(Forward, clamped), Is.EqualTo(45f).Within(0.01f));
+        Assert.That(math.length(clamped), Is.EqualTo(2f).Within(1e-4f),
+            "the cone decides the heading, not how fast the character was asked to go");
+    }
+
+    [Test]
+    public void ARequestComesBackOnTheSideItWasAskedFrom()
+    {
+        // Turning the shorter way round is the whole point: bending a left request back through
+        // straight ahead would answer a turn with its mirror image.
+        var fromTheLeft = TrajectorySteering.ClampToCone(Left, Forward, math.radians(45f));
+        var fromTheRight = TrajectorySteering.ClampToCone(-Left, Forward, math.radians(45f));
+
+        Assert.That(Cross(Forward, fromTheLeft), Is.GreaterThan(0f), "a left request came back right");
+        Assert.That(Cross(Forward, fromTheRight), Is.LessThan(0f), "a right request came back left");
+    }
+
+    [Test]
+    public void AReversalIsClampedRatherThanPassedThroughWholesale()
+    {
+        // The measured failure this exists for: past about 90 degrees off its facing the network
+        // stops tracking the request and inverts its own turn.
+        var clamped = TrajectorySteering.ClampToCone(-Forward, Forward, math.radians(90f));
+
+        Assert.That(AngleBetween(Forward, clamped), Is.EqualTo(90f).Within(0.01f));
+    }
+
+    [Test]
+    public void AReversalPicksASideAndKeepsTurningThatWay()
+    {
+        // Directly astern has two equally good answers, and dithering between them would leave the
+        // character shuffling in place instead of turning round. Once the first frame commits, the
+        // cone travels with the character and the rest of the turn follows it.
+        var facing = Forward;
+        var turned = 0f;
+
+        for (var frame = 0; frame < 200 && turned < 179f; frame++)
+        {
+            var clamped = TrajectorySteering.ClampToCone(-Forward, facing, math.radians(90f));
+            facing = TrajectorySteering.DampFacing(facing, math.normalizesafe(clamped),
+                FacingHalfLife, FrameTime);
+            turned = AngleBetween(Forward, facing);
+        }
+
+        Assert.That(turned, Is.GreaterThan(179f), "the character should come all the way round");
+    }
+
+    [Test]
+    public void AConeOfHalfATurnLetsEveryRequestThrough()
+    {
+        foreach (var request in new[] { Forward, Left, -Forward, -Left })
+        {
+            var clamped = TrajectorySteering.ClampToCone(request, Forward, math.radians(180f));
+            Assert.That(AngleBetween(request, clamped), Is.LessThan(0.01f), $"{request} was bent");
+        }
+    }
+
+    [Test]
+    public void AStandingRequestIsLeftAloneRatherThanGivenAHeading()
+    {
+        var clamped = TrajectorySteering.ClampToCone(float2.zero, Forward, math.radians(90f));
+
+        Assert.That(math.length(clamped), Is.EqualTo(0f).Within(1e-6f));
+    }
+
+    private static float Cross(float2 a, float2 b) => a.x * b.y - a.y * b.x;
+
     private static float AngleBetween(float2 a, float2 b) =>
         math.degrees(math.acos(math.clamp(math.dot(math.normalizesafe(a), math.normalizesafe(b)), -1f, 1f)));
 }

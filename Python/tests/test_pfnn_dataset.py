@@ -198,6 +198,52 @@ class TargetTests(unittest.TestCase):
         np.testing.assert_allclose(recovered, expected, atol=1e-5)
 
 
+class LossWeightTests(unittest.TestCase):
+    def setUp(self):
+        self.layout = pfnn_dataset.build_spec(straight_walk_set(),
+                                              excluded_bones=[]).output_layout()
+        self.weights = pfnn_dataset.block_weights(self.layout)
+
+    def share_of(self, name: str) -> float:
+        offset, count = next((o, c) for n, o, c in self.layout if n == name)
+        return float(self.weights[offset:offset + count].sum()) / float(self.weights.sum())
+
+    def test_every_block_carries_the_same_share_of_the_loss_by_default(self):
+        shares = [self.share_of(name) for name, _, _ in self.layout]
+        self.assertTrue(np.allclose(shares, 1.0 / len(self.layout)),
+                        f'blocks took {shares} of the loss')
+
+    def test_a_narrow_block_outweighs_a_wide_one_in_exact_proportion(self):
+        # The point of the exercise: on the real skeleton the root delta is three floats beside a
+        # hundred and thirty-two of joint rotation, so unweighted it holds 1.5% of the gradient --
+        # which is how a model comes to creep forward while standing, creeping having cost it
+        # almost nothing. A float of a block half as wide is worth exactly twice as much.
+        def per_float(name):
+            offset, count = next((o, c) for n, o, c in self.layout if n == name)
+            return float(self.weights[offset:offset + count].mean()), count
+
+        narrow, narrow_count = per_float('root_delta')
+        wide, wide_count = per_float('joint_rotations_6d')
+
+        self.assertGreater(narrow, wide)
+        self.assertAlmostEqual(narrow / wide, wide_count / narrow_count, places=4)
+
+    def test_the_weights_average_one_so_an_existing_learning_rate_carries_over(self):
+        self.assertAlmostEqual(float(self.weights.mean()), 1.0, places=5)
+
+    def test_raising_one_block_takes_the_share_from_the_others(self):
+        importance = dict(pfnn_dataset.DEFAULT_BLOCK_IMPORTANCE)
+        importance['root_delta'] = 4.0
+        self.weights = pfnn_dataset.block_weights(self.layout, importance)
+
+        self.assertAlmostEqual(self.share_of('root_delta'),
+                               4.0 / (len(self.layout) + 3.0), places=5)
+
+    def test_a_block_with_no_importance_is_an_error_not_a_silent_zero(self):
+        with self.assertRaises(KeyError):
+            pfnn_dataset.block_weights(self.layout, {'root_delta': 1.0})
+
+
 class NormalizationTests(unittest.TestCase):
     def test_a_constant_column_is_left_alone_rather_than_divided_by_zero(self):
         vectors = np.stack([np.array([1.0, 5.0]), np.array([3.0, 5.0])]).astype(np.float32)
