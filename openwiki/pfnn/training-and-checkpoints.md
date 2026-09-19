@@ -106,16 +106,26 @@ target describes frame `i + 1`.
 | root delta `dx, dz, dyaw`, in frame `i`'s space | 3 |
 | phase increment | 1 |
 | foot contacts | 2 |
+| future trajectory positions, `(x, z)` per sample ahead | 2·F |
+| future trajectory directions, unit facings | 2·F |
 
-With the default window — thirteen samples from −30 to +30 frames — and 24 bones, that is **198 in,
-223 out**.
+With the default window — thirteen samples from −30 to +30 frames, so six of them ahead — and 24
+bones, that is **198 in, 247 out**.
 
-Three details worth keeping:
+Four details worth keeping:
 
 - **The root delta is read out of the trajectory sampler**, not re-derived from `root_velocity`.
   `trajectory_window([1])` already answers "where is the character one frame from now, in this
   frame's space", and it is the definition two independent checks were run against. One definition
   of where the character goes next is better than two that agree today.
+- **The predicted trajectory is the next frame's own input, not this frame's.** It is
+  `trajectory_window` evaluated at frame `i + 1`, expressed in frame `i + 1`'s character space —
+  which makes it exactly the future half of the vector the network will be handed one tick later.
+  Predicting it in frame `i`'s space instead would be asking the model to copy part of its own
+  input, and predicting it in world space would make it unusable the moment the character ended up
+  somewhere other than where the root delta said. Defined this way the runtime feeds the answer
+  straight back with nothing to shift or interpolate, and the trainer can assert the identity rather
+  than eyeball it.
 - **Joint positions are not a target.** They come back from forward kinematics over the predicted
   rotations, which removes 72 outputs and guarantees the pose respects the rig's bone lengths.
 - **Frames with no measurable gait cycle are dropped.** `TrainingSet.usable()` checks only the
@@ -162,6 +172,12 @@ and reports a number that measures nothing.
 `<name>.pfnn.npz` holds the parameters, the normalisation the vectors were packed with, and the
 description of that packing — the bone names and the trajectory horizons — because a model fed a
 differently shaped input does not throw.
+
+**The output block names go in too**, for the same reason and against a nastier failure. Blocks are
+appended, so every block an older checkpoint carries still slices out at the right offset; only the
+new one comes back as a truncated view, silently, and the character merely moves badly. A width alone
+cannot tell the two apart either, since the width is read from the file. `check_output_blocks`
+compares the stored names against the layout this code reads and refuses the file by name.
 
 **Bone names, never bone indices.** An index is only meaningful against one database, so a stored
 one goes stale the moment a rig gains a joint; a name is checked against the live skeleton at load,
@@ -268,11 +284,11 @@ continuous pivot taking about 1.4 s at the default `facingHalfLife` instead of a
 absorb in one frame. Directly astern is the one request with two equally good answers, and the sign
 of an exact zero decides it rather than letting it dither. Setting the angle to 180° lifts the limit.
 
-It is a guard, not a cure. The character still cannot pivot faster than the data pivots, and the
-honest fix is the one the paper uses: predict the future trajectory as part of the output and blend
-that prediction with the request before feeding it back, so the window handed to the network stays on
-the manifold of paths the character can actually follow. This output carries no trajectory block, so
-there is nothing to blend against yet.
+It is a guard, not a cure — the character still cannot pivot faster than the data pivots. The cure
+is the one the paper uses, and the output now carries it: the network predicts the trajectory it
+expects to follow, and `PfnnStage` blends that against the request before handing the window back.
+What the model is asked is then always a path something could walk, however sharply the stick is
+thrown. See [the PFNN stage](pfnn-stage.md#the-trajectory-comes-from-three-places-not-two).
 
 
 Two other things came free with the larger set. Validation loss now sits *below* training loss,

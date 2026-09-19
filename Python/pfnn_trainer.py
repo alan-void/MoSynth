@@ -132,7 +132,8 @@ def train(data_dir: str,
     biases = [layer.biases.detach().cpu().numpy() for layer in network.layers]
 
     pfnn_io.save_checkpoint(out_path, weights, biases, x_mean, x_std, y_mean, y_std,
-                            spec.bone_names, spec.window_offsets, spec.frame_time,
+                            spec.bone_names, [name for name, _, _ in spec.output_layout()],
+                            spec.window_offsets, spec.frame_time,
                             hidden_units, dropout, losses)
 
     summary = {

@@ -4,7 +4,9 @@ On-disk format for a trained PFNN: ``<name>.pfnn.npz``.
 Training produces one artefact, written into StreamingAssets so it ships with the player. It holds
 the network's parameters, the normalisation the vectors were packed with, and the description of
 that packing -- the bone names and the trajectory horizons -- because a model fed a differently
-shaped input does not throw, it just produces bad motion.
+shaped input does not throw, it just produces bad motion. The output block names go in for the
+same reason from the other side: blocks are appended, so an older file's are all still readable and
+only the names say the layout has moved on.
 
 Bone **names** are stored, never bone indices. An index is only meaningful against one database, so
 a stored one can go stale silently the moment a rig gains a joint; a name is checked against the
@@ -43,6 +45,7 @@ class PfnnCheckpoint:
     y_mean: np.ndarray     # (output_size,) float32
     y_std: np.ndarray      # (output_size,) float32
     bone_names: list       # the bones this model predicts, in order
+    output_blocks: list    # the output layout it was packed with, in order
     window_offsets: np.ndarray  # (n_offsets,) int64 frame offsets of the trajectory window
     frame_time: float
     hidden_units: int
@@ -67,8 +70,8 @@ class PfnnCheckpoint:
 
 
 def save_checkpoint(out_path: str, weights, biases, x_mean, x_std, y_mean, y_std,
-                    bone_names, window_offsets, frame_time: float, hidden_units: int,
-                    dropout: float, losses) -> None:
+                    bone_names, output_blocks, window_offsets, frame_time: float,
+                    hidden_units: int, dropout: float, losses) -> None:
     """Write ``<name>.pfnn.npz``."""
     if len(weights) != LAYER_COUNT or len(biases) != LAYER_COUNT:
         raise ValueError(f'expected {LAYER_COUNT} layers, got {len(weights)}/{len(biases)}')
@@ -81,6 +84,9 @@ def save_checkpoint(out_path: str, weights, biases, x_mean, x_std, y_mean, y_std
         # A fixed-width unicode array rather than an object array, so the file loads without
         # allow_pickle -- reading a checkpoint should never mean executing what is inside it.
         'bone_names': np.array(list(bone_names), dtype=np.str_),
+        # Output blocks are appended over time, and an older file's earlier blocks all still slice
+        # out correctly -- so a width alone cannot tell a stale checkpoint from a current one.
+        'output_blocks': np.array(list(output_blocks), dtype=np.str_),
         'window_offsets': np.ascontiguousarray(window_offsets, dtype=np.int64),
         'frame_time': np.float32(frame_time),
         'hidden_units': np.int64(hidden_units),
@@ -119,6 +125,7 @@ def load_checkpoint(path: str, log=print):
                 y_mean=np.ascontiguousarray(f['y_mean'], dtype=np.float32),
                 y_std=np.ascontiguousarray(f['y_std'], dtype=np.float32),
                 bone_names=[str(name) for name in f['bone_names']],
+                output_blocks=[str(name) for name in f['output_blocks']],
                 window_offsets=np.ascontiguousarray(f['window_offsets'], dtype=np.int64),
                 frame_time=float(f['frame_time']),
                 hidden_units=int(f['hidden_units']),

@@ -79,6 +79,12 @@ class PfnnPolicy:
             frame_time=checkpoint.frame_time)
         self._output_layout = self.spec.output_layout()
 
+        # Before anything is fed through it, not at the first odd-looking frame.
+        pfnn_dataset.check_output_blocks(checkpoint.output_blocks, self._output_layout)
+        if checkpoint.output_size != self.spec.output_size:
+            raise ValueError(f'checkpoint predicts {checkpoint.output_size} floats where this '
+                             f'layout reads {self.spec.output_size}; it has to be retrained')
+
     # Description of the packing, for the stage to validate against its own skeleton -------------
 
     def bone_names(self) -> list:
@@ -111,9 +117,12 @@ class PfnnPolicy:
         per bone over :meth:`bone_names`, all in the character frame of the frame being queried.
 
         :return: ``(rotations_6d, joint_velocities, root_height, dx, dz, dyaw, phase_delta,
-            left_contact, right_contact)``. The rotations are 6 floats per bone in the same bone
-            order; ``dx``/``dz``/``dyaw`` are the step into the next character frame, expressed in
-            the current one; ``phase_delta`` is in radians.
+            left_contact, right_contact, future_positions, future_directions)``. The rotations are
+            6 floats per bone in the same bone order; ``dx``/``dz``/``dyaw`` are the step into the
+            next character frame, expressed in the current one; ``phase_delta`` is in radians. The
+            two future arrays are ``(x, z)`` per positive window offset, in the *next* character
+            frame -- the trajectory the caller should hand back as the future half of its next
+            input.
         """
         packed = np.concatenate([
             np.asarray(trajectory_positions, dtype=np.float32).ravel(),
@@ -142,6 +151,8 @@ class PfnnPolicy:
         velocities = pfnn_dataset.block(y, layout, 'joint_velocities')
         root_delta = pfnn_dataset.block(y, layout, 'root_delta')
         contacts = pfnn_dataset.block(y, layout, 'contacts')
+        future_positions = pfnn_dataset.block(y, layout, 'future_positions')
+        future_directions = pfnn_dataset.block(y, layout, 'future_directions')
 
         return (
             rotations.astype(np.float32).tolist(),
@@ -150,6 +161,8 @@ class PfnnPolicy:
             float(root_delta[0]), float(root_delta[1]), float(root_delta[2]),
             float(pfnn_dataset.block(y, layout, 'phase_delta')[0]),
             bool(contacts[0] > 0.5), bool(contacts[1] > 0.5),
+            future_positions.astype(np.float32).tolist(),
+            future_directions.astype(np.float32).tolist(),
         )
 
 
@@ -164,7 +177,8 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
     isolates the question -- if the character still falls apart, the controller is not the problem.
 
     :return: a summary dict with the distance travelled, the mean speed to compare against the
-        database's own, and the largest joint excursion seen.
+        database's own, the largest joint excursion seen, and how far the predicted future
+        trajectory fell from the one the character really walked.
     """
     spec = pfnn_dataset.build_spec(training_set, _excluded_for(policy, training_set),
                                    window_radius=int(abs(policy.checkpoint.window_offsets).max()),
@@ -182,11 +196,30 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
 
     travelled, speeds, extents = 0.0, [], []
 
+    # The predicted future is scored against the window frame i+1 really carries, which is the
+    # quantity it was trained on -- so only where that frame exists in the same clip.
+    future_mask = spec.future_mask
+    scorable = pfnn_dataset.usable_queries(training_set)
+    position_errors, heading_errors = [], []
+
     for step_index in range(frames):
         frame = min(start_frame + step_index, training_set.n_frames - 1)
-        six, next_velocities, root_height, dx, dz, dyaw, phase_delta, left, right = policy.step(
+        (six, next_velocities, root_height, dx, dz, dyaw, phase_delta, left, right,
+         future_positions, future_directions) = policy.step(
             window_positions[frame], window_directions[frame],
             positions, velocities, contacts, phase)
+
+        if scorable[frame]:
+            predicted = np.asarray(future_positions, dtype=np.float32).reshape(-1, 2)
+            heading = np.asarray(future_directions, dtype=np.float32).reshape(-1, 2)
+            truth_positions = window_positions[frame + 1][future_mask]
+            truth_headings = window_directions[frame + 1][future_mask]
+
+            position_errors.append(
+                float(np.linalg.norm(predicted - truth_positions, axis=1).mean()))
+            cosine = (heading * truth_headings).sum(axis=1) / np.maximum(
+                np.linalg.norm(heading, axis=1), 1e-6)
+            heading_errors.append(float(np.degrees(np.arccos(np.clip(cosine, -1.0, 1.0))).mean()))
 
         rotations = rotations_from_6d(np.asarray(six, dtype=np.float32).reshape(-1, 6))
         positions = _forward_kinematics(rotations, rest_offsets, parents_in_subset, root_height)
@@ -207,11 +240,17 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
             training_set.root_velocity[:, [0, 2]], axis=1).mean()),
         'max_joint_extent': max(extents) if extents else float('nan'),
         'final_phase': phase,
+        'trajectory_position_error': (float(np.mean(position_errors)) if position_errors
+                                      else float('nan')),
+        'trajectory_heading_error': (float(np.mean(heading_errors)) if heading_errors
+                                     else float('nan')),
     }
 
     log(f"[PFNN] rollout {frames} frames: travelled {summary['travelled']:.2f} m at "
         f"{summary['mean_speed']:.3f} m/s (database {summary['database_mean_speed']:.3f}), "
         f"largest joint extent {summary['max_joint_extent']:.2f} m")
+    log(f"[PFNN] predicted future trajectory: {summary['trajectory_position_error']:.3f} m and "
+        f"{summary['trajectory_heading_error']:.1f} deg from the path actually walked")
     return summary
 
 

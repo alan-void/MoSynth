@@ -13,8 +13,9 @@ namespace Pfnn
 /// </summary>
 /// <remarks>
 /// Each tick the stage assembles what the network was trained to see — a trajectory window either
-/// side of now, the joints as they stand, the gait phase — reads back the next pose, and writes it
-/// through <see cref="CharacterSpacePose.Apply"/>. The character travels because the predicted root
+/// side of now, the joints as they stand, the gait phase — reads back the next pose and the
+/// trajectory it expects to follow, and writes the pose through
+/// <see cref="CharacterSpacePose.Apply"/>. The character travels because the predicted root
 /// delta is written into bone 0's velocity channels, which
 /// <see cref="MotionSynthesisComponent"/> reads back to advance the transform.
 /// <para>
@@ -49,6 +50,19 @@ public class PfnnStage : MoSynthStage, IDisposable
     [Tooltip("Where inference runs. A single-sample forward pass is small, so CPU usually beats " +
              "the per-call transfer to a GPU.")]
     public PfnnConfig.ComputeDevice inferenceDevice = PfnnConfig.ComputeDevice.Cpu;
+
+    [SerializeField]
+    [Tooltip("How much of the near end of the trajectory comes from the network's own predicted " +
+             "future rather than from the request. 0 hands the request over whole, which is how " +
+             "this behaved before the model predicted a trajectory at all.")]
+    [Range(0f, 1f)]
+    public float trajectoryFeedback = 1f;
+
+    [SerializeField]
+    [Tooltip("How quickly the request takes over with horizon. Above 1 holds the prediction " +
+             "further out and steers more smoothly; below 1 answers the stick sooner.")]
+    [Range(0.25f, 4f)]
+    public float feedbackFalloff = 1f;
 
     // Static so the delegate stays rooted for as long as Python holds it; PythonNET does not
     // forward Python's stdout to Unity on its own.
@@ -117,6 +131,16 @@ public class PfnnStage : MoSynthStage, IDisposable
     private readonly float[] _contacts = new float[2];
 
     private PfnnTrajectory _trajectory;
+
+    // The future half of the window the network predicted last tick, in world space. World rather
+    // than the frame it was predicted for, because the character's real next frame can differ from
+    // the one the root delta described — RootFollowStage moves it, and the first tick suppresses
+    // the rate channels — and re-reading the real frame corrects for that instead of accumulating.
+    private float2[] _predictedPositions;
+    private float2[] _predictedDirections;
+    private int[] _futureSlots;    // window index -> slot in the two arrays above, or -1
+    private int _horizonFrames;
+    private bool _hasPrediction;
 
     // The frame the window above was packed into, kept so a gizmo can take it back out again.
     private float2 _windowOrigin;
@@ -216,6 +240,18 @@ public class PfnnStage : MoSynthStage, IDisposable
         var reach = 0;
         foreach (var offset in _windowOffsets) reach = math.max(reach, -offset);
         _trajectory = new PfnnTrajectory(reach);
+
+        _futureSlots = new int[_windowOffsets.Length];
+        var predicted = 0;
+        _horizonFrames = 0;
+        for (var i = 0; i < _windowOffsets.Length; i++)
+        {
+            _futureSlots[i] = _windowOffsets[i] > 0 ? predicted++ : -1;
+            _horizonFrames = math.max(_horizonFrames, _windowOffsets[i]);
+        }
+
+        _predictedPositions = new float2[predicted];
+        _predictedDirections = new float2[predicted];
     }
 
     /// <summary>
@@ -236,6 +272,7 @@ public class PfnnStage : MoSynthStage, IDisposable
 
         _previousRotations.CopyFrom(_rotations);
         _hasPreviousPose = false;
+        _hasPrediction = false;
 
         _contacts[0] = _owner.CurrentPose.GetBool(_owner.LeftFootContactHandle) ? 1f : 0f;
         _contacts[1] = _owner.CurrentPose.GetBool(_owner.RightFootContactHandle) ? 1f : 0f;
@@ -270,7 +307,7 @@ public class PfnnStage : MoSynthStage, IDisposable
 
             float rootHeight, dx, dz, dyaw, phaseDelta;
             bool leftContact, rightContact;
-            float[] rotations6d, jointVelocities;
+            float[] rotations6d, jointVelocities, futurePositions, futureDirections;
 
             using (Py.GIL())
             {
@@ -286,9 +323,12 @@ public class PfnnStage : MoSynthStage, IDisposable
                 phaseDelta = (float)result[6];
                 leftContact = (bool)result[7];
                 rightContact = (bool)result[8];
+                futurePositions = (float[])result[9];
+                futureDirections = (float[])result[10];
             }
 
             BuildCharacterSpacePose(rotations6d, jointVelocities, rootHeight);
+            StorePrediction(futurePositions, futureDirections, dx, dz, dyaw);
 
             // Rates rather than per-tick deltas, because that is what the pose channels mean and
             // what MotionSynthesisComponent integrates over its own timestep.
@@ -355,6 +395,19 @@ public class PfnnStage : MoSynthStage, IDisposable
             }
             else
             {
+                if (_hasPrediction)
+                {
+                    // Graded by horizon: the samples beside the character follow what the network
+                    // said it could do, the far end follows what is being asked of it.
+                    var slot = _futureSlots[i];
+                    var share = math.lerp(1f, TrajectorySteering.HorizonBlend(
+                        offset, _horizonFrames, feedbackFalloff), trajectoryFeedback);
+
+                    world = math.lerp(_predictedPositions[slot], world, share);
+                    direction = math.normalizesafe(
+                        math.lerp(_predictedDirections[slot], direction, share), direction);
+                }
+
                 yaw = PfnnTrajectory.YawOf(direction);
             }
 
@@ -366,6 +419,31 @@ public class PfnnStage : MoSynthStage, IDisposable
             _windowDirections[i * 2] = localDirection.x;
             _windowDirections[i * 2 + 1] = localDirection.y;
         }
+    }
+
+    /// <summary>
+    /// Keep the trajectory the network predicted, in world space, for the next tick to steer with.
+    /// </summary>
+    /// <remarks>
+    /// It describes the window of the frame the character is about to be in, so it is taken out of
+    /// the frame the root delta lands on rather than the one it was measured from — which is what
+    /// makes it exactly the future half the next tick needs, with nothing to shift or interpolate.
+    /// </remarks>
+    private void StorePrediction(float[] positions, float[] directions,
+        float dx, float dz, float dyaw)
+    {
+        var origin = PfnnTrajectory.FromFrame(new float2(dx, dz), _windowOrigin, _windowFrameYaw);
+        var frameYaw = _windowFrameYaw + dyaw;
+
+        for (var slot = 0; slot < _predictedPositions.Length; slot++)
+        {
+            _predictedPositions[slot] = PfnnTrajectory.FromFrame(
+                new float2(positions[slot * 2], positions[slot * 2 + 1]), origin, frameYaw);
+            _predictedDirections[slot] = PfnnTrajectory.DirectionFromFrame(
+                new float2(directions[slot * 2], directions[slot * 2 + 1]), frameYaw);
+        }
+
+        _hasPrediction = true;
     }
 
     /// <summary>

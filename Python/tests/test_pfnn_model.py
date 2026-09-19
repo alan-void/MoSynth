@@ -136,6 +136,7 @@ class CheckpointTests(unittest.TestCase):
             x_mean=np.zeros(5, dtype=np.float32), x_std=np.ones(5, dtype=np.float32),
             y_mean=np.zeros(3, dtype=np.float32), y_std=np.ones(3, dtype=np.float32),
             bone_names=['root', 'spine', 'foot'],
+            output_blocks=['root_delta'],
             window_offsets=np.array([-10, 0, 10]), frame_time=1.0 / 30.0,
             hidden_units=8, dropout=0.3, losses=[(1.0, 2.0), (0.5, 0.8)])
         return path
@@ -150,6 +151,7 @@ class CheckpointTests(unittest.TestCase):
             np.testing.assert_array_equal(saved, loaded)
 
         self.assertEqual(checkpoint.bone_names, ['root', 'spine', 'foot'])
+        self.assertEqual(checkpoint.output_blocks, ['root_delta'])
         np.testing.assert_array_equal(checkpoint.window_offsets, [-10, 0, 10])
         self.assertEqual(checkpoint.hidden_units, 8)
         self.assertAlmostEqual(checkpoint.frame_time, 1.0 / 30.0, places=6)
@@ -185,7 +187,7 @@ class CheckpointTests(unittest.TestCase):
                 os.path.join(self.directory.name, 'short.pfnn.npz'),
                 self.weights[:2], self.biases[:2],
                 np.zeros(5), np.ones(5), np.zeros(3), np.ones(3),
-                ['root'], np.array([0]), 1.0 / 30.0, 8, 0.3, [(1.0, 1.0)])
+                ['root'], ['root_delta'], np.array([0]), 1.0 / 30.0, 8, 0.3, [(1.0, 1.0)])
 
 
 if __name__ == '__main__':

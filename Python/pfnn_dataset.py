@@ -122,6 +122,15 @@ class PfnnSpec:
         return int(np.size(self.window_offsets))
 
     @property
+    def future_mask(self) -> np.ndarray:
+        """Which samples of the window lie ahead of the query frame."""
+        return np.asarray(self.window_offsets) > 0
+
+    @property
+    def n_future(self) -> int:
+        return int(np.count_nonzero(self.future_mask))
+
+    @property
     def n_bones(self) -> int:
         return int(np.size(self.bone_indices))
 
@@ -134,13 +143,22 @@ class PfnnSpec:
                         ('contacts', 2)])
 
     def output_layout(self) -> list:
-        """``(name, offset, float_count)`` per block of an output vector."""
+        """
+        ``(name, offset, float_count)`` per block of an output vector.
+
+        The two future blocks are the window's own future half one frame on -- exactly the
+        trajectory the input at frame ``i + 1`` will carry -- so the runtime can feed the
+        prediction back in place of a request no body could follow. See
+        ``openwiki/pfnn/pfnn-stage.md``.
+        """
         return _layout([('joint_rotations_6d', 6 * self.n_bones),
                         ('joint_velocities', 3 * self.n_bones),
                         ('root_height', 1),
                         ('root_delta', 3),
                         ('phase_delta', 1),
-                        ('contacts', 2)])
+                        ('contacts', 2),
+                        ('future_positions', 2 * self.n_future),
+                        ('future_directions', 2 * self.n_future)])
 
     @property
     def input_size(self) -> int:
@@ -159,6 +177,37 @@ def block(vectors: np.ndarray, layout, name: str) -> np.ndarray:
         if entry_name == name:
             return vectors[..., offset:offset + count]
     raise KeyError(f'no block named {name!r}; have {[n for n, _, _ in layout]}')
+
+
+def check_output_blocks(stored_names, layout) -> None:
+    """
+    Refuse a checkpoint packed with a different set of output blocks than this code reads.
+
+    The failure this catches is silent rather than loud. Blocks are appended, so every block an
+    older checkpoint does carry still slices out correctly, and the new one comes back as a
+    truncated view instead of raising -- a character that moves badly for no visible reason. The
+    checkpoint stores the names it was written with for the same reason ``.mmpose`` carries a
+    skeleton block instead of a version number: the content is the check.
+
+    :param stored_names: the block names the checkpoint was written with, in order.
+    :param layout: ``(name, offset, count)`` per block, from :meth:`PfnnSpec.output_layout`.
+    :raises ValueError: naming the first block that differs.
+    """
+    expected = [name for name, _, _ in layout]
+    stored = [str(name) for name in stored_names]
+    if stored == expected:
+        return
+
+    for i, name in enumerate(expected):
+        if i >= len(stored):
+            raise ValueError(f'checkpoint has no {name!r} output block; it was trained against an '
+                             f'older layout and has to be retrained')
+        if stored[i] != name:
+            raise ValueError(f'checkpoint output block {i} is {stored[i]!r} where this code reads '
+                             f'{name!r}; it has to be retrained')
+
+    raise ValueError(f'checkpoint carries output blocks this code does not read: '
+                     f'{stored[len(expected):]}; it has to be retrained')
 
 
 def build_spec(training_set: TrainingSet, excluded_bones=(),
@@ -242,6 +291,10 @@ def build_vectors(training_set: TrainingSet, spec: PfnnSpec):
         root_delta,
         (training_set.phase_rate[queries] * training_set.frame_time)[:, np.newaxis],
         training_set.contacts[nxt],
+        # The future half of the window as frame i+1 will see it -- which is to say, the input the
+        # runtime would otherwise have to invent from the request alone.
+        positions[nxt][:, spec.future_mask].reshape(m, -1),
+        directions[nxt][:, spec.future_mask].reshape(m, -1),
     ], axis=1).astype(np.float32)
 
     if x.shape[1] != spec.input_size or y.shape[1] != spec.output_size:
@@ -263,6 +316,10 @@ DEFAULT_BLOCK_IMPORTANCE = {
     'root_delta': 1.0,
     'phase_delta': 1.0,
     'contacts': 1.0,
+    # One prediction written as two blocks, so they halve a single block's share between them
+    # rather than taking two blocks' worth of the gradient off the pose.
+    'future_positions': 0.5,
+    'future_directions': 0.5,
 }
 
 

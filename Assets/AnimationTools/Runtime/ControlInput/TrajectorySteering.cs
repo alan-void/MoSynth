@@ -88,6 +88,24 @@ public static class TrajectorySteering
     }
 
     /// <summary>
+    /// How much of a trajectory sample <paramref name="frameOffset"/> frames ahead should come from
+    /// the request rather than from the network's own predicted future: none of it beside the
+    /// character, all of it at the far end of the window.
+    /// </summary>
+    /// <remarks>
+    /// A model trained on the path the character really took has only ever seen a future half its
+    /// past half could lead into, and a request is under no such obligation — see
+    /// <c>openwiki/pfnn/pfnn-stage.md</c>. Grading the two by horizon keeps the samples beside the
+    /// character on paths a body could follow while leaving the far end, which is what it is
+    /// actually steering toward, entirely the caller's to set.
+    /// </remarks>
+    /// <param name="falloff">Above one holds the prediction further out, below one hands over sooner.</param>
+    public static float HorizonBlend(int frameOffset, int horizonFrames, float falloff) =>
+        horizonFrames <= 0
+            ? 1f
+            : math.pow(math.saturate(frameOffset / (float)horizonFrames), math.max(1e-3f, falloff));
+
+    /// <summary>
     /// The facing at a horizon: the same damper as <see cref="DampFacing"/>, jumped straight to that
     /// horizon in one step, which is exact for an exponential.
     /// </summary>

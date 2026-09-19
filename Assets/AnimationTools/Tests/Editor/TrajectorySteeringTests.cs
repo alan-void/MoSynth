@@ -234,6 +234,46 @@ public class TrajectorySteeringTests
         Assert.That(math.length(clamped), Is.EqualTo(0f).Within(1e-6f));
     }
 
+    [Test]
+    public void TheSampleBesideTheCharacterFollowsThePredictionAndTheFarOneTheRequest()
+    {
+        Assert.That(TrajectorySteering.HorizonBlend(0, 30, 1f), Is.EqualTo(0f).Within(1e-6f),
+            "nothing of the request lands on the character itself");
+        Assert.That(TrajectorySteering.HorizonBlend(30, 30, 1f), Is.EqualTo(1f).Within(1e-6f),
+            "and all of it at the horizon, so the character still goes where it is asked");
+    }
+
+    [Test]
+    public void TheRequestNeverLosesGroundAsTheHorizonGrows()
+    {
+        var previous = -1f;
+        for (var offset = 0; offset <= 30; offset += 5)
+        {
+            var share = TrajectorySteering.HorizonBlend(offset, 30, 1f);
+            Assert.That(share, Is.GreaterThan(previous), $"the window went backwards at +{offset}");
+            previous = share;
+        }
+    }
+
+    [Test]
+    public void ASteeperFalloffHoldsThePredictionFurtherOut()
+    {
+        Assert.That(TrajectorySteering.HorizonBlend(15, 30, 2f),
+            Is.LessThan(TrajectorySteering.HorizonBlend(15, 30, 1f)));
+        Assert.That(TrajectorySteering.HorizonBlend(15, 30, 0.5f),
+            Is.GreaterThan(TrajectorySteering.HorizonBlend(15, 30, 1f)));
+    }
+
+    [Test]
+    public void ARequestBeyondTheWindowIsStillOnlyTheWholeRequest()
+    {
+        // The offsets come off a checkpoint, so nothing in the type system stops one arriving past
+        // the horizon the caller measured against. Extrapolating there would overshoot the request.
+        Assert.That(TrajectorySteering.HorizonBlend(60, 30, 1f), Is.EqualTo(1f).Within(1e-6f));
+        Assert.That(TrajectorySteering.HorizonBlend(5, 0, 1f), Is.EqualTo(1f).Within(1e-6f),
+            "a window with no future half can only be the request");
+    }
+
     private static float Cross(float2 a, float2 b) => a.x * b.y - a.y * b.x;
 
     private static float AngleBetween(float2 a, float2 b) =>

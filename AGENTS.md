@@ -83,8 +83,11 @@ Python behind PythonNET.
   drawn as the skeleton hierarchy. Excluding a bone excludes its subtree, because the network
   predicts rotations and a rotation needs its parent's frame. The heuristic behind the
   "Exclude Fingers And Leaves" button lives only in that button
-- Only the **future** half of the trajectory window comes from the control input; the past half is
-  the character's own history, which is what training used
+- The past half of the trajectory window is the character's own history, which is what training
+  used. The future half is the control input's wish **blended with the network's own predicted
+  trajectory**, graded by horizon: near the character the prediction wins, at the one-second horizon
+  the request does. A request alone can describe a path no body could follow, which training never
+  contained
 - Full detail: `openwiki/pfnn/`
 
 ### Steering a character: three roles

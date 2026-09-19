@@ -63,7 +63,7 @@ Every tick the stage assembles the three things the model was trained on:
 - **The gait phase** — one angle saying where in the walk cycle the character is.
 
 and reads back the next pose, the root delta that carries the character there, a phase increment,
-and the foot contacts.
+the foot contacts, and the future trajectory it expects to follow.
 
 The phase is what makes the model small enough to be worth having. Rather than one network that has
 to work out from the pose alone whether the left foot is about to land, the weights are themselves a
@@ -71,7 +71,7 @@ function of phase — a cubic spline through four control points, wrapped so tha
 end of a cycle *is* the network at the start. See [training and checkpoints](training-and-checkpoints.md)
 for how that is built and stored.
 
-## The trajectory has two halves, and they come from different places
+## The trajectory comes from three places, not two
 
 During training both halves of the window are the same thing: the path the character really took,
 sampled either side of the query frame. At runtime only the future is a wish.
@@ -85,6 +85,33 @@ contains, and one the model would answer confidently and wrongly.
 Near the start of a run the history is shorter than the window. It is clamped to the oldest sample
 held rather than extrapolated, which is what a character standing still would have produced, and it
 matches how `TrainingSet.trajectory_window` answers an offset that would leave a clip.
+
+### The wish alone is not a path, so the model's own answer is blended into it
+
+That leaves a mismatch the past half does not have. In training the future half is *the path the
+character went on to take*, so it is always something the past half could lead into. A request is
+under no such obligation: a stick thrown from forward to backward asks for a future that no body
+could reach from the present, and the model answers an input like that by extrapolating — which is
+what a violent pose change on a fast reversal actually is.
+
+So the network predicts its own future trajectory as part of the output, and the stage blends that
+prediction with the request before packing the window. The blend is graded by horizon
+(`TrajectorySteering.HorizonBlend`): beside the character the prediction wins, because that is where
+a physically impossible sample does the damage, and at the one-second horizon the request wins
+outright, because that is what the character is actually being steered toward. `trajectoryFeedback`
+turns the whole thing down to nothing, which is the A/B; `feedbackFalloff` moves where the handover
+happens.
+
+The prediction describes the window of the frame the character is *about* to be in — see
+[what a sample is](training-and-checkpoints.md#what-a-sample-is) — so it is exactly the future half
+the next tick needs, with nothing to shift or interpolate. The stage keeps it in world space rather
+than in the frame it was predicted for, because the character's real next frame can differ from the
+one the root delta described: `RootFollowStage` moves it, and the first tick suppresses the rate
+channels. Re-reading the actual frame each tick corrects for that instead of letting it accumulate.
+
+This is also why `maxRequestAngle` is a guard rather than the answer. The cone keeps a request on
+ground the model has seen; the blend keeps the whole window on paths a body could follow, which is
+the stronger statement.
 
 ## Control inputs
 

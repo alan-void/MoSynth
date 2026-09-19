@@ -198,6 +198,93 @@ class TargetTests(unittest.TestCase):
         np.testing.assert_allclose(recovered, expected, atol=1e-5)
 
 
+class FutureTrajectoryTests(unittest.TestCase):
+    """
+    The predicted future is the future half of the *next* frame's own input, so what the network is
+    asked for is exactly what it will be handed a frame later and the runtime can feed its own
+    answer back instead of inventing a path from the request alone.
+    """
+
+    def setUp(self):
+        self.speed = 1.5
+        self.training_set = straight_walk_set(80, self.speed)
+        self.spec = pfnn_dataset.build_spec(self.training_set)
+        self.x, self.y, _, self.frames = pfnn_dataset.build_vectors(self.training_set, self.spec)
+
+    def future(self, name: str) -> np.ndarray:
+        return pfnn_dataset.block(self.y, self.spec.output_layout(), name) \
+            .reshape(-1, self.spec.n_future, 2)
+
+    def test_the_block_covers_the_window_ahead_of_the_query_and_nothing_else(self):
+        # The present sample is the origin by construction and the past is history, so neither is
+        # anything to predict.
+        self.assertEqual(self.spec.n_future, int(np.sum(self.spec.window_offsets > 0)))
+        self.assertEqual(self.future('future_positions').shape[1], self.spec.n_future)
+
+    def test_the_prediction_is_the_next_frames_own_trajectory_input(self):
+        row_of_frame = {int(frame): row for row, frame in enumerate(self.frames)}
+        layout = self.spec.input_layout()
+        compared = 0
+
+        for row, frame in enumerate(self.frames):
+            successor = row_of_frame.get(int(frame) + 1)
+            if successor is None:
+                continue
+
+            for target, source in (('future_positions', 'trajectory_positions'),
+                                   ('future_directions', 'trajectory_directions')):
+                next_input = pfnn_dataset.block(self.x, layout, source)[successor] \
+                    .reshape(self.spec.n_offsets, 2)[self.spec.future_mask]
+                np.testing.assert_allclose(self.future(target)[row], next_input, atol=1e-6)
+            compared += 1
+
+        self.assertGreater(compared, 50, 'the identity was barely exercised')
+
+    def test_a_straight_walk_predicts_the_path_it_is_already_on(self):
+        # Only the rows whose whole predicted window lies inside the clip: the sampler clamps at a
+        # clip edge rather than extrapolating, so a row near the end repeats its last real sample.
+        reach = int(self.spec.window_offsets.max())
+        inside = (self.frames + 1 + reach) < self.training_set.n_frames
+        ahead = self.spec.window_offsets[self.spec.future_mask]
+
+        positions = self.future('future_positions')[inside]
+        directions = self.future('future_directions')[inside]
+
+        # The fixture marches along +x holding an identity facing, so the travel lands in the
+        # frame's x and the heading never turns.
+        np.testing.assert_allclose(
+            positions[..., 0],
+            np.broadcast_to(ahead * self.speed * FRAME_TIME, positions[..., 0].shape), atol=1e-4)
+        np.testing.assert_allclose(positions[..., 1], 0.0, atol=1e-5)
+        np.testing.assert_allclose(directions[..., 0], 0.0, atol=1e-6)
+        np.testing.assert_allclose(directions[..., 1], 1.0, atol=1e-6)
+
+
+class CheckpointBlockTests(unittest.TestCase):
+    def setUp(self):
+        self.layout = pfnn_dataset.build_spec(straight_walk_set()).output_layout()
+        self.names = [name for name, _, _ in self.layout]
+
+    def test_the_blocks_it_was_written_with_are_accepted(self):
+        pfnn_dataset.check_output_blocks(self.names, self.layout)
+
+    def test_a_checkpoint_missing_the_newest_block_is_refused_by_name(self):
+        # Blocks are appended, so every block an older checkpoint does carry still slices out
+        # correctly and the new one comes back truncated rather than raising. A width alone cannot
+        # tell the two apart, which is why the names are stored.
+        with self.assertRaises(ValueError) as raised:
+            pfnn_dataset.check_output_blocks(self.names[:-1], self.layout)
+        self.assertIn('future_directions', str(raised.exception))
+
+    def test_a_reordered_layout_is_refused_rather_than_read_crossways(self):
+        swapped = list(self.names)
+        swapped[0], swapped[1] = swapped[1], swapped[0]
+
+        with self.assertRaises(ValueError) as raised:
+            pfnn_dataset.check_output_blocks(swapped, self.layout)
+        self.assertIn('joint_rotations_6d', str(raised.exception))
+
+
 class LossWeightTests(unittest.TestCase):
     def setUp(self):
         self.layout = pfnn_dataset.build_spec(straight_walk_set(),
@@ -208,10 +295,22 @@ class LossWeightTests(unittest.TestCase):
         offset, count = next((o, c) for n, o, c in self.layout if n == name)
         return float(self.weights[offset:offset + count].sum()) / float(self.weights.sum())
 
-    def test_every_block_carries_the_same_share_of_the_loss_by_default(self):
-        shares = [self.share_of(name) for name, _, _ in self.layout]
-        self.assertTrue(np.allclose(shares, 1.0 / len(self.layout)),
-                        f'blocks took {shares} of the loss')
+    @property
+    def total_importance(self) -> float:
+        return sum(pfnn_dataset.DEFAULT_BLOCK_IMPORTANCE[name] for name, _, _ in self.layout)
+
+    def test_every_block_carries_the_share_its_importance_asks_for(self):
+        for name, _, _ in self.layout:
+            expected = pfnn_dataset.DEFAULT_BLOCK_IMPORTANCE[name] / self.total_importance
+            self.assertAlmostEqual(self.share_of(name), expected, places=5,
+                                   msg=f'{name} took the wrong share of the loss')
+
+    def test_the_two_future_blocks_share_one_blocks_worth_between_them(self):
+        # Positions and directions are one prediction written as two blocks. Left at one each they
+        # would take two blocks' worth of the gradient off the pose for a single thing to learn.
+        self.assertAlmostEqual(self.share_of('future_positions')
+                               + self.share_of('future_directions'),
+                               self.share_of('joint_rotations_6d'), places=5)
 
     def test_a_narrow_block_outweighs_a_wide_one_in_exact_proportion(self):
         # The point of the exercise: on the real skeleton the root delta is three floats beside a
@@ -235,9 +334,9 @@ class LossWeightTests(unittest.TestCase):
         importance = dict(pfnn_dataset.DEFAULT_BLOCK_IMPORTANCE)
         importance['root_delta'] = 4.0
         self.weights = pfnn_dataset.block_weights(self.layout, importance)
+        total = sum(importance[name] for name, _, _ in self.layout)
 
-        self.assertAlmostEqual(self.share_of('root_delta'),
-                               4.0 / (len(self.layout) + 3.0), places=5)
+        self.assertAlmostEqual(self.share_of('root_delta'), 4.0 / total, places=5)
 
     def test_a_block_with_no_importance_is_an_error_not_a_silent_zero(self):
         with self.assertRaises(KeyError):
