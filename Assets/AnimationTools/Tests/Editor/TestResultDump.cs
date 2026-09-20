@@ -25,7 +25,7 @@ public static class TestResultDump
         var filter = new Filter
         {
             testMode = TestMode.EditMode,
-            assemblyNames = new[] { "AnimationTools.Tests", "MotionMatching.Tests", "Pfnn.Tests" }
+            assemblyNames = new[] { "AnimationTools.Tests", "MotionMatching.Tests", "Pfnn.Tests", "Lmm.Tests" }
         };
         api.Execute(new ExecutionSettings(filter));
     }

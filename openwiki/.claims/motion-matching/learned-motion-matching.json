@@ -1,38 +1,238 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d926eba1810a06ba74cb06569c09c6d33c80fcb2c6a45bd588d6d651e3ca55e8",
+  "pageVersion": "sha256:53b37c3299c33ab9410f48b89f8ecf6fca59a33f6b8bf5cadb07ee61147195bb",
   "claims": [
     {
       "id": "claim_5ab2b837fa1646a0bae373cf9500313d",
-      "statement": "Both halves of what a learned motion matching model trains on come out of a generated database with no Unity dependency: feature_set_importer reads the matching feature vectors that are the projector's query, and training_data assembles the pose a decompressor reconstructs.",
+      "statement": "Both halves of what a learned motion matching model trains on come out of a generated database with no Unity dependency: feature_set_importer reads the matching feature vectors that are the query, and training_data assembles the character-space pose that lmm_dataset repacks into the decompressor's target.",
       "evidence": [
         {
-          "resource": "repo://Python/feature_set_importer.py#L1-L30",
-          "version": "repo-lines-v1:sha256:702dcbf19540f2fb00e9a4401f6d7918829a147a0fa88a0ae06b69c59f9a0069:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWExMzk3NWMyNTZlYzgzMjBlMjAxNjA4M2M5NmRmNjM3Y2EzZDM1YmViZGUyMzE0YmVlM2E0NzExYjU2Y2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzYzRmMTVmOTdiMjUyNDI2NTMyYjkzMGU2M2MzMGU3NzYzYTljMmQzMDAzNTExNzhjMTBkZDE4NDczMmFkZTcifQ"
+          "resource": "repo://Python/feature_set_importer.py",
+          "version": "repo-file-v1:sha256:9f58835a8c2cc3af6eef6ad79461633147ab64bc80ee7f46c3b5e9273d8f05c5"
         },
         {
-          "resource": "repo://Python/training_data.py#L1-L55",
-          "version": "repo-lines-v1:sha256:f58bdfb338e0435a740c518dccc6c752cb386645987a91b63e11ca1f995f5f3b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4Njc4OGRjOTUzMWE3ZjkxOGVkOWYxZDY3ODY5NGFhYTNmZWYzN2UxNjE2MDdiYTQxOWUzZThkMWEwNmJjNzgifQ"
+          "resource": "repo://Python/training_data.py",
+          "version": "repo-file-v1:sha256:dd2b44f07f49462bc6f53f9faa91e6342ca127d00fbe11ada610790927acaca7"
         }
       ]
     },
     {
       "id": "claim_d72027d4143f4f49a04b76d74060e00a",
-      "statement": "Nothing in the repository consumes com.unity.barracuda, so a learned model has no inference path inside Unity today; MotionFieldStage is the worked example of running one in Python behind PythonNET instead.",
+      "statement": "Nothing in the repository consumes com.unity.barracuda, so every learned model here runs in Python behind PythonNET rather than inside Unity, LmmStage and MotionFieldStage alike.",
       "evidence": [
         {
           "resource": "repo://Packages/manifest.json",
-          "version": "repo-file-v1:sha256:1a86fc786b843d602d45ef481e42a47d5b6078502c400ed95fde1301e7e23ff8"
+          "version": "repo-file-v1:sha256:fe343b519674e5a41ed85837ca04842e8065549ec55eeeb5d3623984f692a452"
         },
         {
-          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L120-L210",
-          "version": "repo-lines-v1:sha256:f128f0bd58f4f77e64f1e299f08bfb6d085b1abe04fc7859ac7afe5a10f2f33d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5Y2E4OTFiZmY3YWMxZjdjZWFhZTQwZWYwNTEwNjZiZTllZmU0N2I0ZTQyODFlODZjMzE5YmUyYzU1ZWJjZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlkNTk1MWNlYjM1ZWIxMTlkZTVhNDA5YmQ2M2JiMjYzOGM5MmE5NDE3MWM3MDkwMDEwNjQzODYyMjNlMGQ4OTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyYmI2YmQ5MWFiOTIyZjg3MjgzZDYyZjFkY2ZjNzQ0MjJjY2QwMTUyYzUwMGZmMjVjMDdmNDMwZmYyNTliY2EifQ"
+          "resource": "repo://Assets/Lmm/LmmStage.cs",
+          "version": "repo-file-v1:sha256:72dd3c11e44b8f2b1b2c3f54ae08645eec94d85b3cb59d4ee310a3d59251ad7b"
+        }
+      ]
+    },
+    {
+      "id": "claim_89eedfbd56a84972bd9501d33d3b85d4",
+      "statement": "A database frame has a latent only when its successor lies in the same clip, so the last frame of every clip carries none and training pairs additionally lose the second-to-last; the pair exists because three terms of the loss are differences across adjacent frames.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b44692de7564257a80df06cf12b4efe",
+      "statement": "LmmConfig owns no pose database of its own: it references a MotionMatchingData and reads that asset's .mmpose and .mmfeatures, which is what keeps a learned matcher and the classic search comparable on identical data.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Lmm/LmmConfig.cs",
+          "version": "repo-file-v1:sha256:c933ac5761641b330511bf68bba3a9659ba3b8cd99349213a49b248b8719b6b9"
+        }
+      ]
+    },
+    {
+      "id": "claim_07ec5457245e495db247dd15e3f1dcbe",
+      "statement": "MotionMatchingStage and LmmStage build the trajectory half of their query through one shared MotionMatchingQuery.FillTrajectory, so the two methods are asked the same question by construction rather than by two implementations agreeing.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingQuery.cs",
+          "version": "repo-file-v1:sha256:34eee8f492af62c7e5b026502e2621d1bb7f171d33360d4a5a769686699722d4"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs#L285-L315",
+          "version": "repo-lines-v1:sha256:ad935a2815c84ecea667b35b5482fecdc05b77ee62879efdfa0f1cfbc158d061:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGViNDgwZTFmMTk4YzQ4MWU5NmZkZGI1Nzc3ODc3YTU0MzhlNDQ5YTllNDM0NGNiYWUwYzU3NGFkZTU3OTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3ZDE2MDBhYTAxODk0YzNiMjExYmRmNWM2NDg0MmNmNzAzZDgwNjdhMmZkNGYwYjcyYjk4MjgzYzc5ZTYxOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0NzJkMTZmMDQwOTlhZWFkOWY2NGQ2ZGJmMDc1OGE5NzI1YTk4NTEwNDY2YjlmNGE4NTQ0NTk4MTNmYTY3YmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2593f5f089084b919de301b5cdefec79",
+      "statement": "Control inputs reach the database through the IMotionMatchingDataProvider interface rather than through MotionMatchingStage, so every existing motion matching control input drives a learned matcher unchanged and no parallel input hierarchy is needed.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/IMotionMatchingDataProvider.cs",
+          "version": "repo-file-v1:sha256:f2f1927af3af73e10e75d4365652e6a42a986500094e589c1d4521e5077b50d5"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionSynthesisComponentExtensions.cs",
+          "version": "repo-file-v1:sha256:99aa0a1cb1051320b6549e9d6112e5876dd1e2347ca2d2446dc4accff7b6c429"
+        }
+      ]
+    },
+    {
+      "id": "claim_56fd23e3df86458b84c830f585159a52",
+      "statement": "In the decompressor-only mode the baked latent table stays in Python and LmmStage passes a database frame index per tick, because marshalling a table of hundreds of thousands of rows across the PythonNET boundary at startup costs more than a lookup that is free on the Python side.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Lmm/LmmStage.cs",
+          "version": "repo-file-v1:sha256:72dd3c11e44b8f2b1b2c3f54ae08645eec94d85b3cb59d4ee310a3d59251ad7b"
+        },
+        {
+          "resource": "repo://Python/lmm_runtime.py",
+          "version": "repo-file-v1:sha256:0b70d0e6eb85a6de2673fbd28ce265a767873e32ddff2b9ddabd1132a7a9ea48"
+        }
+      ]
+    },
+    {
+      "id": "claim_eb20e62dd6ff4d69a52f2e761b1e7f01",
+      "statement": "A trained learned-matching model is one unversioned .lmm.npz whose stages_trained array records how far training got, and writing it with only the autoencoder removes any stepper and projector, because those were fitted against a latent space that has just been replaced.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_io.py",
+          "version": "repo-file-v1:sha256:f444110ee3e9d5aa1e9d1bfb8cf0618079b539af356bd314ca440a5b787f409d"
+        }
+      ]
+    },
+    {
+      "id": "claim_bc31e2f346214744bfcdd50e1565fef5",
+      "statement": "The decompressor's predicted root velocity and yaw rate are per-second rates and are handed to CharacterSpacePose.Apply undivided, unlike PfnnStage which divides by the frame time because its network predicts a per-frame delta.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Lmm/LmmStage.cs",
+          "version": "repo-file-v1:sha256:72dd3c11e44b8f2b1b2c3f54ae08645eec94d85b3cb59d4ee310a3d59251ad7b"
+        },
+        {
+          "resource": "repo://Assets/Pfnn/PfnnStage.cs",
+          "version": "repo-file-v1:sha256:95ff9ab6528658f8c425f110c07982690b341b06d327f152c67a0dd5124e16a7"
+        }
+      ]
+    },
+    {
+      "id": "claim_c53d0bc4d30d4b37b8b905fc77abf676",
+      "statement": "The compressor encodes one frame measured in two spaces -- the joint-local pose Y concatenated with the character-space pose Q that forward kinematics derives from it -- rather than two consecutive frames, which is Algorithm 1 of the paper.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+        },
+        {
+          "resource": "repo://Python/lmm_model.py",
+          "version": "repo-file-v1:sha256:2d8b253dc78e25554401561751a956c78322722ddc18af058c1e96bbeed36d5a"
+        }
+      ]
+    },
+    {
+      "id": "claim_da895fcd1cc44ca1a03223c964f84446",
+      "statement": "LmmStage poses the rig by composing the decompressor's joint-local rotations down the hierarchy and reads the root's height as the only predicted translation, which is the same forward kinematics lmm_fk runs inside the training loss.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Lmm/LmmStage.cs",
+          "version": "repo-file-v1:sha256:72dd3c11e44b8f2b1b2c3f54ae08645eec94d85b3cb59d4ee310a3d59251ad7b"
+        },
+        {
+          "resource": "repo://Python/lmm_fk.py",
+          "version": "repo-file-v1:sha256:da47b9c2caf32b403b135022ca75f8523f3cdc4a1351a242cc256937f0eb07a2"
+        }
+      ]
+    },
+    {
+      "id": "claim_1560ebdef2ed4f82bd0b5a567c7b1615",
+      "statement": "The decompressor's target Y carries no joint positions: they are forward kinematics of the rotations it does carry, and the training loss scores them through that derivation instead.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+        },
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+        }
+      ]
+    },
+    {
+      "id": "claim_5288b07688c4486aabd1235135f6a514",
+      "statement": "The training loss is the paper's Algorithm 1, computed on denormalised quantities in real units, with per-block weights taken from the author's released training code because the paper states no numbers for them.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+        },
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9ca95e94e784e8c9428d0a93c5b64db",
+      "statement": "The matching feature vector X is fed to the decompressor unnormalised, because Unity's FeatureSet already standardises it when baking the .mmfeatures and a second standardisation would divide out a spread already divided out.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+        }
+      ]
+    },
+    {
+      "id": "claim_5cbd0a28601b45918dbabaadeb59451b",
+      "statement": "Y and Q are normalised with a mean per float but a single standard deviation per block, because dividing a 3-vector by three different numbers destroys its isotropy and makes an L1 error mean something different per axis.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+        }
+      ]
+    },
+    {
+      "id": "claim_93794ec55e3040419e24921bc1977cef",
+      "statement": "Whether a latent is steppable is measured by the held-out R-squared of predicting its next step from (X, Z), not by autocorrelation, extrapolation share or the D(X||0) ablation ratio, because all three of those improve when the latent merely moves less and so reward a quieter model rather than a better one.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+        }
+      ]
+    },
+    {
+      "id": "claim_d8877b60b7644e6c9c761eec3a294295",
+      "statement": "The latent velocity weight w_vreg stays at the released 0.01: raising it to 0.05 and 0.2 worsened both held-out loss and step predictability monotonically while only slowing the latent down, so it is a tunable parameter with no evidence for tuning on this data.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+        },
+        {
+          "resource": "repo://Assets/Lmm/LmmConfig.cs",
+          "version": "repo-file-v1:sha256:c933ac5761641b330511bf68bba3a9659ba3b8cd99349213a49b248b8719b6b9"
+        }
+      ]
+    },
+    {
+      "id": "claim_38089af41b0c41388a9c70efc5fe429a",
+      "statement": "Training counts iterations rather than epochs, keeps the parameters that scored best on the held-out tail rather than the last ones, and takes a wall-clock limit so a run that must fit a budget is cut by the clock instead of by a guessed iteration count.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+        },
+        {
+          "resource": "repo://Assets/Lmm/LmmConfig.cs",
+          "version": "repo-file-v1:sha256:c933ac5761641b330511bf68bba3a9659ba3b8cd99349213a49b248b8719b6b9"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-29T23:36:06.985Z"
+    "at": "2026-09-19T18:12:18.762Z"
   }
 }

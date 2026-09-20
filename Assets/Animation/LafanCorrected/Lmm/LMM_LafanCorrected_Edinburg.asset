@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3e87fa833d65834a973383b30215e1e, type: 3}
+  m_Name: LMM_LafanCorrected_Edinburg
+  m_EditorClassIdentifier: Lmm::Lmm.LmmConfig
+  mmData: {fileID: 11400000, guid: 88990f88625147a4baeb8a03acac1cb0, type: 2}
+  excludedBones: []
+  featureWeights:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  latentSize: 32
+  latentVelocityWeight: 0.01
+  compressorHiddenUnits: 0
+  decompressorHiddenUnits: 0
+  iterations: 200000
+  batchSize: 256
+  learningRate: 0.001
+  weightDecay: 0.001
+  learningRateDecay: 0.99
+  maxSeconds: 1700
+  validationFraction: 0.1
+  validationInterval: 1000
+  seed: 42
+  device: 0
+  hasTrained: 1

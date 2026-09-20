@@ -25,7 +25,7 @@ namespace MotionMatching
 /// </para>
 /// </remarks>
 [Serializable]
-public class MotionMatchingStage : MoSynthStage
+public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
 {
     private MotionSynthesisComponent _owner;
 
@@ -119,6 +119,16 @@ public class MotionMatchingStage : MoSynthStage
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
         _owner = motionSynthesisComponent;
+
+        if (!mmData.HasFeatureChannels)
+        {
+            Debug.LogError($"MotionMatchingStage: MotionMatchingData \"{mmData.name}\" has no feature " +
+                           "channels, so every frame would score identically and the search would pick " +
+                           "arbitrarily. Add a trajectory or pose feature and regenerate the databases.",
+                mmData);
+            return;
+        }
+
         _poseSet = mmData.GetOrImportPoseSet();
         var featureSet = mmData.GetOrImportFeatureSet();
 
@@ -282,40 +292,11 @@ public class MotionMatchingStage : MoSynthStage
         var controlInput = ControlInput;
         if (controlInput == null) return;
 
-        var character = _owner.transform;
         var queryFeatureSpan = _queryFeatureVector.AsSpan();
         var featureSet = mmData.GetOrImportFeatureSet();
 
-        // One slice per prediction horizon.
-        for (var i = 0; i < mmData.trajectoryFeatures.Count; i++)
-        {
-            var featureDef = mmData.trajectoryFeatures[i];
-            var featureSize = featureSet.GetTrajectoryFeatureFloatCount(i);
-            for (var p = 0; p < featureSet.GetPredictionCount(i); ++p)
-            {
-                var offset = featureSet.GetTrajectoryFeatureOffset(i, p);
-                var feature = queryFeatureSpan.Slice(offset, featureSize);
-                if (featureDef.simulationBone)
-                {
-                    controlInput.GetTrajectoryFeature(featureDef, p, character, feature);
-                }
-                else
-                {
-                    // Bone channels are optional constraints: the control input switches one on by
-                    // supplying a target. Off channels are weight-masked to zero so they cannot
-                    // affect the search.
-                    var active = controlInput.GetBoneTrajectoryFeature(featureDef, p, character, feature);
-                    for (var f = 0; f < featureSize; f++)
-                    {
-                        if (!active) feature[f] = 0f;
-                        _featureWeights[offset + f] = active ? _authoredFeatureWeights[offset + f] : 0f;
-                    }
-                }
-            }
-        }
-
-        // The database's trajectory floats are normalized, so the query's must be too.
-        featureSet.NormalizeTrajectory(queryFeatureSpan);
+        MotionMatchingQuery.FillTrajectory(mmData, featureSet, controlInput, _owner.transform,
+            queryFeatureSpan, _featureWeights, _authoredFeatureWeights);
 
         // Pose features come from the frame playing, not the character, which keeps the query in
         // the database's own pose space.

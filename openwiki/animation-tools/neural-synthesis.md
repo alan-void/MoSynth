@@ -24,16 +24,17 @@ sources:
     resource: repo://Python/tests/test_training_data.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-generated: {by: "claude-code", at: "2026-08-31T11:48:44.020Z"}
+generated: {by: "claude-code", at: "2026-09-19T18:12:18.762Z"}
 ---
 
 # Neural synthesis readiness
 
 Two learned methods are the stated direction for this project: a **phase-functioned neural network**
-(PFNN) and **learned motion matching** (LMM). PFNN now exists — see [the PFNN stage](../pfnn/pfnn-stage.md)
-and [training and checkpoints](../pfnn/training-and-checkpoints.md); LMM does not. This page is about
-the layer underneath both — what a learned method needs from a motion database, and which of those
-pieces are in place.
+(PFNN) and **learned motion matching** (LMM). Both now exist — see [the PFNN stage](../pfnn/pfnn-stage.md)
+and [training and checkpoints](../pfnn/training-and-checkpoints.md), and
+[learned motion matching](../motion-matching/learned-motion-matching.md), whose first phase is
+implemented. This page is about the layer underneath both — what a learned method needs from a
+motion database, and which of those pieces are in place.
 
 The methods differ in their inputs, but they want the same *quantities*:
 
@@ -72,8 +73,9 @@ timestep, so the two agree to first order and exactly for motion that is rigid w
 `.mmfeatures` beside it) and writes one `.npz` holding, per frame: every joint's position, rotation,
 velocity and angular velocity in the character frame; the frame's own travel and turn rate; the foot
 contacts; and a gait phase. It builds neither network's input tensor — the packing is a property of
-the model, not of the database — though `TrainingSet.pose_vector` offers one for a decompressor
-target.
+the model, not of the database — though `TrainingSet.pose_vector` offers one canonical flat
+packing. LMM does not use it: it predicts joint-*local* rotations and derives the character-space
+pose by forward kinematics, so it packs its own.
 
 **Gait phase, decided once and carried.** `AnimationTools.GaitPhase` turns a clip's footfalls into a
 phase — π per footfall, linear between, per clip — and the bake writes the result into the `.mmpose`
@@ -165,5 +167,5 @@ noted below:
   at the deepest joints — float32-versus-float64 accumulation down the chain, not a disagreement
   about the definition.
 
-Still missing: **learned motion matching**, and a shared home for the two-axis rotation conversion,
-which currently exists once in Python and once in `PfnnStage`.
+Still missing: a shared home for the two-axis rotation conversion, which now exists three times —
+in numpy in `training_data`, in torch in `lmm_fk`, and in C# in both `PfnnStage` and `LmmStage`.

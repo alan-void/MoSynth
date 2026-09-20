@@ -1,0 +1,23 @@
+{
+    "name": "Lmm.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Lmm",
+        "AnimationTools",
+        "AnimationTools.Editor",
+        "MotionMatching",
+        "Unity.Mathematics",
+        "Unity.Collections"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

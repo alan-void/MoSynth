@@ -7,15 +7,16 @@ per frame, expressed in the character frame rather than the world:
 * **PFNN** takes a trajectory window, the previous frame's joint positions and velocities,
   and a gait phase; it predicts the next pose, the root delta and a phase increment.
 * **Learned motion matching** takes the matching feature vector as its query and trains a
-  decompressor to reconstruct a full pose from a latent, so its target is the pose itself:
-  joint positions, rotations, velocities and angular velocities, plus the root's motion.
+  decompressor to reconstruct a full pose from a latent, so its target is the pose itself --
+  as joint-local rotations, the rate channels and the root's motion, scored again in character
+  space through forward kinematics.
 
 So this module does not build either network's input tensor. It builds the shared thing
 underneath both -- every frame of the database, in the frame the character is measured in,
 with the derived quantities that are not stored anywhere -- and leaves the packing to
-whoever is training. :meth:`TrainingSet.pose_vector` offers one such packing for the
-decompressor target, and :meth:`TrainingSet.trajectory_window` samples a trajectory at
-whatever offsets a model wants; both are conveniences rather than formats.
+whoever is training. :meth:`TrainingSet.pose_vector` offers one such packing, and
+:meth:`TrainingSet.trajectory_window` samples a trajectory at whatever offsets a model
+wants; both are conveniences rather than formats.
 
 What is *derived* here, and why it cannot simply be read out of the ``.mmpose``:
 
@@ -206,14 +207,16 @@ class TrainingSet:
 
     def pose_vector(self) -> np.ndarray:
         """
-        One canonical flat packing of the pose, for a decompressor target.
+        One flat packing of the pose, in the character frame.
 
         ``[positions | rotations_6d | velocities | angular_velocities | root_velocity |
         root_yaw_rate | contacts]``, so ``15 * n_bones + 6`` floats per frame. Named by
         :meth:`pose_vector_layout`.
 
         This is a convenience, not a format: nothing reads it back, and a caller with a
-        different target in mind should pack the arrays directly.
+        different target in mind should pack the arrays directly. :mod:`lmm_dataset` is one
+        such caller -- it predicts joint-*local* rotations and derives the character-space
+        pose by forward kinematics, so it packs its own.
         """
         n = self.n_frames
         return np.concatenate([
