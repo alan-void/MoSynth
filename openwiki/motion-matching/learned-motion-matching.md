@@ -244,7 +244,7 @@ undertrained one.
 
 **`latent_extrapolation_share`** — how a linear extrapolation of the last two latents scores against
 holding the current one — is better, and still a quiescence metric. The sweep below caught it
-outright: at `w_vreg` 0.2 the share falls to 97%, which *passes* the obvious "under 100%" reading,
+outright: at `w_vreg` 0.2 the share falls to 96%, which *passes* the obvious "under 100%" reading,
 on the worst model of the three by both held-out loss and predictability. It improves because the
 latent slows down, not because it becomes more followable.
 
@@ -264,13 +264,18 @@ Measured, it is not:
 | `w_vreg` | held-out loss | extrapolation | step size | **predictability** |
 | --- | --- | --- | --- | --- |
 | 0.01 (the release's) | **2.7402** | 108% | 18.7% | **+0.173** |
-| 0.05 | 2.8992 | 102% | 15.2% | +0.167 |
-| 0.2 | 3.0279 | 97% | 11.4% | +0.155 |
+| 0.05 | 2.8645 | 102% | 14.9% | +0.162 |
+| 0.2 | 2.9263 | 96% | 11.1% | +0.141 |
 
 Monotone, and in the wrong direction on both numbers that matter: raising it buys a slower latent,
 not a more predictable one, and pays for it in reconstruction. Each arm is 27,000 iterations on
-Edinburgh at batch 256 — matched on iterations rather than on wall clock, because a run sharing the
-machine reaches fewer steps in the same seconds and the loss column is then measuring the machine.
+Edinburgh at batch 256 from the same seed, so the three differ only in this weight — matched on
+iterations rather than on wall clock, because a run sharing the machine reaches fewer steps in the
+same seconds and the loss column would then be measuring the machine.
+
+The 0.2 row is the clearest statement of why the extrapolation column is not the gate: at 96% it
+passes the obvious reading of that number while being the worst of the three on both the held-out
+loss and the predictability.
 
 It remains a parameter on `LmmConfig` — the paper gives no number for it, so 0.01 is the release's
 choice rather than a constant — but there is no evidence for moving it on this data.
