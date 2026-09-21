@@ -38,6 +38,11 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     /// The steps depend on each other, so the order is fixed: extract poses, serialize them
     /// (.mmpose — also what the Python side reads), compute joint forward axes, extract the features
     /// derived from those poses, serialize those too.
+    /// <para>
+    /// An asset with no feature channels bakes only the pose half, leaving a pose-only database. The
+    /// .mmpose is what the Python training path and the pose visualizer read, so it is useful on its
+    /// own; there is simply no vector to search.
+    /// </para>
     /// </remarks>
     public static void GenerateDatabases(MotionMatchingData mmData)
     {
@@ -52,14 +57,22 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
 
         mmData.ComputeJointsLocalForward();
 
-        PROFILE.BEGIN_SAMPLE_PROFILING("Feature Extract");
-        mmData.ImportFeatureSet();
-        PROFILE.END_AND_PRINT_SAMPLE_PROFILING("Feature Extract");
+        if (mmData.HasFeatureChannels)
+        {
+            PROFILE.BEGIN_SAMPLE_PROFILING("Feature Extract");
+            mmData.ImportFeatureSet();
+            PROFILE.END_AND_PRINT_SAMPLE_PROFILING("Feature Extract");
 
-        PROFILE.BEGIN_SAMPLE_PROFILING("Feature Serialize");
-        FeatureSerializer featureSerializer = new();
-        featureSerializer.Serialize(mmData.FeatureSet, mmData, mmData.GetAssetPath(), mmData.name);
-        PROFILE.END_AND_PRINT_SAMPLE_PROFILING("Feature Serialize");
+            PROFILE.BEGIN_SAMPLE_PROFILING("Feature Serialize");
+            FeatureSerializer featureSerializer = new();
+            featureSerializer.Serialize(mmData.FeatureSet, mmData, mmData.GetAssetPath(), mmData.name);
+            PROFILE.END_AND_PRINT_SAMPLE_PROFILING("Feature Serialize");
+        }
+        else
+        {
+            Debug.Log($"[MotionMatching] \"{mmData.name}\" has no feature channels — baked the pose " +
+                      "database only, which nothing can search.", mmData);
+        }
 
         AssetDatabase.Refresh();
     }

@@ -64,6 +64,13 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     public string RightContactBoneName => rightContactBone?.Name;
 
     /// <summary>
+    /// Whether this asset describes a feature vector at all. False makes it a pose-only database:
+    /// the generator bakes the .mmpose and skips the .mmfeatures, and <see cref="MotionMatchingStage"/>
+    /// refuses it, since with no channels every frame scores identically.
+    /// </summary>
+    public bool HasFeatureChannels => trajectoryFeatures.Count > 0 || poseFeatures.Count > 0;
+
+    /// <summary>
     /// Frames of lookahead the furthest-forward trajectory sample needs. Poses closer than this to
     /// the end of a clip cannot be used for prediction.
     /// </summary>
@@ -128,13 +135,15 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
 
     /// <summary>
     /// Null when <see cref="TryValidate"/> fails, for the same reason as
-    /// <see cref="GetOrImportPoseSet"/>.
+    /// <see cref="GetOrImportPoseSet"/>, and null for a pose-only asset
+    /// (<see cref="HasFeatureChannels"/>).
     /// </summary>
     public FeatureSet GetOrImportFeatureSet()
     {
         if (FeatureSet == null)
         {
             if (!TryValidate(out _)) return null;
+            if (!HasFeatureChannels) return null;
 
             PROFILE.BEGIN_SAMPLE_PROFILING("Feature Import");
             FeatureSerializer serializer = new FeatureSerializer();

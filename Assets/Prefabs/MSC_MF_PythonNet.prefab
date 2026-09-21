@@ -70,7 +70,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1474767785090834262
 Transform:
   m_ObjectHideFlags: 0
@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e582089b4f51e5479285db9b68042c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MotionField::MotionField.MotionFieldDirectionControlInput
-  synthesisComponent: {fileID: 1334754308173397597}
+  synthesizer: {fileID: 1334754308173397597}
   inputReference: {fileID: 0}
 --- !u!1001 &741839878109247352
 PrefabInstance:
@@ -142,62 +142,18 @@ PrefabInstance:
   m_Modification:
     serializedVersion: 3
     m_TransformParent: {fileID: 1474767785090834262}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
-      propertyPath: m_Name
-      value: walk1_subject1_retargeted
-      objectReference: {fileID: 0}
+    m_Modifications: []
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 2646310381574308505, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1334754308173397597}
-  m_SourcePrefab: {fileID: 100100000, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  m_SourcePrefab: {fileID: 100100000, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
 --- !u!1 &471438294998485545 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  m_CorrespondingSourceObject: {fileID: 2646310381574308505, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
   m_PrefabInstance: {fileID: 741839878109247352}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &1334754308173397597
@@ -213,13 +169,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MotionMatching::MotionMatching.MotionSynthesisComponent
   skeleton:
-    root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
   characterRig:
-    root: {fileID: 0}
+    root: {fileID: 635418106471704329}
     overrides: []
   synthesisFrameRate: 30
   stages:
-  - rid: 6955135232227147966
   - rid: 5432756614727467120
   rootPositionsMask: 1
   references:
@@ -229,19 +184,18 @@ MonoBehaviour:
       type: {class: MotionFieldStage, ns: MotionField, asm: MotionField}
       data:
         isEnabled: 1
-        config: {fileID: 11400000, guid: 40c7052ed252c2847b0447d4a513ffc0, type: 2}
+        config: {fileID: 11400000, guid: 45ad75ccb3df464eac3ed275fedd69d1, type: 2}
         startStateIndex: 700
         reloadPythonModules: 1
         policy: 0
         collectDebugData: 1
-    - rid: 6955135232227147966
-      type: {class: PoseSetVisualizerStage, ns: MotionMatching, asm: MotionMatching}
-      data:
-        isEnabled: 0
-        mmData: {fileID: 11400000, guid: 74ea31e3cadcaa345b7e1171ab5116a9, type: 2}
-        startFrame: 0
 --- !u!4 &991128425225179283 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8809768790971187618, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
+  m_PrefabInstance: {fileID: 741839878109247352}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &635418106471704329 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1627078396308239068, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
   m_PrefabInstance: {fileID: 741839878109247352}
   m_PrefabAsset: {fileID: 0}

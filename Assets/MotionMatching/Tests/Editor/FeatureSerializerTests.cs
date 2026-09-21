@@ -35,7 +35,7 @@ public class FeatureSerializerTests
     private static MotionMatchingData LoadDemoData()
     {
         var data = AssetDatabase.LoadAssetAtPath<MotionMatchingData>(
-            "Assets/Animation/MotionMatching/MotionMatchingData.asset");
+            "Assets/Animation/LafanCorrected/MotionMatching/MM_LafanCorrected.asset");
         if (data == null || !data.TryValidate(out _)) Assert.Ignore("The demo MotionMatchingData is not available.");
         return data;
     }

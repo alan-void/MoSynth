@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4c6e72a7a48fe234eb37522d8844916b, type: 3}
-  m_Name: PfnnEden
+  m_Name: PFNN_LafanCorrected_Edinburg
   m_EditorClassIdentifier: Pfnn::Pfnn.PfnnConfig
   animationClips:
   - {fileID: 11400000, guid: 6bcbb0bc172ba614c88e1465ce5f2a35, type: 2}
@@ -1876,5 +1876,5 @@ MonoBehaviour:
   validationFraction: 0.1
   seed: 42
   device: 0
-  hasPoseDatabase: 1
-  hasTrained: 1
+  hasPoseDatabase: 0
+  hasTrained: 0

@@ -9,103 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c6e72a7a48fe234eb37522d8844916b, type: 3}
-  m_Name: PfnnBandaiWalk
-  m_EditorClassIdentifier: Pfnn::Pfnn.PfnnConfig
+  m_Script: {fileID: 11500000, guid: 55cf7c996f1876c488c1aa7622b5b34f, type: 3}
+  m_Name: MM_LafanCorrected_Edinburg
+  m_EditorClassIdentifier: JLPM.MotionMatching::MotionMatching.MotionMatchingData
   animationClips:
-  - {fileID: 11400000, guid: 1faa31483699d1a46bc2763b77beb80d, type: 2}
-  - {fileID: 11400000, guid: a489c2894c99e1d4d8720459994cdd1d, type: 2}
-  - {fileID: 11400000, guid: 24b66685d7139b84584b11df72010460, type: 2}
-  - {fileID: 11400000, guid: fe31a0261e5a6764590ab6bc24b90367, type: 2}
-  - {fileID: 11400000, guid: bbb6f6e9451559a4da9c3f43142422fe, type: 2}
-  - {fileID: 11400000, guid: 5d9716639bf3513478385bcfc0765c25, type: 2}
-  - {fileID: 11400000, guid: f39f6d092d88d9346a06edae41bbf051, type: 2}
-  - {fileID: 11400000, guid: 312d06e747061524495527263b4235bf, type: 2}
-  - {fileID: 11400000, guid: 7c5aec31d93ad114180e79236f63a6eb, type: 2}
-  - {fileID: 11400000, guid: 4226e92dd9ce5664f8e96e8ccbe04988, type: 2}
-  - {fileID: 11400000, guid: 149b1621410fdc74cb582e863c5560e2, type: 2}
-  - {fileID: 11400000, guid: d98ea2dc599ad8743b55508f06166a97, type: 2}
-  - {fileID: 11400000, guid: e1288e1803c992c408b0c29c942c7df0, type: 2}
-  - {fileID: 11400000, guid: 671b981e12d8eea4cb43b8015a9bf31a, type: 2}
-  - {fileID: 11400000, guid: 4fbe4c78dac84a74e90057ccb6b86c2a, type: 2}
-  - {fileID: 11400000, guid: 7235e9f5e15e0e740afa87d6b42bd174, type: 2}
-  - {fileID: 11400000, guid: 50dcaa8595f1c44429f8515846bed530, type: 2}
-  - {fileID: 11400000, guid: 554901d13e4b3f24faddb99f7fd96026, type: 2}
-  - {fileID: 11400000, guid: c7778daf6def2694e87e692af4cfa91f, type: 2}
-  - {fileID: 11400000, guid: 35e96f56215b0fb41a45b0813b2f56bb, type: 2}
-  - {fileID: 11400000, guid: 56403a48b4292df4d8fa25f8c0adf88d, type: 2}
-  - {fileID: 11400000, guid: c7f06dab6cd1fbc4e988a3414d40a924, type: 2}
-  - {fileID: 11400000, guid: 6aaaa7ede73068b4499458306b1597de, type: 2}
-  - {fileID: 11400000, guid: 8596c69b61a83c24da4566b9daa0033c, type: 2}
-  - {fileID: 11400000, guid: d8dba1890b2c5484380544b0911deecf, type: 2}
-  - {fileID: 11400000, guid: 7ee5709a5bdfe3e439a75cf08368d5bd, type: 2}
-  - {fileID: 11400000, guid: 536759e8f2c6f714c8dc9a9c79eccd2d, type: 2}
-  - {fileID: 11400000, guid: f45566ba95e1d6c43b62749b233b2a72, type: 2}
-  - {fileID: 11400000, guid: 66f3333764a35eb47bd65e7114e053b6, type: 2}
-  - {fileID: 11400000, guid: ee0bc0d9556559e458cc8145389b3638, type: 2}
-  - {fileID: 11400000, guid: d205b76f3b5eb0543a3036738aeff23e, type: 2}
-  - {fileID: 11400000, guid: f3940bf0c9f7f794eba1eecd136a9c5a, type: 2}
-  - {fileID: 11400000, guid: cc65b3dfe17eecf4b842ff63dc096145, type: 2}
-  - {fileID: 11400000, guid: 50e745915a73be146b5a9cf19eea7571, type: 2}
-  - {fileID: 11400000, guid: feb29671a16cac14f91bb8375406b326, type: 2}
-  - {fileID: 11400000, guid: 9d063571c3e43c247832ed1cd28b197f, type: 2}
-  - {fileID: 11400000, guid: 752c9a9f4dbf9484e915a1de961fe80a, type: 2}
-  - {fileID: 11400000, guid: 9d4eb515f6482cb44b9f85cc30252025, type: 2}
-  - {fileID: 11400000, guid: 4172c062974d4ad439a4c83d28e0d566, type: 2}
-  - {fileID: 11400000, guid: 69a0db54d8fad704d97ab66209c1e38b, type: 2}
-  - {fileID: 11400000, guid: 29275c0996adfae4aa61e70ea0ed193a, type: 2}
-  - {fileID: 11400000, guid: 963e698442a74f748a10b7646eefbb88, type: 2}
-  - {fileID: 11400000, guid: 949b2c09697c3de4b9fea50f0c1001c1, type: 2}
-  - {fileID: 11400000, guid: 4befce2c6d8d5f24eb61931dfec1bc4e, type: 2}
-  - {fileID: 11400000, guid: f2ef3f36f6a522f4db53f52582e7b9d2, type: 2}
-  - {fileID: 11400000, guid: 1a00c5427d327c949b5391427ac73675, type: 2}
-  - {fileID: 11400000, guid: 0b38d73bb7f993248b46c495fb552ef8, type: 2}
-  - {fileID: 11400000, guid: 3ae1dc25e85cf814f9d9572f6b4060b9, type: 2}
-  - {fileID: 11400000, guid: 90253384ba2701345a6924d32ec05fc5, type: 2}
-  - {fileID: 11400000, guid: 8f794dd08fe787b45966c64cc2fedfe1, type: 2}
-  - {fileID: 11400000, guid: 9ccff8579d7525840bb395aa2dc2f5d5, type: 2}
-  - {fileID: 11400000, guid: a512bacc66c93db44ba1b8169a88c80f, type: 2}
-  - {fileID: 11400000, guid: 382150ee4d0d61b4c9509809275ed257, type: 2}
-  - {fileID: 11400000, guid: fc787f5a4643eb64aba35e60a59b8658, type: 2}
-  - {fileID: 11400000, guid: 4879685b40a806344a3d97f1a76380c5, type: 2}
-  - {fileID: 11400000, guid: ce3d71fb3d92ef54a88c8cea67c3a877, type: 2}
-  - {fileID: 11400000, guid: b6efb072d48b6764f812880d7545aaa8, type: 2}
-  - {fileID: 11400000, guid: 7e02cde762c74de4483b7417bcd4f509, type: 2}
-  - {fileID: 11400000, guid: a3021d6564c485a44a2e6e1b93583415, type: 2}
-  - {fileID: 11400000, guid: 2e90975ba514db645ae9b31dc38e5666, type: 2}
-  - {fileID: 11400000, guid: d0c52496b5ca8d74ba037607797fd8de, type: 2}
-  - {fileID: 11400000, guid: 965f9d456ccd8a345ad5e9689c394f1c, type: 2}
-  - {fileID: 11400000, guid: a8133675339642041bb22a70eb61112c, type: 2}
-  - {fileID: 11400000, guid: 2e50fd6fa14b0564784161fd7abc11b8, type: 2}
-  - {fileID: 11400000, guid: 88e6359c7b89a6d4d99e362df7f09b65, type: 2}
-  - {fileID: 11400000, guid: 28fd2f094b1cbd449934e7bf955df14f, type: 2}
-  - {fileID: 11400000, guid: fdcc50c74365240469b39203f77e199e, type: 2}
-  - {fileID: 11400000, guid: d22d2b45e27762543bab6e9abfc9c227, type: 2}
-  - {fileID: 11400000, guid: 920b00d5cc4f3e04cbe53ea34c60c961, type: 2}
-  - {fileID: 11400000, guid: 87e10ce4812d5ce44b9b824f234d0428, type: 2}
-  - {fileID: 11400000, guid: bc1c1e8c49078854c8f96e11f3f1668e, type: 2}
-  - {fileID: 11400000, guid: 4dd7243fc28ca6a4692fc9e6b445f159, type: 2}
-  - {fileID: 11400000, guid: 063708db3b3c57d4f8b51709892ced16, type: 2}
-  - {fileID: 11400000, guid: 65e486960f101d64f8973fb84527da37, type: 2}
-  - {fileID: 11400000, guid: eb58b90da4ea360478acff3ce29db401, type: 2}
-  - {fileID: 11400000, guid: 6486fd4f4218bf6478981ece2a5d4f9c, type: 2}
-  - {fileID: 11400000, guid: 82388013bfb8f9045a361b79a029b870, type: 2}
-  - {fileID: 11400000, guid: 51065ef1217db7f4394393d52a66cac0, type: 2}
-  - {fileID: 11400000, guid: 41410df1f9ee4004ebb2d6f52a295178, type: 2}
-  - {fileID: 11400000, guid: 5bcc14ea50c3f334ca06bd72bbe4f6d3, type: 2}
-  - {fileID: 11400000, guid: b86cdd33eb1647e44b332e62269c3785, type: 2}
-  - {fileID: 11400000, guid: 5af2639439757c1409476af3a358843f, type: 2}
-  - {fileID: 11400000, guid: cf012b5fddddf5441beaf1ffa4e57b5a, type: 2}
-  - {fileID: 11400000, guid: a33268c86184e7f4fa14121077d08d4f, type: 2}
-  - {fileID: 11400000, guid: c7fb391b53141c149b6f146b6652c960, type: 2}
-  - {fileID: 11400000, guid: ff4010cc18fb924408631611a020f373, type: 2}
-  - {fileID: 11400000, guid: a687097a58f8a1545b7fdb7f2c5a0a8c, type: 2}
-  - {fileID: 11400000, guid: b5e5dedde18d33447955b54c3fc1177d, type: 2}
-  - {fileID: 11400000, guid: 1d91143587101384a8af5d00de4e95ed, type: 2}
-  - {fileID: 11400000, guid: afe477177c2569d4fa463d1f7979e1d3, type: 2}
-  - {fileID: 11400000, guid: 73d78a4ef306f2747b59daf359458063, type: 2}
-  - {fileID: 11400000, guid: c1777ad4fd9a0d34fac5720e74753655, type: 2}
-  - {fileID: 11400000, guid: 1366fdb8083348048a96004e4163fc01, type: 2}
   - {fileID: 11400000, guid: 6bcbb0bc172ba614c88e1465ce5f2a35, type: 2}
   - {fileID: 11400000, guid: 569877617ddedab4aa1011c4f80ef158, type: 2}
   - {fileID: 11400000, guid: 8686b91216233ee4d9943f4d149ac927, type: 2}
@@ -1942,32 +1849,171 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 89538fdae37529a42afac13f75d946c2, type: 2}
   - {fileID: 11400000, guid: 31d5fdb3817d5e141a058aab0fc7cf3a, type: 2}
   skeleton:
-    root: {fileID: -1031852490016989477, guid: f632c8aa7a25e824193dbf4b6d164a41, type: 3}
+    root: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
   contactVelocityThreshold: 0.15
   leftContactBone:
     skeleton:
       root: {fileID: 0}
-    bone: {fileID: 0}
+    bone: {fileID: 8292156279083153751, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
   rightContactBone:
     skeleton:
       root: {fileID: 0}
-    bone: {fileID: 0}
-  windowRadiusFrames: 30
-  windowStrideFrames: 5
-  hiddenUnits: 256
-  dropout: 0.3
-  excludedBones:
-  - LeftToe_end
-  - RightToe_end
-  - LeftHand_end
-  - Head_end
-  - RightHand_end
-  epochs: 150
-  batchSize: 32
-  learningRate: 0.0001
-  weightDecay: 0.0025
-  validationFraction: 0.1
-  seed: 42
-  device: 0
-  hasPoseDatabase: 1
-  hasTrained: 1
+    bone: {fileID: 549183080246094770, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  trajectoryFeatures:
+  - name: FuturePosition
+    featureType: 0
+    predictionFrames: 14000000280000003c000000
+    simulationBone: 1
+    bone:
+      skeleton:
+        root: {fileID: 0}
+      bone: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+    zeroX: 0
+    zeroY: 1
+    zeroZ: 0
+  - name: FutureDirection
+    featureType: 1
+    predictionFrames: 14000000280000003c000000
+    simulationBone: 1
+    bone:
+      skeleton:
+        root: {fileID: 0}
+      bone: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+    zeroX: 0
+    zeroY: 1
+    zeroZ: 0
+  - name: LeftFootKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+      bone: {fileID: 8292156279083153751, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightFootKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+      bone: {fileID: 549183080246094770, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  poseFeatures:
+  - name: LeftFootPosition
+    featureType: 0
+    bone:
+      skeleton:
+        root: {fileID: 0}
+      bone: {fileID: 8292156279083153751, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  - name: LeftFootVelocity
+    featureType: 1
+    bone:
+      skeleton:
+        root: {fileID: 0}
+      bone: {fileID: 8292156279083153751, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  - name: RightFootPosition
+    featureType: 0
+    bone:
+      skeleton:
+        root: {fileID: 0}
+      bone: {fileID: 549183080246094770, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  - name: RightFootVelocity
+    featureType: 1
+    bone:
+      skeleton:
+        root: {fileID: 0}
+      bone: {fileID: 549183080246094770, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  - name: HipsVelocity
+    featureType: 1
+    bone:
+      skeleton:
+        root: {fileID: 0}
+      bone: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  jointsLocalForward:
+  - x: 0.00000000745799
+    y: -0.35296816
+    z: 0.9356353
+  - x: -0.00000436756
+    y: 0.017451242
+    z: -0.9998472
+  - x: -0.0000012892027
+    y: -0.034900416
+    z: -0.99939084
+  - x: -0.00000049481946
+    y: 0.9319056
+    z: -0.36270022
+  - x: 0.000055904635
+    y: 0.9999942
+    z: 0.0032842755
+  - x: 0.000055904635
+    y: 0.9999942
+    z: 0.0032842755
+  - x: 0.000020755506
+    y: 0.017451514
+    z: -0.9998474
+  - x: 0.0000012883651
+    y: -0.034900147
+    z: -0.99939084
+  - x: 0.0000004947565
+    y: 0.9319057
+    z: -0.36269975
+  - x: -0.000055902863
+    y: 0.9999942
+    z: 0.0032846332
+  - x: -0.000055902863
+    y: 0.9999942
+    z: 0.0032846332
+  - x: -0.0000000018980346
+    y: 0.08702394
+    z: 0.9962062
+  - x: 0.000000033233032
+    y: 0.08653943
+    z: 0.9962484
+  - x: -0.000000032808792
+    y: 0.08052078
+    z: 0.9967529
+  - x: 0.014239788
+    y: 0.999885
+    z: -0.0051539084
+  - x: -0.0018438697
+    y: 0.9996571
+    z: 0.026111048
+  - x: -0.0017736554
+    y: 0.99756366
+    z: -0.06973492
+  - x: 0.0677501
+    y: 0.9938293
+    z: -0.087817654
+  - x: 0.0677501
+    y: 0.9938293
+    z: -0.087817654
+  - x: -0.000000011424835
+    y: 0.030549908
+    z: 0.99953324
+  - x: 0.000000007477645
+    y: 0.005224596
+    z: 0.99998635
+  - x: 0.000000007477645
+    y: 0.005224596
+    z: 0.99998635
+  - x: -0.01423943
+    y: 0.999885
+    z: -0.0051539163
+  - x: 0.0018443465
+    y: 0.99965703
+    z: 0.026111024
+  - x: 0.0017741323
+    y: 0.99756366
+    z: -0.069734894
+  - x: -0.06774986
+    y: 0.99382955
+    z: -0.087817736
+  - x: -0.06774986
+    y: 0.99382955
+    z: -0.087817736

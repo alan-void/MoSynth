@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55cf7c996f1876c488c1aa7622b5b34f, type: 3}
-  m_Name: MotionMatchingData
-  m_EditorClassIdentifier: MotionMatching::MotionMatching.MotionMatchingData
+  m_Script: {fileID: 11500000, guid: 1c46cbd39c09fb443816118e8a024778, type: 3}
+  m_Name: MF_LafanCorrected
+  m_EditorClassIdentifier: Assembly-CSharp::MotionField.MotionFieldConfig
   animationClips:
-  - {fileID: 11400000, guid: 29d73c7c96460ea48963fe0bf8ad049d, type: 2}
+  - {fileID: 11400000, guid: 783a1f0b3de0f2f49b6aa27a53f9f63a, type: 2}
   skeleton:
     root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
   contactVelocityThreshold: 0.15
@@ -25,6 +25,23 @@ MonoBehaviour:
     skeleton:
       root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
     bone: {fileID: 549183080246094770, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
-  trajectoryFeatures: []
-  poseFeatures: []
-  jointsLocalForward: []
+  kNeighbors: 15
+  tugRatio: 0.1
+  posWeight: 1
+  velWeight: 0.06
+  locomotionFactor: 1
+  locomotionSpeedThreshold: 0.5
+  boneWeights: []
+  thetaCount: 17
+  epochs: 300
+  gamma: 0.99
+  device: 0
+  knnChunk: 64
+  stateChunk: 512
+  umapFeatures: 0
+  umapNeighbors: 80
+  umapMinDist: 0.1
+  umapComponents: 3
+  umapSeed: 42
+  hasPoseDatabase: 1
+  hasTrained: 1

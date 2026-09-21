@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55cf7c996f1876c488c1aa7622b5b34f, type: 3}
-  m_Name: MotionMatchingData
+  m_Name: MotionMatchingData_FullPoseConstraint
   m_EditorClassIdentifier: JLPM.MotionMatching::MotionMatching.MotionMatchingData
   animationClips:
   - {fileID: 11400000, guid: 3242dfa08bb3cf248987ae6021c3666a, type: 2}
@@ -48,6 +48,39 @@ MonoBehaviour:
     zeroX: 0
     zeroY: 1
     zeroZ: 0
+  - name: HipsKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: LeftUpLegKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 7325263667442695949, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: LeftLegKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 7666175471298646188, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
   - name: LeftFootKeyPoint
     featureType: 0
     predictionFrames: 14000000
@@ -59,6 +92,50 @@ MonoBehaviour:
     zeroX: 0
     zeroY: 0
     zeroZ: 0
+  - name: LeftToeKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: -936527584819193664, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: LeftToeEndKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: -4110445040390150503, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightUpLegKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: -4966508231030182572, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightLegKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 1391343623933408035, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
   - name: RightFootKeyPoint
     featureType: 0
     predictionFrames: 14000000
@@ -67,6 +144,171 @@ MonoBehaviour:
       skeleton:
         root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
       bone: {fileID: -4253216979514265273, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightToeKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 5335425888823625634, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightToeEndKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: -5006392360856900040, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: SpineKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 5381320769316450477, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: Spine1KeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 2223531799850880422, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: Spine2KeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: -2298398053800370766, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: LeftShoulderKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 771933829748111658, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: LeftArmKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 2854348935628700867, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: LeftForeArmKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 3169761090858990473, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: LeftHandKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 5128766223692777047, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: NeckKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 2352993125333847975, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: HeadKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: -8968629708368925626, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightShoulderKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 2323144709854602772, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightArmKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: -3211349237158966879, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightForeArmKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 3440463829510493128, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+    zeroX: 0
+    zeroY: 0
+    zeroZ: 0
+  - name: RightHandKeyPoint
+    featureType: 0
+    predictionFrames: 14000000
+    simulationBone: 0
+    bone:
+      skeleton:
+        root: {fileID: 4765416118212941435, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
+      bone: {fileID: 423266426827048287, guid: ab4475fe2e1fe874fbbac6e1fd6c7c5d, type: 3}
     zeroX: 0
     zeroY: 0
     zeroZ: 0

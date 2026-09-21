@@ -89,7 +89,7 @@ static class MmTestData
         skeleton = null;
 
         var data = AssetDatabase.LoadAssetAtPath<MotionMatchingData>(
-            "Assets/Animation/MotionMatching/MotionMatchingData.asset");
+            "Assets/Animation/LafanCorrected/MotionMatching/MM_LafanCorrected.asset");
         if (data == null) return false;
 
         try
