@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d559543e917c6d44b4429eb838f6898, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MotionMatching::MotionMatching.SpringControlInput
-  motionSynthesizer: {fileID: 4187943845008689299}
+  synthesizer: {fileID: 4187943845008689299}
   trajectoryPositionFeatureName: FuturePosition
   trajectoryDirectionFeatureName: FutureDirection
   maxSpeed: 1
@@ -205,7 +205,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7642200947445879686
 Transform:
   m_ObjectHideFlags: 0

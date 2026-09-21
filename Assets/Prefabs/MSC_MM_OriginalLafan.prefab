@@ -71,7 +71,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2945333870715592984}
   m_Layer: 0
-  m_Name: MSC_MM
+  m_Name: MSC_MM_OriginalLafan
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

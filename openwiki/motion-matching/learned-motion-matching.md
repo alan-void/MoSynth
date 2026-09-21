@@ -40,10 +40,10 @@ sources:
     resource: repo://Python/lmm_trainer.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-generated: {by: "claude-code", at: "2026-09-20T12:40:57.561Z"}
+generated: {by: "claude-code", at: "2026-09-21T14:47:08.791Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-09-20T12:40:57.561Z
+    at: 2026-09-21T14:54:36.568Z
 ---
 
 # Learned motion matching
@@ -60,10 +60,11 @@ search with three small networks:
 A fourth, the **compressor**, exists only at training time: it produces the latents the other three
 are defined over, and is kept in the checkpoint for diagnostics.
 
-The method arrives in three phases, and **phases A and B are implemented**: the compressor and
-decompressor are trained, the stepper is fitted against the latents they bake, and `LmmStage` runs
-either the decompressor alone or the decompressor with the stepper advancing the state between
-searches. The projector is not written yet, and `LmmStage` refuses the mode that would need it.
+The method arrives in three phases and **all three are implemented**: the compressor and
+decompressor are trained, the stepper is fitted against the latents they bake, and the projector is
+fitted against those same latents and the authored search metric. `LmmStage` runs any of the three
+modes, and each of them stays in the shipped code as a permanent ablation rather than as a step on
+the way to the last.
 
 The parts shared with a phase-functioned network are on
 [neural synthesis readiness](../animation-tools/neural-synthesis.md); this page is the LMM-specific
@@ -409,6 +410,91 @@ cadence against Edinburgh's 0.369, from a latent whose step predictability is +0
 Twenty-seven times the data moves both numbers in the same direction, which is what a data-limited
 model does and is not what a capacity-limited one does.
 
+## Training the projector
+
+The projector is the network that replaces the search itself: hand it the query and it answers with
+a state the database could have held — a feature vector and the latent beside it — so nothing is
+looked up and nothing has to be resident to look it up in.
+
+### The target is the nearest neighbour of the *noisy* query, and that is the whole method
+
+Every training sample takes a database frame's query vector, displaces it, finds the true weighted
+nearest neighbour **of the displaced vector**, and asks the projector for that neighbour's state.
+
+Targeting the frame the noise was added to instead is the obvious mistake and it does not look like
+one: the loss falls, the reconstruction is fine, and what has been fitted is a *denoiser* — a
+network that undoes a perturbation. The classic matcher does not undo anything. Asked for a query
+that no frame answers, it returns whichever frame answers it best, and for a query displaced any
+real distance that is a different frame entirely. A denoiser put in its place returns the character
+to where it already was.
+
+The metric is the **authored** feature weights, carried in the checkpoint and expanded per float
+exactly as `MotionMatchingStage.UpdateFeatureWeights` expands them. A projector fitted under a
+uniform metric approximates a search nobody runs, and the comparison against the classic matcher is
+then quietly measuring two different things. The stage refuses a checkpoint whose weights no longer
+match the config's.
+
+### One noise scale, and phase B is why there is not a second
+
+Each feature is displaced by its own spread plus one, scaled by a per-sample `sigma` drawn uniformly
+over `[0, projectorNoise]`. Two decisions there:
+
+- **The floor of one.** Without it a feature that barely varies is barely displaced, and the
+  projector never learns what to do when a controller asks for a value that feature never takes.
+  Unity has already divided `X` by a per-feature spread when it baked the `.mmfeatures`, so the
+  floor roughly doubles a scale that is already near one.
+- **A different `sigma` per sample**, rather than a fixed displacement. One batch then spans a query
+  a frame answers almost exactly and a query nothing answers well. A projector trained at a single
+  displacement is good at that displacement and guessing everywhere else, and the runtime supplies
+  every displacement — the controller can ask for anything at all.
+
+An earlier design had **two** scales, a wide one for the trajectory half and a narrow one for the
+pose half, on the argument that their runtime errors have different characters: the trajectory half
+is whatever the controller wants, while the pose half is the stepper's own drifting state. The
+argument is sound and the second scale is still unnecessary, because phase B measured the quantity
+it was guessing at. The stepper drifts **0.258 of `X`'s spread** over the ten frames between
+searches, which sits comfortably inside the range one uniform scale already covers. The measurement
+retired the knob rather than setting it.
+
+### Three terms, and the third one is the accept rule
+
+| term | weight | what it scores |
+| --- | --- | --- |
+| features | 1.0 | `X̂` against the true neighbour's `X`, over `X`'s own spread |
+| latent | 5.0 | `Ẑ` against that neighbour's `Z`, over `Z`'s own spread |
+| distance | 0.3 | how far the answer sits from the query, against how far the true neighbour sits |
+
+The weights are the author's released training code, as the autoencoder's and the stepper's are; the
+paper states none. The latent term dominating is the same asymmetry the stepper has and more of it —
+an `X` that is slightly wrong is re-supplied by the controller at the next search, while a `Z` that
+is wrong is a pose the decompressor has never been asked for.
+
+**The distance term is not a refinement.** That scalar is exactly what the stage's accept rule
+compares: it takes the projection only when it is nearer the query than the state already held. A
+projector that is close in `X` but systematically wrong about *how* close would bend every accept
+decision on the tick path in the same direction, and nothing downstream could see it happening.
+
+The latents are an input and never a parameter, for the reason they are in phase B: fitting them
+alongside would offer a cheaper route to an easily projected latent than learning to project it.
+
+### What it costs, and when it stops
+
+Each iteration searches the whole database for the true neighbour of every query in the batch. That
+is a matmul rather than a loop — the candidates' weighted norms are computed once and the query's
+own norm is dropped, since it shifts a whole row equally and cannot change which entry is smallest —
+chunked over the database so a batch against two hundred thousand candidates never needs the whole
+distance matrix resident. On Edinburgh that is around 38 iterations a second, against the stepper's
+hundreds, and it is the search rather than the network that costs.
+
+`projectorPatience` is the stopping rule and `projectorIterations` only a ceiling, exactly as for the
+stepper and for the same reason: where the fit stops improving is a property of the database.
+
+On Edinburgh the fit ran 26,000 of its 30,000 iterations in 275 s before patience stopped it, over
+95,787 training query frames of the 106,430 that carry a latent, and kept the parameters from
+iteration 21,000. Unlike the stepper — which bottoms out at 2,000 and rises monotonically — the
+projector's held-out curve is still roughly flat when patience fires, so it is not running into the
+same early-overfit wall. It is not running away from it either.
+
 ## The networks
 
 All plain stacks of `Linear` and an activation, and that is a constraint rather than an observation:
@@ -422,7 +508,7 @@ added in good faith cannot quietly close off the Unity-native inference path.
 | Compressor | `Y‖Q` (574) → 32 | 516 × 3 | ELU | 1.05 M over the shipping rig |
 | Decompressor | `X‖Z` (65) → `Y` (331) | **512 × 1** | ReLU | |
 | Stepper | `X‖Z` (65) → `d/dt X‖Z` (65) | 512 × 2 | ReLU | 330 k |
-| Projector (phase C) | 33 → 65 | **512 × 4** | ReLU | |
+| Projector | `X` (33) → `X‖Z` (65) | **512 × 4** | ReLU | 839 k |
 
 The depths are the paper's Table 1 and the widths are read off the reference implementation's
 shipped ONNX graphs, whose parameter counts reproduce the file sizes exactly — measured, not
@@ -459,6 +545,16 @@ project's [standing decision](../animation-tools/on-disk-formats.md) — the con
 missing, naming the one it wanted. Writing the file with only the autoencoder **removes** any stepper
 and projector, because both were fitted against a latent space that has just been replaced; that is
 enforced in the writer rather than left to callers to remember.
+
+A projector may not be written **without** a stepper, for the matching reason in the other
+direction: the `Full` mode runs both, so a file carrying one alone describes a mode nothing can run.
+
+The autoencoder is the half-hour half, and both later networks are fitted against latents it has
+already baked — so the inspector offers **Fit Stepper Only** and **Fit Projector Only** beside
+**Train LMM**, and tuning either costs minutes rather than paying for the autoencoder again. Neither
+refit clears `hasTrained`: they leave the autoencoder exactly as stale or as fresh as they found it,
+and the inspector cannot tell which field an edit moved, so claiming the checkpoint is current would
+be a guess.
 
 ## Runtime
 
@@ -521,6 +617,27 @@ never saw. The controller enters through the query, on search ticks, and nowhere
 `PoseDiscontinuity` is raised on an accepted jump and **never on a stepper tick**, which is what a
 stepper tick being continuous means. There is also no clip crossing to raise it for, since nothing
 is playing.
+
+### The `Full` tick
+
+A search tick calls `policy.project(query)` and gets back a state; every other tick is the `Stepper`
+tick above, unchanged. The two modes share the tick path entirely and differ only in where a new
+state comes from on a search: one is handed a database frame to restart from, the other has the
+state written directly.
+
+**Whether to take the answer is decided in C#**, under the same weights and the same squared
+distance the search is given, rather than in Python. That is what keeps the accept rule one rule
+across all three modes — and it is why `project` stays a separate call instead of being folded into
+`tick`. It costs a second acquisition of the GIL on a search tick, a few times a second, which is
+the price of the comparison staying on the side of the boundary where the classic matcher makes it.
+
+`mmSearch` is **not initialised** in this mode. Building the acceleration structure would cost
+exactly the startup time and the memory the mode exists to remove.
+
+The `MotionMatchingData` asset is still referenced, and that is worth stating plainly rather than
+claiming a saving that has not been made: the control inputs read its trajectory horizons for their
+own prediction, and constructing a `FeatureSet` loads the `.mmpose` beside the `.mmfeatures`. Phase
+C removes the *search*, not the dependency.
 
 ### The accept rule, and the discontinuity flag
 
@@ -625,6 +742,66 @@ against the live model, and once here, through the same `tick` the stage calls. 
 That duplication is deliberate: a report that shared code with the trainer would not be testing the
 runtime path, which is half of what an offline report is for.
 
+### The projector is measured against the search it replaces, not against a loss
+
+`MoSynth/Lmm/Report Projector Recall` displaces held-out queries at three fixed sizes and compares
+each answer with the true nearest neighbour of that displaced query. Three fixed sizes rather than
+one averaged draw, because the ends behave differently: a query that barely misses has its own frame
+as its neighbour, and a query displaced a whole scale is somewhere the database barely reaches.
+
+On Edinburgh, over 2,048 held-out queries:
+
+| displacement | distance ratio | top-1% recall | latent error |
+| --- | --- | --- | --- |
+| 0.25 | 1.028 | 100% | 0.655 |
+| 0.5 | 0.988 | 100% | 0.597 |
+| 1.0 | 1.004 | 100% | 0.644 |
+
+**Read all three together, because each one alone is misleading.**
+
+The **distance ratio** is the mean distance the answers sit from their queries over the mean distance
+the true neighbours sit. It is a ratio of means rather than a mean of ratios: a barely-displaced
+query has its own frame at a distance near zero, and dividing by that reports a number in the
+hundreds for a model that is a centimetre out. The plan's bar was 1.15 and all three clear it. But
+0.988 is *below one*, and that is not a better search — it means the answer is not a database state
+at all but a point between several, which can sit nearer the query than any real frame does.
+
+The **top-1% recall** saturates at 100% here, and it does so for a barely-trained projector too: a
+400-iteration model scored 100% at all three displacements. On a database this size the nearest one
+percent is a thousand frames, and once a query is displaced any real distance the frames are all
+about equally far away. It passes its 80% bar and it is not evidence of anything.
+
+The **latent error** is the number that discriminates, and it is the one the plan's criteria did not
+include. At 0.6 of the latent's own spread the projector's latent is further from the true
+neighbour's than ten frames of free-running stepper drift (0.369). Part of that is the measure
+over-penalising — a query does not determine a latent uniquely, and several latents decode to much
+the same pose given the same `X` — but it is the weakest number phase C has, and it is the one that
+would move with more motion in the database.
+
+### The full loop has to be free-run, and nothing else will do
+
+`MoSynth/Lmm/Report Full Loop Rollout` runs projector, stepper and decompressor together for 900
+frames — thirty seconds — with nothing reading the database. Every per-frame score the three
+networks produce stays plausible long after the loop as a whole has stopped producing motion, and a
+model that has quietly collapsed stands still with an excellent loss while it does.
+
+The controller is held still: each seed goes on asking for the trajectory its own frame asked for.
+That is a request a character can follow indefinitely, which a replayed one cannot be — Edinburgh's
+clips average about two seconds and this runs for thirty — and it is the harder ask, because nothing
+in it ever pulls a drifting state back towards the data.
+
+On Edinburgh, from 256 held-out states:
+
+| | measured | the seeds' own frames | ratio | bar |
+| --- | --- | --- | --- | --- |
+| speed | 1.009 m/s | 1.084 m/s | 0.93× | within 10% |
+| reach from the root | 0.928 m | 0.916 m | 1.01× | under 1.2× |
+| non-finite values | none | | | none |
+
+The projection is taken at **95%** of searches, which is worth knowing on its own: it says the loop
+is genuinely being driven by the projector rather than degenerating into a long stepper rollout that
+happens not to explode.
+
 ### The other check
 
 `MoSynth/Lmm/Check Training Agreement` is the other half, borrowed whole from PFNN: it compares
@@ -637,7 +814,17 @@ derives the one the rig is posed in.
 
 ## Known gaps
 
-- **The projector is not written.** `LmmStage` refuses `Full`.
+- **The projector's latent is its weak half.** It answers at 0.99–1.03× the true nearest
+  neighbour's distance, which is the search itself within measurement, but its *latent* sits about
+  0.6 of the latent spread from that neighbour's — further than ten frames of stepper drift. The
+  full loop survives thirty seconds regardless, so this is a quality ceiling rather than a
+  stability problem, and it is the same data limit phases A and B both ran into.
+- **The top-1% recall bar is not discriminating on this database.** It reads 100% for a trained
+  projector and 100% for a 400-iteration one alike. It is reported because it would catch a
+  projector answering from the wrong neighbourhood entirely, not because passing it means anything.
+- **The `Full` mode has not been benchmarked or driven in play mode at length.** It runs, and the
+  offline free-run says the loop holds together for thirty seconds; what has not been done is
+  watching a character on a spline under it beside the other two modes.
 - **Inference is PythonNET.** `com.unity.barracuda` 3.0.2 is still in the manifest but nothing
   consumes it, and it is deprecated on Unity 6. The ONNX-exportability constraint above exists so
   that a Sentis path can be added without redesigning the networks.

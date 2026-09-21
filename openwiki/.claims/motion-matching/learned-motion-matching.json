@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1c9a4fcefd32fcf515194a2b0caac97f0fc7d6c6a7fa564ff3a13cac2bed932d",
+  "pageVersion": "sha256:ab6366a49793913686c91e7c316a5905e7b0b077451e54602ef65f5ead84d761",
   "claims": [
     {
       "id": "claim_5ab2b837fa1646a0bae373cf9500313d",
@@ -22,11 +22,11 @@
       "evidence": [
         {
           "resource": "repo://Packages/manifest.json",
-          "version": "repo-file-v1:sha256:fe343b519674e5a41ed85837ca04842e8065549ec55eeeb5d3623984f692a452"
+          "version": "repo-file-v1:sha256:471141f895393deb65369fb3f89f71cbd8b7672530150f80e552c0f833768092"
         },
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
+          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
         }
       ]
     },
@@ -36,7 +36,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
         }
       ]
     },
@@ -46,7 +46,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:69ed6162405f4658bbaaf5f9bcf06e083214b6bc1916a1b79ba07144746975e2"
+          "version": "repo-file-v1:sha256:9cc64b4b31b2c5b8c23b5c08daffaee0f7eadd8384aecbdd0254c58e4d6aa00e"
         }
       ]
     },
@@ -84,11 +84,11 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
+          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:43ad4b8db4183aa17156369281f741ce62156fe48dc9ff4615a47d30691ac18e"
+          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
         }
       ]
     },
@@ -98,7 +98,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_io.py",
-          "version": "repo-file-v1:sha256:4d5290585e52175dd726ac5ab69ae24b74837997361d5829ec971f29b35dbc42"
+          "version": "repo-file-v1:sha256:68ef2b64e687afa3d65bd3d36d7f0efc3577d7f8121cac4fd0b07ec436e9e3e8"
         }
       ]
     },
@@ -108,7 +108,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
+          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
         },
         {
           "resource": "repo://Assets/Pfnn/PfnnStage.cs",
@@ -122,11 +122,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
         },
         {
           "resource": "repo://Python/lmm_model.py",
-          "version": "repo-file-v1:sha256:c909f429934b01955fca2357ce8aa6c466f6ae93d3b47f7da94116cd12eef11e"
+          "version": "repo-file-v1:sha256:9bd2f66ac5a901d7449b86fc25acb7f1018eda1cb85a4f6a49c3b19848f1f95a"
         }
       ]
     },
@@ -136,7 +136,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
+          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
         },
         {
           "resource": "repo://Python/lmm_fk.py",
@@ -150,11 +150,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
         },
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         }
       ]
     },
@@ -164,11 +164,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         },
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
         }
       ]
     },
@@ -178,7 +178,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         }
       ]
     },
@@ -188,7 +188,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
         }
       ]
     },
@@ -198,7 +198,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         }
       ]
     },
@@ -208,11 +208,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
         },
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:69ed6162405f4658bbaaf5f9bcf06e083214b6bc1916a1b79ba07144746975e2"
+          "version": "repo-file-v1:sha256:9cc64b4b31b2c5b8c23b5c08daffaee0f7eadd8384aecbdd0254c58e4d6aa00e"
         }
       ]
     },
@@ -222,11 +222,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         },
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:69ed6162405f4658bbaaf5f9bcf06e083214b6bc1916a1b79ba07144746975e2"
+          "version": "repo-file-v1:sha256:9cc64b4b31b2c5b8c23b5c08daffaee0f7eadd8384aecbdd0254c58e4d6aa00e"
         }
       ]
     },
@@ -236,7 +236,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         }
       ]
     },
@@ -246,11 +246,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         },
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
         }
       ]
     },
@@ -260,15 +260,15 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_model.py",
-          "version": "repo-file-v1:sha256:c909f429934b01955fca2357ce8aa6c466f6ae93d3b47f7da94116cd12eef11e"
+          "version": "repo-file-v1:sha256:9bd2f66ac5a901d7449b86fc25acb7f1018eda1cb85a4f6a49c3b19848f1f95a"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:43ad4b8db4183aa17156369281f741ce62156fe48dc9ff4615a47d30691ac18e"
+          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
         },
         {
           "resource": "repo://Python/lmm_io.py",
-          "version": "repo-file-v1:sha256:4d5290585e52175dd726ac5ab69ae24b74837997361d5829ec971f29b35dbc42"
+          "version": "repo-file-v1:sha256:68ef2b64e687afa3d65bd3d36d7f0efc3577d7f8121cac4fd0b07ec436e9e3e8"
         }
       ]
     },
@@ -278,11 +278,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         },
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:69ed6162405f4658bbaaf5f9bcf06e083214b6bc1916a1b79ba07144746975e2"
+          "version": "repo-file-v1:sha256:9cc64b4b31b2c5b8c23b5c08daffaee0f7eadd8384aecbdd0254c58e4d6aa00e"
         }
       ]
     },
@@ -292,29 +292,29 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
+          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:43ad4b8db4183aa17156369281f741ce62156fe48dc9ff4615a47d30691ac18e"
+          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
         }
       ]
     },
     {
       "id": "claim_1017b9e3078d4596b372527585aebe42",
-      "statement": "refit_stepper fits only the stepper against a checkpoint whose autoencoder is already trained, reading the .mmfeatures alone and taking the frame mask from the checkpoint's latent_valid rather than re-deriving it from the pose database.",
+      "statement": "refit_stepper and refit_projector each fit one network against a checkpoint whose autoencoder is already trained, reading the .mmfeatures alone and taking the frame mask from the checkpoint's latent_valid rather than re-deriving it from the pose database.",
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
         },
         {
           "resource": "repo://Python/lmm_io.py",
-          "version": "repo-file-v1:sha256:4d5290585e52175dd726ac5ab69ae24b74837997361d5829ec971f29b35dbc42"
+          "version": "repo-file-v1:sha256:68ef2b64e687afa3d65bd3d36d7f0efc3577d7f8121cac4fd0b07ec436e9e3e8"
         },
         {
           "resource": "repo://Assets/Lmm/Editor/LmmTraining.cs",
-          "version": "repo-file-v1:sha256:a2f465ff8ffa52a3d1128fd8689f4eee7266b070b75cdb17c09fc9d929d25990"
+          "version": "repo-file-v1:sha256:2a2070cd7c3e0c62e2d102eac36465593ac6deb8d5cefae95a62092ecddfddb2"
         }
       ]
     },
@@ -324,17 +324,143 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:43ad4b8db4183aa17156369281f741ce62156fe48dc9ff4615a47d30691ac18e"
+          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
         },
         {
           "resource": "repo://Assets/Lmm/Editor/LmmAgreementCheck.cs",
-          "version": "repo-file-v1:sha256:f970783590baf34cfcb150878e98a55251a7c6c02f23baa8ff5095f12e376eaf"
+          "version": "repo-file-v1:sha256:3e87c4b734904b8760947055b1a4afb81e292cd8ba12299d870d211b803d3bb2"
+        }
+      ]
+    },
+    {
+      "id": "claim_b4e4e9585752415cb39ab14251f17ea0",
+      "statement": "The projector is fitted against the true weighted nearest neighbour of the displaced query rather than the frame the displacement was applied to, which is what makes it approximate the search instead of a denoiser that returns the character to where it already was.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+        },
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+        }
+      ]
+    },
+    {
+      "id": "claim_6ff9cec2dcd140f2b3ce889c08b93e29",
+      "statement": "The nearest neighbour the projector is trained towards is found under the authored feature weights carried in the checkpoint, so it approximates the metric the stage actually searches with rather than a uniform one nobody runs.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+        },
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+        }
+      ]
+    },
+    {
+      "id": "claim_dd60cb54d117470e9c54bed5a43e11ad",
+      "statement": "The projector's loss carries a distance term scoring how far its answer sits from the query against how far the true nearest neighbour sits, because that scalar is exactly what the stage's accept rule compares and a systematic error in it would bend every accept decision the same way.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+        },
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+        }
+      ]
+    },
+    {
+      "id": "claim_86cf1336cc114030b50a666a1045bf4f",
+      "statement": "Projector training displaces each query by one scale for the whole vector - each feature's own spread plus a floor of one, scaled per sample by a uniformly drawn sigma - rather than by a separate narrower scale for the pose half, because the stepper's measured drift between searches already falls inside the range the single scale covers.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+        },
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+        }
+      ]
+    },
+    {
+      "id": "claim_3eaa1a90a2c842849ad0ed29b74b7dce",
+      "statement": "The projector's answer is denormalised against the x and z statistics the checkpoint already carries rather than against statistics of its own, because it regresses the state itself and a second set of numbers could fall out of step with the first.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_runtime.py",
+          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+        },
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+        }
+      ]
+    },
+    {
+      "id": "claim_33a25e33ce0d4a48b4aca0903c2a3269",
+      "statement": "In the Full mode LmmStage asks the projector for a candidate state on search ticks only and decides whether to take it in C#, under the same weights and the same squared distance the database search is given, so one accept rule covers all three modes.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Lmm/LmmStage.cs",
+          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+        },
+        {
+          "resource": "repo://Python/lmm_runtime.py",
+          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+        }
+      ]
+    },
+    {
+      "id": "claim_f2f6520bc6ba49c6881726a6d1ec766b",
+      "statement": "The Full mode never initialises the motion matching search, so no acceleration structure is built over the database, but it still loads the MotionMatchingData because control inputs read its trajectory horizons and constructing a FeatureSet loads the pose database beside the features.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Lmm/LmmStage.cs",
+          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+        },
+        {
+          "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionSynthesisComponentExtensions.cs",
+          "version": "repo-file-v1:sha256:99aa0a1cb1051320b6549e9d6112e5876dd1e2347ca2d2446dc4accff7b6c429"
+        }
+      ]
+    },
+    {
+      "id": "claim_d7e259b9c8f041628537cdc15b7afb57",
+      "statement": "A checkpoint may not carry a projector without a stepper, because the Full mode runs both - the projector answers a search and the stepper carries that answer to the next one - and the writer refuses the combination rather than leaving it to callers.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_io.py",
+          "version": "repo-file-v1:sha256:68ef2b64e687afa3d65bd3d36d7f0efc3577d7f8121cac4fd0b07ec436e9e3e8"
+        },
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+        }
+      ]
+    },
+    {
+      "id": "claim_4dbfee7e01394e5880d86cbf403ff70a",
+      "statement": "A projector's distance ratio against the search can fall below one, which indicates an answer that is not a database state at all but a point between several, so the recall report reports the latent error beside it as the number that catches an answer off the manifold.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+        },
+        {
+          "resource": "repo://Python/lmm_runtime.py",
+          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-09-20T12:40:57.561Z"
+    "at": "2026-09-21T14:54:36.568Z"
   }
 }

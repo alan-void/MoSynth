@@ -33,9 +33,6 @@ sources:
   - id: openwiki-source-5a2c119cb47a6d7fc76496cc
     resource: repo://Assets/MotionMatching/Runtime/CharacterController/SplineControlInput.cs
 generated: {by: "claude-code", at: "2026-09-07T19:31:22.105Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-07T19:41:02.694Z
 ---
 
 # Control inputs

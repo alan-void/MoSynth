@@ -158,6 +158,17 @@ class StagesTrainedTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._save(projector_weights=weights, projector_biases=biases)
 
+    def test_a_projector_joins_the_stepper_it_runs_beside(self):
+        stepper = layers([FEATURE_SIZE + LATENT_SIZE, 8, FEATURE_SIZE + LATENT_SIZE])
+        projector = layers([FEATURE_SIZE, 8, FEATURE_SIZE + LATENT_SIZE])
+        loaded = self._save(stepper_weights=stepper[0], stepper_biases=stepper[1],
+                            xz_rate_mean=np.zeros(FEATURE_SIZE + LATENT_SIZE, dtype=np.float32),
+                            xz_rate_std=np.ones(FEATURE_SIZE + LATENT_SIZE, dtype=np.float32),
+                            projector_weights=projector[0], projector_biases=projector[1])
+
+        self.assertEqual(loaded.stages_trained, list(lmm_io.STAGES))
+        self.assertEqual(loaded.projector_weights[0].shape, (8, FEATURE_SIZE))
+
     def test_retraining_the_autoencoder_drops_the_later_stages(self):
         weights, biases = layers([FEATURE_SIZE + LATENT_SIZE, 8, FEATURE_SIZE + LATENT_SIZE])
         self._save(stepper_weights=weights, stepper_biases=biases)
@@ -224,9 +235,41 @@ class CheckpointArgumentTests(unittest.TestCase):
         self.assertEqual(refitted.stepper_losses.shape, (1, 6))
         self.assertEqual(refitted.stepper_loss_columns[-1], 'validation')
 
+    def test_adding_a_projector_keeps_the_stepper_it_runs_beside(self):
+        stepper = layers([FEATURE_SIZE + LATENT_SIZE, 8, FEATURE_SIZE + LATENT_SIZE])
+        projector = layers([FEATURE_SIZE, 8, FEATURE_SIZE + LATENT_SIZE])
+
+        arguments = lmm_io.checkpoint_arguments(self.loaded)
+        arguments.update(
+            stepper_weights=stepper[0], stepper_biases=stepper[1],
+            xz_rate_mean=np.zeros(FEATURE_SIZE + LATENT_SIZE, dtype=np.float32),
+            xz_rate_std=np.ones(FEATURE_SIZE + LATENT_SIZE, dtype=np.float32),
+            stepper_losses=[(0.2, 0.3, 0.1, 0.1, 0.7, 0.8)],
+            stepper_loss_columns=('features', 'latent', 'feature_rate', 'latent_rate',
+                                  'total', 'validation'))
+        lmm_io.save_checkpoint(self.path, **arguments)
+
+        # Phase C's refit: read back what phase B wrote and add one network to it.
+        arguments = lmm_io.checkpoint_arguments(lmm_io.load_checkpoint(self.path))
+        arguments.update(projector_weights=projector[0], projector_biases=projector[1],
+                         projector_losses=[(0.1, 0.4, 0.05, 0.55, 0.6)],
+                         projector_loss_columns=('features', 'latent', 'distance',
+                                                 'total', 'validation'))
+        lmm_io.save_checkpoint(self.path, **arguments)
+        refitted = lmm_io.load_checkpoint(self.path)
+
+        self.assertEqual(refitted.stages_trained, list(lmm_io.STAGES))
+        self.assertEqual(len(refitted.stepper_weights), 2)
+        self.assertIsNotNone(refitted.xz_rate_std)
+        self.assertEqual(refitted.stepper_losses.shape, (1, 6))
+        self.assertEqual(refitted.projector_losses.shape, (1, 5))
+        self.assertEqual(refitted.projector_loss_columns[2], 'distance')
+
     def test_an_autoencoder_only_checkpoint_carries_no_stepper_curve(self):
         self.assertIsNone(self.loaded.stepper_losses)
         self.assertEqual(self.loaded.stepper_loss_columns, [])
+        self.assertIsNone(self.loaded.projector_losses)
+        self.assertEqual(self.loaded.projector_loss_columns, [])
 
 
 class LoadFailureTests(unittest.TestCase):

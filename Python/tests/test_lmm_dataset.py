@@ -16,6 +16,7 @@ import sys
 import unittest
 
 import numpy as np
+import torch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -318,6 +319,148 @@ class GroupNormalizationTests(unittest.TestCase):
         _, std = lmm_dataset.group_normalization(constant, self.layout)
 
         np.testing.assert_array_equal(std, 1.0)
+
+
+
+class ProjectorTargetTests(unittest.TestCase):
+    """
+    The lookup the projector is fitted to approximate.
+
+    Worth testing directly rather than through a fit, because every way of getting it wrong
+    produces a network that trains perfectly well and does the wrong job: a target taken from the
+    frame the noise was added to fits a denoiser, and a target found under a uniform metric fits a
+    search nobody runs.
+    """
+
+    def setUp(self):
+        rng = np.random.default_rng(3)
+        self.candidates = torch.from_numpy(
+            rng.standard_normal((64, 5)).astype(np.float32))
+        self.queries = torch.from_numpy(rng.standard_normal((9, 5)).astype(np.float32))
+
+    def brute_force(self, weights):
+        """The same answer written the obvious way, over every pair."""
+        difference = self.queries[:, None, :] - self.candidates[None, :, :]
+        return ((difference ** 2) * weights).sum(dim=2).argmin(dim=1)
+
+    def test_it_finds_the_same_neighbour_a_pairwise_search_does(self):
+        weights = torch.ones(5)
+        norms = lmm_dataset.candidate_norms(self.candidates, weights)
+
+        found = lmm_dataset.nearest_neighbours(self.queries, self.candidates, weights, norms)
+
+        np.testing.assert_array_equal(found.numpy(), self.brute_force(weights).numpy())
+
+    def test_the_authored_weights_decide_which_neighbour_is_nearest(self):
+        weights = torch.tensor([9.0, 1.0, 1.0, 1.0, 0.0])
+        norms = lmm_dataset.candidate_norms(self.candidates, weights)
+
+        found = lmm_dataset.nearest_neighbours(self.queries, self.candidates, weights, norms)
+
+        np.testing.assert_array_equal(found.numpy(), self.brute_force(weights).numpy())
+        # Not the same answer as an unweighted search, or the weights would not be doing anything
+        # and a projector fitted under them would be approximating the wrong lookup.
+        self.assertFalse(np.array_equal(found.numpy(), self.brute_force(torch.ones(5)).numpy()))
+
+    def test_chunking_the_database_does_not_change_the_answer(self):
+        weights = torch.ones(5)
+        norms = lmm_dataset.candidate_norms(self.candidates, weights)
+
+        whole = lmm_dataset.nearest_neighbours(self.queries, self.candidates, weights, norms,
+                                               chunk=1024)
+        piecewise = lmm_dataset.nearest_neighbours(self.queries, self.candidates, weights, norms,
+                                                   chunk=7)
+
+        np.testing.assert_array_equal(whole.numpy(), piecewise.numpy())
+
+    def test_the_distance_is_the_weighted_euclidean_one(self):
+        a = torch.tensor([[1.0, 0.0, 0.0, 0.0, 0.0]])
+        b = torch.tensor([[0.0, 2.0, 0.0, 0.0, 0.0]])
+        weights = torch.tensor([4.0, 1.0, 1.0, 1.0, 1.0])
+
+        distance = lmm_dataset.weighted_distance(a, b, weights)
+
+        self.assertAlmostEqual(float(distance[0]), np.sqrt(4.0 * 1.0 + 1.0 * 4.0), places=5)
+
+
+class ProjectorNoiseTests(unittest.TestCase):
+    def test_each_feature_is_displaced_by_its_own_spread_plus_the_floor(self):
+        x = np.zeros((8, 3), dtype=np.float32)
+        x[:, 0] = [0.0, 2.0] * 4          # spread 1
+        x[:, 1] = 5.0                     # never varies
+
+        scale = lmm_dataset.projector_noise_scale(x, np.ones(8, dtype=bool))
+
+        self.assertAlmostEqual(float(scale[0]), 1.0 + lmm_dataset.PROJECTOR_NOISE_FLOOR, places=5)
+        self.assertAlmostEqual(float(scale[1]), lmm_dataset.PROJECTOR_NOISE_FLOOR, places=5)
+
+    def test_frames_with_no_latent_do_not_widen_it(self):
+        # Unity writes an invalid feature vector as zeros, and those rows are not states the
+        # projector may answer with, so letting them set the noise scale would displace every
+        # query by the distance to a frame that does not exist.
+        x = np.zeros((6, 1), dtype=np.float32)
+        x[:4, 0] = 1.0
+        x[4:, 0] = 1000.0
+
+        exists = np.array([True] * 4 + [False] * 2)
+
+        self.assertAlmostEqual(float(lmm_dataset.projector_noise_scale(x, exists)[0]),
+                               lmm_dataset.PROJECTOR_NOISE_FLOOR, places=4)
+
+
+class RecallTests(unittest.TestCase):
+    def setUp(self):
+        rng = np.random.default_rng(5)
+        self.candidates = torch.from_numpy(rng.standard_normal((200, 4)).astype(np.float32))
+        self.latents = torch.from_numpy(rng.standard_normal((200, 3)).astype(np.float32))
+        self.queries = torch.from_numpy(rng.standard_normal((16, 4)).astype(np.float32))
+        self.weights = torch.ones(4)
+        self.norms = lmm_dataset.candidate_norms(self.candidates, self.weights)
+
+    def recall(self, answered_x, answered_z):
+        return lmm_dataset.recall_against_search(
+            self.queries, answered_x, answered_z, self.candidates, self.latents,
+            self.weights, self.norms, z_scale=1.0)
+
+    def test_answering_with_the_true_neighbour_scores_a_perfect_search(self):
+        nearest = lmm_dataset.nearest_neighbours(
+            self.queries, self.candidates, self.weights, self.norms)
+
+        measured = self.recall(self.candidates[nearest], self.latents[nearest])
+
+        self.assertAlmostEqual(measured['distance_ratio'], 1.0, places=4)
+        self.assertAlmostEqual(measured['top_percent_recall'], 1.0, places=6)
+        self.assertAlmostEqual(measured['latent_error'], 0.0, places=5)
+
+    def test_answering_from_further_away_costs_ratio_and_recall(self):
+        nearest = lmm_dataset.nearest_neighbours(
+            self.queries, self.candidates, self.weights, self.norms)
+
+        measured = self.recall(self.candidates[nearest] + 5.0, self.latents[nearest])
+
+        self.assertGreater(measured['distance_ratio'], 1.0)
+        self.assertLess(measured['top_percent_recall'], 1.0)
+
+    def test_an_answer_that_is_no_database_state_at_all_reads_nearer_than_the_search(self):
+        # The caveat the ratio carries: a network regressing towards the middle of several frames
+        # can land nearer the query than any real frame does, and scores below 1.0 for it. Below 1
+        # is not a better search, it is an answer off the manifold -- which is why the latent error
+        # is reported beside it rather than the ratio being read alone.
+        measured = self.recall(self.queries, torch.zeros(16, 3))
+
+        self.assertLess(measured['distance_ratio'], 1.0)
+
+    def test_the_right_place_with_the_wrong_latent_is_only_visible_in_the_latent_error(self):
+        # The failure the two feature numbers cannot see: a state that is where the search would
+        # have looked, carrying a latent from somewhere else, which the decompressor has never been
+        # asked to pair with it.
+        nearest = lmm_dataset.nearest_neighbours(
+            self.queries, self.candidates, self.weights, self.norms)
+
+        measured = self.recall(self.candidates[nearest], self.latents[nearest] + 2.0)
+
+        self.assertAlmostEqual(measured['distance_ratio'], 1.0, places=4)
+        self.assertAlmostEqual(measured['latent_error'], 2.0, places=4)
 
 
 class FeatureWeightTests(unittest.TestCase):

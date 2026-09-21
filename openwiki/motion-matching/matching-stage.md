@@ -13,9 +13,6 @@ sources:
   - id: openwiki-source-f84c8bceda0edfaac6926af8
     resource: repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs
 generated: {by: "claude-code", at: "2026-09-07T19:31:22.105Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-07T19:31:22.105Z
 ---
 
 # The motion matching stage

@@ -80,6 +80,61 @@ public static class LmmAgreementCheck
     });
 
     /// <summary>
+    /// How the projector's answers compare with the nearest-neighbour search they replace.
+    /// </summary>
+    /// <remarks>
+    /// The one report the training loss cannot stand in for: that loss falls steadily whether or
+    /// not the answers are the ones the search would have given. Reported at three displacements
+    /// rather than one average, because a query that barely misses and a query nothing in the
+    /// database answers are different questions and the average of them is neither.
+    /// </remarks>
+    [MenuItem("MoSynth/Lmm/Report Projector Recall", priority = 303)]
+    public static void CheckProjectorRecall() => Report((runtime, policy, set, config) =>
+    {
+        if (!(bool)policy.has_projector())
+        {
+            Debug.LogError($"[LMM] '{config.name}' carries no projector, so there is nothing to " +
+                           "compare against the search. Press Fit Projector Only on the config.",
+                config);
+            return;
+        }
+
+        runtime.projector_report(policy, set, ReportQueries, config.validationFraction);
+    });
+
+    /// <summary>
+    /// Runs all three networks together, free of the database, for thirty seconds.
+    /// </summary>
+    /// <remarks>
+    /// The only honest test of the <c>Full</c> mode. Every per-frame score the three networks
+    /// produce stays plausible long after the loop as a whole has stopped producing motion, and a
+    /// model that has quietly collapsed stands still reporting an excellent loss while it does.
+    /// </remarks>
+    [MenuItem("MoSynth/Lmm/Report Full Loop Rollout", priority = 304)]
+    public static void CheckFullRollout() => Report((runtime, policy, set, config) =>
+    {
+        if (!(bool)policy.has_projector())
+        {
+            Debug.LogError($"[LMM] '{config.name}' carries no projector, so there is no full loop " +
+                           "to run. Press Fit Projector Only on the config.", config);
+            return;
+        }
+
+        runtime.full_rollout_report(policy, set, FullLoopSeeds, FullLoopFrames,
+            config.validationFraction);
+    });
+
+    /// <summary>Queries a recall report displaces and answers, drawn from the held-out tail.</summary>
+    private const int ReportQueries = 2048;
+
+    /// <summary>
+    /// States the full loop runs from, and how long each runs for. 900 frames is thirty seconds at
+    /// the database's rate — long enough that a loop which is going to wander has wandered.
+    /// </summary>
+    private const int FullLoopSeeds = 256;
+    private const int FullLoopFrames = 900;
+
+    /// <summary>
     /// States a drift report runs from. Each one is rolled the full horizon, so this is thirty
     /// forward passes apiece — enough to be representative, quick enough for a menu item.
     /// </summary>
@@ -130,6 +185,8 @@ public static class LmmAgreementCheck
     [MenuItem("MoSynth/Lmm/Check Training Agreement", validate = true)]
     [MenuItem("MoSynth/Lmm/Report Reconstruction Error", validate = true)]
     [MenuItem("MoSynth/Lmm/Report Stepper Drift", validate = true)]
+    [MenuItem("MoSynth/Lmm/Report Projector Recall", validate = true)]
+    [MenuItem("MoSynth/Lmm/Report Full Loop Rollout", validate = true)]
     private static bool CanRun() => !EditorApplication.isPlayingOrWillChangePlaymode;
 
     /// <summary>Resolves the config to act on, then runs <paramref name="action"/> safely.</summary>

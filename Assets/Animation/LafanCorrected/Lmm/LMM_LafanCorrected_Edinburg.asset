@@ -25,9 +25,21 @@ MonoBehaviour:
   - 1
   - 1
   latentSize: 32
-  latentVelocityWeight: 0.01
   compressorHiddenUnits: 0
   decompressorHiddenUnits: 0
+  stepperHiddenUnits: 0
+  projectorHiddenUnits: 0
+  trainStepper: 1
+  stepperWindow: 20
+  stepperIterations: 30000
+  stepperPatience: 5
+  stepperMaxSeconds: 0
+  trainProjector: 1
+  projectorIterations: 30000
+  projectorPatience: 5
+  projectorNoise: 1
+  projectorMaxSeconds: 0
+  latentVelocityWeight: 0.01
   iterations: 200000
   batchSize: 256
   learningRate: 0.001

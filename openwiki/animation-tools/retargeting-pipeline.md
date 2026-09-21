@@ -23,9 +23,6 @@ sources:
   - id: openwiki-source-0077e64b8f7c29bf1001e97a
     resource: repo://Tools/Retargeting/run_batch_all.py
 generated: {by: "claude-code", at: "2026-09-07T21:17:41.812Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-07T21:17:41.812Z
 ---
 
 # Retargeting BVH onto the shared target rig

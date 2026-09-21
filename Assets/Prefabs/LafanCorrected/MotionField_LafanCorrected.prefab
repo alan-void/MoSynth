@@ -65,7 +65,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1474767785090834262}
   m_Layer: 0
-  m_Name: MSC_MF_PythonNet
+  m_Name: MotionField_LafanCorrected
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

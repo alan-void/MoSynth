@@ -26,7 +26,7 @@ Standalone, to judge a checkpoint before Unity is involved::
 
     python lmm_runtime.py <checkpoint>.lmm.npz \\
         --database ../Assets/StreamingAssets/MMDatabases/MM_LafanCorrected \\
-        --name MM_LafanCorrected --report
+        --name MM_LafanCorrected --report --rollout --project --full-rollout
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ import lmm_dataset
 import lmm_fk
 import lmm_io
 import neural_packing
-from lmm_model import Decompressor, Stepper, resolve_device
+from lmm_model import Decompressor, Projector, Stepper, resolve_device
 
 # Frames scored per forward pass by the offline report. Nothing runtime-critical depends on it.
 REPORT_BATCH = 4096
@@ -88,9 +88,21 @@ class LmmPolicy:
         self._y_std = checkpoint.y_std
         self._latents = checkpoint.latents
 
+        # The two halves of the state, concatenated once: what the phase C projector's answer is
+        # denormalised against. It regresses the state itself, so these are the statistics the
+        # checkpoint already carries rather than a second set to keep in step with the first.
+        self._state_mean = torch.from_numpy(
+            np.concatenate([checkpoint.x_mean, checkpoint.z_mean])).to(self.device)
+        self._state_std = torch.from_numpy(
+            np.concatenate([checkpoint.x_std, checkpoint.z_std])).to(self.device)
+
         self.stepper = None
         if checkpoint.has_stage(lmm_io.STAGE_STEPPER):
             self._load_stepper(checkpoint)
+
+        self.projector = None
+        if checkpoint.has_stage(lmm_io.STAGE_PROJECTOR):
+            self._load_projector(checkpoint)
 
     def _load_stepper(self, checkpoint) -> None:
         """
@@ -113,6 +125,16 @@ class LmmPolicy:
 
         self._rate_mean = torch.from_numpy(checkpoint.xz_rate_mean).to(self.device)
         self._rate_std = torch.from_numpy(checkpoint.xz_rate_std).to(self.device)
+
+    def _load_projector(self, checkpoint) -> None:
+        """The phase C network, which answers a query with a state instead of finding one."""
+        self.projector = Projector(
+            checkpoint.feature_size, checkpoint.latent_size,
+            hidden_units=checkpoint.projector_weights[0].shape[0],
+            hidden_layers=len(checkpoint.projector_weights) - 1).to(self.device)
+        self.projector.load_parameters(
+            checkpoint.projector_weights, checkpoint.projector_biases)
+        self.projector.eval()
 
     # Description of the packing, for the stage to validate against its own database --------------
 
@@ -269,6 +291,59 @@ class LmmPolicy:
     def has_stepper(self) -> bool:
         """Whether this checkpoint can advance a state; the phase B modes refuse one that cannot."""
         return self.stepper is not None
+
+    def has_projector(self) -> bool:
+        """Whether this checkpoint can answer a query without searching. The ``Full`` mode's test."""
+        return self.projector is not None
+
+    def project(self, features):
+        """
+        Answer a query with a state the database could have held -- the phase C search tick.
+
+        Kept separate from :meth:`tick` rather than folded into it, because it runs on search ticks
+        only and because **the accept decision stays in C#**, where the authored feature weights
+        live and where the classic matcher makes the same decision about the same numbers. Handing
+        back a verdict instead of a candidate would move that comparison to the side of the
+        boundary that cannot be held to the matcher's own implementation of it.
+
+        :param features: the query, as ``MotionMatchingStage.FillQueryVector`` produces it.
+        :return: ``(features, latent)`` -- the state to take if the caller decides it is better
+            than the one it is holding.
+        """
+        if self.projector is None:
+            raise ValueError('this checkpoint has no projector, so there is nothing to answer a '
+                             'query with. Train one, or run a mode that searches.')
+
+        packed = np.asarray(features, dtype=np.float32).ravel()
+        if packed.size != self.checkpoint.feature_size:
+            raise ValueError(f'got a {packed.size}-float query but the checkpoint expects '
+                             f'{self.checkpoint.feature_size}')
+
+        with torch.no_grad():
+            query = torch.from_numpy(packed).to(self.device).unsqueeze(0)
+            x, z = self._answer(query)
+
+        return (x[0].cpu().numpy().astype(np.float32).tolist(),
+                z[0].cpu().numpy().astype(np.float32).tolist())
+
+    def project_batch(self, features: np.ndarray):
+        """Answer many queries at once. For the offline reports; :meth:`project` is the tick path."""
+        if self.projector is None:
+            raise ValueError('this checkpoint has no projector')
+
+        with torch.no_grad():
+            query = torch.from_numpy(
+                np.ascontiguousarray(features, dtype=np.float32)).to(self.device)
+            x, z = self._answer(query)
+
+        return x.cpu().numpy(), z.cpu().numpy()
+
+    def _answer(self, query):
+        """The projector's reply, denormalised. Caller holds ``torch.no_grad()``."""
+        size = self.checkpoint.feature_size
+        x, z = self.projector.project(query)
+        return (x * self._state_std[:size] + self._state_mean[:size],
+                z * self._state_std[size:] + self._state_mean[size:])
 
     def latent(self, frame: int) -> list:
         """One baked latent, for diagnostics and for seeding the phase B stepper."""
@@ -524,6 +599,202 @@ def rollout_report(policy: LmmPolicy, training_set, seeds: int = 512,
     return summary
 
 
+def projector_report(policy: LmmPolicy, training_set, queries: int = 2048,
+                     holdout: float = 0.1, sigmas=(0.25, 0.5, 1.0), log=print) -> dict:
+    """
+    Score the projector against the search it replaces, on queries no frame answers exactly.
+
+    This is the honest test of phase C, and the reason it has to be its own report: the training
+    loss falls steadily whether or not the answers are the ones the search would have given. What
+    matters is the comparison against the lookup itself -- see
+    :func:`lmm_dataset.recall_against_search` for what each number means.
+
+    Measured at several displacements rather than one averaged draw, because the two ends behave
+    differently and an average over them hides it. At a small displacement the true neighbour is
+    nearly the frame the query came from and a near miss is cheap; at a large one the query is
+    somewhere the database barely reaches, which is exactly where a controller asking for the
+    impossible puts it.
+
+    :param queries: how many held-out frames to displace and answer.
+    :param holdout: draw only from the last fraction of the latent-carrying frames -- the tail the
+        fit validated on. 0 draws from the whole database and reports memorisation.
+    :param sigmas: the displacements to report at, in units of
+        :func:`lmm_dataset.projector_noise_scale`.
+    """
+    if not policy.has_projector():
+        raise ValueError('this checkpoint has no projector to score. Train one with '
+                         'lmm_trainer.py --projector-only.')
+
+    spec = lmm_dataset.build_spec(training_set, _excluded_for(policy, training_set),
+                                  policy.latent_size())
+    x, _, _, latent_exists = lmm_dataset.build_vectors(training_set, spec)
+    latents = policy.checkpoint.latents
+    _, z_scale = lmm_dataset.state_scales(x, latents, latent_exists)
+
+    frames = np.flatnonzero(latent_exists).astype(np.int64)
+    if frames.size == 0:
+        raise ValueError('no frame of this database has a latent, so there is nothing to project')
+
+    device = policy.device
+    candidates = torch.from_numpy(x[frames]).to(device)
+    candidate_latents = torch.from_numpy(latents[frames]).to(device)
+    weights = torch.from_numpy(policy.checkpoint.feature_weights).to(device)
+    norms = lmm_dataset.candidate_norms(candidates, weights)
+    noise_scale = torch.from_numpy(
+        lmm_dataset.projector_noise_scale(x, latent_exists)).to(device)
+
+    drawn = frames[int(round(frames.size * (1.0 - holdout))):] if holdout else frames
+    drawn = drawn[np.linspace(0, drawn.size - 1, min(queries, drawn.size)).astype(np.int64)]
+    seeds = torch.from_numpy(x[drawn]).to(device)
+
+    generator = torch.Generator(device='cpu').manual_seed(11)
+    summary = {'projector_queries_scored': int(drawn.size), 'held_out': bool(holdout)}
+
+    for sigma in sigmas:
+        noise = torch.randn(seeds.shape, generator=generator).to(device)
+        displaced = seeds + sigma * noise_scale * noise
+
+        answered_x, answered_z = policy.project_batch(displaced.cpu().numpy())
+        recall = lmm_dataset.recall_against_search(
+            displaced, torch.from_numpy(answered_x).to(device),
+            torch.from_numpy(answered_z).to(device),
+            candidates, candidate_latents, weights, norms, z_scale)
+
+        for key, value in recall.items():
+            summary[f'{key}_{sigma:g}'] = value
+
+    where = 'held-out' if holdout else 'all'
+    log(f"[LMM] projector against the search it replaces, over "
+        f"{summary['projector_queries_scored']} {where} queries:")
+    for sigma in sigmas:
+        log(f"[LMM]   displaced {sigma:>4g}: answers from "
+            f"{summary[f'distance_ratio_{sigma:g}']:.3f}x the true nearest neighbour's distance, "
+            f"inside the nearest 1% {summary[f'top_percent_recall_{sigma:g}'] * 100:.0f}% of the "
+            f"time, latent {summary[f'latent_error_{sigma:g}']:.3f} of its spread out")
+    return summary
+
+
+def full_rollout_report(policy: LmmPolicy, training_set, seeds: int = 256, frames: int = 900,
+                        holdout: float = 0.1, search_interval: int = 10,
+                        acceptance_ratio: float = 0.95, log=print) -> dict:
+    """
+    Run the whole method free of the database for thirty seconds and see whether it survives.
+
+    Projector, stepper and decompressor together, in the loop ``LmmStage`` runs in its ``Full``
+    mode: every ``search_interval`` frames the query is answered by the projector and taken only if
+    it is nearer than the state already held, and in between the stepper carries that state
+    forward. Nothing reads the database. **This is the only honest test of phase C**, because every
+    per-frame score the three networks produce stays plausible long after the loop as a whole has
+    stopped producing motion.
+
+    The controller is held still: each seed goes on asking for the trajectory its own frame asked
+    for. That is a control signal a character can follow indefinitely, which a replayed one cannot
+    be -- the clips here average two seconds and this runs for thirty -- and it is the harder ask,
+    because nothing in it ever pulls a drifting state back towards the data.
+
+    Three things are measured against the seeds' own frames: the speed the character travels at,
+    how far its joints reach from its root, and whether any of it stopped being finite. A model
+    that has quietly collapsed stands still with its arms at its sides, and reports an excellent
+    per-frame loss while doing it.
+
+    :param seeds: states to run from, evenly spread over the scored region.
+    :param frames: database frames to run for; 900 is thirty seconds at 30 Hz.
+    :param search_interval: frames between projections. Ten is the stage's default cadence.
+    :param acceptance_ratio: a projection is taken when it is this much nearer than the held state,
+        matching ``LmmStage.acceptanceRatio``.
+    """
+    if not policy.has_projector():
+        raise ValueError('this checkpoint has no projector, so there is no full loop to run')
+    if not policy.has_stepper():
+        raise ValueError('this checkpoint has no stepper, so a projected state cannot be carried')
+
+    spec = lmm_dataset.build_spec(training_set, _excluded_for(policy, training_set),
+                                  policy.latent_size())
+    x, _, q, latent_exists = lmm_dataset.build_vectors(training_set, spec)
+    latents = policy.checkpoint.latents
+    pose_offset = policy.checkpoint.pose_offset
+    weights = policy.checkpoint.feature_weights
+
+    eligible = np.flatnonzero(latent_exists).astype(np.int64)
+    if holdout:
+        eligible = eligible[int(round(eligible.size * (1.0 - holdout))):]
+    if eligible.size == 0:
+        raise ValueError('no held-out frame carries a latent to start from')
+
+    starts = eligible[np.linspace(0, eligible.size - 1, min(seeds, eligible.size)).astype(np.int64)]
+    state_x, state_z = x[starts].copy(), latents[starts].copy()
+
+    # Held for the whole run: the controller asking for what it asked for at the seed frame.
+    request = x[starts][:, :pose_offset].copy()
+
+    pose_layout, character_layout = spec.pose_layout(), spec.character_layout()
+    offsets = torch.from_numpy(spec.rest_offsets)
+    hierarchy = lmm_fk.Hierarchy(spec.parents)
+
+    speeds, extents = [], []
+    searches = accepted = 0
+
+    for step in range(frames):
+        if step and step % search_interval == 0:
+            query = np.concatenate([request, state_x[:, pose_offset:]], axis=1)
+            candidate_x, candidate_z = policy.project_batch(query)
+
+            # The same comparison the stage makes, in the same squared-distance metric: take the
+            # answer only when it is enough nearer than what is already held.
+            held = (((query - state_x) ** 2) * weights).sum(axis=1)
+            offered = (((query - candidate_x) ** 2) * weights).sum(axis=1)
+            take = offered < held * acceptance_ratio
+
+            state_x = np.where(take[:, None], candidate_x, state_x)
+            state_z = np.where(take[:, None], candidate_z, state_z)
+            searches += take.size
+            accepted += int(take.sum())
+
+        state_x, state_z = policy.step_batch(state_x, state_z, spec.frame_time)
+
+        predicted = policy.decompress_batch(state_x, state_z)
+        speeds.append(np.linalg.norm(
+            neural_packing.block(predicted, pose_layout, 'root_velocity')[:, [0, 2]], axis=1))
+        positions = joint_positions(predicted, pose_layout, spec.n_bones, offsets, hierarchy)
+        extents.append(np.linalg.norm(positions - positions[:, :1], axis=2).max(axis=1))
+
+    true_positions = neural_packing.block(q[starts], character_layout, 'positions') \
+        .reshape(-1, spec.n_bones, 3)
+    true_speed = float(np.linalg.norm(
+        training_set.root_velocity[starts][:, [0, 2]], axis=1).mean())
+    true_extent = float(np.linalg.norm(
+        true_positions - true_positions[:, :1], axis=2).max(axis=1).mean())
+
+    speed = float(np.mean(speeds))
+    extent = float(np.mean(extents))
+    summary = {
+        'full_seeds': int(starts.size),
+        'full_frames': int(frames),
+        'full_seconds': float(frames * spec.frame_time),
+        'full_search_interval': int(search_interval),
+        'full_accept_rate': float(accepted / searches) if searches else float('nan'),
+        'full_mean_speed': speed,
+        'full_database_speed': true_speed,
+        'full_speed_ratio': float(speed / true_speed) if true_speed else float('nan'),
+        'full_mean_extent': extent,
+        'full_database_extent': true_extent,
+        'full_extent_ratio': float(extent / true_extent) if true_extent else float('nan'),
+        'full_diverged': not (np.isfinite(speed) and np.isfinite(extent)),
+    }
+
+    log(f"[LMM] full loop free-run: {summary['full_seeds']} seeds for "
+        f"{summary['full_frames']} frames ({summary['full_seconds']:.0f} s), projecting every "
+        f"{summary['full_search_interval']} and taking the answer "
+        f"{summary['full_accept_rate'] * 100:.0f}% of the time")
+    log(f"[LMM]   travels at {summary['full_mean_speed']:.3f} m/s against the seeds' "
+        f"{summary['full_database_speed']:.3f} ({summary['full_speed_ratio']:.2f}x), reaching "
+        f"{summary['full_mean_extent']:.3f} m from the root against "
+        f"{summary['full_database_extent']:.3f} ({summary['full_extent_ratio']:.2f}x)")
+    if summary['full_diverged']:
+        log('[LMM]   the run produced values that are not finite: the loop diverged')
+    return summary
+
+
 def _excluded_for(policy: LmmPolicy, training_set) -> list:
     """The bones the checkpoint does not predict, as names, against this database's skeleton."""
     predicted = set(policy.bone_names())
@@ -543,6 +814,13 @@ def _main(argv=None) -> None:
                         help='score the checkpoint against its database, in metres')
     parser.add_argument('--rollout', action='store_true',
                         help='free-run the stepper from held-out states and report its drift')
+    parser.add_argument('--project', action='store_true',
+                        help='score the projector against the search it replaces')
+    parser.add_argument('--full-rollout', action='store_true',
+                        help='run projector, stepper and decompressor together, free of the '
+                             'database, and report whether the loop survives')
+    parser.add_argument('--full-frames', type=int, default=900,
+                        help='database frames the full loop is run for; 900 is thirty seconds')
     parser.add_argument('--holdout', type=float, nargs='?', const=0.1, default=0.0,
                         help='score only the last fraction of the pairs, as the trainer validated')
     parser.add_argument('--frames', type=int, default=0,
@@ -553,10 +831,10 @@ def _main(argv=None) -> None:
     policy = LmmPolicy(args.checkpoint, device=args.device)
     print(f'[LMM] {args.checkpoint}: {policy.describe()}')
 
-    if not args.report and not args.rollout:
+    if not any((args.report, args.rollout, args.project, args.full_rollout)):
         return
     if not args.database or not args.name:
-        parser.error('--report and --rollout need --database and --name')
+        parser.error('every report needs --database and --name')
 
     from training_data import load_database
     training_set = load_database(args.database, args.name)
@@ -565,6 +843,11 @@ def _main(argv=None) -> None:
         reconstruction_report(policy, training_set, args.frames, holdout=args.holdout)
     if args.rollout:
         rollout_report(policy, training_set, holdout=args.holdout or 0.1)
+    if args.project:
+        projector_report(policy, training_set, holdout=args.holdout or 0.1)
+    if args.full_rollout:
+        full_rollout_report(policy, training_set, frames=args.full_frames,
+                            holdout=args.holdout or 0.1)
 
 
 if __name__ == '__main__':

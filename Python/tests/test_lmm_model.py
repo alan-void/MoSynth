@@ -1,5 +1,5 @@
 """
-The compressor, decompressor and stepper networks.
+The compressor, decompressor, stepper and projector networks.
 
 The test that earns its place here is the exportability guard. Learned motion matching is worth
 having over a database search because a few small networks can run anywhere, and that stops being
@@ -58,6 +58,9 @@ class ExportabilityTests(unittest.TestCase):
     def test_the_stepper_is_linear_and_activations_only(self):
         self.assert_exportable(lmm_model.Stepper(FEATURE_SIZE, LATENT_SIZE))
 
+    def test_the_projector_is_linear_and_activations_only(self):
+        self.assert_exportable(lmm_model.Projector(FEATURE_SIZE, LATENT_SIZE))
+
     def test_the_guard_would_catch_an_unexportable_layer(self):
         model = lmm_model.Mlp(4, 4, 8, 1)
         model.layers = nn.Sequential(nn.Linear(4, 4), nn.LayerNorm(4))
@@ -93,6 +96,24 @@ class ShapeTests(unittest.TestCase):
             stepper.rate(torch.zeros(5, FEATURE_SIZE),
                          torch.zeros(5, LATENT_SIZE)).shape, (5, FEATURE_SIZE + LATENT_SIZE))
 
+    def test_the_projector_takes_a_query_and_returns_a_whole_state(self):
+        projector = lmm_model.Projector(FEATURE_SIZE, LATENT_SIZE)
+
+        self.assertEqual(projector.input_size, FEATURE_SIZE)
+        self.assertEqual(projector.output_size, FEATURE_SIZE + LATENT_SIZE)
+
+        features, latent = projector.project(torch.zeros(5, FEATURE_SIZE))
+        self.assertEqual(features.shape, (5, FEATURE_SIZE))
+        self.assertEqual(latent.shape, (5, LATENT_SIZE))
+
+    def test_the_projector_answers_with_what_the_stepper_and_decompressor_take(self):
+        # The stage takes the projector's answer and hands it straight to the other two, so a
+        # width disagreeing here would be a runtime error a long way from its cause.
+        projector = lmm_model.Projector(FEATURE_SIZE, LATENT_SIZE)
+        stepper = lmm_model.Stepper(FEATURE_SIZE, LATENT_SIZE)
+
+        self.assertEqual(projector.output_size, stepper.input_size)
+
     def test_the_stepper_takes_the_same_vector_the_decompressor_takes(self):
         # Not a coincidence worth preserving by luck: the stage carries one copy of (X, Z) and
         # hands it to both, so a second normalisation could not be got right in only one of them.
@@ -120,6 +141,16 @@ class ShapeTests(unittest.TestCase):
         self.assertEqual(
             len(lmm_model.Stepper(FEATURE_SIZE, LATENT_SIZE).linear_layers),
             lmm_model.STEPPER_HIDDEN_LAYERS + 1)
+        self.assertEqual(
+            len(lmm_model.Projector(FEATURE_SIZE, LATENT_SIZE).linear_layers),
+            lmm_model.PROJECTOR_HIDDEN_LAYERS + 1)
+
+    def test_the_projector_is_the_deepest_of_the_four(self):
+        # It approximates a nearest-neighbour lookup, which is piecewise constant over as many
+        # pieces as the database has frames, and depth is what buys the pieces.
+        self.assertGreater(lmm_model.PROJECTOR_HIDDEN_LAYERS,
+                           lmm_model.DECOMPRESSOR_HIDDEN_LAYERS)
+        self.assertGreater(lmm_model.PROJECTOR_HIDDEN_LAYERS, lmm_model.STEPPER_HIDDEN_LAYERS)
 
     def test_no_hidden_layer_leaves_a_single_linear_map(self):
         model = lmm_model.Mlp(4, 3, 16, 0)

@@ -102,6 +102,10 @@ class LmmCheckpoint:
     stepper_loss_columns: list = field(default_factory=list)
     projector_weights: list = field(default_factory=list)
     projector_biases: list = field(default_factory=list)
+    # (iterations, len(projector_loss_columns)) float32, as `stepper_losses` is and for the same
+    # reason: a third fit whose terms measure something the other two do not.
+    projector_losses: np.ndarray | None = None
+    projector_loss_columns: list = field(default_factory=list)
 
     @property
     def feature_size(self) -> int:
@@ -173,7 +177,30 @@ def checkpoint_arguments(checkpoint: LmmCheckpoint) -> dict:
         'stepper_loss_columns': checkpoint.stepper_loss_columns,
         'projector_weights': checkpoint.projector_weights,
         'projector_biases': checkpoint.projector_biases,
+        'projector_losses': checkpoint.projector_losses,
+        'projector_loss_columns': checkpoint.projector_loss_columns,
     }
+
+
+def _add_loss_table(arrays: dict, prefix: str, rows, columns) -> None:
+    """
+    One fit's loss curve, under its own columns, or nothing at all when it did not run.
+
+    Written only when there are columns to write it under, so a checkpoint whose stepper or
+    projector was never fitted simply has no such key -- which is what lets a file from before
+    either existed still load.
+    """
+    if not columns:
+        return
+
+    columns = list(columns)
+    # Not `rows or []`: a curve read back off a loaded checkpoint arrives as an ndarray, whose
+    # truth value raises. Phase C's refit passes phase B's curve straight through, so it does.
+    rows = [] if rows is None else list(rows)
+    arrays[f'{prefix}_losses'] = (
+        np.ascontiguousarray(rows, dtype=np.float32).reshape(len(rows), -1) if len(rows)
+        else np.zeros((0, len(columns)), dtype=np.float32))
+    arrays[f'{prefix}_loss_columns'] = np.array(columns, dtype=np.str_)
 
 
 def _layer_arrays(prefix: str, weights, biases) -> dict:
@@ -206,7 +233,8 @@ def save_checkpoint(out_path: str, *,
                     stepper_weights=None, stepper_biases=None,
                     xz_rate_mean=None, xz_rate_std=None,
                     stepper_losses=None, stepper_loss_columns=(),
-                    projector_weights=None, projector_biases=None) -> None:
+                    projector_weights=None, projector_biases=None,
+                    projector_losses=None, projector_loss_columns=()) -> None:
     """
     Write ``<name>.lmm.npz``.
 
@@ -269,13 +297,8 @@ def save_checkpoint(out_path: str, *,
         arrays['xz_rate_mean'] = np.ascontiguousarray(xz_rate_mean, dtype=np.float32)
         arrays['xz_rate_std'] = np.ascontiguousarray(xz_rate_std, dtype=np.float32)
 
-    if stepper_loss_columns:
-        columns = list(stepper_loss_columns)
-        rows = list(stepper_losses or [])
-        arrays['stepper_losses'] = (
-            np.ascontiguousarray(rows, dtype=np.float32).reshape(len(rows), -1) if rows
-            else np.zeros((0, len(columns)), dtype=np.float32))
-        arrays['stepper_loss_columns'] = np.array(columns, dtype=np.str_)
+    _add_loss_table(arrays, 'stepper', stepper_losses, stepper_loss_columns)
+    _add_loss_table(arrays, 'projector', projector_losses, projector_loss_columns)
 
     os.makedirs(os.path.dirname(os.path.abspath(out_path)) or '.', exist_ok=True)
     np.savez(out_path, **arrays)
@@ -345,7 +368,11 @@ def load_checkpoint(path: str, log=print):
                 stepper_loss_columns=([str(name) for name in f['stepper_loss_columns']]
                                       if 'stepper_loss_columns' in f else []),
                 projector_weights=projector_weights,
-                projector_biases=projector_biases)
+                projector_biases=projector_biases,
+                projector_losses=(np.ascontiguousarray(f['projector_losses'], dtype=np.float32)
+                                  if 'projector_losses' in f else None),
+                projector_loss_columns=([str(name) for name in f['projector_loss_columns']]
+                                        if 'projector_loss_columns' in f else []))
     except (OSError, ValueError, KeyError) as exc:
         # KeyError is how a file written by an older layout shows up: nothing records a format
         # version, so the first missing key is the symptom.

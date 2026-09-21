@@ -8,17 +8,19 @@ cannot be exported to ONNX and handed to a Unity-native inference backend later.
 means every leaf module is a :class:`torch.nn.Linear` or an activation, which ``test_lmm_model``
 asserts rather than leaving to intent.
 
-Three of the four networks live here; the projector joins them in phase C.
+All four networks live here.
 
 * **Compressor** ``[Y Q] -> Z``, 516 wide and three hidden layers deep, with ELU.
 * **Decompressor** ``[X Z] -> Y``, 512 wide and **one** hidden layer deep, with ReLU.
 * **Stepper** ``[X Z] -> d/dt [X Z]``, 512 wide and two hidden layers deep, with ReLU.
+* **Projector** ``X -> [X Z]``, 512 wide and **four** hidden layers deep, with ReLU.
 
 Both the asymmetry and the mixed activations are the paper's (Table 1) and the reference
 implementation's shipped graphs agree with them. The asymmetry looks backwards and is not: decoding
 a latent into a pose is a smooth map, so it needs width rather than depth, while *encoding* has to
-discover the structure -- and the projector of phase C, which approximates a nearest-neighbour
-lookup, a function piecewise constant over thousands of pieces, needs the depth most of all.
+discover the structure -- and the projector, which approximates a nearest-neighbour lookup, a
+function piecewise constant over as many pieces as the database has frames, needs the depth most of
+all.
 
 The compressor takes one frame in **two spaces**, not two frames in one. The paper's reason is that
 it "was able to copy features directly to the latent space if it found them useful"; what keeps the
@@ -44,11 +46,14 @@ DECOMPRESSOR_HIDDEN_UNITS = 512
 DECOMPRESSOR_HIDDEN_LAYERS = 1
 STEPPER_HIDDEN_UNITS = 512
 STEPPER_HIDDEN_LAYERS = 2
+PROJECTOR_HIDDEN_UNITS = 512
+PROJECTOR_HIDDEN_LAYERS = 4
 
-__all__ = ['Mlp', 'Compressor', 'Decompressor', 'Stepper', 'resolve_device',
+__all__ = ['Mlp', 'Compressor', 'Decompressor', 'Stepper', 'Projector', 'resolve_device',
            'COMPRESSOR_HIDDEN_UNITS', 'COMPRESSOR_HIDDEN_LAYERS',
            'DECOMPRESSOR_HIDDEN_UNITS', 'DECOMPRESSOR_HIDDEN_LAYERS',
-           'STEPPER_HIDDEN_UNITS', 'STEPPER_HIDDEN_LAYERS']
+           'STEPPER_HIDDEN_UNITS', 'STEPPER_HIDDEN_LAYERS',
+           'PROJECTOR_HIDDEN_UNITS', 'PROJECTOR_HIDDEN_LAYERS']
 
 
 class Mlp(nn.Module):
@@ -211,3 +216,43 @@ class Stepper(Mlp):
             in the checkpoint rather than in the network.
         """
         return self(torch.cat([features, latent], dim=1))
+
+
+class Projector(Mlp):
+    """
+    Answers a query with a state the database could have held: ``X -> [X Z]``.
+
+    This is what replaces the search itself. Given the vector the controller is asking for, it
+    returns the nearest state the database actually contains -- the feature vector of that state
+    and the latent beside it -- so no frame is ever looked up and nothing has to be resident to
+    look it up in.
+
+    **Deepest of the four, and that is the point.** The other three approximate smooth maps; this
+    one approximates a nearest-neighbour lookup, which is piecewise constant with as many pieces as
+    the database has frames, and depth is what buys the pieces. Four hidden layers is the paper's
+    Table 1 and the reference implementation's shipped graph.
+
+    Its answer is **normalised per element**, and the statistics it is denormalised against are the
+    ones already in the checkpoint for the two halves of the state -- ``x_mean``/``x_std`` and
+    ``z_mean``/``z_std``. It regresses the state itself rather than a rate, so there is nothing new
+    to measure and no second set of numbers to get out of step with the first.
+    """
+
+    def __init__(self, feature_size: int, latent_size: int,
+                 hidden_units: int = PROJECTOR_HIDDEN_UNITS,
+                 hidden_layers: int = PROJECTOR_HIDDEN_LAYERS):
+        super().__init__(feature_size, feature_size + latent_size, hidden_units, hidden_layers,
+                         activation=torch.nn.ReLU)
+        self.feature_size = feature_size
+        self.latent_size = latent_size
+        self.state_size = feature_size + latent_size
+
+    def project(self, query: torch.Tensor):
+        """
+        :param query: (n, feature_size) what the controller is asking for, in the database's units.
+        :return: ``(features, latent)``, both **normalised**. Denormalising them is the caller's
+            job, for the reason :meth:`Stepper.rate` leaves its answer normalised: the statistics
+            live in the checkpoint rather than in the network.
+        """
+        state = self(query)
+        return state[:, :self.feature_size], state[:, self.feature_size:]

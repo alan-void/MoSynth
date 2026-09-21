@@ -36,6 +36,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import torch
 
 import lmm_fk
 import neural_packing
@@ -146,6 +147,42 @@ STEPPER_WEIGHTS = {
 # seconds, 10/60 by default, which is ten database frames -- so twenty is two searches' worth of
 # headroom, and it is the window the released code uses.
 DEFAULT_STEPPER_WINDOW = 20
+
+# What each term of the projector's answer is worth. The author's released training code again.
+#
+# The latent term dominates for the same reason it does in the stepper, and more so: an X that is
+# slightly wrong is corrected by the controller at the next search, while a Z that is wrong is a
+# pose the decompressor has never been asked for. The distance term is small because it is a
+# scalar standing beside two whole vectors, not because it matters less -- see
+# :func:`weighted_distance`.
+PROJECTOR_WEIGHTS = {
+    'features': 1.0,
+    'latent': 5.0,
+    'distance': 0.3,
+}
+
+# Added to each feature's own spread to get the scale the projector's training noise is drawn at.
+#
+# The floor is what makes the noise cover a query no frame of the database answers well: a feature
+# that barely varies would otherwise be displaced by almost nothing, and the projector would never
+# learn what to do when the controller asks for one. Unity has already divided X by a per-feature
+# spread when it baked the .mmfeatures, so in practice this roughly doubles a unit scale.
+PROJECTOR_NOISE_FLOOR = 1.0
+
+# Per-sample noise is drawn at ``sigma ~ U(0, PROJECTOR_SIGMA)`` times that scale, so one batch
+# spans a query that is nearly a database frame and one that is nowhere near any.
+#
+# One scale for the whole vector rather than a separate, smaller one for the pose half. The halves
+# do arrive with different errors -- the trajectory half is whatever the controller asks for, while
+# the pose half is the stepper's own state -- but phase B measured that state drifting 0.258 of X's
+# spread over the ten frames between searches, which is comfortably inside the range this already
+# covers. A second scale would be a knob with nothing behind it.
+PROJECTOR_SIGMA = 1.0
+
+# Candidate frames scored per matmul while searching for a training target. The whole database
+# against a batch of queries is a few hundred million floats; this is the block size that keeps it
+# off the peak of GPU memory without making the search a loop.
+NEAREST_NEIGHBOUR_CHUNK = 16384
 
 # Free-run lengths the stepper's drift is reported at, in database frames. Ten is the one that
 # decides whether phase B works: the stage searches every `searchInterval` seconds, 10/60 by
@@ -448,3 +485,149 @@ def feature_weights(training_set: TrainingSet, authored) -> np.ndarray:
         authored = np.concatenate([authored, np.ones(widths.size - authored.size, dtype=np.float32)])
 
     return np.repeat(authored[:widths.size], widths * counts).astype(np.float32)
+
+
+def projector_noise_scale(x: np.ndarray, latent_exists: np.ndarray) -> np.ndarray:
+    """
+    (feature_size,) the spread each float of ``X`` is displaced by while fitting the projector.
+
+    The projector's whole job is to answer a query no frame of the database matches, so it has to
+    be trained on queries that are genuinely off the manifold rather than on database rows with a
+    little jitter. Each feature's own spread plus :data:`PROJECTOR_NOISE_FLOOR` is the released
+    code's scale; the floor is what stops a near-constant feature being displaced by nothing.
+    """
+    return (x[latent_exists].std(axis=0) + PROJECTOR_NOISE_FLOOR).astype(np.float32)
+
+
+def weighted_distance(a, b, weights):
+    """
+    Per-row distance between two batches of feature vectors, under the authored search weights.
+
+    Euclidean rather than the squared form ``MotionMatchingStage.SqrDistance`` compares, because
+    this one is summed into a loss beside an L1 error on ``X`` itself and has to be in the same
+    units to be weighted against it. Both orderings agree on which candidate is nearer, which is
+    all the accept rule ever asks.
+    """
+    return torch.sqrt(torch.clamp((((a - b) ** 2) * weights).sum(dim=-1), min=1e-12))
+
+
+def candidate_norms(candidates, weights):
+    """
+    The per-candidate constant :func:`nearest_neighbours` expands its distances around.
+
+    Computed once for a database and reused for every batch, which is the only reason the search
+    is a matmul rather than a broadcast subtraction over a few hundred million floats.
+    """
+    return ((candidates ** 2) * weights).sum(dim=1)
+
+
+def nearest_neighbours(queries, candidates, weights, norms,
+                       chunk: int = NEAREST_NEIGHBOUR_CHUNK):
+    """
+    (n_queries,) the candidate nearest each query under the weighted metric.
+
+    **This is the whole projector**, and getting it wrong is silent: the target has to be the true
+    nearest neighbour *of the noisy query*, not the frame the noise was added to. Targeting the
+    latter trains a denoiser -- a network that undoes a perturbation -- where what is wanted is a
+    network that approximates the lookup the classic matcher runs, whose answer to a displaced
+    query is usually a different frame entirely.
+
+    The weights are the authored ones for the same reason: a projector fitted under a uniform
+    metric approximates a search nobody runs.
+
+    :param queries: (n, feature_size) the displaced queries, in the database's own units.
+    :param candidates: (m, feature_size) the frames the search may return.
+    :param weights: (feature_size,) per-float search weights.
+    :param norms: :func:`candidate_norms` over the same candidates and weights.
+    :param chunk: candidates scored per matmul; see :data:`NEAREST_NEIGHBOUR_CHUNK`.
+    """
+    # The query's own squared norm is dropped: it is constant along a row, so it moves every score
+    # by the same amount and cannot change which one is smallest. The distance to the winner is
+    # measured directly afterwards rather than read out of this expansion, which keeps the loss
+    # free of the cancellation error the expansion carries.
+    scaled = queries * weights
+    best = torch.zeros(queries.shape[0], dtype=torch.long, device=queries.device)
+    best_score = torch.full((queries.shape[0],), float('inf'), device=queries.device)
+
+    for start in range(0, candidates.shape[0], chunk):
+        stop = min(start + chunk, candidates.shape[0])
+        scores = norms[start:stop] - 2.0 * (scaled @ candidates[start:stop].T)
+        values, indices = scores.min(dim=1)
+
+        taken = values < best_score
+        best = torch.where(taken, indices + start, best)
+        best_score = torch.where(taken, values, best_score)
+
+    return best
+
+
+def recall_against_search(queries, answered_x, answered_z, candidates, candidate_latents,
+                          weights, norms, z_scale: float, chunk: int = 64) -> dict:
+    """
+    How a projector's answers compare with the lookup they replace, on the same queries.
+
+    Three numbers, none of which a loss can give, and **none of which is sufficient alone**.
+
+    The **distance ratio** is the mean distance the answers sit from their queries over the mean
+    distance the true nearest neighbours sit: 1.0 is the search itself. A ratio of *means* rather
+    than a mean of ratios, because a query displaced barely at all has its own frame as its nearest
+    neighbour at a distance near zero, and dividing by that reports a number in the hundreds for a
+    model that is a centimetre out. It can also fall **below** 1.0, and that is not an improvement
+    on the search: it means the answer is not a database state at all but a point between several,
+    which can sit nearer the query than any real frame does.
+
+    The **top-1% recall** is how often the answer is at least as near as the database's nearest one
+    percent of frames. It tells a near miss from the wrong neighbourhood, but only where the
+    ranking means something -- at a large displacement every frame is about equally far and it
+    saturates at 100%.
+
+    The **latent error** catches what the other two are blind to: an answer landing on a plausible
+    ``X`` while carrying a latent from somewhere else, which asks the decompressor for a pose that
+    has never existed. On an untrained projector it is the only one of the three that notices.
+
+    Defined here rather than in either caller because the trainer measures it during a fit and the
+    offline report measures it afterwards, and two spellings of one acceptance number would
+    eventually disagree about what was being accepted.
+
+    :param queries: (n, feature_size) the displaced queries that were answered.
+    :param answered_x: (n, feature_size) the projector's feature vectors, in database units.
+    :param answered_z: (n, latent_size) its latents.
+    :param candidates: (m, feature_size) the frames a search could have returned.
+    :param candidate_latents: (m, latent_size) their latents.
+    :param norms: :func:`candidate_norms` over the same candidates and weights.
+    :param chunk: queries per distance matrix; the whole database is a row of it.
+    """
+    if queries.shape[0] == 0:
+        return {'distance_ratio': float('nan'), 'top_percent_recall': float('nan'),
+                'latent_error': float('nan')}
+
+    ratios, recalls, latent_errors = [], [], []
+    kth = max(1, candidates.shape[0] // 100)
+
+    with torch.no_grad():
+        for start in range(0, queries.shape[0], chunk):
+            batch = queries[start:start + chunk]
+
+            # The query's own norm goes back in here, unlike in `nearest_neighbours`: these
+            # distances are compared against each other rather than only ranked.
+            query_norm = ((batch ** 2) * weights).sum(dim=1, keepdim=True)
+            distances = torch.sqrt(torch.clamp(
+                norms - 2.0 * ((batch * weights) @ candidates.T) + query_norm, min=0.0) + 1e-12)
+
+            nearest = distances.argmin(dim=1)
+            best = distances.gather(1, nearest.unsqueeze(1)).squeeze(1)
+            threshold = distances.kthvalue(kth, dim=1).values
+
+            answered = weighted_distance(batch, answered_x[start:start + chunk], weights)
+            ratios.append(torch.stack([answered.sum(), best.sum()]))
+            recalls.append((answered <= threshold).float())
+            latent_errors.append(
+                (answered_z[start:start + chunk] - candidate_latents[nearest])
+                .abs().mean(dim=1) / z_scale)
+
+    totals = torch.stack(ratios).sum(dim=0)
+    return {
+        'distance_ratio': float(totals[0] / torch.clamp(totals[1], min=1e-6)),
+        'top_percent_recall': float(torch.cat(recalls).mean()),
+        'latent_error': float(torch.cat(latent_errors).mean()),
+    }

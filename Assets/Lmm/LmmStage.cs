@@ -32,7 +32,11 @@ public enum LmmMode
     /// </summary>
     Stepper,
 
-    /// <summary>Adds the projector, which replaces the search itself. Phase C.</summary>
+    /// <summary>
+    /// Adds the projector, which replaces the search itself: the query is answered with a state
+    /// rather than looked up, so nothing walks the database and no acceleration structure is
+    /// built over it. Phase C, and the whole method.
+    /// </summary>
     Full,
 }
 
@@ -52,6 +56,13 @@ public enum LmmMode
 /// two-hundred-thousand-row table is not worth marshalling across the boundary for a lookup that is
 /// free on the other side. In <see cref="LmmMode.Stepper"/> the state is no longer any database
 /// row, so the stage carries it and hands it back each tick.
+/// </para>
+/// <para>
+/// <see cref="LmmMode.Full"/> carries the same state and reads the database for nothing but the
+/// query's own shape: the projector answers a search with a state instead of a frame, so the
+/// acceleration structure is never built. The asset is still referenced, because the control
+/// inputs read its trajectory horizons and <see cref="FeatureSet"/> loads the poses beside the
+/// features — phase C removes the search, not the dependency.
 /// </para>
 /// <para>
 /// <b>The controller's trajectory is never spliced into <c>X</c> between searches.</b> The stepper
@@ -193,6 +204,13 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// </summary>
     private float[] _z;
 
+    /// <summary>
+    /// The query, as a managed array, because <see cref="LmmMode.Full"/> hands it to Python and
+    /// PythonNET marshals a <c>float[]</c>. Kept rather than allocated per search: it is copied
+    /// from <see cref="_queryFeatureVector"/> a few times a second forever.
+    /// </summary>
+    private float[] _query;
+
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
         if (_isInitialized || _initializationFailed) return;
@@ -221,7 +239,10 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
             AllocateBuffers();
             SeedFromFirstUsableFrame();
 
-            mmSearch.Initialize(_featureSet, _tagMask, _featureWeights);
+            // LmmMode.Full never searches — the projector answers the query instead, which is the
+            // point of it. Building the acceleration structure anyway would cost exactly the
+            // startup time and the memory the mode exists to remove.
+            if (mode != LmmMode.Full) mmSearch.Initialize(_featureSet, _tagMask, _featureWeights);
             _isInitialized = true;
         }
         catch (Exception e)
@@ -248,13 +269,6 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
         if (!config.TryValidate(out var error))
         {
             Fail($"'{config.name}' is not usable — {error}");
-            return false;
-        }
-
-        if (mode == LmmMode.Full)
-        {
-            Fail($"'{config.name}' is set to {mode}, which needs the phase C projector and is not " +
-                 $"implemented yet. Use {LmmMode.DecompressorOnly} or {LmmMode.Stepper}.");
             return false;
         }
 
@@ -375,6 +389,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     private void AllocateBuffers()
     {
         _x = new float[_featureSet.FeatureSize];
+        _query = new float[_featureSet.FeatureSize];
 
         var boneCount = _skeletonData.BoneCount;
         _positions = new NativeArray<float3>(boneCount, Allocator.Domain);
@@ -450,7 +465,14 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
             var accepted = -1;
             if (_searchTimeLeft <= 0f)
             {
-                accepted = SearchForBetterState(controlInput);
+                FillQueryVector(controlInput);
+                var heldDistance = HeldStateDistance();
+
+                // The one difference between the modes on a search tick: two of them look the
+                // answer up in the database and the third is told it. Both write the same state.
+                if (mode == LmmMode.Full) ProjectBetterState(heldDistance);
+                else accepted = SearchForBetterFrame(heldDistance);
+
                 _searchTimeLeft = searchInterval;
             }
             else
@@ -476,36 +498,38 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     }
 
     /// <summary>
-    /// Rebuilds the query and takes a better state, if one is enough better to be worth the jump.
+    /// What the state the character is already holding scores against the query it has just built.
     /// </summary>
-    /// <returns>The database frame that was accepted, or -1 when the held state stood.</returns>
     /// <remarks>
     /// The state being scored is <c>X</c> itself, not the feature vector of a database frame. In
-    /// <see cref="LmmMode.DecompressorOnly"/> those are the same floats; in
-    /// <see cref="LmmMode.Stepper"/> only the first exists, because the stepper has carried the
-    /// state somewhere the database does not hold.
+    /// <see cref="LmmMode.DecompressorOnly"/> those are the same floats; in the later modes only
+    /// the first exists, because the state has been carried somewhere the database does not hold.
     /// </remarks>
-    private int SearchForBetterState(MotionMatchingControlInput controlInput)
+    private float HeldStateDistance()
     {
-        FillQueryVector(controlInput);
+        // A stepped or projected state is always scoreable; a played one is only scoreable while
+        // the playhead is on a frame the search itself would have been allowed to return.
+        var scoreable = mode != LmmMode.DecompressorOnly ||
+                        (_featureSet.IsValidFeature(CurrentFrame) && _tagMask[CurrentFrame]);
 
-        // A stepped state is always scoreable; a played one is only scoreable while the playhead is
-        // on a frame the search itself would have been allowed to return.
-        var holdingSearchableState = mode != LmmMode.DecompressorOnly ||
-                                     (_featureSet.IsValidFeature(CurrentFrame) &&
-                                      _tagMask[CurrentFrame]);
-
-        var currentDistance = holdingSearchableState
+        return scoreable
             ? MotionMatchingStage.SqrDistance(_queryFeatureVector, _x, _featureWeights)
             : float.MaxValue;
+    }
 
+    /// <summary>
+    /// Searches the database and takes a better state, if one is enough better to be worth the jump.
+    /// </summary>
+    /// <returns>The database frame that was accepted, or -1 when the held state stood.</returns>
+    private int SearchForBetterFrame(float heldDistance)
+    {
         // The acceptance bar goes into the search rather than being applied to its answer: a
         // candidate that does not clear it is not a candidate, and the search can abandon it early.
-        var bestFrame = mmSearch.FindBestFrame(_queryFeatureVector, currentDistance * acceptanceRatio);
+        var bestFrame = mmSearch.FindBestFrame(_queryFeatureVector, heldDistance * acceptanceRatio);
 
         if (bestFrame == -1)
         {
-            Debug.Assert(holdingSearchableState,
+            Debug.Assert(heldDistance < float.MaxValue,
                 "Learned motion matching found no usable state and is not holding one. The database " +
                 "may be empty, or every frame may be masked out.");
             return -1;
@@ -515,6 +539,42 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
         _currentFrameTime = bestFrame;
         if (raisePoseDiscontinuity) _owner.PoseDiscontinuity = true;
         return bestFrame;
+    }
+
+    /// <summary>
+    /// Asks the projector for a state instead of searching for one — the
+    /// <see cref="LmmMode.Full"/> search tick.
+    /// </summary>
+    /// <remarks>
+    /// The network answers with a state the database could have held; whether to take it is
+    /// decided here rather than in Python, under the same weights and the same squared distance
+    /// <see cref="SearchForBetterFrame"/> hands to the search. That is what keeps the accept rule
+    /// one rule: a projector that is close in <c>X</c> but systematically wrong about how close
+    /// would otherwise bend a comparison nothing else can see.
+    /// <para>
+    /// A second acquisition of the GIL on a search tick, and deliberately: it happens a few times
+    /// a second, the answer is only usable once the distance has been measured on this side, and
+    /// folding it into <see cref="StepState"/> would move that measurement across the boundary.
+    /// </para>
+    /// </remarks>
+    private void ProjectBetterState(float heldDistance)
+    {
+        _queryFeatureVector.CopyTo(_query);
+
+        float[] candidateX, candidateZ;
+        using (Py.GIL())
+        {
+            dynamic projected = _policy.project(_query);
+            candidateX = (float[])projected[0];
+            candidateZ = (float[])projected[1];
+        }
+
+        var offered = MotionMatchingStage.SqrDistance(_queryFeatureVector, candidateX, _featureWeights);
+        if (offered >= heldDistance * acceptanceRatio) return;
+
+        _x = candidateX;
+        _z = candidateZ;
+        if (raisePoseDiscontinuity) _owner.PoseDiscontinuity = true;
     }
 
     /// <summary>
@@ -533,10 +593,14 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     }
 
     /// <summary>
-    /// Advances the state with the stepper and reconstructs the pose it now describes — the
-    /// <see cref="LmmMode.Stepper"/> tick.
+    /// Advances the state with the stepper and reconstructs the pose it now describes — the tick
+    /// of both <see cref="LmmMode.Stepper"/> and <see cref="LmmMode.Full"/>.
     /// </summary>
     /// <remarks>
+    /// The two share it because they differ only in where a new state comes from on a search tick:
+    /// one is handed a database frame to restart from, the other has already had
+    /// <see cref="ProjectBetterState"/> write the state directly and passes -1.
+    /// <para>
     /// The state is advanced <em>before</em> it is decompressed, which is what
     /// <see cref="PlayFromDatabase"/> does with its playhead, so the two modes differ in where the
     /// state comes from and in nothing else — including on a search tick, where both take the

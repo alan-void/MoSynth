@@ -5,7 +5,8 @@ First the compressor/decompressor pair, which learns a latent ``Z`` that, togeth
 matching feature vector ``X`` a classic matcher already searches, is enough to reconstruct the
 whole pose. Then, against latents that pair has baked and that nothing may move again, the
 **stepper** -- see :func:`fit_stepper` -- which advances ``[X Z]`` between searches so the database
-need not be played. The projector of phase C joins them later.
+need not be played, and finally the **projector** -- see :func:`fit_projector` -- which answers a
+query with a state the database holds, and so replaces the search itself.
 
 **The loss is Algorithm 1 of the paper**, and its shape is the method:
 
@@ -36,10 +37,11 @@ Runs from the Unity Editor through PythonNET, or standalone::
     python lmm_trainer.py ../Assets/StreamingAssets/MMDatabases/MM_LafanCorrected_Edinburg \\
         MM_LafanCorrected_Edinburg --out model.lmm.npz --iterations 150000
 
-The stepper alone, against a checkpoint whose autoencoder is already fitted -- which is what to run
-when tuning phase B, since the autoencoder is the half-hour half::
+Either of the later networks alone, against a checkpoint whose autoencoder is already fitted --
+which is what to run when tuning them, since the autoencoder is the half-hour half::
 
     python lmm_trainer.py <database> <name> --out model.lmm.npz --stepper-only
+    python lmm_trainer.py <database> <name> --out model.lmm.npz --projector-only
 """
 
 from __future__ import annotations
@@ -55,7 +57,7 @@ import lmm_dataset
 import lmm_fk
 import lmm_io
 from feature_set_importer import read_feature_set
-from lmm_model import Compressor, Decompressor, Stepper, resolve_device
+from lmm_model import Compressor, Decompressor, Projector, Stepper, resolve_device
 from training_data import load_database
 
 LOSS_COLUMNS = ('local', 'character', 'local_velocity', 'character_velocity',
@@ -64,6 +66,10 @@ LOSS_COLUMNS = ('local', 'character', 'local_velocity', 'character_velocity',
 # Phase B's own curve. The stepper is fitted in a second loop whose terms measure something else
 # entirely, so they are a separate table in the checkpoint rather than more columns on this one.
 STEPPER_LOSS_COLUMNS = ('features', 'latent', 'feature_rate', 'latent_rate', 'total', 'validation')
+
+# Phase C's, likewise. `distance` is how far the projector thinks it moved against how far the true
+# nearest neighbour is -- see fit_projector.
+PROJECTOR_LOSS_COLUMNS = ('features', 'latent', 'distance', 'total', 'validation')
 
 # Frames baked per forward pass. Large enough that the per-call overhead vanishes, small enough
 # that a 200k-frame database does not need the whole latent table resident on the GPU at once.
@@ -102,6 +108,12 @@ def train(data_dir: str,
           stepper_iterations: int = 30000,
           stepper_patience: int = 5,
           stepper_max_seconds: float = 0.0,
+          projector: bool = True,
+          projector_hidden: int = 0,
+          projector_iterations: int = 30000,
+          projector_patience: int = 5,
+          projector_sigma: float = lmm_dataset.PROJECTOR_SIGMA,
+          projector_max_seconds: float = 0.0,
           seed: int = 42,
           device: str = 'auto',
           progress=None) -> dict:
@@ -131,9 +143,18 @@ def train(data_dir: str,
         writes an autoencoder-only checkpoint, which is what the ``DecompressorOnly`` mode needs
         and all it needs.
     :param stepper_window: frames the stepper is unrolled over; see :func:`fit_stepper`.
+    :param projector: also fit the phase C projector, which replaces the search itself. Needs the
+        stepper, because the ``Full`` mode runs both -- the projector answers a search and the
+        stepper carries that answer to the next one.
+    :param projector_sigma: how far the projector's training queries are displaced; see
+        :func:`fit_projector`.
     :param progress: ``(stage, fraction)`` callback, which the Editor drives a progress bar from.
     :return: a summary dict, logged by the caller.
     """
+    if projector and not stepper:
+        raise ValueError('a projector cannot be fitted without a stepper: the Full mode runs both, '
+                         'and the checkpoint refuses to hold one without the other.')
+
     progress = progress or _noop_progress
     started = time.time()
     torch.manual_seed(seed)
@@ -249,7 +270,10 @@ def train(data_dir: str,
     best_validation, best_parameters, best_iteration = float('inf'), None, 0
     generator = torch.Generator(device='cpu').manual_seed(seed)
     ran = 0
-    autoencoder_span = 0.55 if stepper else 0.85
+    # Shared out between the fits that will actually run, so the bar does not sit at 55% for half
+    # an hour when the autoencoder is the only thing being trained.
+    autoencoder_span = 0.85 if not stepper else (0.45 if projector else 0.55)
+    stepper_span = 0.22 if projector else 0.30
 
     for step in range(iterations):
         compressor.train()
@@ -302,7 +326,8 @@ def train(data_dir: str,
     z_std = latents[latent_exists].std(axis=0).astype(np.float32)
     z_std[z_std < 1e-6] = 1.0
 
-    fitted_stepper = None
+    fitted_stepper = fitted_projector = None
+    stepper_base = 0.05 + autoencoder_span + 0.02
     if stepper:
         # Against the table that was just baked, not against a compressor that is still moving --
         # see fit_stepper. The latents are an input to it from here on.
@@ -314,8 +339,26 @@ def train(data_dir: str,
             learning_rate_decay=learning_rate_decay, decay_interval=decay_interval,
             validation_fraction=validation_fraction, validation_interval=validation_interval,
             patience=stepper_patience, max_seconds=stepper_max_seconds, seed=seed, device=device,
-            progress=lambda stage, fraction: progress(stage, 0.62 + 0.34 * fraction))
+            progress=lambda stage, fraction: progress(stage, stepper_base + stepper_span * fraction))
         diagnostics.update(stepper_summary)
+
+    if projector:
+        # Against the same fixed latents, and against the authored weights the stage will search
+        # with -- the projector is approximating that metric, not a uniform one.
+        projector_base = stepper_base + stepper_span
+        fitted_projector, projector_losses, projector_summary = fit_projector(
+            x, latents, latent_exists,
+            lmm_dataset.feature_weights(training_set, feature_weights),
+            np.concatenate([np.zeros(spec.feature_size, dtype=np.float32), z_mean]),
+            np.concatenate([np.ones(spec.feature_size, dtype=np.float32), z_std]),
+            hidden_units=projector_hidden, iterations=projector_iterations,
+            batch_size=batch_size, learning_rate=learning_rate, weight_decay=weight_decay,
+            learning_rate_decay=learning_rate_decay, decay_interval=decay_interval,
+            validation_fraction=validation_fraction, validation_interval=validation_interval,
+            patience=projector_patience, sigma=projector_sigma,
+            max_seconds=projector_max_seconds, seed=seed, device=device,
+            progress=lambda stage, fraction: progress(stage, projector_base + 0.23 * fraction))
+        diagnostics.update(projector_summary)
 
     progress('Writing checkpoint', 0.98)
     lmm_io.save_checkpoint(
@@ -346,7 +389,11 @@ def train(data_dir: str,
         xz_rate_mean=rate_mean if fitted_stepper else None,
         xz_rate_std=rate_std if fitted_stepper else None,
         stepper_losses=stepper_losses if fitted_stepper else None,
-        stepper_loss_columns=STEPPER_LOSS_COLUMNS if fitted_stepper else ())
+        stepper_loss_columns=STEPPER_LOSS_COLUMNS if fitted_stepper else (),
+        projector_weights=fitted_projector.weights() if fitted_projector else None,
+        projector_biases=fitted_projector.biases() if fitted_projector else None,
+        projector_losses=projector_losses if fitted_projector else None,
+        projector_loss_columns=PROJECTOR_LOSS_COLUMNS if fitted_projector else ())
 
     final = losses[-1] if losses else (float('nan'),) * len(LOSS_COLUMNS)
     summary = {
@@ -397,6 +444,8 @@ def train(data_dir: str,
           f"D(X||Z)")
     if fitted_stepper:
         _log_stepper(summary)
+    if fitted_projector:
+        _log_projector(summary)
     return summary
 
 
@@ -723,6 +772,329 @@ def _stepper_drift(stepper, state, rate_mean, rate_std, latent_exists: np.ndarra
     return drift
 
 
+def _log_projector(summary: dict) -> None:
+    """The phase C lines of a training log: what was fitted, and how near it gets."""
+    stopped = 'stopped early' if summary['projector_stopped_early'] else 'ran to the limit'
+    print(f"[LMM] projector: {summary['projector_parameters']} parameters over "
+          f"{summary['projector_train_queries']}/{summary['projector_queries']} query frames in "
+          f"{summary['projector_seconds']:.1f}s, {summary['projector_iterations_run']} iterations "
+          f"({stopped}), best held-out {summary['projector_val_loss']:.4f} at "
+          f"{summary['projector_best_iteration']}")
+    print(f"[LMM] projector recall on held-out queries: it answers from "
+          f"{summary['projector_distance_ratio']:.3f}x as far as the true nearest neighbour, and "
+          f"lands inside the database's nearest 1% "
+          f"{summary['projector_top_percent_recall'] * 100:.0f}% of the time. Its latent is "
+          f"{summary['projector_latent_error']:.3f} of the latent spread from the right one")
+
+
+def refit_projector(checkpoint_path: str, data_dir: str, db_name: str,
+                    out_path: str = None, progress=None, **options) -> dict:
+    """
+    Fit only the projector, against a checkpoint whose autoencoder and stepper are already trained.
+
+    The same bargain :func:`refit_stepper` offers, and a better one: the projector is the network
+    with the most left to tune -- how far the training noise reaches, how long the fit runs -- and
+    none of that touches the latent space it is aiming at.
+
+    Reads the ``.mmfeatures`` alone, for the reason :func:`refit_stepper` does: everything else it
+    needs is in the checkpoint, including which frames carry a latent.
+
+    :param out_path: where to write; the checkpoint is overwritten in place when this is None.
+    :param options: passed to :func:`fit_projector`.
+    :return: the fit's summary, logged.
+    """
+    checkpoint = lmm_io.load_checkpoint(checkpoint_path)
+    if checkpoint is None:
+        raise FileNotFoundError(
+            f'no usable LMM checkpoint at {checkpoint_path}. The projector is fitted against '
+            'latents an autoencoder has already baked, so there has to be one to fit against.')
+    if not checkpoint.has_stage(lmm_io.STAGE_STEPPER):
+        raise ValueError(
+            f'{checkpoint_path} carries no stepper. The Full mode needs both networks -- the '
+            'projector answers a search and the stepper carries the answer to the next one -- so a '
+            'checkpoint cannot hold one without the other. Fit the stepper first.')
+
+    features = read_feature_set(data_dir, db_name).features
+    x = np.ascontiguousarray(features, dtype=np.float32)
+
+    if x.shape[0] != checkpoint.n_frames:
+        raise ValueError(
+            f'{db_name} now holds {x.shape[0]} frames but the checkpoint was baked over '
+            f'{checkpoint.n_frames}. The latents are indexed by frame, so regenerating the '
+            'database invalidates them -- retrain the autoencoder.')
+    if x.shape[1] != checkpoint.feature_size:
+        raise ValueError(f'{db_name} now produces {x.shape[1]}-float queries but the checkpoint '
+                         f'was trained on {checkpoint.feature_size}. Retrain the autoencoder.')
+
+    progress = progress or _noop_progress
+    projector, losses, summary = fit_projector(
+        x, checkpoint.latents, checkpoint.latent_valid, checkpoint.feature_weights,
+        np.concatenate([checkpoint.x_mean, checkpoint.z_mean]),
+        np.concatenate([checkpoint.x_std, checkpoint.z_std]),
+        progress=progress, **options)
+
+    progress('Writing checkpoint', 0.98)
+    arguments = lmm_io.checkpoint_arguments(checkpoint)
+    arguments.update(
+        projector_weights=projector.weights(), projector_biases=projector.biases(),
+        projector_losses=losses, projector_loss_columns=PROJECTOR_LOSS_COLUMNS)
+    lmm_io.save_checkpoint(out_path or checkpoint_path, **arguments)
+
+    summary['out_path'] = out_path or checkpoint_path
+    _log_projector(summary)
+    return summary
+
+
+def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
+                  feature_weights: np.ndarray, state_mean: np.ndarray, state_std: np.ndarray, *,
+                  hidden_units: int = 0,
+                  iterations: int = 30000,
+                  batch_size: int = 256,
+                  learning_rate: float = 1e-3,
+                  weight_decay: float = 1e-3,
+                  learning_rate_decay: float = 0.99,
+                  decay_interval: int = 1000,
+                  validation_fraction: float = 0.1,
+                  validation_interval: int = 1000,
+                  patience: int = 5,
+                  sigma: float = lmm_dataset.PROJECTOR_SIGMA,
+                  max_seconds: float = 0.0,
+                  seed: int = 42,
+                  device: str = 'auto',
+                  progress=None):
+    """
+    Fit the network that replaces the search, and measure how well it recalls what it replaced.
+
+    Every iteration displaces a database frame's query vector by noise, finds **the true weighted
+    nearest neighbour of the displaced vector**, and asks the projector to produce that neighbour's
+    state. The emphasis is the whole method: targeting the frame the noise was added to would fit a
+    denoiser, a network that undoes a perturbation. The classic matcher does not undo anything --
+    asked for a query no frame answers, it returns whichever frame answers it best, and that is
+    usually a different frame entirely. See :func:`lmm_dataset.nearest_neighbours`.
+
+    The metric is the **authored** search weights, carried in the checkpoint. A projector fitted
+    under a uniform metric approximates a search nobody runs, and the comparison against the
+    classic matcher is then quietly measuring two different things.
+
+    Three terms, weighted by :data:`lmm_dataset.PROJECTOR_WEIGHTS`. Two are the obvious ones -- the
+    state it answers with against the state it should have answered with, each divided by its own
+    half's spread so the weights trade comparable things. The third is the **distance**: how far
+    the projector's answer sits from the query, against how far the true nearest neighbour sits.
+    That scalar is what the stage's accept rule compares, so a projector that is close in ``X`` but
+    systematically wrong about how close would make every accept decision on the tick path wrong in
+    the same direction.
+
+    The latents are an input and never a parameter, exactly as in :func:`fit_stepper`.
+
+    :param x: (n, feature_size) every database frame's matching feature vector.
+    :param latents: (n, latent_size) the baked latents.
+    :param latent_exists: (n,) bool; both the queries drawn from and the candidates searched.
+    :param feature_weights: (feature_size,) the authored search weights, one per float.
+    :param state_mean: (feature_size + latent_size,) what the answer is denormalised against --
+        the checkpoint's ``x_mean`` and ``z_mean`` concatenated. The projector regresses the state
+        itself, so there is nothing new to measure here and no second set of numbers to drift.
+    :param state_std: likewise, ``x_std`` and ``z_std``.
+    :param sigma: the upper end of the per-sample noise; see :data:`lmm_dataset.PROJECTOR_SIGMA`.
+    :param patience: as :func:`fit_stepper`'s, and the stopping rule for the same reason.
+    :return: ``(projector, losses, summary)``.
+    """
+    progress = progress or _noop_progress
+    started = time.time()
+    torch.manual_seed(seed)
+
+    frames = np.flatnonzero(latent_exists).astype(np.int64)
+    if frames.size < 2:
+        raise ValueError('no frame of this database carries a latent, so the projector has '
+                         'nothing to project onto.')
+
+    feature_size, latent_size = x.shape[1], latents.shape[1]
+    torch_device = resolve_device(device)
+
+    x_t = torch.from_numpy(np.ascontiguousarray(x, dtype=np.float32)).to(torch_device)
+    z_t = torch.from_numpy(np.ascontiguousarray(latents, dtype=np.float32)).to(torch_device)
+
+    # The frames a search may return, gathered once. The projector is asked to approximate a lookup
+    # over exactly this set, which is what the stage masks its own search down to.
+    candidate_frames = torch.from_numpy(frames).to(torch_device)
+    candidates = x_t[candidate_frames].contiguous()
+    candidate_latents = z_t[candidate_frames].contiguous()
+
+    weights = torch.from_numpy(
+        np.ascontiguousarray(feature_weights, dtype=np.float32)).to(torch_device)
+    norms = lmm_dataset.candidate_norms(candidates, weights)
+    noise_scale = torch.from_numpy(
+        lmm_dataset.projector_noise_scale(x, latent_exists)).to(torch_device)
+
+    x_scale, z_scale = lmm_dataset.state_scales(x, latents, latent_exists)
+    out_mean = torch.from_numpy(
+        np.ascontiguousarray(state_mean, dtype=np.float32)).to(torch_device)
+    out_std = torch.from_numpy(np.ascontiguousarray(state_std, dtype=np.float32)).to(torch_device)
+
+    projector = Projector(feature_size, latent_size,
+                          **({'hidden_units': hidden_units} if hidden_units else {})).to(torch_device)
+    optimizer = torch.optim.AdamW(projector.parameters(), lr=learning_rate,
+                                  weight_decay=weight_decay, amsgrad=True)
+    schedule = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=learning_rate_decay)
+
+    term_weights = lmm_dataset.PROJECTOR_WEIGHTS
+
+    def answer(queries: torch.Tensor):
+        """``(X_hat, Z_hat)`` in the database's own units."""
+        features, latent = projector.project(queries)
+        return (features * out_std[:feature_size] + out_mean[:feature_size],
+                latent * out_std[feature_size:] + out_mean[feature_size:])
+
+    def evaluate(queries: torch.Tensor):
+        """The three terms of the loss over a batch of already-displaced queries."""
+        with torch.no_grad():
+            nearest = lmm_dataset.nearest_neighbours(queries, candidates, weights, norms)
+            target_x = candidates[nearest]
+            target_z = candidate_latents[nearest]
+            target_distance = lmm_dataset.weighted_distance(queries, target_x, weights)
+
+        features, latent = answer(queries)
+        distance = lmm_dataset.weighted_distance(queries, features, weights)
+
+        return (term_weights['features'] * (features - target_x).abs().mean() / x_scale,
+                term_weights['latent'] * (latent - target_z).abs().mean() / z_scale,
+                term_weights['distance'] * (distance - target_distance).abs().mean() / x_scale)
+
+    split = max(1, int(round(frames.size * (1.0 - validation_fraction))))
+    train_t = torch.from_numpy(frames[:split]).to(torch_device)
+    held_out = frames[split:]
+    validation_frames = torch.from_numpy(
+        held_out[np.linspace(0, held_out.size - 1,
+                             min(VALIDATION_SAMPLE, held_out.size)).astype(np.int64)]
+        if held_out.size else held_out).to(torch_device)
+
+    # Drawn once and reused at every score. Re-rolling it would make the held-out curve wander for
+    # reasons that have nothing to do with the model, and patience would stop on the noise.
+    validation_generator = torch.Generator(device='cpu').manual_seed(seed + 1)
+    validation_queries = _displace(
+        x_t[validation_frames], noise_scale, sigma, validation_generator, torch_device)
+
+    losses = []
+    running = torch.zeros(len(PROJECTOR_LOSS_COLUMNS) - 1, device=torch_device)
+    running_count = 0
+    best_validation, best_parameters, best_iteration = float('inf'), None, 0
+    generator = torch.Generator(device='cpu').manual_seed(seed)
+    ran, stalled, stopped_early = 0, 0, False
+
+    for step in range(iterations):
+        projector.train()
+        chosen = train_t[torch.randint(train_t.numel(), (batch_size,), generator=generator)
+                         .to(torch_device)]
+        queries = _displace(x_t[chosen], noise_scale, sigma, generator, torch_device)
+
+        optimizer.zero_grad(set_to_none=True)
+        terms = evaluate(queries)
+        loss = sum(terms)
+        loss.backward()
+        optimizer.step()
+
+        running += torch.stack([term.detach() for term in terms] + [loss.detach()])
+        running_count += 1
+        ran = step + 1
+
+        if (step + 1) % decay_interval == 0:
+            schedule.step()
+
+        if (step + 1) % validation_interval == 0 or step + 1 == iterations:
+            if validation_queries.numel():
+                projector.eval()
+                with torch.no_grad():
+                    validation = float(sum(evaluate(validation_queries)))
+            else:
+                validation = float('nan')
+
+            losses.append(tuple((running / max(1, running_count)).tolist()) + (validation,))
+            running = torch.zeros(len(PROJECTOR_LOSS_COLUMNS) - 1, device=torch_device)
+            running_count = 0
+
+            if validation < best_validation:
+                best_validation, best_iteration = validation, step + 1
+                best_parameters = copy.deepcopy(projector.state_dict())
+                stalled = 0
+            else:
+                stalled += 1
+
+            progress('Fitting projector', (step + 1) / iterations)
+
+            if patience and stalled >= patience:
+                stopped_early = True
+                break
+            if max_seconds and time.time() - started > max_seconds:
+                break
+
+    if best_parameters is not None:
+        projector.load_state_dict(best_parameters)
+
+    recall = _projector_recall(projector, answer, validation_queries, candidates,
+                               candidate_latents, weights, norms, z_scale)
+
+    final = losses[-1] if losses else (float('nan'),) * len(PROJECTOR_LOSS_COLUMNS)
+    summary = {
+        'projector_queries': int(frames.size),
+        'projector_train_queries': int(split),
+        'projector_parameters': projector.parameter_count(),
+        'projector_iterations_run': ran,
+        'projector_best_iteration': best_iteration,
+        'projector_stopped_early': stopped_early,
+        'projector_sigma': float(sigma),
+        'projector_features': final[0],
+        'projector_latent': final[1],
+        'projector_distance': final[2],
+        'projector_train_loss': final[3],
+        'projector_val_loss': best_validation,
+        'projector_seconds': time.time() - started,
+    }
+    summary.update(recall)
+
+    return projector, losses, summary
+
+
+def _displace(frames: torch.Tensor, noise_scale: torch.Tensor, sigma: float,
+              generator: torch.Generator, device) -> torch.Tensor:
+    """
+    Push a batch of query vectors off the database, by a different amount each.
+
+    The scale is drawn per sample over ``[0, sigma]`` rather than fixed, so one batch spans a query
+    a database frame answers almost exactly and one no frame answers well. A projector trained at a
+    single displacement is good at that displacement and guesses everywhere else, and the runtime
+    supplies every displacement: the controller can ask for anything at all.
+    """
+    if frames.numel() == 0:
+        return frames
+
+    scale = torch.rand((frames.shape[0], 1), generator=generator).to(device) * sigma
+    noise = torch.randn(frames.shape, generator=generator).to(device)
+    return frames + scale * noise_scale * noise
+
+
+def _projector_recall(projector, answer, queries: torch.Tensor, candidates: torch.Tensor,
+                      candidate_latents: torch.Tensor, weights: torch.Tensor,
+                      norms: torch.Tensor, z_scale: float) -> dict:
+    """
+    :func:`lmm_dataset.recall_against_search` over the held-out queries this fit validated on.
+
+    Reported straight out of the fit as well as by ``lmm_runtime`` afterwards, because it is the
+    number that says whether the projector is usable and a training loss cannot: a loss falling
+    steadily says nothing about whether the answers are the ones the search would have given.
+    """
+    if queries.numel() == 0:
+        return {'projector_distance_ratio': float('nan'),
+                'projector_top_percent_recall': float('nan'),
+                'projector_latent_error': float('nan')}
+
+    projector.eval()
+    with torch.no_grad():
+        features, latent = answer(queries)
+
+    recall = lmm_dataset.recall_against_search(
+        queries, features, latent, candidates, candidate_latents, weights, norms, z_scale)
+    return {f'projector_{key}': value for key, value in recall.items()}
+
+
 def _slice(block_layout, name: str) -> slice:
     for entry, offset, count in block_layout:
         if entry == name:
@@ -940,6 +1312,10 @@ def _parse_args(argv=None):
                         help='write an autoencoder-only checkpoint, for the DecompressorOnly mode')
     parser.add_argument('--stepper-only', action='store_true',
                         help='fit only the stepper, against the checkpoint already at --out')
+    parser.add_argument('--no-projector', action='store_true',
+                        help='stop after the stepper, for the Stepper mode')
+    parser.add_argument('--projector-only', action='store_true',
+                        help='fit only the projector, against the checkpoint already at --out')
     parser.add_argument('--stepper-window', type=int,
                         default=lmm_dataset.DEFAULT_STEPPER_WINDOW,
                         help='frames the stepper is unrolled over while training')
@@ -950,6 +1326,15 @@ def _parse_args(argv=None):
     parser.add_argument('--stepper-hidden', type=int, default=0,
                         help='stepper hidden width; 0 takes the reference implementation of 512')
     parser.add_argument('--stepper-max-seconds', type=float, default=0.0)
+    parser.add_argument('--projector-iterations', type=int, default=30000,
+                        help='ceiling on projector steps; --projector-patience stops the fit')
+    parser.add_argument('--projector-patience', type=int, default=5,
+                        help='held-out scores without an improvement before stopping; 0 never does')
+    parser.add_argument('--projector-hidden', type=int, default=0,
+                        help='projector hidden width; 0 takes the reference implementation of 512')
+    parser.add_argument('--projector-sigma', type=float, default=lmm_dataset.PROJECTOR_SIGMA,
+                        help='how far training queries are displaced, in noise scales')
+    parser.add_argument('--projector-max-seconds', type=float, default=0.0)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--device', default='auto')
     return parser.parse_args(argv)
@@ -967,8 +1352,20 @@ def _main(argv=None) -> None:
         validation_interval=args.validation_interval, max_seconds=args.stepper_max_seconds,
         seed=args.seed, device=args.device)
 
+    projector_options = dict(
+        iterations=args.projector_iterations, patience=args.projector_patience,
+        hidden_units=args.projector_hidden, sigma=args.projector_sigma,
+        batch_size=args.batch_size, learning_rate=args.learning_rate,
+        weight_decay=args.weight_decay, validation_fraction=args.validation_fraction,
+        validation_interval=args.validation_interval, max_seconds=args.projector_max_seconds,
+        seed=args.seed, device=args.device)
+
     if args.stepper_only:
         refit_stepper(out, args.database, args.name, **stepper_options)
+        return
+
+    if args.projector_only:
+        refit_projector(out, args.database, args.name, **projector_options)
         return
 
     train(args.database, args.name, out,
@@ -986,6 +1383,12 @@ def _main(argv=None) -> None:
           stepper_iterations=args.stepper_iterations,
           stepper_patience=args.stepper_patience,
           stepper_max_seconds=args.stepper_max_seconds,
+          projector=not args.no_projector and not args.no_stepper,
+          projector_hidden=args.projector_hidden,
+          projector_iterations=args.projector_iterations,
+          projector_patience=args.projector_patience,
+          projector_sigma=args.projector_sigma,
+          projector_max_seconds=args.projector_max_seconds,
           seed=args.seed, device=args.device)
 
 

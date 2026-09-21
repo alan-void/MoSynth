@@ -87,6 +87,11 @@ public class LmmConfig : ScriptableObject
     [Tooltip("Stepper hidden width. 0 takes the reference implementation's 512, two layers deep.")]
     [Min(0)] public int stepperHiddenUnits;
 
+    [Tooltip("Projector hidden width. 0 takes the reference implementation's 512. It is four " +
+             "layers deep — the deepest of the four networks, because approximating a " +
+             "nearest-neighbour lookup wants depth rather than width.")]
+    [Min(0)] public int projectorHiddenUnits;
+
     // --- Stepper ----------------------------------------------------------------------------
 
     [Header("Stepper")]
@@ -129,6 +134,46 @@ public class LmmConfig : ScriptableObject
 
     [Tooltip("Stop fitting the stepper after this many seconds regardless, 0 for no limit.")]
     [Min(0f)] public float stepperMaxSeconds;
+
+    // --- Projector --------------------------------------------------------------------------
+
+    /// <summary>
+    /// Fit the projector, which replaces the search itself. Needs <see cref="trainStepper"/>.
+    /// </summary>
+    /// <remarks>
+    /// The <c>Full</c> mode runs both networks — the projector answers a search and the stepper
+    /// carries that answer to the next one — so a checkpoint is refused if it carries one without
+    /// the other. Turning the stepper off turns this off with it.
+    /// </remarks>
+    [Header("Projector")]
+    [Tooltip("Fit the projector, which answers a query with a state instead of looking one up. " +
+             "Needs the stepper: the Full mode runs both.")]
+    public bool trainProjector = true;
+
+    [Tooltip("Ceiling on optimiser steps for the projector. Each one searches the whole database " +
+             "for the true nearest neighbour of every query in the batch, so a step costs more " +
+             "than the network. Projector Patience is what normally stops the fit.")]
+    [Min(1)] public int projectorIterations = 30000;
+
+    [Tooltip("Held-out scores without an improvement before the projector fit stops. This is the " +
+             "real stopping rule; 0 disables it and runs to Projector Iterations.")]
+    [Min(0)] public int projectorPatience = 5;
+
+    /// <summary>
+    /// How far a training query is displaced from the database frame it was drawn from.
+    /// </summary>
+    /// <remarks>
+    /// The projector exists to answer a query no frame matches, so it is trained on queries that
+    /// genuinely miss. Each sample is displaced by a fraction of this drawn uniformly, so one
+    /// batch spans a query a frame answers almost exactly and one nothing answers well. Raising it
+    /// buys behaviour further from the data at the cost of accuracy near it.
+    /// </remarks>
+    [Tooltip("How far training queries are displaced, in units of each feature's own spread plus " +
+             "one. The projector only learns to answer a query that misses if it is shown one.")]
+    [Min(0f)] public float projectorNoise = 1f;
+
+    [Tooltip("Stop fitting the projector after this many seconds regardless, 0 for no limit.")]
+    [Min(0f)] public float projectorMaxSeconds;
 
     // --- Training ---------------------------------------------------------------------------
 

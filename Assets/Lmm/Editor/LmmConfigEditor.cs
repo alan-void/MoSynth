@@ -309,17 +309,19 @@ public class LmmConfigEditor : UnityEditor.Editor
         {
             if (GUILayout.Button("Train LMM", GUILayout.Height(30))) LmmTraining.Run(config);
 
-            // The autoencoder is the half-hour half and the stepper is fitted against latents it
-            // has already baked, so tuning the window or the schedule need not pay for it again.
+            // The autoencoder is the half-hour half and the two later networks are fitted against
+            // latents it has already baked, so tuning either need not pay for it again.
             using (new EditorGUI.DisabledScope(!trained))
+            using (new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button("Fit Stepper Only")) LmmTraining.RunStepper(config);
+                if (GUILayout.Button("Fit Projector Only")) LmmTraining.RunProjector(config);
             }
         }
 
         EditorGUILayout.LabelField(
-            "Fitting the stepper alone leaves the rest of the checkpoint untouched, so it does " +
-            "not make a stale one current.", EditorStyles.wordWrappedMiniLabel);
+            "Fitting the stepper or the projector alone leaves the rest of the checkpoint " +
+            "untouched, so neither makes a stale one current.", EditorStyles.wordWrappedMiniLabel);
     }
 
     private static string ProjectRelative(string absolutePath)

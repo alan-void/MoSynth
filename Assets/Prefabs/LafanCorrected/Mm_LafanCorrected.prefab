@@ -71,7 +71,7 @@ GameObject:
   m_Component:
   - component: {fileID: 48325372015378488}
   m_Layer: 0
-  m_Name: LmmCharacter_Decompressor
+  m_Name: Mm_LafanCorrected
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -152,18 +152,26 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 4326263141704925273
-      type: {class: LmmStage, ns: Lmm, asm: Lmm}
+      type: {class: MotionMatchingStage, ns: MotionMatching, asm: MotionMatching}
       data:
         isEnabled: 1
-        config: {fileID: 11400000, guid: fafc598453814af9ba1f84e40e0caf9d, type: 2}
-        mode: 0
-        reloadPythonModules: 1
+        mmData: {fileID: 11400000, guid: 88990f88625147a4baeb8a03acac1cb0, type: 2}
         mmSearch:
           rid: 4326263141704925274
         searchInterval: 0.16666667
-        acceptanceRatio: 0.95
-        raisePoseDiscontinuity: 1
-        inferenceDevice: 2
+        responsiveness: 1
+        quality: 1
+        minFrameSwitchDistance: 20
+        featureWeights:
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
     - rid: 4326263141704925274
       type: {class: BvhMotionMatchingSearch, ns: MotionMatching, asm: MotionMatching}
       data: 
