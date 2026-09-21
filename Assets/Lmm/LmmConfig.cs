@@ -84,6 +84,52 @@ public class LmmConfig : ScriptableObject
              "layer deep: decoding a latent into a pose is a smooth map and wants width, not depth.")]
     [Min(0)] public int decompressorHiddenUnits;
 
+    [Tooltip("Stepper hidden width. 0 takes the reference implementation's 512, two layers deep.")]
+    [Min(0)] public int stepperHiddenUnits;
+
+    // --- Stepper ----------------------------------------------------------------------------
+
+    [Header("Stepper")]
+    [Tooltip("Fit the stepper, which advances the state between searches so the database need not " +
+             "be played. Off writes an autoencoder-only checkpoint, which is all the " +
+             "DecompressorOnly mode needs.")]
+    public bool trainStepper = true;
+
+    /// <summary>
+    /// Database frames the stepper is unrolled over while training.
+    /// </summary>
+    /// <remarks>
+    /// It has to cover the search cadence, because that is how long the state runs uncorrected: a
+    /// <c>searchInterval</c> of 10/60 s is ten frames of a 60 Hz database, so the default is two
+    /// searches' worth. Raising it costs training time in proportion — the unrolling is sequential
+    /// — and buys nothing the stage will ever ask for unless <c>searchInterval</c> rises with it.
+    /// </remarks>
+    [Tooltip("Frames the stepper is unrolled over. It has to cover the stage's search interval, " +
+             "which is how long the state runs uncorrected.")]
+    [Min(2)] public int stepperWindow = 20;
+
+    [Tooltip("Ceiling on optimiser steps for the stepper. Each one unrolls the whole window, so a " +
+             "step costs roughly stepperWindow forward passes. Stepper Patience is what normally " +
+             "stops the fit.")]
+    [Min(1)] public int stepperIterations = 30000;
+
+    /// <summary>
+    /// Held-out scores without an improvement before the stepper fit stops. 0 never stops early.
+    /// </summary>
+    /// <remarks>
+    /// This, not <see cref="stepperIterations"/>, is the stopping rule. On Edinburgh the stepper's
+    /// held-out score bottoms out around iteration 2,000 and rises monotonically after it, so a
+    /// fixed count is nine parts waste — and the right count is a property of how much independent
+    /// motion the database holds rather than something to guess per run. The autoencoder has no
+    /// equivalent knob because its held-out curve is still falling when it hits its own limit.
+    /// </remarks>
+    [Tooltip("Held-out scores without an improvement before the stepper fit stops. This is the " +
+             "real stopping rule; 0 disables it and runs to Stepper Iterations.")]
+    [Min(0)] public int stepperPatience = 5;
+
+    [Tooltip("Stop fitting the stepper after this many seconds regardless, 0 for no limit.")]
+    [Min(0f)] public float stepperMaxSeconds;
+
     // --- Training ---------------------------------------------------------------------------
 
     [Header("Training")]

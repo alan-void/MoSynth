@@ -8,10 +8,11 @@ cannot be exported to ONNX and handed to a Unity-native inference backend later.
 means every leaf module is a :class:`torch.nn.Linear` or an activation, which ``test_lmm_model``
 asserts rather than leaving to intent.
 
-Two of the four networks live here; the stepper and the projector join them in later phases.
+Three of the four networks live here; the projector joins them in phase C.
 
 * **Compressor** ``[Y Q] -> Z``, 516 wide and three hidden layers deep, with ELU.
 * **Decompressor** ``[X Z] -> Y``, 512 wide and **one** hidden layer deep, with ReLU.
+* **Stepper** ``[X Z] -> d/dt [X Z]``, 512 wide and two hidden layers deep, with ReLU.
 
 Both the asymmetry and the mixed activations are the paper's (Table 1) and the reference
 implementation's shipped graphs agree with them. The asymmetry looks backwards and is not: decoding
@@ -41,10 +42,13 @@ COMPRESSOR_HIDDEN_UNITS = 516
 COMPRESSOR_HIDDEN_LAYERS = 3
 DECOMPRESSOR_HIDDEN_UNITS = 512
 DECOMPRESSOR_HIDDEN_LAYERS = 1
+STEPPER_HIDDEN_UNITS = 512
+STEPPER_HIDDEN_LAYERS = 2
 
-__all__ = ['Mlp', 'Compressor', 'Decompressor', 'resolve_device',
+__all__ = ['Mlp', 'Compressor', 'Decompressor', 'Stepper', 'resolve_device',
            'COMPRESSOR_HIDDEN_UNITS', 'COMPRESSOR_HIDDEN_LAYERS',
-           'DECOMPRESSOR_HIDDEN_UNITS', 'DECOMPRESSOR_HIDDEN_LAYERS']
+           'DECOMPRESSOR_HIDDEN_UNITS', 'DECOMPRESSOR_HIDDEN_LAYERS',
+           'STEPPER_HIDDEN_UNITS', 'STEPPER_HIDDEN_LAYERS']
 
 
 class Mlp(nn.Module):
@@ -167,5 +171,43 @@ class Decompressor(Mlp):
         """
         :param features: (n, feature_size) matching feature vectors, as Unity normalised them.
         :param latent: (n, latent_size) latents, as the compressor produced them.
+        """
+        return self(torch.cat([features, latent], dim=1))
+
+
+class Stepper(Mlp):
+    """
+    Advances the state ``[X Z]`` a frame at a time, so the database need not be played.
+
+    This is what replaces walking the ``.mmpose`` between searches. It takes **exactly the vector
+    the decompressor takes** -- the same concatenation, in the same units -- and that is deliberate:
+    the stage carries one copy of ``(X, Z)`` and hands it to both networks, so there is no second
+    normalisation of the state to get wrong.
+
+    It answers with a **rate per second**, not with the next state. The stage integrates
+    ``x += rate * dt``, which is the repository's convention for every predicted motion channel and
+    is what lets synthesis run at a rate the database was not sampled at. The output is normalised
+    per element by the rate statistics in the checkpoint, for the reason the decompressor's is: the
+    thirty-three feature rates and the thirty-two latent rates have nothing in common but the
+    concatenation, and a network regressing raw units would spend its capacity on their scales.
+    """
+
+    def __init__(self, feature_size: int, latent_size: int,
+                 hidden_units: int = STEPPER_HIDDEN_UNITS,
+                 hidden_layers: int = STEPPER_HIDDEN_LAYERS):
+        state_size = feature_size + latent_size
+        super().__init__(state_size, state_size, hidden_units, hidden_layers,
+                         activation=torch.nn.ReLU)
+        self.feature_size = feature_size
+        self.latent_size = latent_size
+        self.state_size = state_size
+
+    def rate(self, features: torch.Tensor, latent: torch.Tensor) -> torch.Tensor:
+        """
+        :param features: (n, feature_size) the query vector the character is holding.
+        :param latent: (n, latent_size) the latent beside it.
+        :return: (n, feature_size + latent_size) the **normalised** per-second rate of change of
+            the two concatenated. Denormalising it is the caller's job, because the statistics live
+            in the checkpoint rather than in the network.
         """
         return self(torch.cat([features, latent], dim=1))

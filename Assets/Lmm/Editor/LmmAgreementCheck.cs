@@ -11,9 +11,10 @@ using UnityEngine;
 namespace Lmm.Editor
 {
 /// <summary>
-/// Two diagnostics that need a generated database and a working interpreter, so neither can be an
-/// edit-mode test: whether the two definitions of a character-frame pose agree, and how well a
-/// trained checkpoint reconstructs the database it learned.
+/// Three diagnostics that need a generated database and a working interpreter, so none of them can
+/// be an edit-mode test: whether the two definitions of a character-frame pose agree, how well a
+/// trained checkpoint reconstructs the database it learned, and how far its stepper wanders when
+/// nothing corrects it.
 /// </summary>
 /// <remarks>
 /// The agreement half is <c>PfnnAgreementCheck</c>'s, pointed at a <c>MotionMatchingData</c>
@@ -26,6 +27,10 @@ namespace Lmm.Editor
 /// The reconstruction half answers the question the training loss cannot. That loss is computed on
 /// standardised vectors with per-block weights, so it is comparable between runs and comparable to
 /// nothing else — it cannot say whether a foot is a centimetre or a hand's breadth out of place.
+/// </para>
+/// <para>
+/// The drift report answers what neither of the other two can reach: both score a single frame
+/// against its own database row, and a stepper fails by accumulating error over many frames.
 /// </para>
 /// </remarks>
 public static class LmmAgreementCheck
@@ -49,7 +54,46 @@ public static class LmmAgreementCheck
     });
 
     [MenuItem("MoSynth/Lmm/Report Reconstruction Error", priority = 301)]
-    public static void CheckReconstruction() => Run(config =>
+    public static void CheckReconstruction() => Report((runtime, policy, set, config) =>
+        runtime.reconstruction_report(policy, set, ReportFrames, config.validationFraction));
+
+    /// <summary>
+    /// How far a free-running stepper wanders from the database, and what that costs in metres.
+    /// </summary>
+    /// <remarks>
+    /// The reconstruction report cannot answer this. It scores a pose against the latent the
+    /// compressor baked for that very frame, while between searches the stage feeds the
+    /// decompressor a latent the stepper produced — and the failure mode of a stepper is error
+    /// that compounds, which nothing measured one frame at a time can see.
+    /// </remarks>
+    [MenuItem("MoSynth/Lmm/Report Stepper Drift", priority = 302)]
+    public static void CheckStepperDrift() => Report((runtime, policy, set, config) =>
+    {
+        if (!(bool)policy.has_stepper())
+        {
+            Debug.LogError($"[LMM] '{config.name}' carries no stepper, so there is nothing to run " +
+                           "free. Press Fit Stepper Only on the config.", config);
+            return;
+        }
+
+        runtime.rollout_report(policy, set, RolloutSeeds, config.validationFraction);
+    });
+
+    /// <summary>
+    /// States a drift report runs from. Each one is rolled the full horizon, so this is thirty
+    /// forward passes apiece — enough to be representative, quick enough for a menu item.
+    /// </summary>
+    private const int RolloutSeeds = 2048;
+
+    /// <summary>
+    /// Loads the checkpoint and its database once, then hands both to <paramref name="report"/>.
+    /// </summary>
+    /// <remarks>
+    /// Shared because the loading is the slow part — a few hundred megabytes of poses — and
+    /// because a second copy of it would be a second place for the database and the checkpoint to
+    /// be resolved differently.
+    /// </remarks>
+    private static void Report(Action<dynamic, dynamic, dynamic, LmmConfig> report) => Run(config =>
     {
         if (!File.Exists(config.GetCheckpointPath()))
         {
@@ -68,7 +112,7 @@ public static class LmmAgreementCheck
                 config.mmData.name);
 
             Debug.Log($"[LMM] {config.name}: {(string)policy.describe()}");
-            runtime.reconstruction_report(policy, set, ReportFrames, config.validationFraction);
+            report(runtime, policy, set, config);
         }
     });
 
@@ -85,6 +129,7 @@ public static class LmmAgreementCheck
 
     [MenuItem("MoSynth/Lmm/Check Training Agreement", validate = true)]
     [MenuItem("MoSynth/Lmm/Report Reconstruction Error", validate = true)]
+    [MenuItem("MoSynth/Lmm/Report Stepper Drift", validate = true)]
     private static bool CanRun() => !EditorApplication.isPlayingOrWillChangePlaymode;
 
     /// <summary>Resolves the config to act on, then runs <paramref name="action"/> safely.</summary>

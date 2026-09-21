@@ -207,6 +207,72 @@ class TrainingPairTests(unittest.TestCase):
             self.assertTrue(latent_exists[frame + 1])
 
 
+class StepperWindowTests(unittest.TestCase):
+    """
+    The runs the phase B stepper unrolls over.
+
+    The property that matters is that a window never spans a cut: a stepper trained across one
+    would learn to predict a jump, and jumping is the search's job. Nothing checks it at the point
+    of use, so it is checked here.
+    """
+
+    def test_a_window_needs_a_latent_at_every_frame_it_covers(self):
+        training_set = straight_walk_set(n_frames=40)
+        latent_exists = lmm_dataset.compressible(training_set)
+
+        for start in lmm_dataset.stepper_windows(training_set, window=5):
+            for offset in range(6):
+                self.assertTrue(latent_exists[start + offset],
+                                f'window {start} reaches frame {start + offset}')
+
+    def test_no_window_crosses_a_clip_boundary(self):
+        training_set = straight_walk_set(n_frames=40, clips=[(0, 25), (25, 40)])
+
+        for start in lmm_dataset.stepper_windows(training_set, window=5):
+            self.assertEqual(start // 25, (start + 5) // 25,
+                             f'window {start} spans the cut at frame 25')
+
+    def test_a_longer_window_is_a_subset_of_a_shorter_one(self):
+        training_set = straight_walk_set(n_frames=40, clips=[(0, 25), (25, 40)])
+
+        short = set(lmm_dataset.stepper_windows(training_set, window=4).tolist())
+        long = set(lmm_dataset.stepper_windows(training_set, window=8).tolist())
+
+        self.assertTrue(long.issubset(short))
+        self.assertLess(len(long), len(short))
+
+    def test_a_window_longer_than_every_clip_leaves_nothing(self):
+        training_set = straight_walk_set(n_frames=40, clips=[(0, 10), (10, 20), (20, 40)])
+
+        self.assertEqual(lmm_dataset.stepper_windows(training_set, window=25).size, 0)
+
+    def test_it_refuses_a_window_of_no_frames(self):
+        with self.assertRaises(ValueError):
+            lmm_dataset.latent_runs(np.ones(10, dtype=bool), 0)
+
+
+class StateScaleTests(unittest.TestCase):
+    def test_each_half_gets_one_scalar_over_its_latent_carrying_frames(self):
+        x = np.tile(np.array([[1.0, 3.0]], dtype=np.float32), (6, 1))
+        x[5] = 1000.0  # a frame with no latent, which must not reach the statistic
+        latents = np.tile(np.array([[10.0, 30.0]], dtype=np.float32), (6, 1))
+        exists = np.array([True] * 5 + [False])
+
+        x_scale, z_scale = lmm_dataset.state_scales(x, latents, exists)
+
+        self.assertAlmostEqual(x_scale, float(np.array([1.0, 3.0] * 5).std()), places=5)
+        self.assertAlmostEqual(z_scale, float(np.array([10.0, 30.0] * 5).std()), places=4)
+
+    def test_a_state_that_never_varies_gets_a_usable_scale_rather_than_zero(self):
+        constant = np.ones((8, 3), dtype=np.float32)
+
+        x_scale, z_scale = lmm_dataset.state_scales(constant, constant,
+                                                    np.ones(8, dtype=bool))
+
+        self.assertGreater(x_scale, 0.0)
+        self.assertGreater(z_scale, 0.0)
+
+
 class BuildVectorTests(unittest.TestCase):
     def setUp(self):
         self.training_set = straight_walk_set()

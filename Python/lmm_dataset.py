@@ -128,6 +128,31 @@ LATENT_SPARSITY_WEIGHT = 0.1
 LATENT_MAGNITUDE_WEIGHT = 0.1
 LATENT_VELOCITY_WEIGHT = 0.01
 
+# What each half of the stepper's answer is worth. From the author's released training code, as the
+# weights above are -- the paper states no numbers for these either.
+#
+# The latent terms carry roughly four times the feature terms, and the asymmetry is the method: the
+# feature half is partly re-supplied by the controller at every search, while a latent that has
+# drifted is only ever corrected by the next accepted candidate. The rate terms are small because a
+# per-second rate is sixty times a per-frame step, so they arrive already large.
+STEPPER_WEIGHTS = {
+    'features': 2.0,
+    'latent': 7.5,
+    'feature_rate': 0.2,
+    'latent_rate': 0.5,
+}
+
+# Frames the stepper is unrolled over while training. The stage searches every ``searchInterval``
+# seconds, 10/60 by default, which is ten database frames -- so twenty is two searches' worth of
+# headroom, and it is the window the released code uses.
+DEFAULT_STEPPER_WINDOW = 20
+
+# Free-run lengths the stepper's drift is reported at, in database frames. Ten is the one that
+# decides whether phase B works: the stage searches every `searchInterval` seconds, 10/60 by
+# default, so ten frames is how long the state has to survive uncorrected. Thirty is there to show
+# whether it degrades past that cadence or explodes.
+DRIFT_HORIZONS = (5, 10, 20, 30)
+
 
 @dataclass(frozen=True)
 class LmmSpec:
@@ -290,6 +315,46 @@ def training_pairs(training_set: TrainingSet) -> np.ndarray:
     return np.flatnonzero(latent_exists & next_exists).astype(np.int64)
 
 
+def stepper_windows(training_set: TrainingSet,
+                    window: int = DEFAULT_STEPPER_WINDOW) -> np.ndarray:
+    """
+    (m,) frame indices ``i`` where every frame of ``i .. i + window`` carries a latent.
+
+    The starts of the unrolled runs the phase B stepper trains on. **No window crosses a clip
+    boundary**, and that falls out of :func:`compressible` rather than being checked again here: a
+    frame only has a latent when its successor is in the same clip, so ``window + 1`` consecutive
+    latents are ``window + 1`` consecutive frames of one animation. Training across a cut would
+    teach the stepper to predict a jump, which is the one thing it must never do -- the search is
+    what jumps.
+
+    :param window: frames the state is advanced over. See :data:`DEFAULT_STEPPER_WINDOW`.
+    """
+    return latent_runs(compressible(training_set), window)
+
+
+def latent_runs(latent_exists: np.ndarray, window: int) -> np.ndarray:
+    """
+    (m,) indices ``i`` where ``latent_exists`` is true for all of ``i .. i + window``.
+
+    Taken separately from :func:`stepper_windows` because the rollout diagnostics need runs longer
+    than the window a model was trained over -- measuring thirty-frame drift on a twenty-frame
+    model is the point of measuring it.
+
+    :param latent_exists: (n,) as :func:`compressible` returns.
+    :param window: how many further frames each run must cover.
+    """
+    if window < 1:
+        raise ValueError(f'a stepper window has to be at least one frame, got {window}')
+
+    runs = latent_exists.copy()
+    for offset in range(1, window + 1):
+        shifted = np.zeros_like(latent_exists)
+        shifted[:-offset] = latent_exists[offset:]
+        runs &= shifted
+
+    return np.flatnonzero(runs).astype(np.int64)
+
+
 def build_vectors(training_set: TrainingSet, spec: LmmSpec):
     """
     Pack the whole database once, as the arrays training indexes into.
@@ -317,6 +382,20 @@ def build_vectors(training_set: TrainingSet, spec: LmmSpec):
                              f'{spec.character_size}')
 
     return x, y, q, compressible(training_set)
+
+
+def state_scales(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray):
+    """
+    ``(x_scale, z_scale)``: one scalar spread for each half of the state ``[X Z]``.
+
+    A single number per half rather than one per float, for the reason
+    :func:`group_normalization` gives: the halves are compared against each other and a per-float
+    scale would make an L1 error mean something different in every float. Both the stepper's loss
+    and the drift it is judged by are measured in these units, so they are defined once here rather
+    than recomputed either side of the checkpoint.
+    """
+    return (max(1e-6, float(x[latent_exists].std())),
+            max(1e-6, float(latents[latent_exists].std())))
 
 
 def group_normalization(vectors: np.ndarray, block_layout):

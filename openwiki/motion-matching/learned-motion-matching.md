@@ -4,6 +4,10 @@ title: Learned motion matching
 description: How MoSynth replaces the database search with learned networks, the staging that makes each replacement measurable, and the parked Barracuda experiment that was removed to make room for it.
 tags: [neural, training-data, synthesis-method, roadmap]
 sources:
+  - id: openwiki-source-886205997e2f3c41abc7a5a5
+    resource: repo://Assets/Lmm/Editor/LmmAgreementCheck.cs
+  - id: openwiki-source-01628a2219f813961e9adea2
+    resource: repo://Assets/Lmm/Editor/LmmTraining.cs
   - id: openwiki-source-6ae3fca0d1cd346c5b593ebf
     resource: repo://Assets/Lmm/LmmConfig.cs
   - id: openwiki-source-b6e201bd6bd5f97d52502753
@@ -36,10 +40,10 @@ sources:
     resource: repo://Python/lmm_trainer.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-generated: {by: "claude-code", at: "2026-09-19T18:12:18.762Z"}
+generated: {by: "claude-code", at: "2026-09-20T12:40:57.561Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-09-19T18:12:18.762Z
+    at: 2026-09-20T12:40:57.561Z
 ---
 
 # Learned motion matching
@@ -56,9 +60,10 @@ search with three small networks:
 A fourth, the **compressor**, exists only at training time: it produces the latents the other three
 are defined over, and is kept in the checkpoint for diagnostics.
 
-The method arrives in three phases, and **phase A is implemented**: the compressor and decompressor
-are trained, and `LmmStage` runs the decompressor. The stepper and the projector are not written
-yet, and `LmmStage` refuses a mode that would need them.
+The method arrives in three phases, and **phases A and B are implemented**: the compressor and
+decompressor are trained, the stepper is fitted against the latents they bake, and `LmmStage` runs
+either the decompressor alone or the decompressor with the stepper advancing the state between
+searches. The projector is not written yet, and `LmmStage` refuses the mode that would need it.
 
 The parts shared with a phase-functioned network are on
 [neural synthesis readiness](../animation-tools/neural-synthesis.md); this page is the LMM-specific
@@ -134,9 +139,9 @@ adjacent frames. **A frame has a latent only when its successor is in the same c
 of every clip has none, and a training pair additionally loses the second-to-last. Differencing
 across a clip boundary would score a jump cut as motion.
 
-## Training
+## Training the autoencoder
 
-One stage in phase A: the compressor and decompressor, fitted jointly, under the paper's
+The first stage: the compressor and decompressor, fitted jointly, under the paper's
 **Algorithm 1**.
 
 ```
@@ -229,7 +234,9 @@ regression from `(X, Z)` to the next step. It is the **linear lower bound** on w
 could learn — a nonlinear stepper will do better, but not arbitrarily better.
 
 Measured on Edinburgh: **R² = +0.173.** A linear model explains 17% of the step's variance. That is
-a weak foundation, and it is the honest advance warning about phase B.
+a weak foundation, and it was the honest advance warning about phase B — one that
+[the fitted stepper bore out](#the-stepper-is-measured-by-free-running-it-and-nothing-else-will-do),
+missing its drift bar at the search cadence.
 
 This is the only one of the three a latent cannot flatter by going quiet, because R² is scored
 against that latent's own variance — shrink the steps and the target shrinks with them.
@@ -287,6 +294,121 @@ Frames come from `TrainingSet.usable()` — matching-feature validity, nothing m
 every clip with no measurable gait cycle, which a phase-functioned network needs and a learned
 matcher wants kept. Idling is motion a matcher has to be able to produce.
 
+## Training the stepper
+
+The stepper replaces walking the database between searches. It takes **exactly the vector the
+decompressor takes** — the same `X‖Z`, in the same units — and answers with a **rate per second**,
+which the stage integrates as `x += ẋ·dt`. Sharing the input is deliberate: the stage carries one
+copy of the state and hands it to both networks, so there is no second normalisation of the same
+sixty-five floats to get wrong. The rate is what makes synthesis rate and database frame rate
+independent of each other, and it is the convention every other predicted motion channel in this
+repository already follows.
+
+Only the *output* is normalised, per element, by rate statistics stored in the checkpoint. At
+initialisation the network's raw output is near zero, so it predicts the mean rate — which on this
+data is near zero too. An untrained stepper therefore holds still rather than flying apart, which is
+the right prior for a network whose job is a small correction each frame.
+
+### The latents are an input, never a parameter
+
+The compressor is not merely frozen while the stepper trains — **it does not run at all.** The
+stepper is fitted against the latent table already baked into the checkpoint.
+
+The failure this rules out is subtle. Train the two together and the pair has a far cheaper route to
+a steppable latent than learning to step it: make the latent constant. Reconstruction would pay for
+that, but not by enough, and the symptom is a phase B that looks like it worked. Taking the latents
+as a fixed input removes the option rather than penalising it.
+
+It is also why `refit_stepper` exists as a separate entry point — *Fit Stepper Only* on the config,
+or `lmm_trainer.py --stepper-only`. The autoencoder is the half-hour half and the stepper is fitted
+against what it already produced, so trying a different window or a longer schedule need not pay for
+it again. That path reads the `.mmfeatures` alone and not the three hundred megabytes of `.mmpose`
+beside it: everything else it needs is in the checkpoint, and `latent_valid` is *exactly* the frame
+mask phase A derived, so there is no second definition of which frames carry a latent for the two to
+disagree about.
+
+### Unrolled, never single-step
+
+```
+x̂ = X_i ; ẑ = Z_i
+for n in 1..N:  (ẋ, ż) = S(x̂‖ẑ)
+                x̂ += ẋ·δt ; ẑ += ż·δt
+                L += w_x·|x̂ − X_{i+n}| + w_z·|ẑ − Z_{i+n}|
+                   + w_ẋ·|ẋ − Ẋ_{i+n-1}| + w_ż·|ż − Ż_{i+n-1}|
+```
+
+The state the stepper is asked to advance at frame *n* is the state **it produced** at frame *n−1*,
+errors and all. A stepper fitted on true states only is one that has never seen its own mistakes,
+and the whole failure mode here is error that compounds. `N` defaults to 20: the stage searches
+every `searchInterval` seconds, 10/60 by default, which is ten frames of a 60 Hz database — so the
+default window is two searches' worth of headroom, and it is also the released code's.
+
+**No window crosses a clip boundary**, and that falls out of the latent rule rather than being
+checked again: a frame has a latent only when its successor is in the same clip, so `N+1`
+consecutive latents are `N+1` consecutive frames of one animation. Training across a cut would teach
+the stepper to predict a jump, which is the search's job and not its.
+
+The loss is divided by `N`, so its magnitude — and with it the effective learning rate — does not
+change when the window does.
+
+### The weights, and what they say
+
+| term | weight |
+| --- | --- |
+| `X` | 2.0 |
+| `Z` | **7.5** |
+| `Ẋ` | 0.2 |
+| `Ż` | 0.5 |
+
+The author's released code again; the paper states no numbers for these either. Both halves are
+divided by **one scalar spread for the whole half** before weighting — a single `X.std()` and a
+single `Z.std()` over latent-carrying frames — so a feature error and a latent error are being
+traded in comparable terms rather than in whatever units each happened to arrive in.
+
+The latent terms carrying roughly four times the feature terms is the interesting part, and it
+matches what the runtime does with each: the feature half is partly re-supplied by the controller at
+every search, while a drifted latent is only ever corrected by the next accepted candidate. The rate
+terms are small because a per-second rate is sixty times a per-frame step and so arrives already
+large.
+
+### It stops when it stops improving, and that is not the autoencoder's rule
+
+`stepperPatience` — held-out scores without an improvement — is the stopping rule; `stepperIterations`
+is only a ceiling. That is a measured decision rather than a habit. On Edinburgh:
+
+| | autoencoder | stepper |
+| --- | --- | --- |
+| held-out at 1,000 iterations | 4.2023 | 5.8520 |
+| **best held-out** | 2.4827 at **116,000** | 5.8247 at **2,000** |
+| at 30,000 | — | 6.3748, still rising |
+
+The autoencoder's held-out loss is *still falling* when it hits its iteration limit; the stepper's
+bottoms out at 2,000 and rises monotonically from there while its training loss keeps falling from
+5.73 to 3.38. Nine-tenths of a fixed 30,000-step run is therefore pure waste, and the right count is
+a property of the database rather than something to guess. With patience the same parameters are
+found in 220 s instead of 930 s — the best-parameter snapshot means the long run was never *wrong*,
+only slow. The autoencoder has no such knob because patience would never fire.
+
+**This is not a capacity problem.** Narrowing the stepper makes every number worse, monotonically:
+
+| hidden | params | best iteration | held-out | X/Z drift at 10 frames |
+| --- | --- | --- | --- | --- |
+| **512** (the reference's) | 330 k | 2,000 | **5.8247** | **0.260 / 0.371** |
+| 256 | 99 k | 4,000 | 5.9744 | 0.269 / 0.384 |
+| 128 | 33 k | 4,000 | 6.1008 | 0.299 / 0.386 |
+| 64 | 13 k | 9,000 | 6.3173 | 0.337 / 0.401 |
+
+So the early overfit is the same wall phase A hit, arriving sooner. The autoencoder sees 108,265
+independent frames; the stepper sees windows that overlap by nineteen frames out of twenty, so its
+genuinely independent content is nearer 5,400 trajectories — and it memorises them in two thousand
+steps.
+
+The small fixture database says the same thing from the other end. `MM_LafanCorrected` is one clip,
+about 2.2 minutes, and its stepper is far worse on every measure — latent drift 0.819 at the search
+cadence against Edinburgh's 0.369, from a latent whose step predictability is +0.062 against +0.173.
+Twenty-seven times the data moves both numbers in the same direction, which is what a data-limited
+model does and is not what a capacity-limited one does.
+
 ## The networks
 
 All plain stacks of `Linear` and an activation, and that is a constraint rather than an observation:
@@ -299,7 +421,7 @@ added in good faith cannot quietly close off the Unity-native inference path.
 | --- | --- | --- | --- | --- |
 | Compressor | `Y‖Q` (574) → 32 | 516 × 3 | ELU | 1.05 M over the shipping rig |
 | Decompressor | `X‖Z` (65) → `Y` (331) | **512 × 1** | ReLU | |
-| Stepper (phase B) | 65 → 65 | 512 × 2 | ReLU | |
+| Stepper | `X‖Z` (65) → `d/dt X‖Z` (65) | 512 × 2 | ReLU | 330 k |
 | Projector (phase C) | 33 → 65 | **512 × 4** | ReLU | |
 
 The depths are the paper's Table 1 and the widths are read off the reference implementation's
@@ -373,8 +495,32 @@ right speed, and it is the most likely first-run bug.
 **The latent table stays in Python.** In `DecompressorOnly` both `X` and `Z` are functions of the
 frame being played, so the stage passes a frame index and the lookup happens on the far side, inside
 the boundary crossing it was already making. Marshalling a two-hundred-thousand-row table at startup
-would cost far more than a lookup that is free in Python. Phase B changes this, because a stepped
-latent is no longer one of the baked rows.
+would cost far more than a lookup that is free in Python. In `Stepper` mode the state is no longer
+any database row, so the stage carries it and hands it back each tick.
+
+### The `Stepper` tick
+
+`policy.tick(x, z, dt)` advances the state and decompresses it in **one** call, returning the pose
+and the state to carry into the next tick. They are one call because the stepper's answer is only
+ever wanted as the decompressor's input, so splitting them would marshal sixty-five floats across
+the boundary for nothing. On a search tick the accepted frame's latent is read in the same
+acquisition of the GIL — the search itself is pure C# and has already run — so the tick path
+acquires it once either way.
+
+The state is advanced **before** it is decompressed, which is what `DecompressorOnly` does with its
+playhead: it moves by `deltaTime` and then reads the frame it landed on. Including on a search tick,
+where both modes take the accepted frame and then move on from it by `deltaTime`. The two modes
+differ in where the state comes from and in nothing else.
+
+**The controller's trajectory is never spliced into `X` between searches.** It is tempting: the
+controller knows where it wants to go every frame, and eighteen of the thirty-three floats describe
+exactly that. But the stepper advances all thirty-three together and the decompressor consumes them
+whole, so overwriting the trajectory half each tick hands it a trajectory paired with a latent it
+never saw. The controller enters through the query, on search ticks, and nowhere else.
+
+`PoseDiscontinuity` is raised on an accepted jump and **never on a stepper tick**, which is what a
+stepper tick being continuous means. There is also no clip crossing to raise it for, since nothing
+is playing.
 
 ### The accept rule, and the discontinuity flag
 
@@ -394,7 +540,9 @@ comparison is corrupted in its favour.
 
 Playback can step onto the one frame per clip that has no latent. The stage holds the previous
 latent for that frame rather than disturbing the search cadence, which happens exactly where a clip
-crossing is already raising a discontinuity. The search itself is masked to latent-carrying frames.
+crossing is already raising a discontinuity. The search itself is masked to latent-carrying frames,
+so this only ever arises from playback — `Stepper` mode never meets it, because it only ever reads a
+latent for a frame the search returned.
 
 ## Verifying a checkpoint
 
@@ -421,9 +569,10 @@ the gap between them is the point rather than an inconvenience.
 *database* frame, and the stage decompresses that frame's own `X` and its baked `Z` — a pair the
 decompressor saw in training. So phase A's runtime quality is the training-set number.
 
-**The second is what phase B and C will exhibit**, because a stepper and a projector synthesise
-`(X, Z)` pairs that are not database rows. A 2.6× gap between the two is the honest advance warning
-that the later phases have less headroom than phase A suggests.
+**The second is what the later modes exhibit**, because a stepper and a projector synthesise
+`(X, Z)` pairs that are not database rows. A 2.6× gap between the two was the honest advance warning
+that they have less headroom than phase A suggests, and the stepper's measured 7.09 cm after a full
+search interval of free running is that warning collected.
 
 For scale, the paper reports 1.4 cm mean with 1.1 cm std (§6.3). That is *their* accuracy on *their*
 data, and importing it as a pass mark for this database would be the same category of mistake as the
@@ -442,6 +591,40 @@ frames of each. That leaves 104,595 training pairs, about 29 minutes of motion. 
 data, not more training; LAFAN1 and Bandai-Namco sit on the same rig and their clips are long, so
 they would add disproportionately many *valid* frames.
 
+### The stepper is measured by free-running it, and nothing else will do
+
+`MoSynth/Lmm/Report Stepper Drift` runs the stepper from held-out database states with nothing
+correcting it, and reports two kinds of number per horizon: how far the state has wandered, in units
+of each half's own spread, and what that wandering does to the character in metres after
+decompressing it.
+
+| free-run frames | `X` drift | `Z` drift | mean joint error |
+| --- | --- | --- | --- |
+| 5 | 0.189 | 0.298 | 4.72 cm |
+| **10 — the search cadence** | **0.258** | **0.369** | **7.09 cm** |
+| 20 | 0.322 | 0.433 | 8.51 cm |
+| 30 | 0.439 | 0.482 | 10.83 cm |
+
+Free-running is the only honest measurement here, and it is worth being precise about why. Score the
+stepper one frame at a time from true states and it looks far better — but the failure mode of a
+stepper is error that *compounds*, and a single-step score cannot see compounding by construction.
+The same argument is why training unrolls.
+
+**The 10-frame row misses the bar this plan set** — `< 0.25` on both halves — by a little on `X` and
+clearly on `Z`. What it does pass is the shape test: the curve is strongly sublinear, so the stepper
+is not diverging, it is settling onto a plausible trajectory that is not the database's. At the
+30-frame horizon, three times the cadence it was built for, it is degraded rather than exploded and
+produces no NaN.
+
+For scale: 7.09 cm after a full search interval of free running, against 2.04 cm of held-out
+reconstruction error with the true latent. So roughly three and a half times the error, and the
+search pulls it back every ten frames.
+
+The number is measured twice by two independent code paths — once inside the fit, on device tensors
+against the live model, and once here, through the same `tick` the stage calls. They agree to 0.002.
+That duplication is deliberate: a report that shared code with the trainer would not be testing the
+runtime path, which is half of what an offline report is for.
+
 ### The other check
 
 `MoSynth/Lmm/Check Training Agreement` is the other half, borrowed whole from PFNN: it compares
@@ -454,7 +637,7 @@ derives the one the rig is posed in.
 
 ## Known gaps
 
-- **The stepper and the projector are not written.** `LmmStage` refuses `Stepper` and `Full`.
+- **The projector is not written.** `LmmStage` refuses `Full`.
 - **Inference is PythonNET.** `com.unity.barracuda` 3.0.2 is still in the manifest but nothing
   consumes it, and it is deprecated on Unity 6. The ONNX-exportability constraint above exists so
   that a Sentis path can be added without redesigning the networks.
@@ -463,10 +646,16 @@ derives the one the rig is posed in.
   warns in the inspector before play mode.
 - **The benchmark suite does not include an LMM arm yet**, deliberately, following the PFNN
   precedent: a method is added once it is tuned, not while it is being fitted.
-- **Phase B has a weak foundation.** A linear model predicts the latent's step from `(X, Z)` with
-  held-out R² of only +0.173. A nonlinear stepper will do better than that lower bound, but the
-  margin is unknown, and raising `w_vreg` does not improve it. Measure a real stepper before
-  assuming the gap closes.
+- **The stepper misses its drift bar.** At the ten-frame search cadence it drifts 0.258 of `X`'s
+  spread and 0.369 of `Z`'s, against a bar of 0.25 on both, and the character stands 7.09 cm from
+  where the database says. It degrades rather than diverges, and the search corrects it every ten
+  frames, so `Stepper` mode is usable — but the margin phase C needs is not there yet. Phase A's
+  advance warning (a linear model predicts the latent's step with held-out R² of only +0.173) was
+  accurate, and the width sweep rules out the cheap explanation: this is data, not capacity.
+- **What would move it is more motion, not more training.** The same conclusion phase A reached, and
+  the stepper reaches it harder: its windows overlap by nineteen frames in twenty, so 62,757 windows
+  carry nearer 5,400 trajectories' worth of independent content. LAFAN1 and Bandai-Namco sit on the
+  same rig with longer clips.
 - **Half of Edinburgh is unusable.** 108,265 of 218,365 frames carry a valid feature vector, for the
   structural reason given above. Nothing is wrong, but the database is much smaller than its frame
   count suggests.

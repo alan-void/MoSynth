@@ -308,7 +308,18 @@ public class LmmConfigEditor : UnityEditor.Editor
                    !config.TryValidate(out _) || EditorApplication.isPlayingOrWillChangePlaymode))
         {
             if (GUILayout.Button("Train LMM", GUILayout.Height(30))) LmmTraining.Run(config);
+
+            // The autoencoder is the half-hour half and the stepper is fitted against latents it
+            // has already baked, so tuning the window or the schedule need not pay for it again.
+            using (new EditorGUI.DisabledScope(!trained))
+            {
+                if (GUILayout.Button("Fit Stepper Only")) LmmTraining.RunStepper(config);
+            }
         }
+
+        EditorGUILayout.LabelField(
+            "Fitting the stepper alone leaves the rest of the checkpoint untouched, so it does " +
+            "not make a stale one current.", EditorStyles.wordWrappedMiniLabel);
     }
 
     private static string ProjectRelative(string absolutePath)

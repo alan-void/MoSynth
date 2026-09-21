@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4748564493844780649
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6137744528932954364}
+  - component: {fileID: 3630302986725011630}
+  m_Layer: 0
+  m_Name: CharacterController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6137744528932954364
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4748564493844780649}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 48325372015378488}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3630302986725011630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4748564493844780649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d559543e917c6d44b4429eb838f6898, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MotionMatching::MotionMatching.SpringControlInput
+  synthesizer: {fileID: 6269052623771753391}
+  trajectoryPositionFeatureName: FuturePosition
+  trajectoryDirectionFeatureName: FutureDirection
+  maxSpeed: 1
+  responsivenessPositions: 0.75
+  responsivenessDirections: 0.75
+  minimumVelocityClamp: 0.01
+  inputBigChangeThreshold: 0.5
+  positionAdjustmentHalflife: 0.1
+  rotationAdjustmentHalfLife: 0.1
+  posMaximumAdjustmentRatio: 0.1
+  rotMaximumAdjustmentRatio: 0.1
+  doClamping: 1
+  maxDistanceMmAndCharacterController: 0.1
+  debugCurrent: 1
+  debugPrediction: 1
+  debugClamping: 1
+--- !u!1 &7870778204592862631
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 48325372015378488}
+  m_Layer: 0
+  m_Name: MmCharacter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &48325372015378488
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7870778204592862631}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6137744528932954364}
+  - {fileID: 2655739408677176479}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &2545006126756848500
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 48325372015378488}
+    m_Modifications: []
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2646310381574308505, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6269052623771753391}
+  m_SourcePrefab: {fileID: 100100000, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
+--- !u!4 &2655739408677176479 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8809768790971187618, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
+  m_PrefabInstance: {fileID: 2545006126756848500}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7213084593219471055 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1627078396308239068, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
+  m_PrefabInstance: {fileID: 2545006126756848500}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3427455127739817509 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2646310381574308505, guid: 8fa73e619ffe47e4a4aee5285438f262, type: 3}
+  m_PrefabInstance: {fileID: 2545006126756848500}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6269052623771753391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3427455127739817509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2d9c7c526154d5088a5945bf9e64418, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MotionMatching::MotionMatching.MotionSynthesisComponent
+  skeleton:
+    root: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  characterRig:
+    root: {fileID: 7213084593219471055}
+    overrides: []
+  synthesisFrameRate: 30
+  stages:
+  - rid: 4326263141704925273
+  - rid: 6955135129176244290
+  - rid: 6955135129176244291
+  rootPositionsMask: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 4326263141704925273
+      type: {class: MotionMatchingStage, ns: MotionMatching, asm: MotionMatching}
+      data:
+        isEnabled: 1
+        mmData: {fileID: 11400000, guid: 88990f88625147a4baeb8a03acac1cb0, type: 2}
+        mmSearch:
+          rid: 4326263141704925274
+        searchInterval: 0.16666667
+        responsiveness: 1
+        quality: 1
+        minFrameSwitchDistance: 20
+        featureWeights:
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+    - rid: 4326263141704925274
+      type: {class: BvhMotionMatchingSearch, ns: MotionMatching, asm: MotionMatching}
+      data: 
+    - rid: 6955135129176244290
+      type: {class: Inertialization, ns: MotionMatching, asm: MotionMatching}
+      data:
+        isEnabled: 1
+        halfLife: 0.1
+    - rid: 6955135129176244291
+      type: {class: RootFollowStage, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 0
+        target: {fileID: 6137744528932954364}
+        positionHalfLife: 0
+        rotationHalfLife: 0
+        maxCorrectionSpeed: 0
+        maxCorrectionYawRate: 0
+        alignTargetOnInit: 1

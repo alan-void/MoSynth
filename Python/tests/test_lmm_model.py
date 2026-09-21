@@ -1,5 +1,5 @@
 """
-The compressor and decompressor networks.
+The compressor, decompressor and stepper networks.
 
 The test that earns its place here is the exportability guard. Learned motion matching is worth
 having over a database search because a few small networks can run anywhere, and that stops being
@@ -55,6 +55,9 @@ class ExportabilityTests(unittest.TestCase):
     def test_the_decompressor_is_linear_and_activations_only(self):
         self.assert_exportable(lmm_model.Decompressor(FEATURE_SIZE, LATENT_SIZE, POSE_SIZE))
 
+    def test_the_stepper_is_linear_and_activations_only(self):
+        self.assert_exportable(lmm_model.Stepper(FEATURE_SIZE, LATENT_SIZE))
+
     def test_the_guard_would_catch_an_unexportable_layer(self):
         model = lmm_model.Mlp(4, 4, 8, 1)
         model.layers = nn.Sequential(nn.Linear(4, 4), nn.LayerNorm(4))
@@ -81,6 +84,23 @@ class ShapeTests(unittest.TestCase):
             decompressor.decode(torch.zeros(5, FEATURE_SIZE),
                                 torch.zeros(5, LATENT_SIZE)).shape, (5, POSE_SIZE))
 
+    def test_the_stepper_maps_the_state_onto_a_rate_of_the_same_width(self):
+        stepper = lmm_model.Stepper(FEATURE_SIZE, LATENT_SIZE)
+
+        self.assertEqual(stepper.input_size, FEATURE_SIZE + LATENT_SIZE)
+        self.assertEqual(stepper.output_size, FEATURE_SIZE + LATENT_SIZE)
+        self.assertEqual(
+            stepper.rate(torch.zeros(5, FEATURE_SIZE),
+                         torch.zeros(5, LATENT_SIZE)).shape, (5, FEATURE_SIZE + LATENT_SIZE))
+
+    def test_the_stepper_takes_the_same_vector_the_decompressor_takes(self):
+        # Not a coincidence worth preserving by luck: the stage carries one copy of (X, Z) and
+        # hands it to both, so a second normalisation could not be got right in only one of them.
+        stepper = lmm_model.Stepper(FEATURE_SIZE, LATENT_SIZE)
+        decompressor = lmm_model.Decompressor(FEATURE_SIZE, LATENT_SIZE, POSE_SIZE)
+
+        self.assertEqual(stepper.input_size, decompressor.input_size)
+
     def test_the_papers_activations_are_what_the_networks_are_built_with(self):
         compressor = lmm_model.Compressor(POSE_SIZE, CHARACTER_SIZE, LATENT_SIZE)
         decompressor = lmm_model.Decompressor(FEATURE_SIZE, LATENT_SIZE, POSE_SIZE)
@@ -97,6 +117,9 @@ class ShapeTests(unittest.TestCase):
         self.assertEqual(
             len(lmm_model.Decompressor(FEATURE_SIZE, LATENT_SIZE, POSE_SIZE).linear_layers),
             lmm_model.DECOMPRESSOR_HIDDEN_LAYERS + 1)
+        self.assertEqual(
+            len(lmm_model.Stepper(FEATURE_SIZE, LATENT_SIZE).linear_layers),
+            lmm_model.STEPPER_HIDDEN_LAYERS + 1)
 
     def test_no_hidden_layer_leaves_a_single_linear_map(self):
         model = lmm_model.Mlp(4, 3, 16, 0)

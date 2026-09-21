@@ -171,6 +171,64 @@ class StagesTrainedTests(unittest.TestCase):
         self.assertIsNone(retrained.xz_rate_mean)
 
 
+class CheckpointArgumentTests(unittest.TestCase):
+    """
+    Rewriting a file from what was loaded out of it. Phase B's refit does exactly this, and the
+    failure it guards against is a field silently lost rather than an error.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.directory.name, 'test.lmm.npz')
+        lmm_io.save_checkpoint(self.path, **autoencoder_arguments())
+        self.loaded = lmm_io.load_checkpoint(self.path)
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def test_it_names_every_argument_the_writer_takes(self):
+        import inspect
+
+        writer = set(inspect.signature(lmm_io.save_checkpoint).parameters) - {'out_path'}
+
+        self.assertEqual(set(lmm_io.checkpoint_arguments(self.loaded)), writer)
+
+    def test_a_rewrite_from_a_loaded_checkpoint_changes_nothing(self):
+        rewritten = os.path.join(self.directory.name, 'again.lmm.npz')
+        lmm_io.save_checkpoint(rewritten, **lmm_io.checkpoint_arguments(self.loaded))
+        again = lmm_io.load_checkpoint(rewritten)
+
+        np.testing.assert_array_equal(again.latents, self.loaded.latents)
+        np.testing.assert_array_equal(again.y_mean, self.loaded.y_mean)
+        np.testing.assert_array_equal(again.losses, self.loaded.losses)
+        self.assertEqual(again.bone_names, self.loaded.bone_names)
+        self.assertEqual(again.stages_trained, self.loaded.stages_trained)
+
+    def test_adding_a_stepper_keeps_the_autoencoder_it_was_fitted_against(self):
+        weights, biases = layers([FEATURE_SIZE + LATENT_SIZE, 8, FEATURE_SIZE + LATENT_SIZE])
+        arguments = lmm_io.checkpoint_arguments(self.loaded)
+        arguments.update(
+            stepper_weights=weights, stepper_biases=biases,
+            xz_rate_mean=np.zeros(FEATURE_SIZE + LATENT_SIZE, dtype=np.float32),
+            xz_rate_std=np.ones(FEATURE_SIZE + LATENT_SIZE, dtype=np.float32),
+            stepper_losses=[(0.2, 0.3, 0.1, 0.1, 0.7, 0.8)],
+            stepper_loss_columns=('features', 'latent', 'feature_rate', 'latent_rate',
+                                  'total', 'validation'))
+
+        lmm_io.save_checkpoint(self.path, **arguments)
+        refitted = lmm_io.load_checkpoint(self.path)
+
+        self.assertEqual(refitted.stages_trained,
+                         [lmm_io.STAGE_AUTOENCODER, lmm_io.STAGE_STEPPER])
+        np.testing.assert_array_equal(refitted.latents, self.loaded.latents)
+        self.assertEqual(refitted.stepper_losses.shape, (1, 6))
+        self.assertEqual(refitted.stepper_loss_columns[-1], 'validation')
+
+    def test_an_autoencoder_only_checkpoint_carries_no_stepper_curve(self):
+        self.assertIsNone(self.loaded.stepper_losses)
+        self.assertEqual(self.loaded.stepper_loss_columns, [])
+
+
 class LoadFailureTests(unittest.TestCase):
     def test_a_missing_file_is_none_rather_than_an_exception(self):
         self.assertIsNone(lmm_io.load_checkpoint('no/such/checkpoint.lmm.npz', log=lambda _: None))

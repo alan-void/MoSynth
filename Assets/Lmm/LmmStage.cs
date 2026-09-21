@@ -47,10 +47,18 @@ public enum LmmMode
 /// <see cref="LmmMode.DecompressorOnly"/> is where the pose comes from.
 /// <para>
 /// The state is <c>(X, Z)</c>: the matching feature vector the character is holding, and the latent
-/// beside it. In this mode both are a function of the frame being played, so the latent table stays
-/// in Python and the stage passes a frame index — a two-hundred-thousand-row table is not worth
-/// marshalling across the boundary for a lookup that is free on the other side. Phase B changes
-/// that, because a stepped latent is no longer one of the baked rows.
+/// beside it. In <see cref="LmmMode.DecompressorOnly"/> both are a function of the frame being
+/// played, so the latent table stays in Python and the stage passes a frame index — a
+/// two-hundred-thousand-row table is not worth marshalling across the boundary for a lookup that is
+/// free on the other side. In <see cref="LmmMode.Stepper"/> the state is no longer any database
+/// row, so the stage carries it and hands it back each tick.
+/// </para>
+/// <para>
+/// <b>The controller's trajectory is never spliced into <c>X</c> between searches.</b> The stepper
+/// advances all thirty-three floats together and the decompressor consumes them whole, so
+/// overwriting the trajectory half every tick would hand it a trajectory paired with a latent it
+/// never saw in training. The controller enters through the query, on search ticks, and nowhere
+/// else.
 /// </para>
 /// <para>
 /// See the wiki's learned motion matching page for the vector layouts and the training-time
@@ -134,7 +142,10 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// <summary>The database this drives from — see <see cref="IMotionMatchingDataProvider"/>.</summary>
     public MotionMatchingData MmData => config == null ? null : config.mmData;
 
-    /// <summary>Current frame index in the pose/feature set.</summary>
+    /// <summary>
+    /// Current frame index in the pose/feature set. In <see cref="LmmMode.Stepper"/> this is the
+    /// frame the last accepted search returned, not a playhead — nothing advances it.
+    /// </summary>
     public int CurrentFrame { get; private set; }
 
     private float _currentFrameTime;
@@ -171,8 +182,16 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     private NativeArray<float3> _velocities;
     private NativeArray<float3> _angularVelocities;
 
-    // What crosses the boundary -------------------------------------------------------------------
+    // The state, and what crosses the boundary ----------------------------------------------------
+
+    /// <summary>The matching feature vector the character is holding.</summary>
     private float[] _x;
+
+    /// <summary>
+    /// The latent beside it. Only <see cref="LmmMode.Stepper"/> carries this on the C# side;
+    /// <see cref="LmmMode.DecompressorOnly"/> names a database frame and lets Python look it up.
+    /// </summary>
+    private float[] _z;
 
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
@@ -232,10 +251,10 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
             return false;
         }
 
-        if (mode != LmmMode.DecompressorOnly)
+        if (mode == LmmMode.Full)
         {
-            Fail($"'{config.name}' is set to {mode}, which needs a stepper and is not implemented " +
-                 $"yet. Use {LmmMode.DecompressorOnly}.");
+            Fail($"'{config.name}' is set to {mode}, which needs the phase C projector and is not " +
+                 $"implemented yet. Use {LmmMode.DecompressorOnly} or {LmmMode.Stepper}.");
             return false;
         }
 
@@ -350,12 +369,13 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
         _featureWeights = new NativeArray<float>(size, Allocator.Domain);
         _featureWeights.CopyFrom(authored);
         _queryFeatureVector = new NativeArray<float>(size, Allocator.Domain);
-        _x = new float[size];
         return true;
     }
 
     private void AllocateBuffers()
     {
+        _x = new float[_featureSet.FeatureSize];
+
         var boneCount = _skeletonData.BoneCount;
         _positions = new NativeArray<float3>(boneCount, Allocator.Domain);
         _rotations = new NativeArray<quaternion>(boneCount, Allocator.Domain);
@@ -375,14 +395,25 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
         _tagMask.CopyFrom(_hasLatent);
     }
 
-    /// <summary>Start on the first frame the stage could actually hold.</summary>
+    /// <summary>
+    /// Start on the first frame the stage could actually hold, and put its state in hand.
+    /// </summary>
+    /// <remarks>
+    /// The state is seeded here rather than on the first tick because the first search reads it:
+    /// it scores what the character is already holding so that it only takes something better, and
+    /// it fills the pose half of the query from it. An unseeded <c>X</c> would make that first
+    /// search score a pose of zeros.
+    /// </remarks>
     private void SeedFromFirstUsableFrame()
     {
         for (var i = 0; i < _featureSet.NumberFeatureVectors; i++)
         {
             if (!_featureSet.IsValidFeature(i) || !_hasLatent[i]) continue;
+
             CurrentFrame = i;
             _latentFrame = i;
+            _featureSet.GetFeatureVector(i).CopyTo(_x);
+            using (Py.GIL()) _z = (float[])_policy.latent(i);
             return;
         }
 
@@ -416,9 +447,10 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
             // A large input change searches now rather than waiting out the interval.
             if (controlInput.ConsumeHighInputChange()) _searchTimeLeft = 0f;
 
+            var accepted = -1;
             if (_searchTimeLeft <= 0f)
             {
-                SearchForBetterState(controlInput);
+                accepted = SearchForBetterState(controlInput);
                 _searchTimeLeft = searchInterval;
             }
             else
@@ -426,14 +458,9 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
                 _searchTimeLeft -= deltaTime;
             }
 
-            AdvancePlayback(deltaTime);
-
-            // The state: the feature vector the character is holding, and the latent beside it.
-            _featureSet.GetFeatureVector(CurrentFrame).CopyTo(_x);
-            if (_hasLatent[CurrentFrame]) _latentFrame = CurrentFrame;
-
-            float[] y;
-            using (Py.GIL()) y = (float[])_policy.decompress_frame(_x, _latentFrame);
+            var y = mode == LmmMode.DecompressorOnly
+                ? PlayFromDatabase(deltaTime)
+                : StepState(accepted, deltaTime);
 
             BuildCharacterSpacePose(y);
             WritePose(pose, y);
@@ -451,19 +478,26 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// <summary>
     /// Rebuilds the query and takes a better state, if one is enough better to be worth the jump.
     /// </summary>
-    private void SearchForBetterState(MotionMatchingControlInput controlInput)
+    /// <returns>The database frame that was accepted, or -1 when the held state stood.</returns>
+    /// <remarks>
+    /// The state being scored is <c>X</c> itself, not the feature vector of a database frame. In
+    /// <see cref="LmmMode.DecompressorOnly"/> those are the same floats; in
+    /// <see cref="LmmMode.Stepper"/> only the first exists, because the stepper has carried the
+    /// state somewhere the database does not hold.
+    /// </remarks>
+    private int SearchForBetterState(MotionMatchingControlInput controlInput)
     {
         FillQueryVector(controlInput);
 
-        // Score the state already held, so the search only reports something better. In this mode
-        // that is the frame being played, which is exactly what MotionMatchingStage scores.
-        var currentDistance = float.MaxValue;
-        var currentIsUsable = _featureSet.IsValidFeature(CurrentFrame) && _tagMask[CurrentFrame];
-        if (currentIsUsable)
-        {
-            currentDistance = MotionMatchingStage.SqrDistance(
-                _queryFeatureVector, _featureSet.GetFeatureVector(CurrentFrame), _featureWeights);
-        }
+        // A stepped state is always scoreable; a played one is only scoreable while the playhead is
+        // on a frame the search itself would have been allowed to return.
+        var holdingSearchableState = mode != LmmMode.DecompressorOnly ||
+                                     (_featureSet.IsValidFeature(CurrentFrame) &&
+                                      _tagMask[CurrentFrame]);
+
+        var currentDistance = holdingSearchableState
+            ? MotionMatchingStage.SqrDistance(_queryFeatureVector, _x, _featureWeights)
+            : float.MaxValue;
 
         // The acceptance bar goes into the search rather than being applied to its answer: a
         // candidate that does not clear it is not a candidate, and the search can abandon it early.
@@ -471,15 +505,64 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
 
         if (bestFrame == -1)
         {
-            Debug.Assert(currentIsUsable,
+            Debug.Assert(holdingSearchableState,
                 "Learned motion matching found no usable state and is not holding one. The database " +
                 "may be empty, or every frame may be masked out.");
-            return;
+            return -1;
         }
 
         CurrentFrame = bestFrame;
         _currentFrameTime = bestFrame;
         if (raisePoseDiscontinuity) _owner.PoseDiscontinuity = true;
+        return bestFrame;
+    }
+
+    /// <summary>
+    /// Advances the playhead and reads the state off the database — the
+    /// <see cref="LmmMode.DecompressorOnly"/> tick.
+    /// </summary>
+    /// <returns>The reconstructed pose vector.</returns>
+    private float[] PlayFromDatabase(float deltaTime)
+    {
+        AdvancePlayback(deltaTime);
+
+        _featureSet.GetFeatureVector(CurrentFrame).CopyTo(_x);
+        if (_hasLatent[CurrentFrame]) _latentFrame = CurrentFrame;
+
+        using (Py.GIL()) return (float[])_policy.decompress_frame(_x, _latentFrame);
+    }
+
+    /// <summary>
+    /// Advances the state with the stepper and reconstructs the pose it now describes — the
+    /// <see cref="LmmMode.Stepper"/> tick.
+    /// </summary>
+    /// <remarks>
+    /// The state is advanced <em>before</em> it is decompressed, which is what
+    /// <see cref="PlayFromDatabase"/> does with its playhead, so the two modes differ in where the
+    /// state comes from and in nothing else — including on a search tick, where both take the
+    /// accepted frame and then move on from it by <paramref name="deltaTime"/>.
+    /// <para>
+    /// One acquisition of the GIL covers seeding the latent and the tick itself, because the
+    /// search that produced <paramref name="acceptedFrame"/> is pure C# and ran before it.
+    /// </para>
+    /// </remarks>
+    /// <param name="acceptedFrame">A database frame to restart the state from, or -1.</param>
+    private float[] StepState(int acceptedFrame, float deltaTime)
+    {
+        using (Py.GIL())
+        {
+            if (acceptedFrame >= 0)
+            {
+                _featureSet.GetFeatureVector(acceptedFrame).CopyTo(_x);
+                _z = (float[])_policy.latent(acceptedFrame);
+            }
+
+            dynamic stepped = _policy.tick(_x, _z, deltaTime);
+            var y = (float[])stepped[0];
+            _x = (float[])stepped[1];
+            _z = (float[])stepped[2];
+            return y;
+        }
     }
 
     /// <summary>
@@ -488,9 +571,10 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// <remarks>
     /// The trajectory half is <see cref="MotionMatchingQuery.FillTrajectory"/>, shared with
     /// <see cref="MotionMatchingStage"/> so the two methods are asked the same question. The pose
-    /// half is read from the state — which in this mode is the frame being played, so the two are
-    /// the same floats, and in later modes is what the stepper carried forward, which is precisely
-    /// the "previous pose features" the paper's projector takes as state.
+    /// half is read from <c>X</c> — which in <see cref="LmmMode.DecompressorOnly"/> is the feature
+    /// vector of the frame being played, so they are the same floats, and in
+    /// <see cref="LmmMode.Stepper"/> is what the stepper carried forward, which is precisely the
+    /// "previous pose features" the paper's projector takes as state.
     /// </remarks>
     private void FillQueryVector(MotionMatchingControlInput controlInput)
     {
@@ -499,8 +583,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
         MotionMatchingQuery.FillTrajectory(config.mmData, _featureSet, controlInput,
             _owner.transform, query, _featureWeights, _authoredFeatureWeights);
 
-        _featureSet.GetPoseFeatures(
-            query.Slice(_featureSet.PoseOffset, _featureSet.PoseFloatCount), CurrentFrame);
+        _x.AsSpan(_featureSet.PoseOffset, _featureSet.PoseFloatCount)
+            .CopyTo(query.Slice(_featureSet.PoseOffset, _featureSet.PoseFloatCount));
     }
 
     /// <summary>

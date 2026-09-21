@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:53b37c3299c33ab9410f48b89f8ecf6fca59a33f6b8bf5cadb07ee61147195bb",
+  "pageVersion": "sha256:1c9a4fcefd32fcf515194a2b0caac97f0fc7d6c6a7fa564ff3a13cac2bed932d",
   "claims": [
     {
       "id": "claim_5ab2b837fa1646a0bae373cf9500313d",
@@ -26,7 +26,7 @@
         },
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:72dd3c11e44b8f2b1b2c3f54ae08645eec94d85b3cb59d4ee310a3d59251ad7b"
+          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
         }
       ]
     },
@@ -36,7 +36,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
         }
       ]
     },
@@ -46,7 +46,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:c933ac5761641b330511bf68bba3a9659ba3b8cd99349213a49b248b8719b6b9"
+          "version": "repo-file-v1:sha256:69ed6162405f4658bbaaf5f9bcf06e083214b6bc1916a1b79ba07144746975e2"
         }
       ]
     },
@@ -84,11 +84,11 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:72dd3c11e44b8f2b1b2c3f54ae08645eec94d85b3cb59d4ee310a3d59251ad7b"
+          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:0b70d0e6eb85a6de2673fbd28ce265a767873e32ddff2b9ddabd1132a7a9ea48"
+          "version": "repo-file-v1:sha256:43ad4b8db4183aa17156369281f741ce62156fe48dc9ff4615a47d30691ac18e"
         }
       ]
     },
@@ -98,7 +98,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_io.py",
-          "version": "repo-file-v1:sha256:f444110ee3e9d5aa1e9d1bfb8cf0618079b539af356bd314ca440a5b787f409d"
+          "version": "repo-file-v1:sha256:4d5290585e52175dd726ac5ab69ae24b74837997361d5829ec971f29b35dbc42"
         }
       ]
     },
@@ -108,7 +108,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:72dd3c11e44b8f2b1b2c3f54ae08645eec94d85b3cb59d4ee310a3d59251ad7b"
+          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
         },
         {
           "resource": "repo://Assets/Pfnn/PfnnStage.cs",
@@ -122,11 +122,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
         },
         {
           "resource": "repo://Python/lmm_model.py",
-          "version": "repo-file-v1:sha256:2d8b253dc78e25554401561751a956c78322722ddc18af058c1e96bbeed36d5a"
+          "version": "repo-file-v1:sha256:c909f429934b01955fca2357ce8aa6c466f6ae93d3b47f7da94116cd12eef11e"
         }
       ]
     },
@@ -136,7 +136,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:72dd3c11e44b8f2b1b2c3f54ae08645eec94d85b3cb59d4ee310a3d59251ad7b"
+          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
         },
         {
           "resource": "repo://Python/lmm_fk.py",
@@ -150,11 +150,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
         },
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
         }
       ]
     },
@@ -164,11 +164,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
         },
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
         }
       ]
     },
@@ -178,7 +178,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
         }
       ]
     },
@@ -188,7 +188,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
         }
       ]
     },
@@ -198,7 +198,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
         }
       ]
     },
@@ -208,11 +208,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:45516450810c34757eaa5f19bbbc2eb79f81a68961ad90ffbc1d6d22052f70b6"
+          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
         },
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:c933ac5761641b330511bf68bba3a9659ba3b8cd99349213a49b248b8719b6b9"
+          "version": "repo-file-v1:sha256:69ed6162405f4658bbaaf5f9bcf06e083214b6bc1916a1b79ba07144746975e2"
         }
       ]
     },
@@ -222,17 +222,119 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:b19eb9e56f0a726b7ba4447c9f4f1a2abaac79de9afcb3e700668dc99ff40195"
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
         },
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:c933ac5761641b330511bf68bba3a9659ba3b8cd99349213a49b248b8719b6b9"
+          "version": "repo-file-v1:sha256:69ed6162405f4658bbaaf5f9bcf06e083214b6bc1916a1b79ba07144746975e2"
+        }
+      ]
+    },
+    {
+      "id": "claim_990cba9936ab4d79859177577f8f5ba0",
+      "statement": "The phase B stepper is fitted against latents the compressor has already baked and never runs the compressor at all, which removes the option of making the latent steppable by making it constant rather than merely penalising it.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+        }
+      ]
+    },
+    {
+      "id": "claim_5905d0bfa58e4fa8a7ee15e21c649278",
+      "statement": "The stepper is trained unrolled over a window of frames rather than on single-frame pairs, so it is asked to advance states it produced itself, and no window crosses a clip boundary because a frame carries a latent only when its successor is in the same clip.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+        },
+        {
+          "resource": "repo://Python/lmm_dataset.py",
+          "version": "repo-file-v1:sha256:dcf059cfdf076cac711215251f83a5936046f0ef6bcfe9b4cc57dbf6d4659ba8"
+        }
+      ]
+    },
+    {
+      "id": "claim_a0f2687263b14c479250016abda7b643",
+      "statement": "The stepper takes exactly the X and Z concatenation the decompressor takes, in the same units, and answers with a per-second rate that the stage integrates; only its output is normalised, by rate statistics stored in the checkpoint.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_model.py",
+          "version": "repo-file-v1:sha256:c909f429934b01955fca2357ce8aa6c466f6ae93d3b47f7da94116cd12eef11e"
+        },
+        {
+          "resource": "repo://Python/lmm_runtime.py",
+          "version": "repo-file-v1:sha256:43ad4b8db4183aa17156369281f741ce62156fe48dc9ff4615a47d30691ac18e"
+        },
+        {
+          "resource": "repo://Python/lmm_io.py",
+          "version": "repo-file-v1:sha256:4d5290585e52175dd726ac5ab69ae24b74837997361d5829ec971f29b35dbc42"
+        }
+      ]
+    },
+    {
+      "id": "claim_a6650037902545969ac5b1a1154bfab8",
+      "statement": "The stepper fit stops on held-out patience rather than a fixed iteration count, because its held-out score bottoms out around two thousand iterations and rises after it while the autoencoder's is still falling at a hundred and sixteen thousand.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+        },
+        {
+          "resource": "repo://Assets/Lmm/LmmConfig.cs",
+          "version": "repo-file-v1:sha256:69ed6162405f4658bbaaf5f9bcf06e083214b6bc1916a1b79ba07144746975e2"
+        }
+      ]
+    },
+    {
+      "id": "claim_91aba56135474f68be84101649043407",
+      "statement": "In the Stepper mode LmmStage carries the X and Z state in C# and advances then decompresses it in one policy tick per frame, and it never splices the control input's trajectory into X between searches because the stepper advances all of the feature floats together.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/Lmm/LmmStage.cs",
+          "version": "repo-file-v1:sha256:0b06b72031c20ed28447347194adc34e102d32993d4119bb0671b7a35c0cff4e"
+        },
+        {
+          "resource": "repo://Python/lmm_runtime.py",
+          "version": "repo-file-v1:sha256:43ad4b8db4183aa17156369281f741ce62156fe48dc9ff4615a47d30691ac18e"
+        }
+      ]
+    },
+    {
+      "id": "claim_1017b9e3078d4596b372527585aebe42",
+      "statement": "refit_stepper fits only the stepper against a checkpoint whose autoencoder is already trained, reading the .mmfeatures alone and taking the frame mask from the checkpoint's latent_valid rather than re-deriving it from the pose database.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_trainer.py",
+          "version": "repo-file-v1:sha256:cd4b970efbe7f5a67632c975b6ed874cb0b97dcbf3beff6c3f29b77551e98beb"
+        },
+        {
+          "resource": "repo://Python/lmm_io.py",
+          "version": "repo-file-v1:sha256:4d5290585e52175dd726ac5ab69ae24b74837997361d5829ec971f29b35dbc42"
+        },
+        {
+          "resource": "repo://Assets/Lmm/Editor/LmmTraining.cs",
+          "version": "repo-file-v1:sha256:a2f465ff8ffa52a3d1128fd8689f4eee7266b070b75cdb17c09fc9d929d25990"
+        }
+      ]
+    },
+    {
+      "id": "claim_a11e7d473f3449f0abf74d46604b6d26",
+      "statement": "A stepper is judged by free-running it from held-out states and measuring how far the state has drifted and what that costs the posed character in metres, because a score taken one frame at a time from true states cannot see error that compounds.",
+      "evidence": [
+        {
+          "resource": "repo://Python/lmm_runtime.py",
+          "version": "repo-file-v1:sha256:43ad4b8db4183aa17156369281f741ce62156fe48dc9ff4615a47d30691ac18e"
+        },
+        {
+          "resource": "repo://Assets/Lmm/Editor/LmmAgreementCheck.cs",
+          "version": "repo-file-v1:sha256:f970783590baf34cfcb150878e98a55251a7c6c02f23baa8ff5095f12e376eaf"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-09-19T18:12:18.762Z"
+    "at": "2026-09-20T12:40:57.561Z"
   }
 }

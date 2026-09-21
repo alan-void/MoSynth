@@ -93,8 +93,13 @@ class LmmCheckpoint:
     # Phase B and C. Present and empty until those phases train them.
     stepper_weights: list = field(default_factory=list)
     stepper_biases: list = field(default_factory=list)
+    # (feature_size + latent_size,) standardisation of the per-second rate the stepper regresses.
     xz_rate_mean: np.ndarray | None = None
     xz_rate_std: np.ndarray | None = None
+    # (iterations, len(stepper_loss_columns)) float32. Its own curve rather than more columns on
+    # `losses`, because the stepper is fitted in a second loop whose terms mean something else.
+    stepper_losses: np.ndarray | None = None
+    stepper_loss_columns: list = field(default_factory=list)
     projector_weights: list = field(default_factory=list)
     projector_biases: list = field(default_factory=list)
 
@@ -121,6 +126,54 @@ class LmmCheckpoint:
 
     def has_stage(self, stage: str) -> bool:
         return stage in self.stages_trained
+
+
+def checkpoint_arguments(checkpoint: LmmCheckpoint) -> dict:
+    """
+    Every :func:`save_checkpoint` argument, read back off a loaded checkpoint.
+
+    What a later training phase rewrites the file with. ``numpy.savez`` cannot append, so fitting
+    the stepper means writing the whole file again -- and a caller assembling those thirty-odd
+    arguments by hand would eventually forget one, which is a field silently lost rather than an
+    error. The dict is meant to be updated with whatever that phase fitted and splatted straight
+    into :func:`save_checkpoint`.
+    """
+    return {
+        'compressor_weights': checkpoint.compressor_weights,
+        'compressor_biases': checkpoint.compressor_biases,
+        'decompressor_weights': checkpoint.decompressor_weights,
+        'decompressor_biases': checkpoint.decompressor_biases,
+        'x_mean': checkpoint.x_mean, 'x_std': checkpoint.x_std,
+        'y_mean': checkpoint.y_mean, 'y_std': checkpoint.y_std,
+        'q_mean': checkpoint.q_mean, 'q_std': checkpoint.q_std,
+        'z_mean': checkpoint.z_mean, 'z_std': checkpoint.z_std,
+        'latents': checkpoint.latents,
+        'latent_valid': checkpoint.latent_valid,
+        'feature_weights': checkpoint.feature_weights,
+        'bone_names': checkpoint.bone_names,
+        'output_blocks': checkpoint.output_blocks,
+        'character_blocks': checkpoint.character_blocks,
+        'parents': checkpoint.parents,
+        'rest_offsets': checkpoint.rest_offsets,
+        'feature_names': checkpoint.feature_names,
+        'feature_widths': checkpoint.feature_widths,
+        'feature_counts': checkpoint.feature_counts,
+        'n_trajectory_features': checkpoint.n_trajectory_features,
+        'pose_offset': checkpoint.pose_offset,
+        'latent_size': checkpoint.latent_size,
+        'frame_time': checkpoint.frame_time,
+        'n_frames': checkpoint.n_frames,
+        'losses': checkpoint.losses,
+        'loss_columns': checkpoint.loss_columns,
+        'stepper_weights': checkpoint.stepper_weights,
+        'stepper_biases': checkpoint.stepper_biases,
+        'xz_rate_mean': checkpoint.xz_rate_mean,
+        'xz_rate_std': checkpoint.xz_rate_std,
+        'stepper_losses': checkpoint.stepper_losses,
+        'stepper_loss_columns': checkpoint.stepper_loss_columns,
+        'projector_weights': checkpoint.projector_weights,
+        'projector_biases': checkpoint.projector_biases,
+    }
 
 
 def _layer_arrays(prefix: str, weights, biases) -> dict:
@@ -152,6 +205,7 @@ def save_checkpoint(out_path: str, *,
                     losses, loss_columns,
                     stepper_weights=None, stepper_biases=None,
                     xz_rate_mean=None, xz_rate_std=None,
+                    stepper_losses=None, stepper_loss_columns=(),
                     projector_weights=None, projector_biases=None) -> None:
     """
     Write ``<name>.lmm.npz``.
@@ -215,6 +269,14 @@ def save_checkpoint(out_path: str, *,
         arrays['xz_rate_mean'] = np.ascontiguousarray(xz_rate_mean, dtype=np.float32)
         arrays['xz_rate_std'] = np.ascontiguousarray(xz_rate_std, dtype=np.float32)
 
+    if stepper_loss_columns:
+        columns = list(stepper_loss_columns)
+        rows = list(stepper_losses or [])
+        arrays['stepper_losses'] = (
+            np.ascontiguousarray(rows, dtype=np.float32).reshape(len(rows), -1) if rows
+            else np.zeros((0, len(columns)), dtype=np.float32))
+        arrays['stepper_loss_columns'] = np.array(columns, dtype=np.str_)
+
     os.makedirs(os.path.dirname(os.path.abspath(out_path)) or '.', exist_ok=True)
     np.savez(out_path, **arrays)
 
@@ -275,6 +337,13 @@ def load_checkpoint(path: str, log=print):
                               if 'xz_rate_mean' in f else None),
                 xz_rate_std=(np.ascontiguousarray(f['xz_rate_std'], dtype=np.float32)
                              if 'xz_rate_std' in f else None),
+                # Read conditionally rather than as a required key, so a phase A checkpoint written
+                # before the stepper existed still loads -- it simply has no stepper, which
+                # `stages_trained` already says.
+                stepper_losses=(np.ascontiguousarray(f['stepper_losses'], dtype=np.float32)
+                                if 'stepper_losses' in f else None),
+                stepper_loss_columns=([str(name) for name in f['stepper_loss_columns']]
+                                      if 'stepper_loss_columns' in f else []),
                 projector_weights=projector_weights,
                 projector_biases=projector_biases)
     except (OSError, ValueError, KeyError) as exc:

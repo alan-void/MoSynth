@@ -1,10 +1,11 @@
 """
-Fits the compressor/decompressor pair of Learned Motion Matching, and bakes the latents.
+Fits the networks of Learned Motion Matching, in the order they depend on each other.
 
-This is the first of the three training stages -- the one phase A needs. It learns a latent ``Z``
-that, together with the matching feature vector ``X`` a classic matcher already searches, is enough
-to reconstruct the whole pose. The stepper and the projector are fitted against these latents in
-later phases, which is why the latents are baked and stored rather than recomputed.
+First the compressor/decompressor pair, which learns a latent ``Z`` that, together with the
+matching feature vector ``X`` a classic matcher already searches, is enough to reconstruct the
+whole pose. Then, against latents that pair has baked and that nothing may move again, the
+**stepper** -- see :func:`fit_stepper` -- which advances ``[X Z]`` between searches so the database
+need not be played. The projector of phase C joins them later.
 
 **The loss is Algorithm 1 of the paper**, and its shape is the method:
 
@@ -34,6 +35,11 @@ Runs from the Unity Editor through PythonNET, or standalone::
 
     python lmm_trainer.py ../Assets/StreamingAssets/MMDatabases/MM_LafanCorrected_Edinburg \\
         MM_LafanCorrected_Edinburg --out model.lmm.npz --iterations 150000
+
+The stepper alone, against a checkpoint whose autoencoder is already fitted -- which is what to run
+when tuning phase B, since the autoencoder is the half-hour half::
+
+    python lmm_trainer.py <database> <name> --out model.lmm.npz --stepper-only
 """
 
 from __future__ import annotations
@@ -48,11 +54,16 @@ import torch
 import lmm_dataset
 import lmm_fk
 import lmm_io
-from lmm_model import Compressor, Decompressor, resolve_device
+from feature_set_importer import read_feature_set
+from lmm_model import Compressor, Decompressor, Stepper, resolve_device
 from training_data import load_database
 
 LOSS_COLUMNS = ('local', 'character', 'local_velocity', 'character_velocity',
                 'latent', 'total', 'validation')
+
+# Phase B's own curve. The stepper is fitted in a second loop whose terms measure something else
+# entirely, so they are a separate table in the checkpoint rather than more columns on this one.
+STEPPER_LOSS_COLUMNS = ('features', 'latent', 'feature_rate', 'latent_rate', 'total', 'validation')
 
 # Frames baked per forward pass. Large enough that the per-call overhead vanishes, small enough
 # that a 200k-frame database does not need the whole latent table resident on the GPU at once.
@@ -85,11 +96,18 @@ def train(data_dir: str,
           validation_fraction: float = 0.1,
           validation_interval: int = 1000,
           max_seconds: float = 0.0,
+          stepper: bool = True,
+          stepper_hidden: int = 0,
+          stepper_window: int = lmm_dataset.DEFAULT_STEPPER_WINDOW,
+          stepper_iterations: int = 30000,
+          stepper_patience: int = 5,
+          stepper_max_seconds: float = 0.0,
           seed: int = 42,
           device: str = 'auto',
           progress=None) -> dict:
     """
-    Build the training set, fit the autoencoder, bake the latents, and write the checkpoint.
+    Build the training set, fit the autoencoder, bake the latents, fit the stepper, and write the
+    checkpoint.
 
     :param data_dir: the database folder under StreamingAssets.
     :param db_name: base file name, i.e. the Unity asset's name.
@@ -109,6 +127,10 @@ def train(data_dir: str,
         what is written.
     :param max_seconds: stop after this long regardless, 0 for no limit. A training run that has to
         fit a budget should be cut by the clock rather than by guessing an iteration count.
+    :param stepper: also fit the phase B stepper, against the latents this run just baked. Off
+        writes an autoencoder-only checkpoint, which is what the ``DecompressorOnly`` mode needs
+        and all it needs.
+    :param stepper_window: frames the stepper is unrolled over; see :func:`fit_stepper`.
     :param progress: ``(stage, fraction)`` callback, which the Editor drives a progress bar from.
     :return: a summary dict, logged by the caller.
     """
@@ -227,6 +249,7 @@ def train(data_dir: str,
     best_validation, best_parameters, best_iteration = float('inf'), None, 0
     generator = torch.Generator(device='cpu').manual_seed(seed)
     ran = 0
+    autoencoder_span = 0.55 if stepper else 0.85
 
     for step in range(iterations):
         compressor.train()
@@ -258,7 +281,7 @@ def train(data_dir: str,
                 best_parameters = (copy.deepcopy(compressor.state_dict()),
                                    copy.deepcopy(decompressor.state_dict()))
 
-            progress('Training', 0.05 + 0.85 * (step + 1) / iterations)
+            progress('Training', 0.05 + autoencoder_span * (step + 1) / iterations)
 
             if max_seconds and time.time() - started > max_seconds:
                 break
@@ -269,7 +292,7 @@ def train(data_dir: str,
         compressor.load_state_dict(best_parameters[0])
         decompressor.load_state_dict(best_parameters[1])
 
-    progress('Baking latents', 0.92)
+    progress('Baking latents', 0.05 + autoencoder_span + 0.02)
     latents = _bake_latents(compressor, y_t, q_t, y_mean_t, y_std_t, q_mean_t, q_std_t,
                             latent_exists, spec.latent_size, torch_device)
     diagnostics = _latent_diagnostics(decompressor, x_t, y_t, y_mean, y_std, latents,
@@ -278,6 +301,21 @@ def train(data_dir: str,
     z_mean = latents[latent_exists].mean(axis=0).astype(np.float32)
     z_std = latents[latent_exists].std(axis=0).astype(np.float32)
     z_std[z_std < 1e-6] = 1.0
+
+    fitted_stepper = None
+    if stepper:
+        # Against the table that was just baked, not against a compressor that is still moving --
+        # see fit_stepper. The latents are an input to it from here on.
+        fitted_stepper, rate_mean, rate_std, stepper_losses, stepper_summary = fit_stepper(
+            x, latents, latent_exists, spec.frame_time,
+            hidden_units=stepper_hidden, window=stepper_window,
+            iterations=stepper_iterations, batch_size=batch_size,
+            learning_rate=learning_rate, weight_decay=weight_decay,
+            learning_rate_decay=learning_rate_decay, decay_interval=decay_interval,
+            validation_fraction=validation_fraction, validation_interval=validation_interval,
+            patience=stepper_patience, max_seconds=stepper_max_seconds, seed=seed, device=device,
+            progress=lambda stage, fraction: progress(stage, 0.62 + 0.34 * fraction))
+        diagnostics.update(stepper_summary)
 
     progress('Writing checkpoint', 0.98)
     lmm_io.save_checkpoint(
@@ -302,7 +340,13 @@ def train(data_dir: str,
         pose_offset=int(_pose_offset(training_set)),
         latent_size=spec.latent_size, frame_time=spec.frame_time,
         n_frames=training_set.n_frames,
-        losses=losses, loss_columns=LOSS_COLUMNS)
+        losses=losses, loss_columns=LOSS_COLUMNS,
+        stepper_weights=fitted_stepper.weights() if fitted_stepper else None,
+        stepper_biases=fitted_stepper.biases() if fitted_stepper else None,
+        xz_rate_mean=rate_mean if fitted_stepper else None,
+        xz_rate_std=rate_std if fitted_stepper else None,
+        stepper_losses=stepper_losses if fitted_stepper else None,
+        stepper_loss_columns=STEPPER_LOSS_COLUMNS if fitted_stepper else ())
 
     final = losses[-1] if losses else (float('nan'),) * len(LOSS_COLUMNS)
     summary = {
@@ -351,7 +395,332 @@ def train(data_dir: str,
           f"{summary['latent_dimensions_used']} of {summary['latent_size']} dimensions carry 90% "
           f"of the variance; D(X||0) is {summary['latent_ablation_ratio']:.2f}x the error of "
           f"D(X||Z)")
+    if fitted_stepper:
+        _log_stepper(summary)
     return summary
+
+
+def _log_stepper(summary: dict) -> None:
+    """The phase B lines of a training log: what was fitted, and how far it wanders."""
+    stopped = 'stopped early' if summary['stepper_stopped_early'] else 'ran to the limit'
+    print(f"[LMM] stepper: {summary['stepper_parameters']} parameters over "
+          f"{summary['stepper_train_windows']}/{summary['stepper_windows']} windows of "
+          f"{summary['stepper_window']} frames in {summary['stepper_seconds']:.1f}s, "
+          f"{summary['stepper_iterations_run']} iterations ({stopped}), best held-out "
+          f"{summary['stepper_val_loss']:.4f} at {summary['stepper_best_iteration']}")
+    drift = ', '.join(
+        f"{n}f {summary[f'stepper_feature_drift_{n}']:.3f}/"
+        f"{summary[f'stepper_latent_drift_{n}']:.3f}"
+        for n in sorted(lmm_dataset.DRIFT_HORIZONS)
+        if f'stepper_feature_drift_{n}' in summary)
+    print(f"[LMM] stepper free-run drift (X/Z, in units of each half's own spread): {drift}. "
+          "Ten frames is the search cadence, so that is the one that decides whether the state "
+          "survives between searches")
+
+
+def refit_stepper(checkpoint_path: str, data_dir: str, db_name: str,
+                  out_path: str = None, progress=None, **options) -> dict:
+    """
+    Fit only the stepper, against a checkpoint whose autoencoder is already trained.
+
+    The autoencoder is the expensive half and the stepper is fitted against latents it has already
+    produced, so re-running it to try a different window or a longer stepper schedule would be
+    paying half an hour for nothing.
+
+    It reads the ``.mmfeatures`` alone and not the ``.mmpose`` beside it. Everything else it needs
+    is in the checkpoint: ``latent_valid`` is exactly the frame mask phase A derived from the clip
+    ranges, so there is no second definition of which frames carry a latent for the two to disagree
+    about -- and it saves reading three hundred megabytes of poses that nothing here looks at.
+
+    :param out_path: where to write; the checkpoint is overwritten in place when this is None.
+    :param options: passed to :func:`fit_stepper`.
+    :return: the fit's summary, logged.
+    """
+    checkpoint = lmm_io.load_checkpoint(checkpoint_path)
+    if checkpoint is None:
+        raise FileNotFoundError(
+            f'no usable LMM checkpoint at {checkpoint_path}. The stepper is fitted against latents '
+            'an autoencoder has already baked, so there has to be one to fit against.')
+
+    features = read_feature_set(data_dir, db_name).features
+    x = np.ascontiguousarray(features, dtype=np.float32)
+
+    if x.shape[0] != checkpoint.n_frames:
+        raise ValueError(
+            f'{db_name} now holds {x.shape[0]} frames but the checkpoint was baked over '
+            f'{checkpoint.n_frames}. The latents are indexed by frame, so regenerating the '
+            'database invalidates them -- retrain the autoencoder.')
+    if x.shape[1] != checkpoint.feature_size:
+        raise ValueError(f'{db_name} now produces {x.shape[1]}-float queries but the checkpoint '
+                         f'was trained on {checkpoint.feature_size}. Retrain the autoencoder.')
+
+    progress = progress or _noop_progress
+    stepper, rate_mean, rate_std, losses, summary = fit_stepper(
+        x, checkpoint.latents, checkpoint.latent_valid, checkpoint.frame_time,
+        progress=progress, **options)
+
+    progress('Writing checkpoint', 0.98)
+    arguments = lmm_io.checkpoint_arguments(checkpoint)
+    arguments.update(
+        stepper_weights=stepper.weights(), stepper_biases=stepper.biases(),
+        xz_rate_mean=rate_mean, xz_rate_std=rate_std,
+        stepper_losses=losses, stepper_loss_columns=STEPPER_LOSS_COLUMNS)
+    lmm_io.save_checkpoint(out_path or checkpoint_path, **arguments)
+
+    summary['out_path'] = out_path or checkpoint_path
+    _log_stepper(summary)
+    return summary
+
+
+def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
+                frame_time: float, *,
+                hidden_units: int = 0,
+                window: int = lmm_dataset.DEFAULT_STEPPER_WINDOW,
+                iterations: int = 30000,
+                batch_size: int = 256,
+                learning_rate: float = 1e-3,
+                weight_decay: float = 1e-3,
+                learning_rate_decay: float = 0.99,
+                decay_interval: int = 1000,
+                validation_fraction: float = 0.1,
+                validation_interval: int = 1000,
+                patience: int = 5,
+                max_seconds: float = 0.0,
+                seed: int = 42,
+                device: str = 'auto',
+                progress=None):
+    """
+    Fit the stepper against latents that are already fixed, and measure how far it drifts.
+
+    **The latents are an input, never a parameter.** Phase A's compressor is not merely frozen
+    here, it does not run at all: the stepper is fitted against the table baked into the
+    checkpoint. Letting the two train together would give the pair a much cheaper way to make the
+    latent steppable than learning to step it -- make it constant -- which is latent collapse
+    arriving through the back door.
+
+    Training is **unrolled**, never on single-frame pairs: the state the stepper is asked to
+    advance at frame *n* is the state it produced at frame *n-1*, errors and all. A stepper fitted
+    on true states only is a stepper that has never seen its own mistakes, and it compounds them.
+    No window crosses a clip boundary -- see :func:`lmm_dataset.stepper_windows`.
+
+    The loss is scored on both halves of the state and on both halves of the rate, each divided by
+    **one scalar spread for the whole half**, so the weights in
+    :data:`lmm_dataset.STEPPER_WEIGHTS` trade a feature error against a latent error in comparable
+    terms. It is then divided by the window length, which keeps its magnitude -- and so the
+    effective learning rate -- independent of how far the unrolling goes.
+
+    :param x: (n, feature_size) every database frame's matching feature vector.
+    :param latents: (n, latent_size) the baked latents, indexed by the same frames.
+    :param latent_exists: (n,) bool, which of those frames carry a latent.
+    :param frame_time: seconds per database frame; what turns a step into a rate.
+    :param hidden_units: 0 takes the reference implementation's 512.
+    :param window: frames to unroll over. See :data:`lmm_dataset.DEFAULT_STEPPER_WINDOW`.
+    :param patience: stop after this many held-out scores without an improvement; 0 never stops
+        early. **This is the stopping rule, not ``iterations``**, which is a ceiling. Measured on
+        Edinburgh the held-out score bottoms out around iteration 2,000 of 30,000 and rises
+        monotonically after it, so a fixed count is nine parts waste and one part fit -- and the
+        right count is a property of the database, not something to guess per run. The autoencoder
+        has no equivalent because its held-out curve is still falling at its iteration limit.
+    :return: ``(stepper, rate_mean, rate_std, losses, summary)``.
+    """
+    progress = progress or _noop_progress
+    started = time.time()
+    torch.manual_seed(seed)
+
+    windows = lmm_dataset.latent_runs(latent_exists, window)
+    if windows.size < 2:
+        raise ValueError(
+            f'no run of {window + 1} consecutive frames in this database carries a latent, so the '
+            'stepper has nothing to unroll over. Either the clips are shorter than the window or '
+            'their feature vectors are invalid.')
+
+    feature_size, latent_size = x.shape[1], latents.shape[1]
+    torch_device = resolve_device(device)
+
+    state = torch.from_numpy(
+        np.concatenate([x, latents], axis=1).astype(np.float32)).to(torch_device)
+    # The rate that carries each frame to the next. Rows spanning a clip boundary are meaningless
+    # and are never indexed: every window lies inside one clip, by construction.
+    rates = (state[1:] - state[:-1]) / frame_time
+
+    usable = torch.from_numpy(np.ascontiguousarray(latent_exists, dtype=bool)).to(torch_device)
+    rate_mean = rates[usable[:-1]].mean(dim=0)
+    rate_std = rates[usable[:-1]].std(dim=0)
+    rate_std = torch.where(rate_std < 1e-6, torch.ones_like(rate_std), rate_std)
+
+    x_scale, z_scale = lmm_dataset.state_scales(x, latents, latent_exists)
+
+    stepper = Stepper(feature_size, latent_size,
+                      **({'hidden_units': hidden_units} if hidden_units else {})).to(torch_device)
+    optimizer = torch.optim.AdamW(stepper.parameters(), lr=learning_rate,
+                                  weight_decay=weight_decay, amsgrad=True)
+    schedule = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=learning_rate_decay)
+
+    weights = lmm_dataset.STEPPER_WEIGHTS
+
+    def evaluate(starts: torch.Tensor):
+        """The unrolled loss over a batch of window starts; the columns of STEPPER_LOSS_COLUMNS."""
+        features = state[starts, :feature_size]
+        latent = state[starts, feature_size:]
+        feature_error = latent_error = feature_rate_error = latent_rate_error = 0.0
+
+        for n in range(window):
+            predicted = stepper.rate(features, latent) * rate_std + rate_mean
+            truth = rates[starts + n]
+
+            feature_rate_error = feature_rate_error + (
+                predicted[:, :feature_size] - truth[:, :feature_size]).abs().mean() / x_scale
+            latent_rate_error = latent_rate_error + (
+                predicted[:, feature_size:] - truth[:, feature_size:]).abs().mean() / z_scale
+
+            features = features + predicted[:, :feature_size] * frame_time
+            latent = latent + predicted[:, feature_size:] * frame_time
+
+            target = state[starts + n + 1]
+            feature_error = feature_error + (
+                features - target[:, :feature_size]).abs().mean() / x_scale
+            latent_error = latent_error + (
+                latent - target[:, feature_size:]).abs().mean() / z_scale
+
+        return (weights['features'] * feature_error / window,
+                weights['latent'] * latent_error / window,
+                weights['feature_rate'] * feature_rate_error / window,
+                weights['latent_rate'] * latent_rate_error / window)
+
+    split = max(1, int(round(windows.size * (1.0 - validation_fraction))))
+    train_t = torch.from_numpy(windows[:split]).to(torch_device)
+    held_out = windows[split:]
+    validation_t = torch.from_numpy(
+        held_out[np.linspace(0, held_out.size - 1,
+                             min(VALIDATION_SAMPLE, held_out.size)).astype(np.int64)]
+        if held_out.size else held_out).to(torch_device)
+
+    losses = []
+    running = torch.zeros(len(STEPPER_LOSS_COLUMNS) - 1, device=torch_device)
+    running_count = 0
+    best_validation, best_parameters, best_iteration = float('inf'), None, 0
+    generator = torch.Generator(device='cpu').manual_seed(seed)
+    ran, stalled, stopped_early = 0, 0, False
+
+    for step in range(iterations):
+        stepper.train()
+        starts = train_t[torch.randint(train_t.numel(), (batch_size,), generator=generator)
+                         .to(torch_device)]
+
+        optimizer.zero_grad(set_to_none=True)
+        terms = evaluate(starts)
+        loss = sum(terms)
+        loss.backward()
+        optimizer.step()
+
+        running += torch.stack([term.detach() for term in terms] + [loss.detach()])
+        running_count += 1
+        ran = step + 1
+
+        if (step + 1) % decay_interval == 0:
+            schedule.step()
+
+        if (step + 1) % validation_interval == 0 or step + 1 == iterations:
+            if validation_t.numel():
+                stepper.eval()
+                with torch.no_grad():
+                    validation = float(sum(evaluate(validation_t)))
+            else:
+                validation = float('nan')
+
+            losses.append(tuple((running / max(1, running_count)).tolist()) + (validation,))
+            running = torch.zeros(len(STEPPER_LOSS_COLUMNS) - 1, device=torch_device)
+            running_count = 0
+
+            if validation < best_validation:
+                best_validation, best_iteration = validation, step + 1
+                best_parameters = copy.deepcopy(stepper.state_dict())
+                stalled = 0
+            else:
+                stalled += 1
+
+            progress('Fitting stepper', (step + 1) / iterations)
+
+            if patience and stalled >= patience:
+                stopped_early = True
+                break
+            if max_seconds and time.time() - started > max_seconds:
+                break
+
+    if best_parameters is not None:
+        stepper.load_state_dict(best_parameters)
+
+    drift = _stepper_drift(stepper, state, rate_mean, rate_std, latent_exists,
+                           held_out[0] if held_out.size else 0,
+                           feature_size, frame_time, x_scale, z_scale, torch_device)
+
+    final = losses[-1] if losses else (float('nan'),) * len(STEPPER_LOSS_COLUMNS)
+    summary = {
+        'stepper_windows': int(windows.size),
+        'stepper_train_windows': int(split),
+        'stepper_window': int(window),
+        'stepper_parameters': stepper.parameter_count(),
+        'stepper_iterations_run': ran,
+        'stepper_best_iteration': best_iteration,
+        'stepper_stopped_early': stopped_early,
+        'stepper_features': final[0],
+        'stepper_latent': final[1],
+        'stepper_feature_rate': final[2],
+        'stepper_latent_rate': final[3],
+        'stepper_train_loss': final[4],
+        'stepper_val_loss': best_validation,
+        'stepper_seconds': time.time() - started,
+    }
+    summary.update(drift)
+
+    return stepper, rate_mean.cpu().numpy(), rate_std.cpu().numpy(), losses, summary
+
+
+def _stepper_drift(stepper, state, rate_mean, rate_std, latent_exists: np.ndarray,
+                   first_held_out: int, feature_size: int, frame_time: float,
+                   x_scale: float, z_scale: float, device) -> dict:
+    """
+    How far a free-running stepper has wandered after each of :data:`DRIFT_HORIZONS` frames.
+
+    Reported in units of each half's own spread, so ``0.25`` means the state is a quarter of a
+    standard deviation from where the database says it should be. Free-running is the only honest
+    measurement: a stepper scored one frame at a time from true states never has to live with its
+    own error, and compounding error is the failure mode phase B exists to bound.
+
+    Measured on runs starting at or after ``first_held_out``, which is the same contiguous tail the
+    fit validated on -- a run the stepper trained over would be reporting memorisation.
+    """
+    horizons = tuple(sorted(lmm_dataset.DRIFT_HORIZONS))
+    runs = lmm_dataset.latent_runs(latent_exists, horizons[-1])
+    runs = runs[runs >= first_held_out]
+    if runs.size == 0:
+        return {f'stepper_feature_drift_{n}': float('nan') for n in horizons}
+
+    starts = torch.from_numpy(
+        runs[np.linspace(0, runs.size - 1,
+                         min(VALIDATION_SAMPLE, runs.size)).astype(np.int64)]).to(device)
+
+    features = state[starts, :feature_size]
+    latent = state[starts, feature_size:]
+    drift = {}
+
+    stepper.eval()
+    with torch.no_grad():
+        for n in range(1, horizons[-1] + 1):
+            predicted = stepper.rate(features, latent) * rate_std + rate_mean
+            features = features + predicted[:, :feature_size] * frame_time
+            latent = latent + predicted[:, feature_size:] * frame_time
+
+            if n not in horizons:
+                continue
+
+            target = state[starts + n]
+            drift[f'stepper_feature_drift_{n}'] = float(
+                (features - target[:, :feature_size]).abs().mean() / x_scale)
+            drift[f'stepper_latent_drift_{n}'] = float(
+                (latent - target[:, feature_size:]).abs().mean() / z_scale)
+
+    return drift
 
 
 def _slice(block_layout, name: str) -> slice:
@@ -567,6 +936,20 @@ def _parse_args(argv=None):
     parser.add_argument('--validation-interval', type=int, default=1000)
     parser.add_argument('--max-seconds', type=float, default=0.0,
                         help='stop after this long regardless; 0 for no limit')
+    parser.add_argument('--no-stepper', action='store_true',
+                        help='write an autoencoder-only checkpoint, for the DecompressorOnly mode')
+    parser.add_argument('--stepper-only', action='store_true',
+                        help='fit only the stepper, against the checkpoint already at --out')
+    parser.add_argument('--stepper-window', type=int,
+                        default=lmm_dataset.DEFAULT_STEPPER_WINDOW,
+                        help='frames the stepper is unrolled over while training')
+    parser.add_argument('--stepper-iterations', type=int, default=30000,
+                        help='ceiling on stepper steps; --stepper-patience is the stopping rule')
+    parser.add_argument('--stepper-patience', type=int, default=5,
+                        help='held-out scores without an improvement before stopping; 0 never does')
+    parser.add_argument('--stepper-hidden', type=int, default=0,
+                        help='stepper hidden width; 0 takes the reference implementation of 512')
+    parser.add_argument('--stepper-max-seconds', type=float, default=0.0)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--device', default='auto')
     return parser.parse_args(argv)
@@ -575,6 +958,19 @@ def _parse_args(argv=None):
 def _main(argv=None) -> None:
     args = _parse_args(argv)
     out = args.out or f'{args.name}.lmm.npz'
+
+    stepper_options = dict(
+        window=args.stepper_window, iterations=args.stepper_iterations,
+        patience=args.stepper_patience, hidden_units=args.stepper_hidden,
+        batch_size=args.batch_size, learning_rate=args.learning_rate,
+        weight_decay=args.weight_decay, validation_fraction=args.validation_fraction,
+        validation_interval=args.validation_interval, max_seconds=args.stepper_max_seconds,
+        seed=args.seed, device=args.device)
+
+    if args.stepper_only:
+        refit_stepper(out, args.database, args.name, **stepper_options)
+        return
+
     train(args.database, args.name, out,
           excluded_bones=args.exclude,
           latent_size=args.latent_size,
@@ -583,7 +979,14 @@ def _main(argv=None) -> None:
           learning_rate=args.learning_rate, weight_decay=args.weight_decay,
           validation_fraction=args.validation_fraction,
           validation_interval=args.validation_interval,
-          max_seconds=args.max_seconds, seed=args.seed, device=args.device)
+          max_seconds=args.max_seconds,
+          stepper=not args.no_stepper,
+          stepper_hidden=args.stepper_hidden,
+          stepper_window=args.stepper_window,
+          stepper_iterations=args.stepper_iterations,
+          stepper_patience=args.stepper_patience,
+          stepper_max_seconds=args.stepper_max_seconds,
+          seed=args.seed, device=args.device)
 
 
 if __name__ == '__main__':
