@@ -19,7 +19,7 @@ namespace Lmm.Editor
 /// <remarks>
 /// The agreement half is <c>PfnnAgreementCheck</c>'s, pointed at a <c>MotionMatchingData</c>
 /// instead of a <c>PfnnConfig</c> — it compares <see cref="CharacterSpacePose.Extract"/> against
-/// <c>training_data.build_training_set</c> on the same frames. A model is trained on arrays
+/// <c>training.training_data.build_training_set</c> on the same frames. A model is trained on arrays
 /// produced by one of those and run on arrays produced by the other, and a disagreement about the
 /// reference frame, the units or the rate convention does not throw: the network simply produces
 /// bad motion and the cause is invisible from the symptom.
@@ -159,8 +159,8 @@ public static class LmmAgreementCheck
         PythonRuntime.EnsureInitialized();
         using (Py.GIL())
         {
-            dynamic runtime = PythonRuntime.Import("lmm_runtime", reload: true);
-            dynamic trainingData = PythonRuntime.Import("training_data", reload: true);
+            dynamic runtime = PythonRuntime.Import("lmm.runtime", reload: true);
+            dynamic trainingData = PythonRuntime.Import("training.training_data", reload: true);
 
             dynamic policy = runtime.LmmPolicy(config.GetCheckpointPath());
             dynamic set = trainingData.load_database(config.mmData.GetAssetPath(),
@@ -272,7 +272,7 @@ public static class LmmAgreementCheck
         PythonRuntime.EnsureInitialized();
         using (Py.GIL())
         {
-            dynamic module = PythonRuntime.Import("pfnn_agreement", reload: true);
+            dynamic module = PythonRuntime.Import("pfnn.agreement", reload: true);
             Debug.Log($"[LMM] {module.compare(mmData.GetAssetPath(), mmData.name, frames, csharpPositions, csharpRotations, boneCount)}");
         }
     }

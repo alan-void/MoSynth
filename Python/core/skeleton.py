@@ -5,7 +5,7 @@ from typing import Union, Iterator
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from Pose import Pose
+from core.pose import Pose
 
 
 class Skeleton:

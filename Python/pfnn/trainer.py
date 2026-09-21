@@ -2,9 +2,9 @@
 Trains a phase-functioned network on a generated pose database.
 
 The loop is ordinary supervised regression -- the interesting parts are all upstream, in what
-:mod:`pfnn_dataset` decides an input and a target are. Loss is mean squared error on the
+:mod:`pfnn.dataset` decides an input and a target are. Loss is mean squared error on the
 **normalised** output, so no block drowns the others through its units, and it is weighted per block
-by :func:`pfnn_dataset.block_weights`, so none drowns the others through its width either. Both are
+by :func:`dataset.block_weights`, so none drowns the others through its width either. Both are
 needed: normalising alone equalises the floats, which leaves the root delta -- three floats against
 a hundred and thirty-two of joint rotation -- holding 1.5% of the gradient despite being the block
 that decides whether the character travels at all.
@@ -15,7 +15,7 @@ into training and reports a validation loss that measures nothing.
 
 Runs from the Unity Editor through PythonNET, or standalone::
 
-    python pfnn_trainer.py Assets/StreamingAssets/MMDatabases/MotionMatchingData MotionMatchingData \\
+    python -m pfnn.trainer ../Assets/StreamingAssets/MMDatabases/MotionMatchingData MotionMatchingData \\
         --out MotionMatchingData.pfnn.npz --epochs 150
 """
 
@@ -27,10 +27,10 @@ import time
 import numpy as np
 import torch
 
-import pfnn_dataset
-import pfnn_io
-from pfnn_model import PhaseFunctionedNetwork, resolve_device
-from training_data import load_database
+from pfnn import dataset
+from pfnn import io as pfnn_io
+from pfnn.model import PhaseFunctionedNetwork, resolve_device
+from training.training_data import load_database
 
 
 def _noop_progress(stage: str, fraction: float) -> None:
@@ -41,8 +41,8 @@ def train(data_dir: str,
           db_name: str,
           out_path: str,
           excluded_bones=(),
-          window_radius: int = pfnn_dataset.DEFAULT_WINDOW_RADIUS,
-          window_stride: int = pfnn_dataset.DEFAULT_WINDOW_STRIDE,
+          window_radius: int = dataset.DEFAULT_WINDOW_RADIUS,
+          window_stride: int = dataset.DEFAULT_WINDOW_STRIDE,
           hidden_units: int = 256,
           dropout: float = 0.3,
           epochs: int = 150,
@@ -72,10 +72,10 @@ def train(data_dir: str,
 
     progress('Reading database', 0.0)
     training_set = load_database(data_dir, db_name, with_features=with_features)
-    spec = pfnn_dataset.build_spec(training_set, excluded_bones, window_radius, window_stride)
+    spec = dataset.build_spec(training_set, excluded_bones, window_radius, window_stride)
 
     progress('Packing vectors', 0.05)
-    x, y, phase, _ = pfnn_dataset.build_vectors(training_set, spec)
+    x, y, phase, _ = dataset.build_vectors(training_set, spec)
     if x.shape[0] < 2:
         raise ValueError(f'{x.shape[0]} usable frames in {db_name}: nothing to train on. A clip '
                          'with no measurable gait cycle contributes none -- see GaitPhase in Unity.')
@@ -83,8 +83,8 @@ def train(data_dir: str,
     # The split is by index, and the packed samples are still in database order, so this is the tail
     # of the animation rather than a scattering of frames from all over it.
     split = max(1, int(round(x.shape[0] * (1.0 - validation_fraction))))
-    x_mean, x_std = pfnn_dataset.normalization(x[:split])
-    y_mean, y_std = pfnn_dataset.normalization(y[:split])
+    x_mean, x_std = dataset.normalization(x[:split])
+    y_mean, y_std = dataset.normalization(y[:split])
 
     torch_device = resolve_device(device)
     x_t = torch.from_numpy((x - x_mean) / x_std).to(torch_device)
@@ -92,7 +92,7 @@ def train(data_dir: str,
     phase_t = torch.from_numpy(phase).to(torch_device)
 
     loss_weights = torch.from_numpy(
-        pfnn_dataset.block_weights(spec.output_layout())).to(torch_device)
+        dataset.block_weights(spec.output_layout())).to(torch_device)
 
     def weighted_mse(predicted, target):
         return (loss_weights * (predicted - target).square()).mean()
@@ -165,8 +165,8 @@ def _parse_args(argv=None):
     parser.add_argument('name', help='base file name, i.e. the Unity asset name')
     parser.add_argument('--out', default=None, help='where to write the .pfnn.npz')
     parser.add_argument('--exclude', nargs='*', default=[], help='bone names not to predict')
-    parser.add_argument('--window-radius', type=int, default=pfnn_dataset.DEFAULT_WINDOW_RADIUS)
-    parser.add_argument('--window-stride', type=int, default=pfnn_dataset.DEFAULT_WINDOW_STRIDE)
+    parser.add_argument('--window-radius', type=int, default=dataset.DEFAULT_WINDOW_RADIUS)
+    parser.add_argument('--window-stride', type=int, default=dataset.DEFAULT_WINDOW_STRIDE)
     parser.add_argument('--hidden-units', type=int, default=256)
     parser.add_argument('--dropout', type=float, default=0.3)
     parser.add_argument('--epochs', type=int, default=150)

@@ -40,10 +40,7 @@ sources:
     resource: repo://Python/lmm_trainer.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-generated: {by: "claude-code", at: "2026-09-21T18:19:24.204Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-21T18:19:24.204Z
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # Learned motion matching
@@ -119,7 +116,7 @@ Two things here depart from the paper's `Y`, both forced by what this runtime co
 **no joint-local translations** — the rig has fixed bone lengths and `CharacterSpacePose.Apply`
 writes the rest offsets regardless, so a predicted translation would be discarded at the one place
 it could be used. And its **rate channels stay in the character frame** rather than being expressed
-joint-locally, because that is the convention `Apply` reads and what `training_data` already
+joint-locally, because that is the convention `Apply` reads and what `training.training_data` already
 derives.
 
 ### The latent spans two spaces, not two frames
@@ -159,12 +156,12 @@ Four things in there are load-bearing.
 **Every pose is scored twice, in two spaces.** This is what the paper is for: a naive per-joint loss
 gives "jittery, low quality motion", because it cannot see that a small error at the hip is a large
 one at the hand. `L_chr` is the term that can, and it needs forward kinematics *inside* the training
-step — which is what `lmm_fk` provides, differentiably, in the same definition the offline report
+step — which is what `lmm.fk` provides, differentiably, in the same definition the offline report
 and `LmmStage` pose with.
 
 **L1, not mean squared error.** MSE regresses to the mean of the plausible poses at a given
 `(X, Z)`, and the mean of two plausible poses is generally not a pose. L1 regresses to the median,
-which is. This is a deliberate departure from `pfnn_trainer`'s weighted MSE, and it is the
+which is. This is a deliberate departure from `pfnn.trainer`'s weighted MSE, and it is the
 difference between a crisp pose and a mushy one.
 
 **The loss is computed on denormalised quantities**, in metres, radians and seconds. That is the
@@ -292,7 +289,7 @@ choice rather than a constant — but there is no evidence for moving it on this
 ### Usable frames
 
 Frames come from `TrainingSet.usable()` — matching-feature validity, nothing more.
-`pfnn_dataset.usable_queries` looks interchangeable and is not: its `phase_rate != 0` filter discards
+`pfnn.dataset.usable_queries` looks interchangeable and is not: its `phase_rate != 0` filter discards
 every clip with no measurable gait cycle, which a phase-functioned network needs and a learned
 matcher wants kept. Idling is motion a matcher has to be able to produce.
 
@@ -322,7 +319,7 @@ that, but not by enough, and the symptom is a stepper that looks like it worked.
 as a fixed input removes the option rather than penalising it.
 
 It is also why `refit_stepper` exists as a separate entry point — *Fit Stepper Only* on the config,
-or `lmm_trainer.py --stepper-only`. The autoencoder is the half-hour half and the stepper is fitted
+or `python -m lmm.trainer --stepper-only`. The autoencoder is the half-hour half and the stepper is fitted
 against what it already produced, so trying a different window or a longer schedule need not pay for
 it again. That path reads the `.mmfeatures` alone and not the three hundred megabytes of `.mmpose`
 beside it: everything else it needs is in the checkpoint, and `latent_valid` is *exactly* the frame
@@ -521,7 +518,7 @@ piecewise constant over thousands of pieces and wants depth.
 
 The mixed activations are the paper's and the reference's alike. An earlier version of this page
 used ELU throughout, on the grounds that the mixture had no stated justification and matching
-`pfnn_model` gave the repository one story; that has been reverted in favour of following the paper.
+`pfnn.model` gave the repository one story; that has been reverted in favour of following the paper.
 
 ## Authoring and artefacts
 
@@ -578,7 +575,7 @@ in the state its networks advance. In `DecompressorOnly` those are the same floa
 ### Three details that are easy to get wrong
 
 **The rotations are joint-local, and the rig is posed by composing them down the hierarchy.** This is
-the same map `lmm_fk.forward_kinematics` runs inside the training loss, so the character-space error
+the same map `lmm.fk.forward_kinematics` runs inside the training loss, so the character-space error
 that was optimised is the error the character exhibits. The only translation the model predicts is
 the root's height — its other two coordinates are what the character frame transform removed, so
 they are zero, and every other bone sits at its rest offset. A reconstructed pose therefore cannot
@@ -806,11 +803,11 @@ happens not to explode.
 ### The other check
 
 `MoSynth/Lmm/Check Training Agreement` is the other half, borrowed whole from PFNN: it compares
-`CharacterSpacePose.Extract` against `training_data.build_training_set` on the same frames. A model
+`CharacterSpacePose.Extract` against `training.training_data.build_training_set` on the same frames. A model
 is trained on arrays produced by one and run on arrays produced by the other, and a disagreement
 about the frame, the units or the rate convention does not throw — it just makes the network wrong.
 It matters more now than it did, because forward kinematics sits on both sides of the boundary:
-`lmm_fk` derives the character space the loss is written in, and `LmmStage.BuildCharacterSpacePose`
+`lmm.fk` derives the character space the loss is written in, and `LmmStage.BuildCharacterSpacePose`
 derives the one the rig is posed in.
 
 ## Known gaps

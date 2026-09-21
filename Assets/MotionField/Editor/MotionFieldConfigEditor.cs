@@ -503,7 +503,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
             using (Py.GIL())
             {
-                PyObject trainer = PythonRuntime.Import("motion_field_trainer", reload: true);
+                PyObject trainer = PythonRuntime.Import("motion_field.trainer", reload: true);
 
                 using var args = new PyTuple(new[]
                 {
@@ -569,7 +569,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
             using (Py.GIL())
             {
-                PyObject embedding = PythonRuntime.Import("motion_field_embedding", reload: true);
+                PyObject embedding = PythonRuntime.Import("motion_field.embedding", reload: true);
 
                 using var args = new PyTuple(new[]
                 {

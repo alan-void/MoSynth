@@ -35,9 +35,6 @@ sources:
   - id: openwiki-source-057bf19a9464594dde1397c6
     resource: repo://Assets/Scripts/SkeletonUIManager.cs
 generated: {by: "claude-code", at: "2026-09-03T11:06:29.275Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-03T11:06:29.275Z
 ---
 
 # Skeletons and rig binding

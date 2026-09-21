@@ -3,9 +3,9 @@ import struct
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from Animation import PoseSet
-from Skeleton import Joint, Skeleton
-from binary_reading import read_csharp_string
+from core.pose_set import PoseSet
+from core.skeleton import Joint, Skeleton
+from formats.binary_reading import read_csharp_string
 
 # Unity is y-up and left-handed, so a character faces +z.
 _CHARACTER_FORWARD = np.array([0.0, 0.0, 1.0], dtype=np.float64)
@@ -75,7 +75,7 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
 
     The simulation frame definition rides along on the returned object as
     ``sim_frame_bone_index`` and ``sim_frame_forward``, which is everything
-    :mod:`simulation_frame` needs to derive the character frame of every pose. Both are
+    :mod:`core.simulation_frame` needs to derive the character frame of every pose. Both are
     read off the skeleton rather than the file -- see :func:`read_skeleton`.
     """
     pose_path = os.path.join(path, f"{file_name}.mmpose")

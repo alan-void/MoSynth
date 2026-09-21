@@ -8,7 +8,7 @@ plausible loss and poses badly. So this is checked three ways, each of which wou
 different class of mistake:
 
 * against the **database**, whose character-space positions and rotations are derived by a wholly
-  separate route in :mod:`training_data`;
+  separate route in :mod:`training.training_data`;
 * against a **second spelling** of the same map in numpy and scipy, which shares no code with the
   torch one;
 * as a **gradient**, since a version that is correct but not differentiable is useless to the
@@ -26,14 +26,14 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import lmm_dataset  # noqa: E402
-import neural_packing  # noqa: E402
+from lmm import dataset as lmm_dataset  # noqa: E402
+from training import neural_packing  # noqa: E402
 from test_lmm_dataset import straight_walk_set  # noqa: E402
 
 try:
     import torch
 
-    import lmm_fk
+    from lmm import fk as lmm_fk
     HAS_TORCH = True
 except ImportError:  # pragma: no cover - exercised only on a bare interpreter
     HAS_TORCH = False
@@ -177,7 +177,7 @@ class RotationConversionTests(unittest.TestCase):
     @unittest.skipUnless(HAS_TORCH, 'torch is not installed')
     def test_the_six_d_round_trip_is_the_identity_on_a_real_rotation(self):
         from scipy.spatial.transform import Rotation
-        from training_data import rotations_to_6d
+        from training.training_data import rotations_to_6d
 
         rng = np.random.default_rng(5)
         rotations = Rotation.random(20, random_state=5).as_quat().astype(np.float32)

@@ -2,7 +2,7 @@
 Runs a trained Learned Motion Matching model one frame at a time, for the Unity stage and for
 offline inspection.
 
-The policy here is **stateless**, as ``pfnn_runtime``'s is: it takes a whole query and returns a
+The policy here is **stateless**, as ``pfnn.runtime``'s is: it takes a whole query and returns a
 whole pose, while the character's state -- which feature vector it is holding, which latent -- lives
 on the C# side, where the profiler and the inspector can see it and a benchmark run can reset it
 without reaching across the boundary.
@@ -17,14 +17,14 @@ advancing the state and decompressing it in the one call, because they always ha
 Forward kinematics is the caller's job, as it is for the PFNN: the network predicts **joint-local**
 rotations, and the authority on the rest offsets that turn those into a posed character is the rig.
 The stage does it with ``SkeletonData``; :func:`reconstruction_report` below does it with
-:mod:`lmm_fk`, which is the same definition the loss was written in.
+:mod:`lmm.fk`, which is the same definition the loss was written in.
 
 Everything crossing the PythonNET boundary is a flat Python list of floats, never an ndarray --
 pythonnet marshals a list straight into a C# ``float[]``.
 
 Standalone, to judge a checkpoint before Unity is involved::
 
-    python lmm_runtime.py <checkpoint>.lmm.npz \\
+    python -m lmm.runtime <checkpoint>.lmm.npz \\
         --database ../Assets/StreamingAssets/MMDatabases/MM_LafanCorrected \\
         --name MM_LafanCorrected --report --rollout --project --full-rollout
 """
@@ -36,11 +36,10 @@ import argparse
 import numpy as np
 import torch
 
-import lmm_dataset
-import lmm_fk
-import lmm_io
-import neural_packing
-from lmm_model import Decompressor, Projector, Stepper, resolve_device
+from lmm import dataset, fk
+from lmm import io as lmm_io
+from training import neural_packing
+from lmm.model import Decompressor, Projector, Stepper, resolve_device
 
 # Frames scored per forward pass by the offline report. Nothing runtime-critical depends on it.
 REPORT_BATCH = 4096
@@ -65,7 +64,7 @@ class LmmPolicy:
         self.checkpoint = checkpoint
         self.device = resolve_device(device)
 
-        self._pose_layout = lmm_dataset.pose_vector_layout(checkpoint.n_bones)
+        self._pose_layout = dataset.pose_vector_layout(checkpoint.n_bones)
         # Before anything is fed through it, not at the first odd-looking frame.
         neural_packing.check_blocks(checkpoint.output_blocks, self._pose_layout, what='pose')
 
@@ -424,12 +423,12 @@ def reconstruction_report(policy: LmmPolicy, training_set, frames: int = 0,
         memorised it rather than how well it generalises.
     :return: a summary dict, also logged.
     """
-    spec = lmm_dataset.build_spec(training_set, _excluded_for(policy, training_set),
+    spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
                                   policy.latent_size())
-    x, y, q, latent_exists = lmm_dataset.build_vectors(training_set, spec)
+    x, y, q, latent_exists = dataset.build_vectors(training_set, spec)
 
     if holdout:
-        pairs = lmm_dataset.training_pairs(training_set)
+        pairs = dataset.training_pairs(training_set)
         scored = pairs[max(1, int(round(pairs.size * (1.0 - holdout)))):]
     else:
         scored = np.flatnonzero(latent_exists).astype(np.int64)
@@ -442,7 +441,7 @@ def reconstruction_report(policy: LmmPolicy, training_set, frames: int = 0,
     pose_layout = spec.pose_layout()
     character_layout = spec.character_layout()
     offsets = torch.from_numpy(spec.rest_offsets)
-    hierarchy = lmm_fk.Hierarchy(spec.parents)
+    hierarchy = fk.Hierarchy(spec.parents)
 
     fk_errors, height_errors, ablation = [], [], []
     speeds, true_speeds, contact_hits = [], [], []
@@ -515,7 +514,7 @@ def joint_positions(predicted: np.ndarray, pose_layout, n_bones: int, offsets, h
         neural_packing.block(predicted, pose_layout, 'root_height').reshape(-1)))
 
     with torch.no_grad():
-        positions, _ = lmm_fk.forward_kinematics(local_six, height, offsets, hierarchy)
+        positions, _ = fk.forward_kinematics(local_six, height, offsets, hierarchy)
     return positions.numpy()
 
 
@@ -542,20 +541,20 @@ def rollout_report(policy: LmmPolicy, training_set, seeds: int = 512,
     :param seeds: how many states to run from, evenly spread over the scored region.
     :param holdout: run only from the last fraction of the eligible starts, which is the tail the
         fit validated on. 0 runs from the whole database and reports memorisation.
-    :param horizons: frame counts to report at; empty takes :data:`lmm_dataset.DRIFT_HORIZONS`.
+    :param horizons: frame counts to report at; empty takes :data:`dataset.DRIFT_HORIZONS`.
     """
     if not policy.has_stepper():
         raise ValueError('this checkpoint has no stepper to roll out. Train one with '
-                         'lmm_trainer.py --stepper-only.')
+                         'python -m lmm.trainer --stepper-only.')
 
-    horizons = tuple(sorted(horizons or lmm_dataset.DRIFT_HORIZONS))
-    spec = lmm_dataset.build_spec(training_set, _excluded_for(policy, training_set),
+    horizons = tuple(sorted(horizons or dataset.DRIFT_HORIZONS))
+    spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
                                   policy.latent_size())
-    x, _, q, latent_exists = lmm_dataset.build_vectors(training_set, spec)
+    x, _, q, latent_exists = dataset.build_vectors(training_set, spec)
     latents = policy.checkpoint.latents
-    x_scale, z_scale = lmm_dataset.state_scales(x, latents, latent_exists)
+    x_scale, z_scale = dataset.state_scales(x, latents, latent_exists)
 
-    runs = lmm_dataset.latent_runs(latent_exists, horizons[-1])
+    runs = dataset.latent_runs(latent_exists, horizons[-1])
     if holdout:
         runs = runs[int(round(runs.size * (1.0 - holdout))):]
     if runs.size == 0:
@@ -567,7 +566,7 @@ def rollout_report(policy: LmmPolicy, training_set, seeds: int = 512,
 
     pose_layout, character_layout = spec.pose_layout(), spec.character_layout()
     offsets = torch.from_numpy(spec.rest_offsets)
-    hierarchy = lmm_fk.Hierarchy(spec.parents)
+    hierarchy = fk.Hierarchy(spec.parents)
 
     summary = {'rollout_seeds': int(starts.size), 'held_out': bool(holdout)}
     for step in range(1, horizons[-1] + 1):
@@ -607,7 +606,7 @@ def projector_report(policy: LmmPolicy, training_set, queries: int = 2048,
     This is the honest test of the projector, and the reason it has to be its own report: the
     training loss falls steadily whether or not the answers are the ones the search would have given. What
     matters is the comparison against the lookup itself -- see
-    :func:`lmm_dataset.recall_against_search` for what each number means.
+    :func:`dataset.recall_against_search` for what each number means.
 
     Measured at several displacements rather than one averaged draw, because the two ends behave
     differently and an average over them hides it. At a small displacement the true neighbour is
@@ -619,17 +618,17 @@ def projector_report(policy: LmmPolicy, training_set, queries: int = 2048,
     :param holdout: draw only from the last fraction of the latent-carrying frames -- the tail the
         fit validated on. 0 draws from the whole database and reports memorisation.
     :param sigmas: the displacements to report at, in units of
-        :func:`lmm_dataset.projector_noise_scale`.
+        :func:`dataset.projector_noise_scale`.
     """
     if not policy.has_projector():
         raise ValueError('this checkpoint has no projector to score. Train one with '
-                         'lmm_trainer.py --projector-only.')
+                         'python -m lmm.trainer --projector-only.')
 
-    spec = lmm_dataset.build_spec(training_set, _excluded_for(policy, training_set),
+    spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
                                   policy.latent_size())
-    x, _, _, latent_exists = lmm_dataset.build_vectors(training_set, spec)
+    x, _, _, latent_exists = dataset.build_vectors(training_set, spec)
     latents = policy.checkpoint.latents
-    _, z_scale = lmm_dataset.state_scales(x, latents, latent_exists)
+    _, z_scale = dataset.state_scales(x, latents, latent_exists)
 
     frames = np.flatnonzero(latent_exists).astype(np.int64)
     if frames.size == 0:
@@ -639,9 +638,9 @@ def projector_report(policy: LmmPolicy, training_set, queries: int = 2048,
     candidates = torch.from_numpy(x[frames]).to(device)
     candidate_latents = torch.from_numpy(latents[frames]).to(device)
     weights = torch.from_numpy(policy.checkpoint.feature_weights).to(device)
-    norms = lmm_dataset.candidate_norms(candidates, weights)
+    norms = dataset.candidate_norms(candidates, weights)
     noise_scale = torch.from_numpy(
-        lmm_dataset.projector_noise_scale(x, latent_exists)).to(device)
+        dataset.projector_noise_scale(x, latent_exists)).to(device)
 
     drawn = frames[int(round(frames.size * (1.0 - holdout))):] if holdout else frames
     drawn = drawn[np.linspace(0, drawn.size - 1, min(queries, drawn.size)).astype(np.int64)]
@@ -655,7 +654,7 @@ def projector_report(policy: LmmPolicy, training_set, queries: int = 2048,
         displaced = seeds + sigma * noise_scale * noise
 
         answered_x, answered_z = policy.project_batch(displaced.cpu().numpy())
-        recall = lmm_dataset.recall_against_search(
+        recall = dataset.recall_against_search(
             displaced, torch.from_numpy(answered_x).to(device),
             torch.from_numpy(answered_z).to(device),
             candidates, candidate_latents, weights, norms, z_scale)
@@ -708,9 +707,9 @@ def full_rollout_report(policy: LmmPolicy, training_set, seeds: int = 256, frame
     if not policy.has_stepper():
         raise ValueError('this checkpoint has no stepper, so a projected state cannot be carried')
 
-    spec = lmm_dataset.build_spec(training_set, _excluded_for(policy, training_set),
+    spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
                                   policy.latent_size())
-    x, _, q, latent_exists = lmm_dataset.build_vectors(training_set, spec)
+    x, _, q, latent_exists = dataset.build_vectors(training_set, spec)
     latents = policy.checkpoint.latents
     pose_offset = policy.checkpoint.pose_offset
     weights = policy.checkpoint.feature_weights
@@ -729,7 +728,7 @@ def full_rollout_report(policy: LmmPolicy, training_set, seeds: int = 256, frame
 
     pose_layout, character_layout = spec.pose_layout(), spec.character_layout()
     offsets = torch.from_numpy(spec.rest_offsets)
-    hierarchy = lmm_fk.Hierarchy(spec.parents)
+    hierarchy = fk.Hierarchy(spec.parents)
 
     speeds, extents = [], []
     searches = accepted = 0
@@ -836,7 +835,7 @@ def _main(argv=None) -> None:
     if not args.database or not args.name:
         parser.error('every report needs --database and --name')
 
-    from training_data import load_database
+    from training.training_data import load_database
     training_set = load_database(args.database, args.name)
 
     if args.report:

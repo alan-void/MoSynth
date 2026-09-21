@@ -1,5 +1,5 @@
 """
-Packs a :class:`training_data.TrainingSet` into the vectors a Learned Motion Matching model trains
+Packs a :class:`training.training_data.TrainingSet` into the vectors a Learned Motion Matching model trains
 on (Holden et al. 2020).
 
 Four vectors, and the whole method is in how they relate:
@@ -24,10 +24,10 @@ velocity regulariser instead, which is what leaves it steppable for the stepper.
 
 A frame still only has a latent when its successor is in the same clip -- see :func:`compressible`.
 The pair is what the velocity terms of the loss are differenced over, and sampling across a clip
-boundary would score a jump cut as motion, which is the rule every window in :mod:`training_data`
+boundary would score a jump cut as motion, which is the rule every window in :mod:`training.training_data`
 follows.
 
-Conventions are inherited unchanged from :mod:`training_data`: quaternions xyzw, y-up left-handed
+Conventions are inherited unchanged from :mod:`training.training_data`: quaternions xyzw, y-up left-handed
 with the character facing +z, every rate per second, and the ground plane written as ``(x, z)``.
 """
 
@@ -38,9 +38,9 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
-import lmm_fk
-import neural_packing
-from training_data import TrainingSet, rotations_to_6d
+from lmm import fk
+from training import neural_packing
+from training.training_data import TrainingSet, rotations_to_6d
 
 # Floats the latent is compressed to. The paper's section 4.4 and the reference implementation's
 # shipped graphs agree on it, over a rig of comparable size.
@@ -58,7 +58,7 @@ def pose_vector_layout(n_bones: int) -> list:
       ``CharacterSpacePose.Apply`` writes the rest offsets regardless, so a predicted translation
       would be discarded at the one place it could be used.
     * **The rate channels stay in the character frame**, which is the convention ``Apply`` reads and
-      what :mod:`training_data` already derives. The paper expresses them joint-locally.
+      what :mod:`training.training_data` already derives. The paper expresses them joint-locally.
 
     ``root_height`` takes the slot the paper's ``o`` (root offset) occupies: the root's ``x`` and
     ``z`` are what the character frame transform removed, so its height is the only free float.
@@ -256,7 +256,7 @@ def build_spec(training_set: TrainingSet, excluded_bones=(),
     The packing a model over this database and this bone selection will use.
 
     :raises ValueError: if the database carries no matching feature vectors. A learned matcher has
-        nothing to be a matcher *of* without them -- see :func:`training_data.load_database`.
+        nothing to be a matcher *of* without them -- see :func:`training.training_data.load_database`.
     """
     if training_set.features is None:
         raise ValueError(
@@ -266,13 +266,13 @@ def build_spec(training_set: TrainingSet, excluded_bones=(),
 
     bone_indices = neural_packing.select_bones(
         training_set.bone_names, training_set.parents, excluded_bones)
-    parents = lmm_fk.parents_within(training_set.parents, bone_indices)
+    parents = fk.parents_within(training_set.parents, bone_indices)
 
     return LmmSpec(
         bone_indices=bone_indices,
         bone_names=tuple(training_set.bone_names[i] for i in bone_indices),
         parents=parents,
-        rest_offsets=lmm_fk.rest_offsets(training_set.positions[0][bone_indices],
+        rest_offsets=fk.rest_offsets(training_set.positions[0][bone_indices],
                                          training_set.rotations[0][bone_indices], parents),
         feature_size=int(training_set.features.shape[1]),
         latent_size=int(latent_size),
@@ -285,7 +285,7 @@ def pose_vector(training_set: TrainingSet, spec: LmmSpec) -> np.ndarray:
     bones = spec.bone_indices
 
     return np.concatenate([
-        lmm_fk.local_rotations_6d(training_set.rotations[:, bones], spec.parents).reshape(n, -1),
+        fk.local_rotations_6d(training_set.rotations[:, bones], spec.parents).reshape(n, -1),
         training_set.velocities[:, bones].reshape(n, -1),
         training_set.angular_velocities[:, bones].reshape(n, -1),
         training_set.positions[:, bones[0], 1].reshape(n, 1),
@@ -299,7 +299,7 @@ def character_vector(training_set: TrainingSet, spec: LmmSpec) -> np.ndarray:
     """
     Every frame's ``Q``. (n_frames, :attr:`LmmSpec.character_size`) float32.
 
-    Read out of the training set rather than run through :mod:`lmm_fk`, because the training set is
+    Read out of the training set rather than run through :mod:`lmm.fk`, because the training set is
     already in the character frame -- the FK there exists to derive ``Q`` from a *prediction*, and
     ``test_lmm_fk`` is what holds the two definitions to each other.
     """
@@ -317,7 +317,7 @@ def compressible(training_set: TrainingSet) -> np.ndarray:
     (n,) bool: frames that have a latent, i.e. that have a successor in the same clip.
 
     Usability is :meth:`TrainingSet.usable`, which is feature validity and nothing else.
-    :func:`pfnn_dataset.usable_queries` looks interchangeable with this and is not -- its
+    :func:`pfnn.dataset.usable_queries` looks interchangeable with this and is not -- its
     ``phase_rate != 0`` filter discards every clip with no measurable gait cycle, which a
     phase-functioned network needs and a learned matcher wants kept. Idling is motion a matcher
     has to be able to produce.

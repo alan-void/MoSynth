@@ -24,24 +24,24 @@ query with a state the database holds, and so replaces the search itself.
   leaves ``Z`` steppable at all by the stepper, and it applies to a **per-second** derivative -- a
   factor of sixty against the per-frame delta it would be easy to write instead.
 
-The weights are in :mod:`lmm_dataset`; they are the author's released training code, since the
+The weights are in :mod:`lmm.dataset`; they are the author's released training code, since the
 paper states none.
 
 Validation holds out a **contiguous tail** rather than a random subset, for the reason
-``pfnn_trainer`` does: neighbouring frames of an animation are nearly the same pose, so a random
+``pfnn.trainer`` does: neighbouring frames of an animation are nearly the same pose, so a random
 split puts near-duplicates of the validation set into training and reports a number that measures
 nothing. The parameters that scored best on it are what gets written, not the last ones.
 
 Runs from the Unity Editor through PythonNET, or standalone::
 
-    python lmm_trainer.py ../Assets/StreamingAssets/MMDatabases/MM_LafanCorrected_Edinburg \\
+    python -m lmm.trainer ../Assets/StreamingAssets/MMDatabases/MM_LafanCorrected_Edinburg \\
         MM_LafanCorrected_Edinburg --out model.lmm.npz --iterations 150000
 
 Either of the later networks alone, against a checkpoint whose autoencoder is already fitted --
 which is what to run when tuning them, since the autoencoder is the half-hour half::
 
-    python lmm_trainer.py <database> <name> --out model.lmm.npz --stepper-only
-    python lmm_trainer.py <database> <name> --out model.lmm.npz --projector-only
+    python -m lmm.trainer <database> <name> --out model.lmm.npz --stepper-only
+    python -m lmm.trainer <database> <name> --out model.lmm.npz --projector-only
 """
 
 from __future__ import annotations
@@ -53,12 +53,11 @@ import time
 import numpy as np
 import torch
 
-import lmm_dataset
-import lmm_fk
-import lmm_io
-from feature_set_importer import read_feature_set
-from lmm_model import Compressor, Decompressor, Projector, Stepper, resolve_device
-from training_data import load_database
+from lmm import dataset, fk
+from lmm import io as lmm_io
+from formats.feature_set_importer import read_feature_set
+from lmm.model import Compressor, Decompressor, Projector, Stepper, resolve_device
+from training.training_data import load_database
 
 LOSS_COLUMNS = ('local', 'character', 'local_velocity', 'character_velocity',
                 'latent', 'total', 'validation')
@@ -89,8 +88,8 @@ def train(data_dir: str,
           out_path: str,
           excluded_bones=(),
           feature_weights=(),
-          latent_size: int = lmm_dataset.DEFAULT_LATENT_SIZE,
-          latent_velocity_weight: float = lmm_dataset.LATENT_VELOCITY_WEIGHT,
+          latent_size: int = dataset.DEFAULT_LATENT_SIZE,
+          latent_velocity_weight: float = dataset.LATENT_VELOCITY_WEIGHT,
           compressor_hidden: int = 0,
           decompressor_hidden: int = 0,
           iterations: int = 150000,
@@ -104,7 +103,7 @@ def train(data_dir: str,
           max_seconds: float = 0.0,
           stepper: bool = True,
           stepper_hidden: int = 0,
-          stepper_window: int = lmm_dataset.DEFAULT_STEPPER_WINDOW,
+          stepper_window: int = dataset.DEFAULT_STEPPER_WINDOW,
           stepper_iterations: int = 30000,
           stepper_patience: int = 5,
           stepper_max_seconds: float = 0.0,
@@ -112,7 +111,7 @@ def train(data_dir: str,
           projector_hidden: int = 0,
           projector_iterations: int = 30000,
           projector_patience: int = 5,
-          projector_sigma: float = lmm_dataset.PROJECTOR_SIGMA,
+          projector_sigma: float = dataset.PROJECTOR_SIGMA,
           projector_max_seconds: float = 0.0,
           seed: int = 42,
           device: str = 'auto',
@@ -128,7 +127,7 @@ def train(data_dir: str,
     :param feature_weights: one authored search weight per feature definition, which travels into
         the checkpoint so the projector approximates the search that is actually run.
     :param latent_velocity_weight: ``w_vreg``, the penalty on how fast the latent moves. The one
-        loss weight worth tuning -- see :mod:`lmm_dataset`. Too low and the stepper has
+        loss weight worth tuning -- see :mod:`lmm.dataset`. Too low and the stepper has
         noise to advance; too high and the latent cannot carry enough to reconstruct from.
     :param compressor_hidden: hidden width; 0 takes the reference implementation's.
     :param decompressor_hidden: likewise.
@@ -161,11 +160,11 @@ def train(data_dir: str,
 
     progress('Reading database', 0.0)
     training_set = load_database(data_dir, db_name, with_features=True)
-    spec = lmm_dataset.build_spec(training_set, excluded_bones, latent_size)
+    spec = dataset.build_spec(training_set, excluded_bones, latent_size)
 
     progress('Packing vectors', 0.05)
-    x, y, q, latent_exists = lmm_dataset.build_vectors(training_set, spec)
-    pairs = lmm_dataset.training_pairs(training_set)
+    x, y, q, latent_exists = dataset.build_vectors(training_set, spec)
+    pairs = dataset.training_pairs(training_set)
     if pairs.size < 2:
         raise ValueError(
             f'{pairs.size} usable frame pairs in {db_name}: nothing to train on. A latent spans a '
@@ -179,8 +178,8 @@ def train(data_dir: str,
 
     pose_layout = spec.pose_layout()
     character_layout = spec.character_layout()
-    y_mean, y_std = lmm_dataset.group_normalization(y[latent_exists], pose_layout)
-    q_mean, q_std = lmm_dataset.group_normalization(q[latent_exists], character_layout)
+    y_mean, y_std = dataset.group_normalization(y[latent_exists], pose_layout)
+    q_mean, q_std = dataset.group_normalization(q[latent_exists], character_layout)
 
     torch_device = resolve_device(device)
     x_t = torch.from_numpy(x).to(torch_device)
@@ -195,16 +194,16 @@ def train(data_dir: str,
 
     rotation_slice = _slice(pose_layout, 'rotations_6d')
     height_slice = _slice(pose_layout, 'root_height')
-    hierarchy = lmm_fk.Hierarchy(spec.parents, torch_device)
+    hierarchy = fk.Hierarchy(spec.parents, torch_device)
     frame_time = spec.frame_time
 
     def weights_of(block_layout, table):
         return torch.from_numpy(_float_weights(block_layout, table)).to(torch_device)
 
-    local_weights = weights_of(pose_layout, lmm_dataset.LOCAL_WEIGHTS)
-    character_weights = weights_of(character_layout, lmm_dataset.CHARACTER_WEIGHTS)
-    local_rate_weights = weights_of(pose_layout, lmm_dataset.LOCAL_RATE_WEIGHTS)
-    character_rate_weights = weights_of(character_layout, lmm_dataset.CHARACTER_RATE_WEIGHTS)
+    local_weights = weights_of(pose_layout, dataset.LOCAL_WEIGHTS)
+    character_weights = weights_of(character_layout, dataset.CHARACTER_WEIGHTS)
+    local_rate_weights = weights_of(pose_layout, dataset.LOCAL_RATE_WEIGHTS)
+    character_rate_weights = weights_of(character_layout, dataset.CHARACTER_RATE_WEIGHTS)
 
     compressor = Compressor(
         spec.pose_size, spec.character_size, spec.latent_size,
@@ -227,7 +226,7 @@ def train(data_dir: str,
         predicted = decompressor.decode(x_t[frames], latent) * y_std_t + y_mean_t
 
         local_six = predicted[:, rotation_slice].reshape(frames.shape[0], spec.n_bones, 6)
-        character = lmm_fk.character_vector_from_fk(
+        character = fk.character_vector_from_fk(
             local_six, predicted[:, height_slice.start], offsets_t, hierarchy)
         return predicted, character, latent
 
@@ -249,8 +248,8 @@ def train(data_dir: str,
                                    character_rate_weights)
 
         regularisation = (
-            lmm_dataset.LATENT_SPARSITY_WEIGHT * latent.abs().mean()
-            + lmm_dataset.LATENT_MAGNITUDE_WEIGHT * latent.pow(2).mean()
+            dataset.LATENT_SPARSITY_WEIGHT * latent.abs().mean()
+            + dataset.LATENT_MAGNITUDE_WEIGHT * latent.pow(2).mean()
             + latent_velocity_weight
             * ((latent[:n] - latent[n:]) / frame_time).abs().mean())
 
@@ -348,7 +347,7 @@ def train(data_dir: str,
         projector_base = stepper_base + stepper_span
         fitted_projector, projector_losses, projector_summary = fit_projector(
             x, latents, latent_exists,
-            lmm_dataset.feature_weights(training_set, feature_weights),
+            dataset.feature_weights(training_set, feature_weights),
             np.concatenate([np.zeros(spec.feature_size, dtype=np.float32), z_mean]),
             np.concatenate([np.ones(spec.feature_size, dtype=np.float32), z_std]),
             hidden_units=projector_hidden, iterations=projector_iterations,
@@ -371,7 +370,7 @@ def train(data_dir: str,
         x_std=np.ones(spec.feature_size, dtype=np.float32),
         y_mean=y_mean, y_std=y_std, q_mean=q_mean, q_std=q_std, z_mean=z_mean, z_std=z_std,
         latents=latents, latent_valid=latent_exists,
-        feature_weights=lmm_dataset.feature_weights(training_set, feature_weights),
+        feature_weights=dataset.feature_weights(training_set, feature_weights),
         bone_names=spec.bone_names,
         output_blocks=[name for name, _, _ in pose_layout],
         character_blocks=[name for name, _, _ in character_layout],
@@ -460,7 +459,7 @@ def _log_stepper(summary: dict) -> None:
     drift = ', '.join(
         f"{n}f {summary[f'stepper_feature_drift_{n}']:.3f}/"
         f"{summary[f'stepper_latent_drift_{n}']:.3f}"
-        for n in sorted(lmm_dataset.DRIFT_HORIZONS)
+        for n in sorted(dataset.DRIFT_HORIZONS)
         if f'stepper_feature_drift_{n}' in summary)
     print(f"[LMM] stepper free-run drift (X/Z, in units of each half's own spread): {drift}. "
           "Ten frames is the search cadence, so that is the one that decides whether the state "
@@ -524,7 +523,7 @@ def refit_stepper(checkpoint_path: str, data_dir: str, db_name: str,
 def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
                 frame_time: float, *,
                 hidden_units: int = 0,
-                window: int = lmm_dataset.DEFAULT_STEPPER_WINDOW,
+                window: int = dataset.DEFAULT_STEPPER_WINDOW,
                 iterations: int = 30000,
                 batch_size: int = 256,
                 learning_rate: float = 1e-3,
@@ -550,11 +549,11 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     Training is **unrolled**, never on single-frame pairs: the state the stepper is asked to
     advance at frame *n* is the state it produced at frame *n-1*, errors and all. A stepper fitted
     on true states only is a stepper that has never seen its own mistakes, and it compounds them.
-    No window crosses a clip boundary -- see :func:`lmm_dataset.stepper_windows`.
+    No window crosses a clip boundary -- see :func:`dataset.stepper_windows`.
 
     The loss is scored on both halves of the state and on both halves of the rate, each divided by
     **one scalar spread for the whole half**, so the weights in
-    :data:`lmm_dataset.STEPPER_WEIGHTS` trade a feature error against a latent error in comparable
+    :data:`dataset.STEPPER_WEIGHTS` trade a feature error against a latent error in comparable
     terms. It is then divided by the window length, which keeps its magnitude -- and so the
     effective learning rate -- independent of how far the unrolling goes.
 
@@ -563,7 +562,7 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     :param latent_exists: (n,) bool, which of those frames carry a latent.
     :param frame_time: seconds per database frame; what turns a step into a rate.
     :param hidden_units: 0 takes the reference implementation's 512.
-    :param window: frames to unroll over. See :data:`lmm_dataset.DEFAULT_STEPPER_WINDOW`.
+    :param window: frames to unroll over. See :data:`dataset.DEFAULT_STEPPER_WINDOW`.
     :param patience: stop after this many held-out scores without an improvement; 0 never stops
         early. **This is the stopping rule, not ``iterations``**, which is a ceiling. Measured on
         Edinburgh the held-out score bottoms out around iteration 2,000 of 30,000 and rises
@@ -576,7 +575,7 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     started = time.time()
     torch.manual_seed(seed)
 
-    windows = lmm_dataset.latent_runs(latent_exists, window)
+    windows = dataset.latent_runs(latent_exists, window)
     if windows.size < 2:
         raise ValueError(
             f'no run of {window + 1} consecutive frames in this database carries a latent, so the '
@@ -597,7 +596,7 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     rate_std = rates[usable[:-1]].std(dim=0)
     rate_std = torch.where(rate_std < 1e-6, torch.ones_like(rate_std), rate_std)
 
-    x_scale, z_scale = lmm_dataset.state_scales(x, latents, latent_exists)
+    x_scale, z_scale = dataset.state_scales(x, latents, latent_exists)
 
     stepper = Stepper(feature_size, latent_size,
                       **({'hidden_units': hidden_units} if hidden_units else {})).to(torch_device)
@@ -605,7 +604,7 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
                                   weight_decay=weight_decay, amsgrad=True)
     schedule = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=learning_rate_decay)
 
-    weights = lmm_dataset.STEPPER_WEIGHTS
+    weights = dataset.STEPPER_WEIGHTS
 
     def evaluate(starts: torch.Tensor):
         """The unrolled loss over a batch of window starts; the columns of STEPPER_LOSS_COLUMNS."""
@@ -739,8 +738,8 @@ def _stepper_drift(stepper, state, rate_mean, rate_std, latent_exists: np.ndarra
     Measured on runs starting at or after ``first_held_out``, which is the same contiguous tail the
     fit validated on -- a run the stepper trained over would be reporting memorisation.
     """
-    horizons = tuple(sorted(lmm_dataset.DRIFT_HORIZONS))
-    runs = lmm_dataset.latent_runs(latent_exists, horizons[-1])
+    horizons = tuple(sorted(dataset.DRIFT_HORIZONS))
+    runs = dataset.latent_runs(latent_exists, horizons[-1])
     runs = runs[runs >= first_held_out]
     if runs.size == 0:
         return {f'stepper_feature_drift_{n}': float('nan') for n in horizons}
@@ -857,7 +856,7 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
                   validation_fraction: float = 0.1,
                   validation_interval: int = 1000,
                   patience: int = 5,
-                  sigma: float = lmm_dataset.PROJECTOR_SIGMA,
+                  sigma: float = dataset.PROJECTOR_SIGMA,
                   max_seconds: float = 0.0,
                   seed: int = 42,
                   device: str = 'auto',
@@ -870,13 +869,13 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     state. The emphasis is the whole method: targeting the frame the noise was added to would fit a
     denoiser, a network that undoes a perturbation. The classic matcher does not undo anything --
     asked for a query no frame answers, it returns whichever frame answers it best, and that is
-    usually a different frame entirely. See :func:`lmm_dataset.nearest_neighbours`.
+    usually a different frame entirely. See :func:`dataset.nearest_neighbours`.
 
     The metric is the **authored** search weights, carried in the checkpoint. A projector fitted
     under a uniform metric approximates a search nobody runs, and the comparison against the
     classic matcher is then quietly measuring two different things.
 
-    Three terms, weighted by :data:`lmm_dataset.PROJECTOR_WEIGHTS`. Two are the obvious ones -- the
+    Three terms, weighted by :data:`dataset.PROJECTOR_WEIGHTS`. Two are the obvious ones -- the
     state it answers with against the state it should have answered with, each divided by its own
     half's spread so the weights trade comparable things. The third is the **distance**: how far
     the projector's answer sits from the query, against how far the true nearest neighbour sits.
@@ -894,7 +893,7 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
         the checkpoint's ``x_mean`` and ``z_mean`` concatenated. The projector regresses the state
         itself, so there is nothing new to measure here and no second set of numbers to drift.
     :param state_std: likewise, ``x_std`` and ``z_std``.
-    :param sigma: the upper end of the per-sample noise; see :data:`lmm_dataset.PROJECTOR_SIGMA`.
+    :param sigma: the upper end of the per-sample noise; see :data:`dataset.PROJECTOR_SIGMA`.
     :param patience: as :func:`fit_stepper`'s, and the stopping rule for the same reason.
     :return: ``(projector, losses, summary)``.
     """
@@ -921,11 +920,11 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
 
     weights = torch.from_numpy(
         np.ascontiguousarray(feature_weights, dtype=np.float32)).to(torch_device)
-    norms = lmm_dataset.candidate_norms(candidates, weights)
+    norms = dataset.candidate_norms(candidates, weights)
     noise_scale = torch.from_numpy(
-        lmm_dataset.projector_noise_scale(x, latent_exists)).to(torch_device)
+        dataset.projector_noise_scale(x, latent_exists)).to(torch_device)
 
-    x_scale, z_scale = lmm_dataset.state_scales(x, latents, latent_exists)
+    x_scale, z_scale = dataset.state_scales(x, latents, latent_exists)
     out_mean = torch.from_numpy(
         np.ascontiguousarray(state_mean, dtype=np.float32)).to(torch_device)
     out_std = torch.from_numpy(np.ascontiguousarray(state_std, dtype=np.float32)).to(torch_device)
@@ -936,7 +935,7 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
                                   weight_decay=weight_decay, amsgrad=True)
     schedule = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=learning_rate_decay)
 
-    term_weights = lmm_dataset.PROJECTOR_WEIGHTS
+    term_weights = dataset.PROJECTOR_WEIGHTS
 
     def answer(queries: torch.Tensor):
         """``(X_hat, Z_hat)`` in the database's own units."""
@@ -947,13 +946,13 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     def evaluate(queries: torch.Tensor):
         """The three terms of the loss over a batch of already-displaced queries."""
         with torch.no_grad():
-            nearest = lmm_dataset.nearest_neighbours(queries, candidates, weights, norms)
+            nearest = dataset.nearest_neighbours(queries, candidates, weights, norms)
             target_x = candidates[nearest]
             target_z = candidate_latents[nearest]
-            target_distance = lmm_dataset.weighted_distance(queries, target_x, weights)
+            target_distance = dataset.weighted_distance(queries, target_x, weights)
 
         features, latent = answer(queries)
-        distance = lmm_dataset.weighted_distance(queries, features, weights)
+        distance = dataset.weighted_distance(queries, features, weights)
 
         return (term_weights['features'] * (features - target_x).abs().mean() / x_scale,
                 term_weights['latent'] * (latent - target_z).abs().mean() / z_scale,
@@ -1075,9 +1074,9 @@ def _projector_recall(projector, answer, queries: torch.Tensor, candidates: torc
                       candidate_latents: torch.Tensor, weights: torch.Tensor,
                       norms: torch.Tensor, z_scale: float) -> dict:
     """
-    :func:`lmm_dataset.recall_against_search` over the held-out queries this fit validated on.
+    :func:`dataset.recall_against_search` over the held-out queries this fit validated on.
 
-    Reported straight out of the fit as well as by ``lmm_runtime`` afterwards, because it is the
+    Reported straight out of the fit as well as by ``lmm.runtime`` afterwards, because it is the
     number that says whether the projector is usable and a training loss cannot: a loss falling
     steadily says nothing about whether the answers are the ones the search would have given.
     """
@@ -1090,7 +1089,7 @@ def _projector_recall(projector, answer, queries: torch.Tensor, candidates: torc
     with torch.no_grad():
         features, latent = answer(queries)
 
-    recall = lmm_dataset.recall_against_search(
+    recall = dataset.recall_against_search(
         queries, features, latent, candidates, candidate_latents, weights, norms, z_scale)
     return {f'projector_{key}': value for key, value in recall.items()}
 
@@ -1230,7 +1229,7 @@ def _latent_diagnostics(decompressor, x_t, y_t, y_mean, y_std, latents: np.ndarr
     index = torch.from_numpy(np.asarray(frames, dtype=np.int64)).to(device)
     latent = torch.from_numpy(latents[frames]).to(device)
     weights = torch.from_numpy(
-        _float_weights(pose_layout, lmm_dataset.LOCAL_WEIGHTS)).to(device)
+        _float_weights(pose_layout, dataset.LOCAL_WEIGHTS)).to(device)
     y_std_t = torch.from_numpy(y_std).to(device)
     y_mean_t = torch.from_numpy(y_mean).to(device)
 
@@ -1296,9 +1295,9 @@ def _parse_args(argv=None):
     parser.add_argument('name', help='base file name, i.e. the Unity asset name')
     parser.add_argument('--out', default=None, help='where to write the .lmm.npz')
     parser.add_argument('--exclude', nargs='*', default=[], help='bone names not to predict')
-    parser.add_argument('--latent-size', type=int, default=lmm_dataset.DEFAULT_LATENT_SIZE)
+    parser.add_argument('--latent-size', type=int, default=dataset.DEFAULT_LATENT_SIZE)
     parser.add_argument('--latent-velocity-weight', type=float,
-                        default=lmm_dataset.LATENT_VELOCITY_WEIGHT,
+                        default=dataset.LATENT_VELOCITY_WEIGHT,
                         help='w_vreg: how hard the latent is held to moving smoothly')
     parser.add_argument('--iterations', type=int, default=150000)
     parser.add_argument('--batch-size', type=int, default=256)
@@ -1317,7 +1316,7 @@ def _parse_args(argv=None):
     parser.add_argument('--projector-only', action='store_true',
                         help='fit only the projector, against the checkpoint already at --out')
     parser.add_argument('--stepper-window', type=int,
-                        default=lmm_dataset.DEFAULT_STEPPER_WINDOW,
+                        default=dataset.DEFAULT_STEPPER_WINDOW,
                         help='frames the stepper is unrolled over while training')
     parser.add_argument('--stepper-iterations', type=int, default=30000,
                         help='ceiling on stepper steps; --stepper-patience is the stopping rule')
@@ -1332,7 +1331,7 @@ def _parse_args(argv=None):
                         help='held-out scores without an improvement before stopping; 0 never does')
     parser.add_argument('--projector-hidden', type=int, default=0,
                         help='projector hidden width; 0 takes the reference implementation of 512')
-    parser.add_argument('--projector-sigma', type=float, default=lmm_dataset.PROJECTOR_SIGMA,
+    parser.add_argument('--projector-sigma', type=float, default=dataset.PROJECTOR_SIGMA,
                         help='how far training queries are displaced, in noise scales')
     parser.add_argument('--projector-max-seconds', type=float, default=0.0)
     parser.add_argument('--seed', type=int, default=42)

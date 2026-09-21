@@ -15,7 +15,7 @@ namespace AnimationTools
 /// invariant to, so both are removed by measuring the pose inside its own ground-projected,
 /// yaw-only frame — see <see cref="SimulationFrame"/>.
 /// <para>
-/// This is the C# counterpart of what <c>Python/training_data.py</c> produces, and it exists so
+/// This is the C# counterpart of what <c>Python/training/training_data.py</c> produces, and it exists so
 /// that a stage running a trained model feeds it the same quantities the model was trained on.
 /// That agreement is the failure this class is here to prevent: a mismatch in frame, units or
 /// rate convention does not throw, it just makes the network wrong.

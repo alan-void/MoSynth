@@ -16,7 +16,7 @@ namespace Pfnn
 public static class PfnnBoneSelection
 {
     /// <summary>
-    /// The excluded bone names as a Python list, for <c>pfnn_trainer.train</c>. Must be called with
+    /// The excluded bone names as a Python list, for <c>pfnn.trainer.train</c>. Must be called with
     /// the GIL held.
     /// </summary>
     public static PyList ToPython(PfnnConfig config) =>

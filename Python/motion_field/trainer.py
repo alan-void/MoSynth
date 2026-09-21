@@ -23,7 +23,7 @@ function over the field.
 
 Runs from the Unity Editor through PythonNET, or standalone:
 
-    python motion_field_trainer.py --data-dir ../Assets/StreamingAssets/MotionFields/MotionFieldData
+    python -m motion_field.trainer --data-dir ../Assets/StreamingAssets/MotionFields/MotionFieldData
 """
 
 from __future__ import annotations
@@ -35,10 +35,10 @@ import time
 import numpy as np
 import torch
 
-import motion_field_io as mfio
-from MotionField import (MotionField, load_bone_weights_file, resolve_device,
+from motion_field import io as mfio
+from motion_field.field import (MotionField, load_bone_weights_file, resolve_device,
                          root_yaw, state_locomotion_scores)
-from action_predictor import load_animations
+from motion_field.action_predictor import load_animations
 
 # States per precompute chunk. The dominant allocation is the neighbour gather,
 # states_per_chunk * K * K * (bones+2) * 4 floats -- about 46 MB at 512 states
@@ -300,7 +300,7 @@ def train(data_dir: str,
 
 
 def _parse_args(argv=None):
-    parser = argparse.ArgumentParser(prog='motion_field_trainer')
+    parser = argparse.ArgumentParser(prog='python -m motion_field.trainer')
     parser.add_argument('--data-dir', required=True,
                         help='directory containing <db-name>.mmpose')
     parser.add_argument('--db-name', default=None,

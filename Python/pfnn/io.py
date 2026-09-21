@@ -106,7 +106,7 @@ def load_checkpoint(path: str, log=print):
     """
     Load a ``.pfnn.npz``, or return ``None``.
 
-    Returns ``None`` rather than raising for the reason ``motion_field_io`` does: callers run inside
+    Returns ``None`` rather than raising for the reason ``motion_field.io`` does: callers run inside
     ``Py.GIL()`` from Unity, where an exception arrives as an opaque managed error, and an unusable
     checkpoint should be a legible message plus a stage that declines to run.
     """

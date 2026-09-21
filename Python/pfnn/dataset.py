@@ -1,7 +1,7 @@
 """
-Packs a :class:`training_data.TrainingSet` into the input and output vectors a PFNN trains on.
+Packs a :class:`training.training_data.TrainingSet` into the input and output vectors a PFNN trains on.
 
-:mod:`training_data` deliberately stops one step short of this, because the packing is a property
+:mod:`training.training_data` deliberately stops one step short of this, because the packing is a property
 of the model rather than of the database. This module is that step for a phase-functioned network
 (Holden et al. 2017): given a query frame, the network sees a dense trajectory window either side
 of it, the joints as they stand, and a gait phase; it predicts the pose one frame later, the root
@@ -22,7 +22,7 @@ Because rotations are what is predicted, a bone is only meaningful to predict wh
 predicted too -- otherwise there is no frame to apply the rotation in. :func:`select_bones` enforces
 that, and the Unity side keeps it true by excluding a bone's whole subtree along with it.
 
-Conventions are inherited unchanged from :mod:`training_data`: quaternions xyzw, y-up left-handed
+Conventions are inherited unchanged from :mod:`training.training_data`: quaternions xyzw, y-up left-handed
 with the character facing +z, every rate per second, and the ground plane written as ``(x, z)``.
 """
 
@@ -32,7 +32,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from training_data import TrainingSet, rotations_to_6d
+from training.training_data import TrainingSet, rotations_to_6d
 
 # Frames either side of the query frame the default window spans -- one second at 30 fps, which is
 # the horizon the paper uses. Wide enough that a turn is visible before the character reaches it.

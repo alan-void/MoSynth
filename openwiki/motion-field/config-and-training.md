@@ -10,7 +10,7 @@ sources:
     resource: repo://Assets/MotionField/MotionFieldConfig.cs
   - id: openwiki-source-13742752b942a8c72fc71381
     resource: repo://Assets/MotionField/MotionFieldStage.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # Config, training and the staleness contract
@@ -167,8 +167,8 @@ config's own rig immediately rather than carried across unresolved.
 | --- | --- |
 | The asset, paths, flags, hyperparameters | `Assets/MotionField/MotionFieldConfig.cs` |
 | Authoring, the three buttons, bone-weight drawer | `Assets/MotionField/Editor/MotionFieldConfigEditor.cs` |
-| Training | `Python/motion_field_trainer.py` — see [value function training](../python/value-function-training.md) |
-| The `.npz` format | `Python/motion_field_io.py` |
+| Training | `Python/motion_field/trainer.py` — see [value function training](../python/value-function-training.md) |
+| The `.npz` format | `Python/motion_field/io.py` |
 
 **Tests.** None.
 

@@ -35,7 +35,7 @@ from torch import nn
 # Re-exported rather than rewritten: device selection is one decision, and two halves of the
 # project disagreeing about what 'auto' means on the same machine is exactly the kind of quiet
 # divergence this code is otherwise organised against.
-from pfnn_model import resolve_device
+from pfnn.model import resolve_device
 
 # Widths read off the reference implementation's ONNX graphs, whose parameter counts reproduce the
 # shipped file sizes exactly -- so these are measured rather than recalled. The paper's Table 1

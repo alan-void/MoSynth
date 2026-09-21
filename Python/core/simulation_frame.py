@@ -28,8 +28,8 @@ from typing import NamedTuple
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from Animation import PoseSet
-from Skeleton import Skeleton
+from core.pose_set import PoseSet
+from core.skeleton import Skeleton
 
 # Heading used when the reference bone's forward axis projects to nothing on the ground
 # -- looking straight up or down. Matches Unity's LookRotation falling back to identity.
@@ -314,7 +314,7 @@ def derive_pose_set_frames(pose_set: PoseSet) -> tuple[DerivedFrames, FrameRates
     :func:`extend_by_one_frame` instead of on the unrelated first pose of the next
     clip.
 
-    :param pose_set: a database read by ``pose_set_importer``, which is where the
+    :param pose_set: a database read by ``formats.pose_set_importer``, which is where the
         reference bone and forward axis come from.
     """
     positions = pose_set.local_positions

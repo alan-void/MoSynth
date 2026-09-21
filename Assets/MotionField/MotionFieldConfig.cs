@@ -263,7 +263,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     [HideInInspector] public bool hasTrained = true;
 
     /// <summary>
-    /// <see cref="umapFeatures"/> as the literal `motion_field_embedding.compute_embedding`
+    /// <see cref="umapFeatures"/> as the literal `motion_field.embedding.compute_embedding`
     /// expects, so the Python string lives in one place rather than at every call site.
     /// </summary>
     public string UmapFeatureModeName =>

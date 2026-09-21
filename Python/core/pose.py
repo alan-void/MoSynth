@@ -4,7 +4,7 @@ from scipy.spatial.transform import Rotation
 from scipy.spatial.transform import Slerp
 from typing import List
 
-from utils.quaternions import blend_quaternions
+from core.quaternions import blend_quaternions
 
 
 class Pose:

@@ -2,6 +2,7 @@
 type: "Reference"
 title: "Tagging clips"
 openwiki_generated: true
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # Tagging clips
@@ -105,7 +106,7 @@ an unrelated edit's business. To be rid of one, select it and press `X` like any
 
 Tags do not reach the pose database. MoSynth has carried a complete tag pipe for a long time —
 `PoseSet.AddTag`, an `AnimationTag` runtime type, a tag block in `.mmpose` that `PoseSerializer`
-writes and `Python/pose_set_importer.py` reads — with nothing able to author a tag, so the block has
+writes and `Python/formats/pose_set_importer.py` reads — with nothing able to author a tag, so the block has
 always been written empty.
 
 `AnimationTagComponent` is the author that pipe never had, but it is not wired to it. Nothing

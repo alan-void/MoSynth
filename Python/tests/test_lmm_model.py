@@ -23,7 +23,7 @@ try:
     import torch
     from torch import nn
 
-    import lmm_model
+    from lmm import model as lmm_model
     HAS_TORCH = True
 except ImportError:  # pragma: no cover - exercised only on a bare interpreter
     HAS_TORCH = False

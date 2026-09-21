@@ -19,7 +19,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pose_set_importer import deserialize_pose_set  # noqa: E402
+from formats.pose_set_importer import deserialize_pose_set  # noqa: E402
 
 FRAME_TIME = 1.0 / 30.0
 

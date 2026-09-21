@@ -10,12 +10,12 @@ import os
 
 import numpy as np
 
-from Pose import Pose, PoseDelta
-from Skeleton import Joint, Skeleton
+from core.pose import Pose, PoseDelta
+from core.skeleton import Joint, Skeleton
 
-from Animation import PoseSet
-from pose_set_importer import deserialize_pose_set
-from simulation_frame import derive_pose_set_frames
+from core.pose_set import PoseSet
+from formats.pose_set_importer import deserialize_pose_set
+from core.simulation_frame import derive_pose_set_frames
 
 from debugging.python_net import connect_debugger
 
@@ -89,7 +89,7 @@ def load_animations(data_dir='../Assets/StreamingAssets/MMDatabases/MotionMatchi
     and "walking east across the map" are the same state. That motion is not lost -- it
     lives in ``pose_v`` as a rate in the character frame. The database stores poses in
     clip space, so both the frame and its rate are derived here; see
-    :func:`simulation_frame.derive_pose_set_frames`.
+    :func:`core.simulation_frame.derive_pose_set_frames`.
 
     The returned skeleton carries the extra frame joint the packed layout expects and so
     is one bone longer than ``pose_set.skeleton``, which keeps describing the file's own
@@ -171,7 +171,7 @@ def get_pose_arrays(skeleton: Skeleton,
 
     These arrays are indexed by rig bone, so they are one shorter than the packed
     layout's joint count: C# stores no character frame, it derives one from bone 0 the
-    same way :mod:`simulation_frame` does. The pose handed over is already expressed in
+    same way :mod:`core.simulation_frame` does. The pose handed over is already expressed in
     its own frame, whose derived frame is therefore the identity -- so bone 0 simply
     carries the frame-local root state, and the frame's own rates are folded into bone
     0's velocities, which is where the C# side reads them back out of.

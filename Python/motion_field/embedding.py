@@ -42,8 +42,8 @@ import time
 import numpy as np
 import torch
 
-import action_predictor
-from MotionField import MotionField, load_bone_weights_file, resolve_device
+from motion_field import action_predictor
+from motion_field.field import MotionField, load_bone_weights_file, resolve_device
 
 # 'field'     -- k-NN graph under the field's own sum-of-per-joint-L2 metric.
 # 'euclidean' -- flat L2 on the flattened feature, what UMAP assumes by default.
@@ -102,7 +102,7 @@ def build_edges(state_frames: np.ndarray):
     """
     Directed state->state+1 links, and the clip each state came from.
 
-    `action_predictor.build_state_indices` drops the last frame of every clip,
+    `motion_field.action_predictor.build_state_indices` drops the last frame of every clip,
     so its output is one contiguous run of source frames per clip. Two adjacent
     states are a real transition exactly when their source frames are adjacent
     too -- deriving the links from that rather than re-deriving clip arithmetic
@@ -142,7 +142,7 @@ def compute_embedding(data_dir: str, db_name: str, out_path: str,
     """
     Fit the UMAP projection and write `<name>.mfembed.npz`.
 
-    `progress(stage, fraction)` matches `motion_field_trainer.train`, so the
+    `progress(stage, fraction)` matches `motion_field.trainer.train`, so the
     Unity progress-bar callback works unchanged for both.
 
     :param feature_mode: `FEATURE_POSITION` to project the joint-position rows
@@ -323,7 +323,7 @@ def load_embedding(path: str, states_count: int = None, log=print):
 def load_embedding_arrays(path: str, states_count: int = None, log=None):
     """
     `load_embedding` flattened for PythonNET, following the same convention as
-    `action_predictor.get_pose_arrays`.
+    `motion_field.action_predictor.get_pose_arrays`.
 
     :param log: optional `callable(str)`. Unity passes one in so rejection
         reasons reach the Editor console -- the default `print` goes to stdout,
@@ -347,7 +347,7 @@ def load_embedding_arrays(path: str, states_count: int = None, log=None):
 
 
 def _parse_args(argv=None):
-    parser = argparse.ArgumentParser(prog='motion_field_embedding')
+    parser = argparse.ArgumentParser(prog='python -m motion_field.embedding')
     parser.add_argument('--data-dir', required=True,
                         help='directory containing <db-name>.mmpose')
     parser.add_argument('--db-name', default=None,

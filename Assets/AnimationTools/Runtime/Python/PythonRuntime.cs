@@ -174,7 +174,7 @@ public static class PythonRuntime
     /// <remarks>
     /// This replaces a per-module <c>importlib.reload</c>, which only re-executes the one module it
     /// is handed. Its dependencies stay cached, so reloading <c>MotionField</c> after adding a
-    /// symbol to <c>motion_field_io</c> re-runs the new import line against the old dependency and
+    /// symbol to <c>motion_field.io</c> re-runs the new import line against the old dependency and
     /// dies on ImportError -- editing a shared module was effectively impossible without restarting
     /// the editor.
     ///

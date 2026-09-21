@@ -4,20 +4,20 @@ title: Value function training
 description: Fitted value iteration over the whole database, what the produced artefact does and does not record, and why the loader deliberately checks nothing.
 tags: [python, training, value-iteration, format]
 sources:
-  - id: openwiki-source-5f73f38a677efdce2ded7381
-    resource: repo://Python/motion_field_io.py
-  - id: openwiki-source-134a3702083e94f5c2aaebd3
-    resource: repo://Python/motion_field_trainer.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+  - id: openwiki-source-93fd80dba91ea0f5bb6027e9
+    resource: repo://Python/motion_field/io.py
+  - id: openwiki-source-cd81fde2d8ed86cd0b51960f
+    resource: repo://Python/motion_field/trainer.py
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-09-21T19:17:12.006Z
 ---
 
 # Value function training
 
-`motion_field_trainer.py` fits `V(state, goal heading)` over the whole database by **fitted value
-iteration**, following Lee et al. 2010, section 6. `motion_field_io.py` owns the `.mffield.npz`
+`motion_field/trainer.py` fits `V(state, goal heading)` over the whole database by **fitted value
+iteration**, following Lee et al. 2010, section 6. `motion_field/io.py` owns the `.mffield.npz`
 format and a deliberately thin load path.
 
 Neither owns staleness policy — that is
@@ -132,8 +132,8 @@ The residual tolerance is not exposed by the Editor button, so in practice it is
 
 | Concern | File |
 | --- | --- |
-| Precompute, value iteration, the entry point | `Python/motion_field_trainer.py` |
-| The `.npz` format and its loader | `Python/motion_field_io.py` |
+| Precompute, value iteration, the entry point | `Python/motion_field/trainer.py` |
+| The `.npz` format and its loader | `Python/motion_field/io.py` |
 | The Editor button that drives it | `Assets/MotionField/Editor/MotionFieldConfigEditor.cs` |
 
 > **The advertised command line does not work.** The module docstring shows a standalone invocation,

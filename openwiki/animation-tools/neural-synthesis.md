@@ -24,7 +24,7 @@ sources:
     resource: repo://Python/tests/test_training_data.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-generated: {by: "claude-code", at: "2026-09-19T18:12:18.762Z"}
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # Neural synthesis readiness
@@ -55,12 +55,12 @@ are written against the same properties:
 
 | Quantity | Training (Python) | Inference (C#) |
 | --- | --- | --- |
-| Joints in the character frame | `training_data.build_training_set` | `CharacterSpacePose.Extract` |
+| Joints in the character frame | `training.training_data.build_training_set` | `CharacterSpacePose.Extract` |
 | A predicted pose written back | — | `CharacterSpacePose.Apply` |
-| The character frame itself | `simulation_frame.derive_frames` | [`SimulationFrame`](simulation-frame.md) |
+| The character frame itself | `core.simulation_frame.derive_frames` | [`SimulationFrame`](simulation-frame.md) |
 | The pose read off a live rig | — | `RigPoseReader.Read` |
-| Matching feature vectors | `feature_set_importer.read_feature_set` | `FeatureSerializer` |
-| The two-axis rotation form | `training_data.rotations_to_6d` / `rotations_from_6d` | `PfnnStage.RotationFrom6D` |
+| Matching feature vectors | `formats.feature_set_importer.read_feature_set` | `FeatureSerializer` |
+| The two-axis rotation form | `training.training_data.rotations_to_6d` / `rotations_from_6d` | `PfnnStage.RotationFrom6D` |
 
 The rates are the one place the two are not identical by construction: Python differences
 consecutive frame-local poses of a stored database, the C# composes the instantaneous rate implied by
@@ -69,7 +69,7 @@ timestep, so the two agree to first order and exactly for motion that is rigid w
 
 ## What is in place
 
-**A training set from a generated database.** `Python/training_data.py` reads a `.mmpose` (and the
+**A training set from a generated database.** `Python/training/training_data.py` reads a `.mmpose` (and the
 `.mmfeatures` beside it) and writes one `.npz` holding, per frame: every joint's position, rotation,
 velocity and angular velocity in the character frame; the frame's own travel and turn rate; the foot
 contacts; and a gait phase. It builds neither network's input tensor — the packing is a property of
@@ -149,8 +149,8 @@ reads it straight back out through `ComputeVelocity`.
 The four gaps this page originally listed have been closed by the PFNN work, except for the one
 noted below:
 
-- **The models and their training loops.** PFNN has both — `Python/pfnn_dataset.py` packs the
-  vectors, `pfnn_model.py` is the network, `pfnn_trainer.py` fits it, `pfnn_io.py` stores it. LMM
+- **The models and their training loops.** PFNN has both — `Python/pfnn/dataset.py` packs the
+  vectors, `pfnn/model.py` is the network, `pfnn/trainer.py` fits it, `pfnn/io.py` stores it. LMM
   still has neither.
 - **Inference inside Unity.** `PfnnStage` runs the model in Python behind PythonNET, which is the
   path that needed no new dependency. `com.unity.barracuda` 3.0.2 is still in the manifest, still
@@ -168,4 +168,4 @@ noted below:
   about the definition.
 
 Still missing: a shared home for the two-axis rotation conversion, which now exists three times —
-in numpy in `training_data`, in torch in `lmm_fk`, and in C# in both `PfnnStage` and `LmmStage`.
+in numpy in `training.training_data`, in torch in `lmm.fk`, and in C# in both `PfnnStage` and `LmmStage`.

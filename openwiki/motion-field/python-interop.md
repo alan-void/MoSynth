@@ -16,12 +16,12 @@ sources:
     resource: repo://Assets/MotionField/MfConnector.cs
   - id: openwiki-source-294df467cafa1e9e013c5118
     resource: repo://Assets/Pfnn/Pfnn.asmdef
-  - id: openwiki-source-0d9ae15ae536e3580049e519
-    resource: repo://Python/test_server.py
-generated: {by: "claude-code", at: "2026-08-30T13:08:18.116Z"}
+  - id: openwiki-source-c071024d90d3d636ff34f711
+    resource: repo://Python/debugging/test_server.py
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-30T16:14:31.508Z
+    at: 2026-09-21T19:17:12.006Z
 ---
 
 # Reaching Python
@@ -92,7 +92,7 @@ share one interpreter state.
 folder. It replaces a per-module `importlib.reload`, and the reason is concrete:
 
 > `importlib.reload` only re-executes the one module it is handed. **Its dependencies stay cached**,
-> so reloading `MotionField` after adding a symbol to `motion_field_io` re-runs the new import line
+> so reloading `motion_field.field` after adding a symbol to `motion_field.io` re-runs the new import line
 > against the old dependency and dies on `ImportError` — editing a shared module was effectively
 > impossible without restarting the editor.
 
@@ -173,6 +173,6 @@ Treat `test_server.py` as the written record of the **reply schema** and nothing
 | --- | --- |
 | Interpreter bootstrap, module invalidation | `Assets/AnimationTools/Runtime/Python/PythonRuntime.cs` |
 | Out-of-process transport | `Assets/MotionField/MfConnector.cs` |
-| Python-side counterpart | `Python/action_predictor.py`, `Python/test_server.py` |
+| Python-side counterpart | `Python/motion_field/action_predictor.py`, `Python/debugging/test_server.py` |
 
 **Tests.** None.

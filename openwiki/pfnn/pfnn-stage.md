@@ -34,7 +34,7 @@ sources:
     resource: repo://Packages/manifest.json
   - id: openwiki-source-734ba38f801134e792f0e890
     resource: repo://Python/pfnn_runtime.py
-generated: {by: "claude-code", at: "2026-09-07T21:17:41.812Z"}
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # The PFNN stage
@@ -271,4 +271,4 @@ single ad-hoc run, not a standing measurement: PFNN is not a registered benchmar
 | `Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs` | the request damper and the horizon predictions, as pure functions |
 | `Assets/Pfnn/PfnnBoneSelection.cs` | binding a checkpoint's bone names to a live rig |
 | `Assets/Pfnn/PfnnCharacter.prefab` | a rig with the stage and a spline input wired up, to press play on |
-| `Python/pfnn_runtime.py` | the stateless policy, and an offline rollout for judging a checkpoint |
+| `Python/pfnn/runtime.py` | the stateless policy, and an offline rollout for judging a checkpoint |

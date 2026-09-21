@@ -3,7 +3,7 @@ Runs a trained PFNN one frame at a time, for the Unity stage and for offline ins
 
 The policy here is **stateless**. It takes a whole input and returns a whole output; the phase, the
 previous pose and the trajectory history live on the C# side. That is the opposite of
-``MotionField``, and deliberately: a motion field's state is an index into a database, which is
+``motion_field.field``, and deliberately: a motion field's state is an index into a database, which is
 cheap to keep in Python, whereas a PFNN's state is a pose that Unity has to write into a
 ``PoseBuffer`` anyway. Keeping it in C# means a benchmark run can restart the character without
 reaching across the boundary, and the state is visible to the inspector and the profiler.
@@ -14,11 +14,11 @@ stage does it with ``SkeletonData``, and :func:`rollout` below does it with the 
 than a third copy living in here.
 
 Everything crossing the PythonNET boundary is a flat Python list of floats, which pythonnet
-marshals straight into a C# ``float[]``; see the same note in ``action_predictor.get_pose_arrays``.
+marshals straight into a C# ``float[]``; see the same note in ``motion_field.action_predictor.get_pose_arrays``.
 
 Standalone, to judge a checkpoint before Unity is involved::
 
-    python pfnn_runtime.py <checkpoint>.pfnn.npz \\
+    python -m pfnn.runtime <checkpoint>.pfnn.npz \\
         --database ../Assets/StreamingAssets/MMDatabases/MotionMatchingData \\
         --name MotionMatchingData --rollout 300
 """
@@ -30,10 +30,10 @@ import argparse
 import numpy as np
 import torch
 
-import pfnn_dataset
-import pfnn_io
-from pfnn_model import PhaseFunctionedNetwork, resolve_device
-from training_data import rotations_from_6d
+from pfnn import dataset
+from pfnn import io as pfnn_io
+from pfnn.model import PhaseFunctionedNetwork, resolve_device
+from training.training_data import rotations_from_6d
 
 
 class PfnnPolicy:
@@ -72,7 +72,7 @@ class PfnnPolicy:
         self._y_mean = checkpoint.y_mean
         self._y_std = checkpoint.y_std
 
-        self.spec = pfnn_dataset.PfnnSpec(
+        self.spec = dataset.PfnnSpec(
             window_offsets=checkpoint.window_offsets,
             bone_indices=np.arange(checkpoint.n_bones, dtype=np.int64),
             bone_names=tuple(checkpoint.bone_names),
@@ -80,7 +80,7 @@ class PfnnPolicy:
         self._output_layout = self.spec.output_layout()
 
         # Before anything is fed through it, not at the first odd-looking frame.
-        pfnn_dataset.check_output_blocks(checkpoint.output_blocks, self._output_layout)
+        dataset.check_output_blocks(checkpoint.output_blocks, self._output_layout)
         if checkpoint.output_size != self.spec.output_size:
             raise ValueError(f'checkpoint predicts {checkpoint.output_size} floats where this '
                              f'layout reads {self.spec.output_size}; it has to be retrained')
@@ -147,19 +147,19 @@ class PfnnPolicy:
 
     def _unpack(self, y: np.ndarray):
         layout = self._output_layout
-        rotations = pfnn_dataset.block(y, layout, 'joint_rotations_6d')
-        velocities = pfnn_dataset.block(y, layout, 'joint_velocities')
-        root_delta = pfnn_dataset.block(y, layout, 'root_delta')
-        contacts = pfnn_dataset.block(y, layout, 'contacts')
-        future_positions = pfnn_dataset.block(y, layout, 'future_positions')
-        future_directions = pfnn_dataset.block(y, layout, 'future_directions')
+        rotations = dataset.block(y, layout, 'joint_rotations_6d')
+        velocities = dataset.block(y, layout, 'joint_velocities')
+        root_delta = dataset.block(y, layout, 'root_delta')
+        contacts = dataset.block(y, layout, 'contacts')
+        future_positions = dataset.block(y, layout, 'future_positions')
+        future_directions = dataset.block(y, layout, 'future_directions')
 
         return (
             rotations.astype(np.float32).tolist(),
             velocities.astype(np.float32).tolist(),
-            float(pfnn_dataset.block(y, layout, 'root_height')[0]),
+            float(dataset.block(y, layout, 'root_height')[0]),
             float(root_delta[0]), float(root_delta[1]), float(root_delta[2]),
-            float(pfnn_dataset.block(y, layout, 'phase_delta')[0]),
+            float(dataset.block(y, layout, 'phase_delta')[0]),
             bool(contacts[0] > 0.5), bool(contacts[1] > 0.5),
             future_positions.astype(np.float32).tolist(),
             future_directions.astype(np.float32).tolist(),
@@ -180,7 +180,7 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
         database's own, the largest joint excursion seen, and how far the predicted future
         trajectory fell from the one the character really walked.
     """
-    spec = pfnn_dataset.build_spec(training_set, _excluded_for(policy, training_set),
+    spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
                                    window_radius=int(abs(policy.checkpoint.window_offsets).max()),
                                    window_stride=int(_stride_of(policy.checkpoint.window_offsets)))
     bones = spec.bone_indices
@@ -199,7 +199,7 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
     # The predicted future is scored against the window frame i+1 really carries, which is the
     # quantity it was trained on -- so only where that frame exists in the same clip.
     future_mask = spec.future_mask
-    scorable = pfnn_dataset.usable_queries(training_set)
+    scorable = dataset.usable_queries(training_set)
     position_errors, heading_errors = [], []
 
     for step_index in range(frames):
@@ -341,7 +341,7 @@ def _main(argv=None) -> None:
     if not args.database or not args.name:
         parser.error('--rollout needs --database and --name')
 
-    from training_data import load_database
+    from training.training_data import load_database
     training_set = load_database(args.database, args.name, with_features=not args.no_features)
     rollout(policy, training_set, args.rollout, args.start_frame)
 

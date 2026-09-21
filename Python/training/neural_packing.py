@@ -2,19 +2,19 @@
 The vector-packing primitives every neural model here shares: named blocks, per-block loss
 weights, input normalisation, and bone selection.
 
-:mod:`training_data` builds the per-frame arrays; each model then decides how to lay those
+:mod:`training.training_data` builds the per-frame arrays; each model then decides how to lay those
 arrays out as one flat vector. That decision is the model's, but the *machinery* for making it
 is not: a block layout, a way to slice a block back out, a check that a checkpoint was written
 against the layout being read, and weights that make a three-float block count for as much as a
 hundred-float one. All four were written for the PFNN first and are none of them specific to it.
 
-**There are two copies of this code right now.** :mod:`pfnn_dataset` still carries its own, and
+**There are two copies of this code right now.** :mod:`pfnn.dataset` still carries its own, and
 this module is a deliberate copy rather than a refactor of it -- the PFNN work was in flight when
 learned motion matching needed the same primitives, and editing that module would have collided.
 Fixing one copy and not the other is the failure to watch for; the duplication goes away when
-:mod:`pfnn_dataset` re-exports from here.
+:mod:`pfnn.dataset` re-exports from here.
 
-Conventions are inherited unchanged from :mod:`training_data`: quaternions xyzw, y-up left-handed
+Conventions are inherited unchanged from :mod:`training.training_data`: quaternions xyzw, y-up left-handed
 with the character facing +z, every rate per second, and the ground plane written as ``(x, z)``.
 """
 

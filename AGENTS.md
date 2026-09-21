@@ -60,13 +60,13 @@ MotionSynthesisComponent
 ### Data Flow: Pose Representation
 
 Poses are packed into flat arrays for efficiency with Python interop:
-- **Format**: `(..., num_bones + 2, 4)` array, `num_bones` counting the virtual character-frame joint `action_predictor.with_virtual_root` adds ahead of the pose set's own (single, real) skeleton
+- **Format**: `(..., num_bones + 2, 4)` array, `num_bones` counting the virtual character-frame joint `motion_field.action_predictor.with_virtual_root` adds ahead of the pose set's own (single, real) skeleton
   - Index 0: character-frame position (xyz) + padding (1 float) — zero, since the pose is already expressed in its own frame
-  - Index 1: root bone position (xyz) + padding (1 float) — `Pose.py` still calls this `hips`, but it is the skeleton's real bone 0, not a separate Hips joint
+  - Index 1: root bone position (xyz) + padding (1 float) — `core/pose.py` still calls this `hips`, but it is the skeleton's real bone 0, not a separate Hips joint
   - Indices 2+: joint rotations as quaternions (xyzw per joint) — index 2 is the frame's own (identity) rotation, index 3 the root bone's
 - **Velocities**: parallel arrays using same format but represent per-second rates (scaled by `frame_time` to get one-frame deltas)
 - **Python classes**: `Pose` (immutable), `PoseDelta` (velocity), `Skeleton` (FK/IK)
-- `action_predictor.get_pose_arrays` unpacks a synthesized pose back down to plain per-bone arrays (no frame slots — C# derives its own frame from bone 0) for the PythonNET boundary
+- `motion_field.action_predictor.get_pose_arrays` unpacks a synthesized pose back down to plain per-bone arrays (no frame slots — C# derives its own frame from bone 0) for the PythonNET boundary
 
 ### PfnnStage
 
@@ -77,8 +77,8 @@ Python behind PythonNET.
   each tick, calls one stateless Python `step`, converts the predicted 6D rotations, and writes the
   pose through `CharacterSpacePose.Apply`. The stage owns the state — phase, joints and the
   trajectory history ring — because a PFNN's state is a pose Unity has to write anyway
-- **Python side** (`Python/pfnn_*.py`): `pfnn_dataset` packs vectors, `pfnn_model` is the network,
-  `pfnn_trainer` fits it, `pfnn_io` stores it, `pfnn_runtime` runs it
+- **Python side** (`Python/pfnn/*.py`): `pfnn.dataset` packs vectors, `pfnn.model` is the network,
+  `pfnn.trainer` fits it, `pfnn.io` stores it, `pfnn.runtime` runs it
 - **Which bones it predicts is authored on `PfnnConfig`**, as a sparse name-keyed exclusion list
   drawn as the skeleton hierarchy. Excluding a bone excludes its subtree, because the network
   predicts rotations and a rotation needs its parent's frame. The heuristic behind the
@@ -129,12 +129,12 @@ Hazards: `openwiki/agents/motion-matching/root-and-control-input-hazards.md`.
 Integrates a neural motion field into the pipeline via PythonNET:
 
 **C# side (`Assets/MotionField/MotionFieldStage.cs`):**
-- Initializes Python engine, loads `MotionField.py` and `action_predictor.py` modules
+- Initializes Python engine, loads the `motion_field.field` and `motion_field.action_predictor` modules
 - Each frame `StepPolicy()` calls one of the four Python policy methods, chosen by the stage's
   `Policy` enum. The dispatch lives in C# so the policy never crosses the boundary as a value
 - Converts Python arrays back to `PoseBuffer` for Unity
 
-**Python side (`Python/MotionField.py`):**
+**Python side (`Python/motion_field/field.py`):**
 - KNN search over motion states (positions + velocities as features)
 - Blends nearest neighbor poses and velocities
 - Policy methods: `optimal_action()` (value function, falling back to greedy when none is loaded),
@@ -145,6 +145,26 @@ Integrates a neural motion field into the pipeline via PythonNET:
 - The CPython DLL and venv paths belong to a machine, not to the project, so they live outside its assets. `PythonRuntime.EnsureInitialized` resolves them from the `MOSYNTH_PYTHON_DLL` / `MOSYNTH_PYTHON_VENV` environment variables first, then from `PythonPathSettings` — `UserSettings/MoSynthPython.json`, which is gitignored and edited under **Project Settings → MoSynth → Python** — then, for the DLL only, PythonNET's own `PYTHONNET_PYDLL`. The variables win because they are the only source that reaches a machine with no project folder to read. Both types live in `AnimationTools` (namespace `AnimationTools`), not in `MotionField`, because more than one synthesis method now needs them
 - Project modules import from `PythonRuntime.ScriptsFolder` — the repository's `Python/` folder, derived from `Application.dataPath`
 - Python 3.13 is required for PythonNET compatibility
+
+### Python module layout
+
+`Python/` is one package per subsystem — `core`, `formats`, `training`, `pfnn`, `lmm`,
+`motion_field`, `debugging` — and `Python/` itself is the import root, because that is the single
+folder `PythonRuntime` puts on `sys.path`. Three consequences follow, and all three are easy to
+break:
+
+- **Imports are absolute from that root**, `from core.pose import Pose`, never relative. A module
+  is reached the same way whether Unity imported it or a shell did, so there is one spelling to
+  keep right. Inside its own package a module is imported bare (`from lmm import dataset`);
+  from outside, or when the bare name shadows a stdlib one, it is aliased (`from pfnn import io as
+  pfnn_io`)
+- **C# names modules by that dotted path**: `PythonRuntime.Import("pfnn.runtime")`. Moving or
+  renaming a module breaks a string literal no compiler checks, so grep `PythonRuntime.Import`
+  after any move
+- **Scripts run with `-m`, from the `Python/` folder**: `python -m pfnn.trainer …`. Running a file
+  by path (`python pfnn/trainer.py`) puts `Python/pfnn/` on `sys.path` instead of `Python/`, and
+  every absolute import in the file fails. The usage examples in each module's docstring assume
+  that working directory, which is why their database paths start `../Assets/`
 
 ## Key Directories & Files
 
@@ -225,29 +245,41 @@ Assets/
     ├── MotionMatching/              [animation database assets]
     └── Pfnn/                        [PfnnConfig asset]
 
-Python/
-├── MotionField.py                   [neural motion field implementation]
-├── Pose.py                          [pose data classes]
-├── Skeleton.py                      [skeleton FK/IK]
-├── Animation.py                     [PoseSet: the Python mirror of the C# pose database]
-├── action_predictor.py              [animation loading & conversion]
-├── binary_reading.py                [BinaryWriter primitives shared by the format readers]
-├── pose_set_importer.py             [.mmpose reader]
-├── feature_set_importer.py          [.mmfeatures reader: matching feature vectors + schema]
-├── simulation_frame.py              [character frames, FK, and per-frame rates]
-├── training_data.py                 [per-frame arrays a PFNN/LMM model trains on, + .npz]
-├── pfnn_dataset.py                  [bone selection and the PFNN input/output vector layouts]
-├── pfnn_model.py                    [the phase function and the network it drives]
-├── pfnn_io.py                       [.pfnn.npz checkpoint format; numpy only]
-├── pfnn_trainer.py                  [training loop and the Unity entry point]
-├── pfnn_runtime.py                  [stateless inference policy, + an offline rollout]
-├── pfnn_agreement.py                [compares the C# and Python character-frame definitions]
-├── motion_field_io.py               [.mffield.npz value function format]
-├── motion_field_trainer.py          [fitted value iteration]
-├── motion_field_embedding.py        [UMAP projection for the debug visualizer]
-├── tests/                           [stdlib unittest suites; no Unity or venv extras needed]
-├── utils/
+Python/                              [one package per subsystem; see "Python module layout"]
+├── core/                            [the data model every synthesis method shares]
+│   ├── pose.py                      [pose data classes]
+│   ├── skeleton.py                  [skeleton FK/IK]
+│   ├── pose_set.py                  [PoseSet: the Python mirror of the C# pose database]
+│   ├── simulation_frame.py          [character frames, FK, and per-frame rates]
 │   └── quaternions.py               [quaternion utilities]
+├── formats/                         [readers for the binary databases Unity bakes]
+│   ├── binary_reading.py            [BinaryWriter primitives shared by the format readers]
+│   ├── pose_set_importer.py         [.mmpose reader]
+│   └── feature_set_importer.py      [.mmfeatures reader: matching feature vectors + schema]
+├── training/                        [what PFNN and LMM both train on]
+│   ├── training_data.py             [per-frame arrays a PFNN/LMM model trains on, + .npz]
+│   └── neural_packing.py            [named-block vector layouts shared by both models]
+├── pfnn/                            [phase-functioned neural network]
+│   ├── dataset.py                   [bone selection and the PFNN input/output vector layouts]
+│   ├── model.py                     [the phase function and the network it drives]
+│   ├── io.py                        [.pfnn.npz checkpoint format; numpy only]
+│   ├── trainer.py                   [training loop and the Unity entry point]
+│   ├── runtime.py                   [stateless inference policy, + an offline rollout]
+│   └── agreement.py                 [compares the C# and Python character-frame definitions]
+├── lmm/                             [learned motion matching]
+│   ├── dataset.py                   [pose/character vector layouts]
+│   ├── fk.py                        [differentiable FK used by the training loss]
+│   ├── io.py                        [.lmm.npz checkpoint format; numpy only]
+│   ├── model.py                     [compressor, decompressor, stepper, projector]
+│   ├── trainer.py                   [training loop and the Unity entry point]
+│   └── runtime.py                   [inference policy, + an offline rollout]
+├── motion_field/                    [neural motion field]
+│   ├── field.py                     [neural motion field implementation]
+│   ├── io.py                        [.mffield.npz value function format]
+│   ├── trainer.py                   [fitted value iteration]
+│   ├── embedding.py                 [UMAP projection for the debug visualizer]
+│   └── action_predictor.py          [animation loading & conversion]
+├── tests/                           [stdlib unittest suites; no Unity or venv extras needed]
 └── debugging/                       [debug scripts, not in builds]
 
 Packages/manifest.json               [Unity package dependencies]
@@ -279,8 +311,8 @@ python -m venv .anim_env
 # Install dependencies
 pip install numpy scipy torch
 
-# Test Python modules
-python Python/MotionField.py
+# Smoke-test the Python side (from the Python/ folder)
+python -m unittest discover -s tests -t tests
 ```
 
 Then tell the project where they are, in **Project Settings → MoSynth → Python**. That writes
@@ -360,8 +392,8 @@ inside the Editor: valid for comparing methods within one sweep on one machine, 
   numpy and scipy and build their own fixtures, so they need neither Unity nor a generated database
 - **Editor play mode**: test motion synthesis visually
 - **PFNN**: train from the config's inspector, or standalone —
-  `python Python/pfnn_trainer.py <database-folder> <name> --out out.pfnn.npz`. Judge a checkpoint
-  before wiring a character with `python Python/pfnn_runtime.py <checkpoint> --database <folder>
+  `python -m pfnn.trainer <database-folder> <name> --out out.pfnn.npz`. Judge a checkpoint
+  before wiring a character with `python -m pfnn.runtime <checkpoint> --database <folder>
   --name <name> --rollout 300`, which runs the model against its own predictions.
   `MoSynth/Pfnn/Check Training Agreement` compares the C# and Python character-frame definitions on
   the same frames — the check that the model is run on the arrays it was trained on
@@ -462,7 +494,7 @@ When adding a new `MoSynthStage`:
 - `MotionMatchingData` and `MotionFieldConfig` each carry an explicit T-pose `Skeleton` field whose root is the rig's real root bone — the pose skeleton is identical to each clip's skeleton, so nothing is prepended at load. The compatibility check is therefore `Skeleton.StructurallyEqual`, not a shifted comparison
 - Neither config has a configurable simulation-frame bone anymore: `SimulationFrameDef.Default(skeleton)` always sets the reference bone to the skeleton root (bone 0) and the forward axis to that bone's rest forward (`Skeleton.RestLocalAxis(0, math.forward())`); `PoseSet.SimulationFrame` is a computed property returning this default. That reference bone is what `SimulationFrame.Compute`/`ComputeVelocity` (`Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs`) derives the ground-projected, yaw-only character frame from — that frame is never stored on the pose, only computed on demand from a `SimulationFrameDef { ReferenceBoneIndex, ForwardAxisLocal }`
 - Both assets expose `TryValidate(out string error)`. `GetOrImportPoseSet()`/`GetOrImportFeatureSet()` return null silently when it fails, because `OnValidate` reaches them every Inspector repaint; the custom Inspector shows the reason in a HelpBox and disables Generate. `SkeletonAnimation` follows the same pattern
-- The `.mmskeleton` format is gone. C# takes the skeleton from the config's own field, but Python has no ScriptableObject to read, so `.mmpose` opens with a skeleton block — per bone: name, parent index, rest local position, rest local rotation — written by `PoseSerializer.WriteSkeleton` and read by `pose_set_importer.read_skeleton`, which derives the same structural simulation frame (reference bone 0, forward axis from that bone's rest rotation) rather than reading it as separate fields. Keeping it in the same file as the poses is what stops the two drifting apart
+- The `.mmskeleton` format is gone. C# takes the skeleton from the config's own field, but Python has no ScriptableObject to read, so `.mmpose` opens with a skeleton block — per bone: name, parent index, rest local position, rest local rotation — written by `PoseSerializer.WriteSkeleton` and read by `formats.pose_set_importer.read_skeleton`, which derives the same structural simulation frame (reference bone 0, forward axis from that bone's rest rotation) rather than reading it as separate fields. Keeping it in the same file as the poses is what stops the two drifting apart
 - **Neither `.mmpose` nor `.mmfeatures` is versioned**, by decision: everything is regenerated when a format moves, so a version byte guards nothing. A stale `.mmpose` is caught instead by `ReadAndCheckSkeleton`, which compares the file's bone names and parent indices against the config's skeleton — real data validation, and it catches more than a version number would. The `.mfembed.npz` has no schema version and no database hash either: `load_embedding` checks only that the state count matches, so **recompute the UMAP embedding after every Generate Pose Database** or the visualizer will draw a stale cloud as if it were current
 
 ### Pose Data Handling

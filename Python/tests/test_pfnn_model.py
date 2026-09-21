@@ -17,12 +17,12 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pfnn_io  # noqa: E402
+from pfnn import io as pfnn_io  # noqa: E402
 
 try:
     import torch  # noqa: E402
 
-    import pfnn_model  # noqa: E402
+    from pfnn import model as pfnn_model  # noqa: E402
     HAS_TORCH = True
 except ImportError:  # pragma: no cover - depends on the machine, not on the code
     HAS_TORCH = False

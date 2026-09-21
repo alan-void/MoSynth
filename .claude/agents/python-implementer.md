@@ -1,6 +1,6 @@
 ---
 name: python-implementer
-description: Implements a specified change in the MoSynth Python side (Python/MotionField.py, Pose.py, Skeleton.py, action_predictor.py, motion_field_*.py, utils/) — numpy/torch array work, KNN/value-function code, I/O formats, debug scripts. Use when the approach is already decided and the work is writing and smoke-running the Python. Not for deciding the ML approach.
+description: Implements a specified change in the MoSynth Python side (Python/core/, formats/, training/, pfnn/, lmm/, motion_field/) — numpy/torch array work, KNN/value-function code, I/O formats, debug scripts. Use when the approach is already decided and the work is writing and smoke-running the Python. Not for deciding the ML approach.
 tools: Read, Edit, Write, Glob, Grep, Bash, PowerShell
 model: opus
 ---
@@ -21,7 +21,7 @@ You implement Python changes in the MoSynth project from a spec written by the c
 - Velocity arrays share the layout but are **per-second** rates — multiply by `frame_time` for a one-frame delta. Never mix the two.
 - Root velocity is local space (rotated by the root bone before applying); hips are world space.
 - `Pose` is immutable: build with `.from_array()`, serialize with `.pack()`.
-- Quaternion order is xyzw on this side. Verify against `utils/quaternions.py` rather than assuming.
+- Quaternion order is xyzw on this side. Verify against `core/quaternions.py` rather than assuming.
 - Preserve dtype and shape contracts; prefer vectorised numpy over Python loops in anything on the per-frame path.
 
 ## Verification

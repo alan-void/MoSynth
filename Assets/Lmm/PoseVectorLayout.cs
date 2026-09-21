@@ -4,7 +4,7 @@ namespace Lmm
 /// Where each block of a decompressed pose vector starts, read off the checkpoint at load.
 /// </summary>
 /// <remarks>
-/// The layout is Python's — <c>lmm_dataset.pose_vector_layout</c> — and this is the C# side reading
+/// The layout is Python's — <c>lmm.dataset.pose_vector_layout</c> — and this is the C# side reading
 /// it back rather than declaring it a second time. That matters because blocks are appended over
 /// time and every earlier block of an older checkpoint still slices out correctly, so a width alone
 /// cannot tell a stale file from a current one. <see cref="TryBind"/> checks the names, in order,

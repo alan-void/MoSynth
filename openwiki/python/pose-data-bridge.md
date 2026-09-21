@@ -4,23 +4,26 @@ title: The pose data model
 description: The packed array layout the motion field is defined over, how it is read from the exported database, and the algebra defined on it.
 tags: [python, pose, numpy, conventions]
 sources:
-  - id: openwiki-source-18938fea788ba704e8dbb6d7
-    resource: repo://Python/action_predictor.py
-  - id: openwiki-source-52283f3a91111f36426b4ada
-    resource: repo://Python/Animation.py
-  - id: openwiki-source-556de75b4b36254c0d3e2158
-    resource: repo://Python/MotionField.py
-  - id: openwiki-source-1110a5319fdf997c0acf8f29
-    resource: repo://Python/pose_set_importer.py
-  - id: openwiki-source-4fa83394f41912d6e68884da
-    resource: repo://Python/Pose.py
-  - id: openwiki-source-1cb70134e6b0891ac831bc83
-    resource: repo://Python/simulation_frame.py
-  - id: openwiki-source-0d63de290d2cb6efbfbcddb8
-    resource: repo://Python/Skeleton.py
-  - id: openwiki-source-955a83f351a179da954c1a57
-    resource: repo://Python/utils/quaternions.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+  - id: openwiki-source-d07b3649f6273004ad351437
+    resource: repo://Python/core/pose_set.py
+  - id: openwiki-source-d6c832eaa34737f8a4cd5eaa
+    resource: repo://Python/core/pose.py
+  - id: openwiki-source-0d054ee8f5b2401d430b47ec
+    resource: repo://Python/core/quaternions.py
+  - id: openwiki-source-5906058d8562c4ac5f025647
+    resource: repo://Python/core/simulation_frame.py
+  - id: openwiki-source-050e70bc1cab38ca71e11379
+    resource: repo://Python/core/skeleton.py
+  - id: openwiki-source-b2c128b5eb3b939ae81dc988
+    resource: repo://Python/formats/pose_set_importer.py
+  - id: openwiki-source-d19fee973919a137b3ac0360
+    resource: repo://Python/motion_field/action_predictor.py
+  - id: openwiki-source-3d18ac229a9f725ecb715bab
+    resource: repo://Python/motion_field/field.py
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-21T19:17:12.006Z
 ---
 
 # The pose data model
@@ -30,12 +33,12 @@ defined over, and define the algebra on those arrays.
 
 | Module | Owns |
 | --- | --- |
-| `Pose.py` | the packed array convention; `Pose` (state) and `PoseDelta` (rate), with add, subtract, blend, stack |
-| `Skeleton.py` | the joint tree, depth-first iteration, FK in root space |
-| `Animation.py` | `PoseSet` — the whole database as flat per-frame arrays |
-| `pose_set_importer.py` | the `.mmpose` reader, and derivation of the frame definition |
+| `core/pose.py` | the packed array convention; `Pose` (state) and `PoseDelta` (rate), with add, subtract, blend, stack |
+| `core/skeleton.py` | the joint tree, depth-first iteration, FK in root space |
+| `core/pose_set.py` | `PoseSet` — the whole database as flat per-frame arrays |
+| `formats/pose_set_importer.py` | the `.mmpose` reader, and derivation of the frame definition |
 | `simulation_frame.py` | reconstructing the character frame per pose, and differencing it into rates |
-| `utils/quaternions.py` | weighted quaternion blending |
+| `core/quaternions.py` | weighted quaternion blending |
 
 Nothing here knows about the motion field, k-NN or torch. Everything above the importer consumes
 `PoseSet`.
@@ -66,7 +69,7 @@ Quaternions are **xyzw** throughout, matching what Unity writes and what `scipy`
 
 ### The `hips` naming
 
-`Pose.py` calls slot 1 `hips` / `hipPos`. **Every consumer treats it as the rig's root bone**, not as
+`core/pose.py` calls slot 1 `hips` / `hipPos`. **Every consumer treats it as the rig's root bone**, not as
 a Hips joint — the FK code says so in as many words.
 
 Amusingly, in the shipped database bone 0 *is* named `Model:Hips` (85 bones total), so the legacy
@@ -160,7 +163,7 @@ That invariance is the foundation of the similarity metric; see
 
 ## Blending
 
-`utils/quaternions.blend_quaternions` uses **NLERP rather than SLERP**, because SLERP handles only two
+`core.quaternions.blend_quaternions` uses **NLERP rather than SLERP**, because SLERP handles only two
 rotations while blending a k-NN neighbourhood means combining *k* at once. The cost is a non-constant
 angular rate, which does not matter when the neighbours are already close together.
 
@@ -176,12 +179,12 @@ axis, so blending two batches of A poses would produce one pose rather than A.
 
 | Concern | File |
 | --- | --- |
-| Packed layout, arithmetic, blending | `Python/Pose.py` |
-| Joint tree and FK | `Python/Skeleton.py` |
-| The database as arrays | `Python/Animation.py` |
-| Binary reader, frame definition | `Python/pose_set_importer.py` |
-| Frame reconstruction and rates | `Python/simulation_frame.py` |
-| Quaternion blending | `Python/utils/quaternions.py` |
+| Packed layout, arithmetic, blending | `Python/core/pose.py` |
+| Joint tree and FK | `Python/core/skeleton.py` |
+| The database as arrays | `Python/core/pose_set.py` |
+| Binary reader, frame definition | `Python/formats/pose_set_importer.py` |
+| Frame reconstruction and rates | `Python/core/simulation_frame.py` |
+| Quaternion blending | `Python/core/quaternions.py` |
 
 **Unused surface.** `Pose.lerp`, `Pose.concatenate` and `PoseDelta.concatenate` have no callers.
 `lerp` additionally looks unsound for batched input — treat it as legacy rather than as a supported

@@ -10,7 +10,7 @@ not throw -- it would just train against a slightly wrong character space -- and
 spellings agreeing is the only cheap way to catch that. ``test_lmm_fk`` holds them to each other
 and both to the database.
 
-Conventions are inherited unchanged from :mod:`training_data`: quaternions xyzw, y-up left-handed
+Conventions are inherited unchanged from :mod:`training.training_data`: quaternions xyzw, y-up left-handed
 with the character facing +z, every rate per second.
 
 **The root's translation is not predicted.** Its ``x`` and ``z`` are what the character frame
@@ -25,7 +25,7 @@ import numpy as np
 import torch
 from scipy.spatial.transform import Rotation
 
-from training_data import rotations_to_6d
+from training.training_data import rotations_to_6d
 
 
 def parents_within(parents: np.ndarray, bones: np.ndarray) -> np.ndarray:
@@ -44,7 +44,7 @@ def rest_offsets(positions: np.ndarray, rotations: np.ndarray, parents: np.ndarr
     Each bone's offset from its parent, in the parent's own space.
 
     Recovered from one character-space frame rather than read from the skeleton, because a
-    :class:`training_data.TrainingSet` carries no rest transforms. It is constant across frames --
+    :class:`training.training_data.TrainingSet` carries no rest transforms. It is constant across frames --
     that is what makes it recoverable at all -- and ``test_lmm_fk`` checks it by taking a different
     frame and getting the same answer.
 
@@ -93,7 +93,7 @@ def local_rotations(rotations: np.ndarray, parents: np.ndarray) -> np.ndarray:
 
 
 def local_rotations_6d(rotations: np.ndarray, parents: np.ndarray) -> np.ndarray:
-    """:func:`local_rotations` in the two-axis form -- see :func:`training_data.rotations_to_6d`."""
+    """:func:`local_rotations` in the two-axis form -- see :func:`training.training_data.rotations_to_6d`."""
     return rotations_to_6d(local_rotations(rotations, parents))
 
 
@@ -103,7 +103,7 @@ def six_d_to_matrix(six: torch.Tensor) -> torch.Tensor:
     """
     The two-axis rotation representation as a rotation matrix, by Gram-Schmidt.
 
-    Differentiable, and the torch counterpart of :func:`training_data.rotations_from_6d` -- which
+    Differentiable, and the torch counterpart of :func:`training.training_data.rotations_from_6d` -- which
     goes on to a quaternion, a step nothing here needs.
 
     :param six: (..., 6) two concatenated columns.
@@ -192,7 +192,7 @@ def character_vector_from_fk(local_six: torch.Tensor, root_height: torch.Tensor,
     """
     :func:`forward_kinematics` packed as ``Q`` -- positions then character-space 6D rotations.
 
-    The same layout :func:`lmm_dataset.character_vector_layout` declares, so a predicted ``Q`` and
+    The same layout :func:`lmm.dataset.character_vector_layout` declares, so a predicted ``Q`` and
     the database's own are directly comparable float for float.
     """
     positions, rotations = forward_kinematics(local_six, root_height, offsets, hierarchy)
@@ -209,7 +209,7 @@ def forward_kinematics_reference(local_six: np.ndarray, root_height: np.ndarray,
 
     :return: ``(positions (m, n_bones, 3), rotations (m, n_bones, 4))``, the rotations xyzw.
     """
-    from training_data import rotations_from_6d
+    from training.training_data import rotations_from_6d
 
     local = rotations_from_6d(np.asarray(local_six, dtype=np.float64))
     m, n_bones = local.shape[0], local.shape[1]

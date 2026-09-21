@@ -1,7 +1,7 @@
 ---
 type: Agent Reference
 title: Running the Python side
-description: Which interpreter to use, how the flat module layout constrains imports, the scipy shapes that bite, and how to read a generated database from a shell.
+description: Which interpreter to use, how the package layout constrains imports, the scipy shapes that bite, and how to read a generated database from a shell.
 tags: [agents, python, numpy, scipy, workflow]
 sources:
   - id: openwiki-source-ea70eb6c045047448e446296
@@ -10,9 +10,12 @@ sources:
     resource: repo://Assets/AnimationTools/Runtime/Python/PythonPathSettings.cs
   - id: openwiki-source-fd8b7d29f1e6a937c4ae1988
     resource: repo://Assets/AnimationTools/Runtime/Python/PythonRuntime.cs
-  - id: openwiki-source-030d30d689203655d06f8a6b
-    resource: repo://Python/tests/test_gait_phase.py
-generated: {by: "claude-code", at: "2026-08-30T13:08:18.116Z"}
+  - id: openwiki-source-44aeec7103fbb90f34a34626
+    resource: repo://Python/tests/test_training_data.py
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-21T19:17:12.006Z
 ---
 
 # Running the Python side
@@ -43,19 +46,33 @@ between tool calls.
 **Python 3.13 is required** for PythonNET compatibility. The venv has torch, umap and scikit-learn,
 and does **not** have pytest — the test suites are stdlib `unittest` for exactly that reason.
 
-## The modules are flat, not a package
+## The modules are packages under an import root
 
-`Python/` has no `__init__.py`. Modules import each other by bare name (`import training_data`,
-`from Animation import PoseSet`), so anything importing them needs `Python/` on `sys.path`:
+`Python/` is a set of packages — `core`, `formats`, `training`, `pfnn`, `lmm`, `motion_field`,
+`debugging` — each with an `__init__.py`. **`Python/` itself is the import root and is not a
+package**, because it is the one folder `PythonRuntime` puts on `sys.path`; a module is therefore
+addressed `pfnn.runtime`, never `Python.pfnn.runtime`. Everything importing them needs `Python/` on
+`sys.path`:
 
-- **Unity** appends it in `PythonRuntime.EnsureInitialized`.
+- **Unity** appends it in `PythonRuntime.EnsureInitialized`, and names modules by the same dotted
+  path: `PythonRuntime.Import("pfnn.runtime")`.
 - **A shell** needs `cd Python` first, or a `sys.path.insert`.
 - **The tests** each do `sys.path.insert(0, dirname(dirname(abspath(__file__))))` at the top, which
   is why they run from anywhere — and why `discover -t Python` fails while
   `discover -s Python/tests -t Python/tests` works.
 
-Adding an `__init__.py` anywhere under `Python/` would break the Unity import path, which imports by
-bare module name. Do not.
+Imports between modules are **absolute from that root** (`from core.pose import Pose`), never
+relative, so one spelling works whether Unity or a shell did the importing. Within its own package a
+module is imported bare (`from lmm import dataset`); from outside it, or when the bare name shadows
+a stdlib one, it is aliased (`from pfnn import io as pfnn_io`).
+
+Two things this layout will not tolerate:
+
+- **Do not add an `__init__.py` to `Python/` itself.** It would make `Python` a package and every
+  `PythonRuntime.Import` string wrong.
+- **Do not run a module by path.** `python pfnn/trainer.py` puts `Python/pfnn/` on `sys.path`
+  instead of `Python/`, and every absolute import in it fails. Use `python -m pfnn.trainer` from
+  `Python/`.
 
 ## Module reloading in the Editor
 
@@ -91,8 +108,8 @@ Quaternions are **xyzw** throughout this package, matching both the packed pose 
 ```bash
 cd Python
 "$VENV/Scripts/python.exe" - <<'PY'
-from pose_set_importer import deserialize_pose_set
-from feature_set_importer import read_feature_set
+from formats.pose_set_importer import deserialize_pose_set
+from formats.feature_set_importer import read_feature_set
 
 db, name = '../Assets/StreamingAssets/MMDatabases/MotionMatchingData', 'MotionMatchingData'
 poses = deserialize_pose_set(db, name)
@@ -101,11 +118,11 @@ print(poses.local_positions.shape, features.features.shape, features.pose_offset
 PY
 ```
 
-`training_data.py` runs as a script and writes the whole training set as one `.npz`:
+`training.training_data` runs as a script and writes the whole training set as one `.npz`:
 
 ```bash
-python training_data.py ../Assets/StreamingAssets/MMDatabases/MotionMatchingData MotionMatchingData
-python training_data.py ../Assets/StreamingAssets/MotionFields/MotionFieldConfig MotionFieldConfig --no-features
+python -m training.training_data ../Assets/StreamingAssets/MMDatabases/MotionMatchingData MotionMatchingData
+python -m training.training_data ../Assets/StreamingAssets/MotionFields/MotionFieldConfig MotionFieldConfig --no-features
 ```
 
 A `MotionFieldConfig` database has no `.mmfeatures`, hence `--no-features`.

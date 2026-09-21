@@ -4,17 +4,17 @@ title: Motion field policies
 description: The similarity metric, the candidate action set, and the two policies plus two debug modes the runtime steps the field with.
 tags: [python, motion-field, knn, policy]
 sources:
-  - id: openwiki-source-556de75b4b36254c0d3e2158
-    resource: repo://Python/MotionField.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+  - id: openwiki-source-3d18ac229a9f725ecb715bab
+    resource: repo://Python/motion_field/field.py
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-09-21T19:17:12.006Z
 ---
 
 # Motion field policies
 
-`MotionField.py` is the runtime brain. It owns the similarity metric and its k-NN, the candidate
+`motion_field/field.py` is the runtime brain. It owns the similarity metric and its k-NN, the candidate
 action set, one-step integration with drift correction, the two policies plus two debug playback
 modes, the value-function *consumer* side, and the debug introspection the visualizer reads.
 
@@ -160,7 +160,7 @@ Neither debug playback mode records a decision, so the arrays stay empty in thos
 
 ## Source map
 
-`Python/MotionField.py` — the whole page.
+`Python/motion_field/field.py` — the whole page.
 
 **Things to be careful with:**
 

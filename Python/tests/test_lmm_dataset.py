@@ -20,10 +20,10 @@ import torch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import lmm_dataset  # noqa: E402
-import neural_packing  # noqa: E402
-import training_data  # noqa: E402
-from feature_set_importer import FeatureSchema, FeatureSet  # noqa: E402
+from lmm import dataset as lmm_dataset  # noqa: E402
+from training import neural_packing  # noqa: E402
+from training import training_data  # noqa: E402
+from formats.feature_set_importer import FeatureSchema, FeatureSet  # noqa: E402
 from test_training_data import build_pose_set, walking_straight  # noqa: E402
 
 # Two trajectory features of two floats over three horizons, then one three-float pose feature.

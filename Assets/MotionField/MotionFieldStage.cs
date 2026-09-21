@@ -141,8 +141,8 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                 // from the same generation of the source, sharing one copy of each shared class.
                 if (reloadPythonModules) PythonRuntime.InvalidateProjectModules();
 
-                _actionPredictor = PythonRuntime.Import("action_predictor");
-                dynamic motionFieldModule = PythonRuntime.Import("MotionField");
+                _actionPredictor = PythonRuntime.Import("motion_field.action_predictor");
+                dynamic motionFieldModule = PythonRuntime.Import("motion_field.field");
 
                 string dataPath = config.GetAssetPath();
 
@@ -234,7 +234,7 @@ public class MotionFieldStage : MoSynthStage, IDisposable
 
         // Init has already invalidated the module cache if it was going to, and re-invalidating
         // here would hand this module a second copy of MotionField's classes.
-        dynamic embeddingModule = PythonRuntime.Import("motion_field_embedding");
+        dynamic embeddingModule = PythonRuntime.Import("motion_field.embedding");
 
         // The state count is the only thing checked over there. Nothing hashes the database, so an
         // embedding fitted on a different database of the same length is drawn as if current --

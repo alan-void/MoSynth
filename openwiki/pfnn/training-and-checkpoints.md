@@ -32,7 +32,7 @@ sources:
     resource: repo://Python/tests/test_pfnn_model.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-generated: {by: "claude-code", at: "2026-09-03T11:06:29.275Z"}
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # Training a PFNN, and what a checkpoint holds
@@ -46,9 +46,9 @@ not have to be a Motion Matching asset to have poses.
 clips ──► Generate Pose Database ──► .mmpose
                                         │
                                         ▼
-                         training_data.build_training_set
+                         training.training_data.build_training_set
                                         │
-                              pfnn_dataset.build_vectors
+                              pfnn.dataset.build_vectors
                                         │
                                         ▼
                             Train PFNN ──► .pfnn.npz
@@ -236,7 +236,7 @@ does not depend on phase there (see
 [animation-sources](../animation-tools/animation-sources.md#gait-phase)), and it had not learned it,
 because getting it wrong was nearly free.
 
-`pfnn_dataset.block_weights` fixes the accounting: each block is weighted by the reciprocal of its
+`pfnn.dataset.block_weights` fixes the accounting: each block is weighted by the reciprocal of its
 width, so a block counts for what it is worth rather than for how many floats it happens to be
 written as, and the weights are scaled to average one so an existing learning rate carries over.
 `DEFAULT_BLOCK_IMPORTANCE` is the dial — all ones, meaning the six blocks split the loss evenly, and
@@ -301,7 +301,7 @@ with a fixed seed so the tail is representative.
 ## Checking the two sides still agree
 
 `MoSynth/Pfnn/Check Training Agreement` runs the same frames of the same database through
-`CharacterSpacePose.Extract` in C# and `training_data.build_training_set` in Python and reports how
+`CharacterSpacePose.Extract` in C# and `training.training_data.build_training_set` in Python and reports how
 far apart they are. It is a diagnostic rather than a test, because it needs a generated database and
 a working interpreter — neither of which the edit-mode suites may assume.
 
@@ -325,10 +325,10 @@ bind. See [skeletons and rig binding](../animation-tools/skeletons-and-rig-bindi
 Both halves work from a shell, which is the quickest way to judge a model before wiring a character:
 
 ```bash
-python Python/pfnn_trainer.py <database-folder> <name> --out out.pfnn.npz --epochs 150 \
+python -m pfnn.trainer <database-folder> <name> --out out.pfnn.npz --epochs 150 \
     --exclude Model:LeftHandIndex1 Model:LeftHandIndex2 ...
 
-python Python/pfnn_runtime.py out.pfnn.npz --database <database-folder> --name <name> --rollout 300
+python -m pfnn.runtime out.pfnn.npz --database <database-folder> --name <name> --rollout 300
 ```
 
 The rollout runs the model against its own predictions for 300 frames, driven by the database's own

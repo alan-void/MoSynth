@@ -173,7 +173,7 @@ public class PfnnStage : MoSynthStage, IDisposable
                 // Once, up front, so every import below comes from one generation of the source.
                 if (reloadPythonModules) PythonRuntime.InvalidateProjectModules();
 
-                dynamic runtime = PythonRuntime.Import("pfnn_runtime");
+                dynamic runtime = PythonRuntime.Import("pfnn.runtime");
                 _policy = runtime.PfnnPolicy(config.GetCheckpointPath(), PythonLog,
                     DeviceName(inferenceDevice));
 
@@ -475,7 +475,7 @@ public class PfnnStage : MoSynthStage, IDisposable
                   math.rotate(_rotations[parent], _skeletonData.RestLocalPositions[bone]);
 
             // The network predicts a linear rate per bone but no angular one, so the angular rate
-            // is differenced from the rotations — which is the same quantity training_data stores,
+            // is differenced from the rotations — which is the same quantity training.training_data stores,
             // differences of consecutive frame-local poses. On the first tick there is no previous
             // frame to difference against, only the rig's rest pose, and bone 0's share of that
             // would be integrated onto the character's Transform as a tick of root motion.
@@ -499,7 +499,7 @@ public class PfnnStage : MoSynthStage, IDisposable
     /// A rotation from the two-axis form the network regresses, by Gram-Schmidt.
     /// </summary>
     /// <remarks>
-    /// The C# counterpart of <c>training_data.rotations_from_6d</c>. A regressed pair of columns is
+    /// The C# counterpart of <c>training.training_data.rotations_from_6d</c>. A regressed pair of columns is
     /// not orthonormal, and this is the projection that makes it a rotation again (Zhou et al.).
     /// </remarks>
     private static quaternion RotationFrom6D(float[] source, int slot)

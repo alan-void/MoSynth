@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from training_data import load_database
+from training.training_data import load_database
 
 
 def compare(data_dir: str, db_name: str, frames, csharp_positions, csharp_rotations,

@@ -31,7 +31,7 @@ What is *derived* here, and why it cannot simply be read out of the ``.mmpose``:
 Everything is computed **clip by clip**. Clips sit back to back in one array, so
 differencing across a boundary would report a jump cut as motion. The last frame of each
 clip is the one case that needs care: it has no successor in the array, and
-:func:`simulation_frame.extend_by_one_frame` reconstructs the frame just past it from the
+:func:`core.simulation_frame.extend_by_one_frame` reconstructs the frame just past it from the
 stored velocities, which is exactly what the extractor differenced against when it wrote
 them.
 
@@ -48,7 +48,7 @@ same timestep, the two agree to first order and exactly for motion that is rigid
 
 Run it as a script to write an ``.npz`` beside a database::
 
-    python training_data.py Assets/StreamingAssets/MMDatabases/MotionMatchingData \\
+    python -m training.training_data ../Assets/StreamingAssets/MMDatabases/MotionMatchingData \\
         MotionMatchingData --out training.npz
 """
 
@@ -61,10 +61,10 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from Animation import PoseSet
-from feature_set_importer import FeatureSet, read_feature_set
-from pose_set_importer import deserialize_pose_set
-from simulation_frame import (canonical_quaternions, clip_ranges, derive_frames,
+from core.pose_set import PoseSet
+from formats.feature_set_importer import FeatureSet, read_feature_set
+from formats.pose_set_importer import deserialize_pose_set
+from core.simulation_frame import (canonical_quaternions, clip_ranges, derive_frames,
                               extend_by_one_frame, forward_kinematics, frame_rates,
                               parent_indices)
 
@@ -214,7 +214,7 @@ class TrainingSet:
         :meth:`pose_vector_layout`.
 
         This is a convenience, not a format: nothing reads it back, and a caller with a
-        different target in mind should pack the arrays directly. :mod:`lmm_dataset` is one
+        different target in mind should pack the arrays directly. :mod:`lmm.dataset` is one
         such caller -- it predicts joint-*local* rotations and derives the character-space
         pose by forward kinematics, so it packs its own.
         """
@@ -344,7 +344,7 @@ def _joint_rates(positions: np.ndarray, rotations: np.ndarray, frame_time: float
     Finite-difference character-space joints into per-second rates.
 
     Takes ``n + 1`` frames and returns ``n`` rates: rate ``i`` carries frame ``i`` onto
-    frame ``i + 1``, the same alignment :func:`simulation_frame.frame_rates` uses.
+    frame ``i + 1``, the same alignment :func:`core.simulation_frame.frame_rates` uses.
     """
     n_frames, n_bones = positions.shape[0] - 1, positions.shape[1]
     inverse_frame_time = 1.0 / float(frame_time)
@@ -361,10 +361,10 @@ def _joint_rates(positions: np.ndarray, rotations: np.ndarray, frame_time: float
 
 def build_training_set(pose_set: PoseSet, feature_set: FeatureSet | None = None) -> TrainingSet:
     """
-    Assemble a :class:`TrainingSet` from a database read by ``pose_set_importer``.
+    Assemble a :class:`TrainingSet` from a database read by ``formats.pose_set_importer``.
 
     :param pose_set: the pose database, carrying the simulation-frame definition
-        ``pose_set_importer`` attached to it.
+        ``formats.pose_set_importer`` attached to it.
     :param feature_set: the matching feature database, when one is available. Must have one
         vector per pose.
     :raises ValueError: the two databases disagree about how many frames there are.

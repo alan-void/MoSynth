@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:506f599df01691e8e1b4e248982032d683862df300cbf9ac6ef18a160e1b8633",
+  "pageVersion": "sha256:29813f59ff22d66c694adddb3068aa21501a916ea53f6a1abd09a0105cbfa8a2",
   "claims": [
     {
       "id": "claim_8a195cdcd62546a29b6c66af20f03896",
@@ -107,7 +107,7 @@
           "version": "repo-lines-v1:sha256:b5819e8e942bcf23311362d307c8a16fec67151b062f20c16e4a4f1162c4d8f6:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMGE0ZTdmNjliZWE0MTY1ODAxYzMyMjc5NGRhMTE0YWU4ZmUwYmY3YmRmNTgzOTU4OTU5MTcwYzJkMmIxMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MTlhNmRjYzA0ZTIxM2EzYzdhNzdhNDU2YjAxZTc2ZDFlZjc4Y2QwMGJiZWMxZDhmODE0NThmZTkzZWRjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MzM4YmNkY2VhOTExZDNmZjMzZjYzNDc4ZDFjOWMzYjliMTJmNmFhZDM2MGUxNmQyM2Q3MTllMDgwY2UzNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0YzNlNjNhYmE0YWRmZDQwMTA3Yzc3ZTU3ZGJmNTRjZTdlMzEyYjBmYjJiYjYwNjNlZGMzZWQ2MzcyODZmY2UifQ"
         },
         {
-          "resource": "repo://Python/test_server.py",
+          "resource": "repo://Python/debugging/test_server.py",
           "version": "repo-file-v1:sha256:3de6ec9a1b787f6f9557fa5169f23f9a5e2ecd7b56f9c89fa77407c876d547b4"
         }
       ]
@@ -191,6 +191,6 @@
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-30T16:14:31.508Z"
+    "at": "2026-09-21T19:17:12.006Z"
   }
 }

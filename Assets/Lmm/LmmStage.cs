@@ -228,7 +228,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
                 // Once, up front, so every import below comes from one generation of the source.
                 if (reloadPythonModules) PythonRuntime.InvalidateProjectModules();
 
-                dynamic runtime = PythonRuntime.Import("lmm_runtime");
+                dynamic runtime = PythonRuntime.Import("lmm.runtime");
                 _policy = runtime.LmmPolicy(config.GetCheckpointPath(), PythonLog,
                     DeviceName(inferenceDevice));
 
@@ -677,7 +677,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// </summary>
     /// <remarks>
     /// One forward pass over the skeleton, composing the predicted <em>joint-local</em> rotations
-    /// down the hierarchy — the same map <c>lmm_fk.forward_kinematics</c> runs inside the training
+    /// down the hierarchy — the same map <c>lmm.fk.forward_kinematics</c> runs inside the training
     /// loss, so the pose measured there is the pose written here. The root's height is the one
     /// thing rotations cannot supply and the only translation the model predicts; its other two
     /// coordinates are what the character frame transform removed, so they are zero.
@@ -760,7 +760,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// A rotation from the two-axis form the network regresses, by Gram-Schmidt.
     /// </summary>
     /// <remarks>
-    /// The C# counterpart of <c>training_data.rotations_from_6d</c>. A regressed pair of columns is
+    /// The C# counterpart of <c>training.training_data.rotations_from_6d</c>. A regressed pair of columns is
     /// not orthonormal, and this is the projection that makes it a rotation again (Zhou et al.).
     /// </remarks>
     private static quaternion RotationFrom6D(float[] source, int offset)

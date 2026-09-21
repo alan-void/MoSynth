@@ -32,7 +32,7 @@ sources:
     resource: repo://Assets/MotionMatching/Runtime/MotionMatching.asmdef
   - id: openwiki-source-68bd8cb3d0139ef5eb77babd
     resource: repo://Assets/MotionMatching/Runtime/Unity/MotionMatchingData.cs
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # The simulation frame, facing and travel
@@ -209,7 +209,7 @@ rotation, and both rates, in one forward pass. Where the character stands and wh
 exactly what a locomotion model has to be invariant to, so this is the shape a network sees a pose
 in, as opposed to how one is stored.
 
-It is deliberately the C# counterpart of `Python/training_data.py`, and the reason to have one place
+It is deliberately the C# counterpart of `Python/training/training_data.py`, and the reason to have one place
 for it is that the failure mode is silent: a mismatch in frame, units or rate convention between the
 data a model was trained on and the data it is given at inference does not throw, it just makes the
 network wrong. The two sides are not bit-identical on the rates — Python differences consecutive

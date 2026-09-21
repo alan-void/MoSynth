@@ -4,7 +4,7 @@ On-disk format for a trained Learned Motion Matching model: ``<name>.lmm.npz``.
 One artefact per config, written into StreamingAssets so it ships with the player. It holds every
 network's parameters, the normalisation the vectors were packed with, the baked latents, and a full
 description of the packing -- the bones, the feature schema, the authored feature weights. All of
-the description is there for the same reason ``pfnn_io`` stores bone names: a model fed a
+the description is there for the same reason ``pfnn.io`` stores bone names: a model fed a
 differently shaped input does not throw, it just produces bad motion.
 
 **The contents are the same at every training phase; what changes is which arrays are populated.**
@@ -46,7 +46,7 @@ class LmmCheckpoint:
     A loaded model.
 
     The ``*_weights``/``*_biases`` lists hold one ``(out, in)`` and one ``(out,)`` array per linear
-    layer, in forward order -- the shape :meth:`lmm_model.Mlp.load_parameters` reads. Stepper and
+    layer, in forward order -- the shape :meth:`lmm.model.Mlp.load_parameters` reads. Stepper and
     projector entries are empty until the phase that trains them.
     """
 
@@ -309,7 +309,7 @@ def load_checkpoint(path: str, log=print):
     """
     Load a ``.lmm.npz``, or return ``None``.
 
-    Returns ``None`` rather than raising for the reason ``pfnn_io`` does: callers run inside
+    Returns ``None`` rather than raising for the reason ``pfnn.io`` does: callers run inside
     ``Py.GIL()`` from Unity, where an exception arrives as an opaque managed error, and an unusable
     checkpoint should be a legible message plus a stage that declines to run.
     """

@@ -16,7 +16,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from feature_set_importer import StaleFeatureFileError, read_feature_set  # noqa: E402
+from formats.feature_set_importer import StaleFeatureFileError, read_feature_set  # noqa: E402
 
 # (name, floats per sample, samples), trajectory features first.
 SCHEMA = [('FuturePosition', 2, 3), ('FutureDirection', 2, 3),

@@ -16,7 +16,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import lmm_io  # noqa: E402
+from lmm import io as lmm_io  # noqa: E402
 
 FEATURE_SIZE = 15
 LATENT_SIZE = 4

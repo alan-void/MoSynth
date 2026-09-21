@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Lmm.Editor
 {
 /// <summary>
-/// Drives <c>lmm_trainer</c> for a config: every network, or one of the later two on its own.
+/// Drives <c>lmm.trainer</c> for a config: every network, or one of the later two on its own.
 /// </summary>
 /// <remarks>
 /// A class of its own rather than a method on the inspector, because the set of hyperparameters
@@ -84,7 +84,7 @@ public static class LmmTraining
 
             using (Py.GIL())
             {
-                var trainer = PythonRuntime.Import("lmm_trainer", reload: true);
+                var trainer = PythonRuntime.Import("lmm.trainer", reload: true);
 
                 using var summary = fit switch
                 {

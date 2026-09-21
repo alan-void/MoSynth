@@ -5,9 +5,9 @@ import json
 import numpy as np
 import torch
 
-from Pose import Pose, PoseDelta
-from Skeleton import Skeleton
-from motion_field_io import ValueFunctionData, load_value_function
+from core.pose import Pose, PoseDelta
+from core.skeleton import Skeleton
+from motion_field.io import ValueFunctionData, load_value_function
 
 # Packed pose layout: row 0 the character frame's position, row 1 the rig root
 # bone's position within that frame, row 2 the frame's rotation, row 3 the root
@@ -344,7 +344,7 @@ class MotionField:
 
         # The frame slot is a PER-FRAME INCREMENT, not a world pose. Database
         # states are stored in their own character frame (framePos == 0, frame
-        # quat == identity, see action_predictor.load_animations) and the tug
+        # quat == identity, see motion_field.action_predictor.load_animations) and the tug
         # below blends against one of them. So 'tug_ratio' would drag an
         # accumulated world position toward the origin every frame -- a 0.9^n
         # collapse that reaches the origin in about 30 frames. Unity owns the

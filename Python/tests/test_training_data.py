@@ -15,9 +15,9 @@ from scipy.spatial.transform import Rotation
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import training_data  # noqa: E402
-from Animation import PoseSet  # noqa: E402
-from Skeleton import Joint, Skeleton  # noqa: E402
+from training import training_data  # noqa: E402
+from core.pose_set import PoseSet  # noqa: E402
+from core.skeleton import Joint, Skeleton  # noqa: E402
 
 FRAME_TIME = 1.0 / 30.0
 ROOT_HEIGHT = 0.9

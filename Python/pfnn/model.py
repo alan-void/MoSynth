@@ -147,7 +147,7 @@ def resolve_device(preference: str = 'auto') -> torch.device:
     """
     The device to run on. ``auto`` takes CUDA when it is there.
 
-    Kept here rather than imported from ``MotionField`` so a PFNN run does not drag in the motion
+    Kept here rather than imported from ``motion_field.field`` so a PFNN run does not drag in the motion
     field's k-NN machinery and its animation loading.
     """
     if preference in (None, '', 'auto'):

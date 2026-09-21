@@ -14,8 +14,8 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pfnn_dataset  # noqa: E402
-import training_data  # noqa: E402
+from pfnn import dataset as pfnn_dataset  # noqa: E402
+from training import training_data  # noqa: E402
 from test_training_data import (FRAME_TIME, build_pose_set,  # noqa: E402
                                 walking_straight)
 

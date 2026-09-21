@@ -32,7 +32,7 @@ sources:
     resource: repo://Python/feature_set_importer.py
   - id: openwiki-source-1110a5319fdf997c0acf8f29
     resource: repo://Python/pose_set_importer.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # On-disk formats
@@ -42,10 +42,10 @@ assemblies plus CPython.
 
 | Artefact | Location | Written by | Read by |
 | --- | --- | --- | --- |
-| `.mmpose` | `MMDatabases/<name>/`, `MotionFields/<name>/` | `PoseSerializer` | `PoseSetImporter`, `Python/pose_set_importer.py` |
+| `.mmpose` | `MMDatabases/<name>/`, `MotionFields/<name>/` | `PoseSerializer` | `PoseSetImporter`, `Python/formats/pose_set_importer.py` |
 | `.mmfeatures` | `MMDatabases/<name>/` | `FeatureSerializer` | `MotionMatchingData` via `FeatureSerializer.Deserialize` |
-| `.mffield.npz` | `MotionFields/<name>/` | `Python/motion_field_io.py` | `MotionFieldStage` |
-| `.mfembed.npz` | `MotionFields/<name>/` | `Python/motion_field_embedding.py` | `MotionFieldStage.LoadEmbedding` → visualizer |
+| `.mffield.npz` | `MotionFields/<name>/` | `Python/motion_field/io.py` | `MotionFieldStage` |
+| `.mfembed.npz` | `MotionFields/<name>/` | `Python/motion_field/embedding.py` | `MotionFieldStage.LoadEmbedding` → visualizer |
 
 Both `.npz` files ship with the player. The `.mfembed.npz` is **optional debug data** — safe to
 delete, and the visualizer simply draws nothing without it.
@@ -245,7 +245,7 @@ on every shipped target, but not actually checked at write time.
 | Recording sidecar | `Assets/AnimationTools/Runtime/Recording/RecordingManifest.cs` |
 | `.mmfeatures` | `Assets/MotionMatching/Runtime/Features/FeatureSerializer.cs` |
 | Artefact paths | `Assets/MotionField/MotionFieldConfig.cs` |
-| Python reader | `Python/pose_set_importer.py` |
+| Python reader | `Python/formats/pose_set_importer.py` |
 
 **Tests.** `PoseSerializerTests` round-trips every channel with per-frame, per-bone distinct values so
 a misaligned read cannot pass by coincidence, and covers all four rejection cases.

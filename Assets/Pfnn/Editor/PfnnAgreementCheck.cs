@@ -10,7 +10,7 @@ namespace Pfnn.Editor
 {
 /// <summary>
 /// Compares the two definitions of a character-frame pose — <see cref="CharacterSpacePose.Extract"/>
-/// in C# and <c>training_data.build_training_set</c> in Python — on the same frames of the same
+/// in C# and <c>training.training_data.build_training_set</c> in Python — on the same frames of the same
 /// database, and reports how far apart they are.
 /// </summary>
 /// <remarks>
@@ -126,7 +126,7 @@ public static class PfnnAgreementCheck
         PythonRuntime.EnsureInitialized();
         using (Py.GIL())
         {
-            dynamic module = PythonRuntime.Import("pfnn_agreement", reload: true);
+            dynamic module = PythonRuntime.Import("pfnn.agreement", reload: true);
             dynamic report = module.compare(config.GetAssetPath(), config.name, frames,
                 csharpPositions, csharpRotations, boneCount);
 

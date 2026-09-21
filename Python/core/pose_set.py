@@ -1,6 +1,6 @@
 import numpy as np
 
-from Skeleton import Skeleton
+from core.skeleton import Skeleton
 
 
 class PoseSet:
@@ -9,7 +9,7 @@ class PoseSet:
     concatenated, sharing one skeleton and one frame rate.
 
     The Python mirror of the C# ``PoseSet``, read from ``.mmpose`` by
-    ``pose_set_importer.deserialize_pose_set``.
+    ``formats.pose_set_importer.deserialize_pose_set``.
 
     Frames are indexed globally across the database, so callers must not assume frame
     ``i + 1`` continues frame ``i`` -- across a clip boundary it does not. ``clips`` is
@@ -39,8 +39,8 @@ class PoseSet:
 
     The character frame these poses are matched in is not stored. Its definition is
     structural -- joint 0, faced along the forward axis of its rest rotation -- and
-    ``pose_set_importer`` attaches it (``sim_frame_bone_index``, ``sim_frame_forward``)
-    for :mod:`simulation_frame` to derive the per-pose frames from.
+    ``formats.pose_set_importer`` attaches it (``sim_frame_bone_index``, ``sim_frame_forward``)
+    for :mod:`core.simulation_frame` to derive the per-pose frames from.
     """
 
     def __init__(self,

@@ -24,7 +24,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from binary_reading import read_csharp_string
+from formats.binary_reading import read_csharp_string
 
 
 @dataclass(frozen=True)

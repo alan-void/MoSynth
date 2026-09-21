@@ -3,7 +3,7 @@ type: Agent Reference
 title: PFNN packing and boundary hazards
 description: Exact vector layouts, the invariants a PFNN sample must satisfy, the C#/Python marshalling that works, and the traps found while building it.
 tags: [pfnn, agents, python-interop, training-data]
-generated: {by: "claude-code", at: "2026-08-31T20:31:56.222Z"}
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # PFNN packing and boundary hazards
@@ -15,20 +15,20 @@ Operational detail for working on the PFNN side. The human-facing account is
 
 | Module | Owns |
 | --- | --- |
-| `Python/pfnn_dataset.py` | bone selection, `PfnnSpec`, input/output layouts, `build_vectors` |
-| `Python/pfnn_model.py` | `catmull_rom_weights`, `PhaseFunctionedNetwork`, `resolve_device` |
-| `Python/pfnn_io.py` | `.pfnn.npz` save/load. **numpy only — never import torch here** |
-| `Python/pfnn_trainer.py` | `train(...)`, the Unity entry point, plus a CLI |
-| `Python/pfnn_runtime.py` | `PfnnPolicy` (stateless), `rollout` |
-| `Python/pfnn_agreement.py` | `compare(...)`, driven by the Editor menu item |
+| `Python/pfnn/dataset.py` | bone selection, `PfnnSpec`, input/output layouts, `build_vectors` |
+| `Python/pfnn/model.py` | `catmull_rom_weights`, `PhaseFunctionedNetwork`, `resolve_device` |
+| `Python/pfnn/io.py` | `.pfnn.npz` save/load. **numpy only — never import torch here** |
+| `Python/pfnn/trainer.py` | `train(...)`, the Unity entry point, plus a CLI |
+| `Python/pfnn/runtime.py` | `PfnnPolicy` (stateless), `rollout` |
+| `Python/pfnn/agreement.py` | `compare(...)`, driven by the Editor menu item |
 
-`pfnn_io` stays numpy-only on purpose: a caller that wants to know what a checkpoint contains should
-not have to load a deep learning framework to find out. It mirrors `motion_field_io` exactly.
+`pfnn.io` stays numpy-only on purpose: a caller that wants to know what a checkpoint contains should
+not have to load a deep learning framework to find out. It mirrors `motion_field.io` exactly.
 
 ## Layouts
 
 Read them from `PfnnSpec.input_layout()` / `output_layout()` rather than hardcoding offsets;
-`pfnn_dataset.block(vectors, layout, name)` slices a named block. Blocks tile the vector with no
+`pfnn.dataset.block(vectors, layout, name)` slices a named block. Blocks tile the vector with no
 gaps, which a unit test asserts.
 
 Input, in order: `trajectory_positions` (2·T), `trajectory_directions` (2·T), `joint_positions`
@@ -79,7 +79,7 @@ history live in C#, so a character can be restarted without reaching across the 
 
 Forward kinematics is the caller's job, not the policy's: the network predicts rotations, and
 turning those into positions needs the rig's rest offsets. `PfnnStage` does it with `SkeletonData`;
-`pfnn_runtime.rollout` recovers the offsets from the first frame's character-space pose, because a
+`pfnn.runtime.rollout` recovers the offsets from the first frame's character-space pose, because a
 `TrainingSet` carries no rest transforms.
 
 ## Traps
@@ -90,8 +90,8 @@ turning those into positions needs the rig's rest offsets. `PfnnStage` does it w
 - **Dropout convention.** The paper quotes 0.7 as a *retention* rate; PyTorch's `nn.Dropout` takes a
   *drop* probability. The config field is the PyTorch sense, so the paper's setting is 0.3.
 - **`np.savez` with `allow_pickle=False`** requires bone names as a `<U` array, not an object array.
-  `training_data.save_npz` uses object arrays and therefore needs `allow_pickle=True` on load;
-  `pfnn_io` deliberately does not.
+  `training.training_data.save_npz` uses object arrays and therefore needs `allow_pickle=True` on load;
+  `pfnn.io` deliberately does not.
 - **Validation must be a contiguous tail.** A random split leaks near-duplicate frames into training
   and reports a validation loss that measures nothing.
 - **`Does.Not.Contain(int)`** in NUnit binds the string-substring overload and fails to compile

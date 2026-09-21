@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Pfnn.Editor
 {
 /// <summary>
-/// Drives <c>pfnn_trainer.train</c> for a config.
+/// Drives <c>pfnn.trainer.train</c> for a config.
 /// </summary>
 /// <remarks>
 /// A class of its own rather than a method on the inspector, because the set of hyperparameters
@@ -40,7 +40,7 @@ public static class PfnnTraining
 
             using (Py.GIL())
             {
-                var trainer = PythonRuntime.Import("pfnn_trainer", reload: true);
+                var trainer = PythonRuntime.Import("pfnn.trainer", reload: true);
 
                 using var args = new PyTuple(new[]
                 {

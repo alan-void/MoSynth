@@ -6,21 +6,21 @@ tags: [python, pythonnet, marshalling, interop]
 sources:
   - id: openwiki-source-9b84862940b622d8527df945
     resource: repo://Assets/MotionField/MfConnector.cs
-  - id: openwiki-source-18938fea788ba704e8dbb6d7
-    resource: repo://Python/action_predictor.py
   - id: openwiki-source-879d0c2123931699bca99dc8
     resource: repo://Python/debugging/python_net.py
-  - id: openwiki-source-0d9ae15ae536e3580049e519
-    resource: repo://Python/test_server.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+  - id: openwiki-source-c071024d90d3d636ff34f711
+    resource: repo://Python/debugging/test_server.py
+  - id: openwiki-source-d19fee973919a137b3ac0360
+    resource: repo://Python/motion_field/action_predictor.py
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+    at: 2026-09-21T19:17:12.006Z
 ---
 
 # The Unity call surface
 
-`action_predictor` is the module `MotionFieldStage` holds and calls. It owns two directions of
+`motion_field.action_predictor` is the module `MotionFieldStage` holds and calls. It owns two directions of
 traffic:
 
 - **`load_animations`** — read the database Unity exported and repack it into the `(x, v, y)` triples
@@ -117,7 +117,7 @@ for bone 0 only.
 
 ## The debugger attach
 
-Importing `action_predictor` attaches to a PyCharm debug server, via `debugging/python_net.py`.
+Importing `motion_field.action_predictor` attaches to a PyCharm debug server, via `debugging/python_net.py`.
 
 The cost argument for gating it is real: attaching costs a socket timeout per import and injects a
 debugger egg into `sys.path`, which is **pure overhead for batch work such as training**.
@@ -164,9 +164,9 @@ format and nothing more.
 
 | Concern | File |
 | --- | --- |
-| The per-tick surface, repacking, virtual root | `Python/action_predictor.py` |
+| The per-tick surface, repacking, virtual root | `Python/motion_field/action_predictor.py` |
 | Debugger attach | `Python/debugging/python_net.py` |
-| ZeroMQ reply schema | `Python/test_server.py` |
+| ZeroMQ reply schema | `Python/debugging/test_server.py` |
 
 **One default to be careful with.** `load_animations`' hardcoded default data directory points at the
 **motion matching** database, not the motion field one. Unity never uses it — the stage and the

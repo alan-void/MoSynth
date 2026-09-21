@@ -11,7 +11,7 @@ namespace MotionField
 /// Draws the motion field as a 3D point cloud so a misbehaving policy can be watched rather than
 /// inferred.
 ///
-/// Every database state is a point, projected to 3D by <c>motion_field_embedding.py</c>. Under that
+/// Every database state is a point, projected to 3D by <c>motion_field/embedding.py</c>. Under that
 /// module's default the projection covers the *joint positions* only, so the cloud is a pose
 /// manifold: one pose held at two different speeds lands in one place rather than two, and how far
 /// apart two points sit means how differently the body is posed and nothing else.

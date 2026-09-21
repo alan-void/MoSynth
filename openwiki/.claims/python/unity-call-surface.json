@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:507c78b6a59d03651025ca6ee67cfefe354a74b69ea211c26853775f91f3574d",
+  "pageVersion": "sha256:5d12fc7e71bb815f0ad1ba77455a6429841c1fdb3d63c799f7f9d7dc5fe96218",
   "claims": [
     {
       "id": "claim_ad802b4931834abda10d6b8d103b1a7b",
-      "statement": "action_predictor is the module the motion field stage holds and calls every tick: load_animations repacks the exported database into the state, velocity and next-velocity triples the field is defined over, and get_pose_arrays flattens a synthesized pose into lists PythonNET can marshal back into C#.",
+      "statement": "motion_field.action_predictor is the module the motion field stage holds and calls every tick: load_animations repacks the exported database into the state, velocity and next-velocity triples the field is defined over, and get_pose_arrays flattens a synthesized pose into lists PythonNET can marshal back into C#.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L1-L25",
-          "version": "repo-lines-v1:sha256:6731af5c72f5bcfdd33531b32946caa823fde2f1b1a83f97c909b19d82742626:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NGNhM2Y0NGY1NmZiYjhlYTlkMTUzODFhNTU1MDhlMTdhMWI5NjU3M2JmNDYyNTg0NGZkZGZjYTJjZjM3YjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2Y2Q4ODQxMzA3ZGY3M2Q1NzRiZDYwNmY2ZWM4YmU3MmYyMjIwNmU5MGQzZGFjZjE0NGIxOTBmODYwY2ZhNjQifQ"
+          "resource": "repo://Python/motion_field/action_predictor.py#L1-L25",
+          "version": "repo-lines-v1:sha256:32df3cc59980b674cfbc81bae6298e6474b7576b9c2f1b98bda02ee21834fd2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NGNhM2Y0NGY1NmZiYjhlYTlkMTUzODFhNTU1MDhlMTdhMWI5NjU3M2JmNDYyNTg0NGZkZGZjYTJjZjM3YjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2Y2Q4ODQxMzA3ZGY3M2Q1NzRiZDYwNmY2ZWM4YmU3MmYyMjIwNmU5MGQzZGFjZjE0NGIxOTBmODYwY2ZhNjQifQ"
         }
       ]
     },
@@ -17,7 +17,7 @@
       "statement": "The packed layout reserves a slot for the character frame that no rig bone corresponds to, so a matching parentless virtual joint is added to a copy of the skeleton — keeping tree and array aligned so bone weights, feature rows and FK indices all refer to the same bone as the slot beside them. It is copied rather than reparented in place so the pose set's own skeleton goes on describing the pose set's own frame-free arrays.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L49-L78",
+          "resource": "repo://Python/motion_field/action_predictor.py#L49-L78",
           "version": "repo-lines-v1:sha256:eabb3077b049f904b9f6c78e8a09f5cc11eeb99f23e62f4d08667a94653debed:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmOTIwMmNhMGQxZmI0M2NjYjg2Y2JlYzJlZmE2ZTNhMzczNTRmMmQyYjQ0OWI1ZDA1YzA2NmZiYmRhYjYyYWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1MjU1YjMwNDhmNTY2MDUwZjkyZGE1ZDFmYzkwZGI4ZDExNzdkNzY1YjQzZWIxOTExMWJiZjZhYzAxMWMwODQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNDg1NzY4YTUyOGM3ODMyY2YwZDE4MGI4NWQwY2UyNWI5ZjgzYTIyMzdhYTk0ZWU5OTNmMmU5OTlmMjk1M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwMWRiNDljNzc0MTY2NGIyMjNmMDM5M2I0MGVkMGNhNjU1ZmFmZWVmMjBkMDBiYmMwZTZiZGI1MTA4NjY1NjcifQ"
         }
       ]
@@ -27,7 +27,7 @@
       "statement": "The last frame of every clip is dropped from the usable state set, because a state needs both its own velocity and the next frame's velocity, so the next frame must belong to the same clip — otherwise a state would predict its successor from the first frame of an unrelated animation.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L28-L46",
+          "resource": "repo://Python/motion_field/action_predictor.py#L28-L46",
           "version": "repo-lines-v1:sha256:099275b1489cb4c5b3e9f6d3b7a32424aae9ea97738c77f74052a51a146221a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NGQwYWYyZmUyY2U4YmI2MGZkYzYyMWIzNzg5MWFhMmVlMzkzYzEzNDAwZWE5YzE0YWNlYjRiODc5NDBhZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4MTZlMWEzZGJjN2M1YzdkYzQ0MDczMWYwZmExOWI1ZjA0MTk0ZjIzM2U1ZGM3Y2RhZTE3M2I5NjlhMjdmYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1OTMyMmZhM2ZjN2IxYTdkMjhkNDg0NmI4MzQ0MTY5NzQ2MjhmMzY2NDcyNzY3ZDdiN2JkNzFkOGYyODU3MzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJiYjRmNTUyNTBjNjY0OWQ1ZDE2OTgwZTM4OGM1YWE3MTUxMWY1OGI0MDRiNmU2OGI5ZjhkYTBjODc0NTBhYjkifQ"
         }
       ]
@@ -37,8 +37,8 @@
       "statement": "The pose half of a state is made translation- and yaw-invariant, so walking north at the origin and walking east across the map are the same state; that motion is not lost but lives in the velocity half as a rate in the character frame.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L81-L104",
-          "version": "repo-lines-v1:sha256:5769cc9029115f3eed39e1f7eb8e3aea1e03a48f426906b4918c5ba6be458fe8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlOGExOGRlNTg3MTQ5YjhkNjllYTc5YjA1ZDY3NzVkYjIzZmVkN2ZjNzRhMmUwOGUxZTc1NjY2YjNmMTk1YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlNmE5ZWY0ODBiNWY0ZDNlYzEyNTNlZjNlNGMxOWI0ZmM4YmNkZGY5MTQ5Y2JhODA3N2VmMTE3ZTY1ZGMzZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjN2JlYzVlYzdiZGRjNGZiYTJkZTM5YjA1OTQ5NzQ3ZDM5NjQ3NGQzNmFiODcwYzA3NzU5Mjg5MjFmY2MyMTkifQ"
+          "resource": "repo://Python/motion_field/action_predictor.py#L81-L104",
+          "version": "repo-lines-v1:sha256:2b99bcc9beed00badf303ff239595f86e028781bcd89c393964dfa7af2a05f22:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlOGExOGRlNTg3MTQ5YjhkNjllYTc5YjA1ZDY3NzVkYjIzZmVkN2ZjNzRhMmUwOGUxZTc1NjY2YjNmMTk1YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlNmE5ZWY0ODBiNWY0ZDNlYzEyNTNlZjNlNGMxOWI0ZmM4YmNkZGY5MTQ5Y2JhODA3N2VmMTE3ZTY1ZGMzZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjN2JlYzVlYzdiZGRjNGZiYTJkZTM5YjA1OTQ5NzQ3ZDM5NjQ3NGQzNmFiODcwYzA3NzU5Mjg5MjFmY2MyMTkifQ"
         }
       ]
     },
@@ -47,7 +47,7 @@
       "statement": "Rates are stored per second rather than per frame, so integrating them requires an explicit time step; the identity is that a pose advanced by its own rate scaled by the frame time equals the next pose.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L116-L133",
+          "resource": "repo://Python/motion_field/action_predictor.py#L116-L133",
           "version": "repo-lines-v1:sha256:0675af45a06cc8a167ef20904d0f73c3ea124c227161e63e45995605cc7e9671:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDhkOGZhNmE5N2ExMzM4YTFlZDI4M2ViNGJmZTNhNTI3MzVhNjAzOTZlYTBiMWM2MWQ1MjljNzJkNjZkY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliMzcxOGVmMzg3ODYwNjY0MWU4ZDczMGI3ZTI0NzEyOGEzOTA2NTVhYmQ3NDg3NTI0MzExODBlNGJmMmI0ZjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3MTI1NjgxYzI0NmQyMmNjMDJkYjcyNDk3NWRjYTQ0MDc3MDFjNDczMWJhODdiMWNmODg1Yjc2Y2U2ZDdkZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkMWQ1Njk2MjBjNTI4ODAwZGNjZTRhOTM0NzM2YjUyN2RjZWJkZDE0NDMzOWJlZDIzMzg0OTU2MTM2YWFjODkifQ"
         }
       ]
@@ -57,8 +57,8 @@
       "statement": "Arrays cross back to C# as plain Python lists rather than numpy arrays because PythonNET marshals those directly, and they are indexed by rig bone so they are one shorter than the packed layout's joint count — C# stores no character frame and derives one from bone 0 the same way the Python side does.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L164-L207",
-          "version": "repo-lines-v1:sha256:e7898b2fb42c9d7ab4eac712d4e8ba61db31994f2d6a9b456ded5d48c7a7a358:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMjQxMDkzYjIzMGUzMjFkNzgxMWI5YjIwOTFlOWEzNjRiYzJhZDEyYTBmNDVkMWRkYWEzMDdlM2RmOGVjNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3ODdhODY0ZjQ4ZTFmYzc2NGY4OGZmMWQ0YmVkYWE5NmQ4MDUwYjYyMzdkMzdiMzBkYjYyMjVjNjMzYjY1Y2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZmY0NmFmMDFkYjcxZWY5NzA0M2QwYjFmMmZiY2UxYWM4OWM5NTNiYjI4YmQ1M2EyOTM5ZWVmOGU0OWIwODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://Python/motion_field/action_predictor.py#L164-L207",
+          "version": "repo-lines-v1:sha256:6f04b572057873900355228ce14830918a9c713e0f099bb14e0c2c4a4ebc26bf:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMjQxMDkzYjIzMGUzMjFkNzgxMWI5YjIwOTFlOWEzNjRiYzJhZDEyYTBmNDVkMWRkYWEzMDdlM2RmOGVjNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3ODdhODY0ZjQ4ZTFmYzc2NGY4OGZmMWQ0YmVkYWE5NmQ4MDUwYjYyMzdkMzdiMzBkYjYyMjVjNjMzYjY1Y2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZmY0NmFmMDFkYjcxZWY5NzA0M2QwYjFmMmZiY2UxYWM4OWM5NTNiYjI4YmQ1M2EyOTM5ZWVmOGU0OWIwODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -67,8 +67,8 @@
       "statement": "Because the pose handed back is already expressed in its own frame, its derived frame is the identity, so bone 0 carries the frame-local root state and the frame's own rates are folded into bone 0's velocities — which is where the C# side reads them back out.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L164-L207",
-          "version": "repo-lines-v1:sha256:e7898b2fb42c9d7ab4eac712d4e8ba61db31994f2d6a9b456ded5d48c7a7a358:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMjQxMDkzYjIzMGUzMjFkNzgxMWI5YjIwOTFlOWEzNjRiYzJhZDEyYTBmNDVkMWRkYWEzMDdlM2RmOGVjNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3ODdhODY0ZjQ4ZTFmYzc2NGY4OGZmMWQ0YmVkYWE5NmQ4MDUwYjYyMzdkMzdiMzBkYjYyMjVjNjMzYjY1Y2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZmY0NmFmMDFkYjcxZWY5NzA0M2QwYjFmMmZiY2UxYWM4OWM5NTNiYjI4YmQ1M2EyOTM5ZWVmOGU0OWIwODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://Python/motion_field/action_predictor.py#L164-L207",
+          "version": "repo-lines-v1:sha256:6f04b572057873900355228ce14830918a9c713e0f099bb14e0c2c4a4ebc26bf:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMjQxMDkzYjIzMGUzMjFkNzgxMWI5YjIwOTFlOWEzNjRiYzJhZDEyYTBmNDVkMWRkYWEzMDdlM2RmOGVjNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3ODdhODY0ZjQ4ZTFmYzc2NGY4OGZmMWQ0YmVkYWE5NmQ4MDUwYjYyMzdkMzdiMzBkYjYyMjVjNjMzYjY1Y2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZmY0NmFmMDFkYjcxZWY5NzA0M2QwYjFmMmZiY2UxYWM4OWM5NTNiYjI4YmQ1M2EyOTM5ZWVmOGU0OWIwODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -77,8 +77,8 @@
       "statement": "Attaching the PyCharm debugger costs a socket timeout per import and injects a debugger egg into the module search path, which is pure overhead for batch work such as training; but the environment variable that gates it defaults to enabled, so despite the comment saying opt in it is opt out as implemented.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L1-L25",
-          "version": "repo-lines-v1:sha256:6731af5c72f5bcfdd33531b32946caa823fde2f1b1a83f97c909b19d82742626:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NGNhM2Y0NGY1NmZiYjhlYTlkMTUzODFhNTU1MDhlMTdhMWI5NjU3M2JmNDYyNTg0NGZkZGZjYTJjZjM3YjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2Y2Q4ODQxMzA3ZGY3M2Q1NzRiZDYwNmY2ZWM4YmU3MmYyMjIwNmU5MGQzZGFjZjE0NGIxOTBmODYwY2ZhNjQifQ"
+          "resource": "repo://Python/motion_field/action_predictor.py#L1-L25",
+          "version": "repo-lines-v1:sha256:32df3cc59980b674cfbc81bae6298e6474b7576b9c2f1b98bda02ee21834fd2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NGNhM2Y0NGY1NmZiYjhlYTlkMTUzODFhNTU1MDhlMTdhMWI5NjU3M2JmNDYyNTg0NGZkZGZjYTJjZjM3YjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2Y2Q4ODQxMzA3ZGY3M2Q1NzRiZDYwNmY2ZWM4YmU3MmYyMjIwNmU5MGQzZGFjZjE0NGIxOTBmODYwY2ZhNjQifQ"
         },
         {
           "resource": "repo://Python/debugging/python_net.py#L43-L71",
@@ -102,10 +102,10 @@
     },
     {
       "id": "claim_978fb087490e4c21bd4ddf04e10f190c",
-      "statement": "test_server.py is the only written record of the ZeroMQ wire schema — four per-joint arrays plus two contact booleans on port 5555 — but its request side has drifted: it expects a bare frame number while the C# client sends a JSON object, so against the current client it would reply with an error object every tick.",
+      "statement": "debugging/test_server.py is the only written record of the ZeroMQ wire schema — four per-joint arrays plus two contact booleans on port 5555 — but its request side has drifted: it expects a bare frame number while the C# client sends a JSON object, so against the current client it would reply with an error object every tick.",
       "evidence": [
         {
-          "resource": "repo://Python/test_server.py",
+          "resource": "repo://Python/debugging/test_server.py",
           "version": "repo-file-v1:sha256:3de6ec9a1b787f6f9557fa5169f23f9a5e2ecd7b56f9c89fa77407c876d547b4"
         },
         {
@@ -119,14 +119,14 @@
       "statement": "The database loader's hardcoded default directory points at the motion matching database rather than the motion field one, and exists for notebook and standalone use; Unity never uses it, always passing the config's own asset path.",
       "evidence": [
         {
-          "resource": "repo://Python/action_predictor.py#L81-L104",
-          "version": "repo-lines-v1:sha256:5769cc9029115f3eed39e1f7eb8e3aea1e03a48f426906b4918c5ba6be458fe8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlOGExOGRlNTg3MTQ5YjhkNjllYTc5YjA1ZDY3NzVkYjIzZmVkN2ZjNzRhMmUwOGUxZTc1NjY2YjNmMTk1YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlNmE5ZWY0ODBiNWY0ZDNlYzEyNTNlZjNlNGMxOWI0ZmM4YmNkZGY5MTQ5Y2JhODA3N2VmMTE3ZTY1ZGMzZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjN2JlYzVlYzdiZGRjNGZiYTJkZTM5YjA1OTQ5NzQ3ZDM5NjQ3NGQzNmFiODcwYzA3NzU5Mjg5MjFmY2MyMTkifQ"
+          "resource": "repo://Python/motion_field/action_predictor.py#L81-L104",
+          "version": "repo-lines-v1:sha256:2b99bcc9beed00badf303ff239595f86e028781bcd89c393964dfa7af2a05f22:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlOGExOGRlNTg3MTQ5YjhkNjllYTc5YjA1ZDY3NzVkYjIzZmVkN2ZjNzRhMmUwOGUxZTc1NjY2YjNmMTk1YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlNmE5ZWY0ODBiNWY0ZDNlYzEyNTNlZjNlNGMxOWI0ZmM4YmNkZGY5MTQ5Y2JhODA3N2VmMTE3ZTY1ZGMzZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjN2JlYzVlYzdiZGRjNGZiYTJkZTM5YjA1OTQ5NzQ3ZDM5NjQ3NGQzNmFiODcwYzA3NzU5Mjg5MjFmY2MyMTkifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-08-24T17:01:26.052Z"
+    "at": "2026-09-21T19:17:12.006Z"
   }
 }

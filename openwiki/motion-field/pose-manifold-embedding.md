@@ -10,10 +10,7 @@ sources:
     resource: repo://Assets/MotionField/MotionFieldVisualizer.cs
   - id: openwiki-source-dcb665e7eaa7b9c0f9aaf867
     resource: repo://Python/motion_field_embedding.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
+generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
 ---
 
 # The pose manifold and its visualizer
@@ -154,7 +151,7 @@ flag to catch it**. `hasTrained` has no embedding equivalent; see
 | Drawing, overlay, trail, velocity edge | `Assets/MotionField/MotionFieldVisualizer.cs` |
 | Loading and rejection | `Assets/MotionField/MotionFieldStage.cs` (`LoadEmbedding`) |
 | The knobs | `Assets/MotionField/MotionFieldConfig.cs` (`umapFeatures`, `umapNeighbors`, `umapMinDist`, `umapComponents`, `umapSeed`) |
-| The projection | `Python/motion_field_embedding.py` |
+| The projection | `Python/motion_field/embedding.py` |
 
 Add the visualizer to the same GameObject as the `MotionSynthesisComponent` whose stage list contains
 a `MotionFieldStage`, and enable `collectDebugData` on that stage.
