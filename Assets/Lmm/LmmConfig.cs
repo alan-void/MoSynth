@@ -61,7 +61,7 @@ public class LmmConfig : ScriptableObject
     /// </summary>
     /// <remarks>
     /// These live on the config rather than on the stage, which is the opposite of
-    /// <c>MotionMatchingStage</c>, because training has to see them: the phase C projector learns
+    /// <c>MotionMatchingStage</c>, because training has to see them: the projector learns
     /// to approximate a nearest-neighbour lookup under a particular metric, and one fitted against
     /// uniform weights would approximate a search nobody runs. They go into the checkpoint and the
     /// stage refuses a checkpoint whose weights no longer match.
@@ -180,7 +180,7 @@ public class LmmConfig : ScriptableObject
     [Header("Training")]
     [Tooltip("w_vreg: how hard the latent is held to moving smoothly from frame to frame. The one " +
              "loss weight the paper declines to give a number for, and the one worth tuning — it " +
-             "decides whether the phase B stepper has a trajectory to advance or noise. Too high " +
+             "decides whether the stepper has a trajectory to advance or noise. Too high " +
              "and the latent cannot carry enough to reconstruct from.")]
     [Min(0f)] public float latentVelocityWeight = 0.01f;
 

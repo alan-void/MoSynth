@@ -210,7 +210,7 @@ class TrainingPairTests(unittest.TestCase):
 
 class StepperWindowTests(unittest.TestCase):
     """
-    The runs the phase B stepper unrolls over.
+    The runs the stepper unrolls over.
 
     The property that matters is that a window never spans a cut: a stepper trained across one
     would learn to predict a jump, and jumping is the search's job. Nothing checks it at the point

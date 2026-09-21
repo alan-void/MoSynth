@@ -13,7 +13,7 @@ namespace Lmm.Tests
 /// <see cref="MotionMatchingQuery.FillTrajectory"/>, so they ask the same question by construction
 /// rather than by assertion. What is not guaranteed by construction is the *weights* — those are
 /// expanded once in C# for the search and once in Python for training, and the two agreeing is
-/// what stops the phase C projector approximating a search nobody runs.
+/// what stops the projector approximating a search nobody runs.
 /// </remarks>
 public class LmmQueryTests
 {

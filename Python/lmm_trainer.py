@@ -21,7 +21,7 @@ query with a state the database holds, and so replaces the search itself.
 * Both spaces are scored **again as velocities**, differenced across the frame pair. That is what
   makes the output change smoothly in time rather than only sit in the right place per frame.
 * Three regularisers act on the latent: magnitude, energy, and rate of change. The last is what
-  leaves ``Z`` steppable at all in phase B, and it applies to a **per-second** derivative -- a
+  leaves ``Z`` steppable at all by the stepper, and it applies to a **per-second** derivative -- a
   factor of sixty against the per-frame delta it would be easy to write instead.
 
 The weights are in :mod:`lmm_dataset`; they are the author's released training code, since the
@@ -63,12 +63,12 @@ from training_data import load_database
 LOSS_COLUMNS = ('local', 'character', 'local_velocity', 'character_velocity',
                 'latent', 'total', 'validation')
 
-# Phase B's own curve. The stepper is fitted in a second loop whose terms measure something else
+# The stepper's own curve, fitted in a second loop whose terms measure something else
 # entirely, so they are a separate table in the checkpoint rather than more columns on this one.
 STEPPER_LOSS_COLUMNS = ('features', 'latent', 'feature_rate', 'latent_rate', 'total', 'validation')
 
-# Phase C's, likewise. `distance` is how far the projector thinks it moved against how far the true
-# nearest neighbour is -- see fit_projector.
+# The projector's, likewise. `distance` is how far the projector thinks it moved against how far
+# the true nearest neighbour is -- see fit_projector.
 PROJECTOR_LOSS_COLUMNS = ('features', 'latent', 'distance', 'total', 'validation')
 
 # Frames baked per forward pass. Large enough that the per-call overhead vanishes, small enough
@@ -126,9 +126,9 @@ def train(data_dir: str,
     :param out_path: where to write the ``.lmm.npz``.
     :param excluded_bones: bone names the decompressor does not predict.
     :param feature_weights: one authored search weight per feature definition, which travels into
-        the checkpoint so the phase C projector approximates the search that is actually run.
+        the checkpoint so the projector approximates the search that is actually run.
     :param latent_velocity_weight: ``w_vreg``, the penalty on how fast the latent moves. The one
-        loss weight worth tuning -- see :mod:`lmm_dataset`. Too low and the phase B stepper has
+        loss weight worth tuning -- see :mod:`lmm_dataset`. Too low and the stepper has
         noise to advance; too high and the latent cannot carry enough to reconstruct from.
     :param compressor_hidden: hidden width; 0 takes the reference implementation's.
     :param decompressor_hidden: likewise.
@@ -139,11 +139,11 @@ def train(data_dir: str,
         what is written.
     :param max_seconds: stop after this long regardless, 0 for no limit. A training run that has to
         fit a budget should be cut by the clock rather than by guessing an iteration count.
-    :param stepper: also fit the phase B stepper, against the latents this run just baked. Off
+    :param stepper: also fit the stepper, against the latents this run just baked. Off
         writes an autoencoder-only checkpoint, which is what the ``DecompressorOnly`` mode needs
         and all it needs.
     :param stepper_window: frames the stepper is unrolled over; see :func:`fit_stepper`.
-    :param projector: also fit the phase C projector, which replaces the search itself. Needs the
+    :param projector: also fit the projector, which replaces the search itself. Needs the
         stepper, because the ``Full`` mode runs both -- the projector answers a search and the
         stepper carries that answer to the next one.
     :param projector_sigma: how far the projector's training queries are displaced; see
@@ -432,7 +432,7 @@ def train(data_dir: str,
           f"character velocity {summary['character_velocity']:.4f}, latent "
           f"{summary['latent_regularisation']:.4f}")
     print(f"[LMM] latent: a linear model predicts its step from (X, Z) with held-out R^2 "
-          f"{summary['latent_step_predictability']:+.3f} -- the lower bound on what a phase B "
+          f"{summary['latent_step_predictability']:+.3f} -- the lower bound on what a "
           f"stepper could learn. It moves {summary['latent_step_share'] * 100:.1f}% of its own "
           f"spread per frame, and linear extrapolation scores "
           f"{summary['latent_extrapolation_share'] * 100:.0f}% of holding still")
@@ -450,7 +450,7 @@ def train(data_dir: str,
 
 
 def _log_stepper(summary: dict) -> None:
-    """The phase B lines of a training log: what was fitted, and how far it wanders."""
+    """The stepper's lines of a training log: what was fitted, and how far it wanders."""
     stopped = 'stopped early' if summary['stepper_stopped_early'] else 'ran to the limit'
     print(f"[LMM] stepper: {summary['stepper_parameters']} parameters over "
           f"{summary['stepper_train_windows']}/{summary['stepper_windows']} windows of "
@@ -477,9 +477,9 @@ def refit_stepper(checkpoint_path: str, data_dir: str, db_name: str,
     paying half an hour for nothing.
 
     It reads the ``.mmfeatures`` alone and not the ``.mmpose`` beside it. Everything else it needs
-    is in the checkpoint: ``latent_valid`` is exactly the frame mask phase A derived from the clip
-    ranges, so there is no second definition of which frames carry a latent for the two to disagree
-    about -- and it saves reading three hundred megabytes of poses that nothing here looks at.
+    is in the checkpoint: ``latent_valid`` is exactly the frame mask the autoencoder derived from
+    the clip ranges, so there is no second definition of which frames carry a latent for the two to
+    disagree about -- and it saves reading three hundred megabytes of poses that nothing here looks at.
 
     :param out_path: where to write; the checkpoint is overwritten in place when this is None.
     :param options: passed to :func:`fit_stepper`.
@@ -541,8 +541,8 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     """
     Fit the stepper against latents that are already fixed, and measure how far it drifts.
 
-    **The latents are an input, never a parameter.** Phase A's compressor is not merely frozen
-    here, it does not run at all: the stepper is fitted against the table baked into the
+    **The latents are an input, never a parameter.** The autoencoder's compressor is not merely
+    frozen here, it does not run at all: the stepper is fitted against the table baked into the
     checkpoint. Letting the two train together would give the pair a much cheaper way to make the
     latent steppable than learning to step it -- make it constant -- which is latent collapse
     arriving through the back door.
@@ -734,7 +734,7 @@ def _stepper_drift(stepper, state, rate_mean, rate_std, latent_exists: np.ndarra
     Reported in units of each half's own spread, so ``0.25`` means the state is a quarter of a
     standard deviation from where the database says it should be. Free-running is the only honest
     measurement: a stepper scored one frame at a time from true states never has to live with its
-    own error, and compounding error is the failure mode phase B exists to bound.
+    own error, and compounding error is the failure mode the stepper exists to bound.
 
     Measured on runs starting at or after ``first_held_out``, which is the same contiguous tail the
     fit validated on -- a run the stepper trained over would be reporting memorisation.
@@ -773,7 +773,7 @@ def _stepper_drift(stepper, state, rate_mean, rate_std, latent_exists: np.ndarra
 
 
 def _log_projector(summary: dict) -> None:
-    """The phase C lines of a training log: what was fitted, and how near it gets."""
+    """The projector's lines of a training log: what was fitted, and how near it gets."""
     stopped = 'stopped early' if summary['projector_stopped_early'] else 'ran to the limit'
     print(f"[LMM] projector: {summary['projector_parameters']} parameters over "
           f"{summary['projector_train_queries']}/{summary['projector_queries']} query frames in "
@@ -1176,17 +1176,17 @@ def _latent_diagnostics(decompressor, x_t, y_t, y_mean, y_std, latents: np.ndarr
                         latent_exists: np.ndarray, validation_pairs: np.ndarray,
                         pose_layout, device) -> dict:
     """
-    Whether the latent is carrying anything, and whether phase B will be able to advance it.
+    Whether the latent is carrying anything, and whether a stepper will be able to advance it.
 
     The gate is not the ablation ratio. A decompressor handed ``X`` alone already places most of the
     body, because ``X`` holds both feet, their velocities and the hips -- so that ratio mostly
     measures how informative the query is, and a modest one is not evidence that ``Z`` is empty.
 
-    What phase B needs is a latent a small network can *advance*, which is a question about how
+    What the stepper needs is a latent a small network can *advance*, which is a question about how
     **predictable** the latent's step is, not about how slow it is. ``latent_step_predictability``
     asks it directly: the held-out R-squared of a ridge regression from ``(X, Z)`` to ``Z' - Z``,
     which is the linear lower bound on what a stepper could learn. A negative or near-zero value
-    means there is no function there to fit and phase B cannot work; a high one means it can.
+    means there is no function there to fit and the stepper cannot work; a high one means it can.
 
     Two cheaper numbers sit beside it and neither may be read on its own, because both reward a
     latent that has simply gone quiet:
@@ -1259,7 +1259,7 @@ def _step_predictability(x_t, latents: np.ndarray, latent_exists: np.ndarray) ->
     """
     Held-out R-squared of a ridge regression from ``(X, Z)`` to the latent's next step.
 
-    The linear lower bound on what the phase B stepper could learn, and the only diagnostic here
+    The linear lower bound on what the stepper could learn, and the only diagnostic here
     that a latent cannot improve by going quiet -- R-squared is scored against that latent's own
     variance, so shrinking the steps shrinks the target too.
 

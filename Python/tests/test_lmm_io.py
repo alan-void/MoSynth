@@ -184,8 +184,9 @@ class StagesTrainedTests(unittest.TestCase):
 
 class CheckpointArgumentTests(unittest.TestCase):
     """
-    Rewriting a file from what was loaded out of it. Phase B's refit does exactly this, and the
-    failure it guards against is a field silently lost rather than an error.
+    Rewriting a file from what was loaded out of it. Fitting the stepper onto an existing
+    checkpoint does exactly this, and the failure it guards against is a field silently lost
+    rather than an error.
     """
 
     def setUp(self):
@@ -249,7 +250,7 @@ class CheckpointArgumentTests(unittest.TestCase):
                                   'total', 'validation'))
         lmm_io.save_checkpoint(self.path, **arguments)
 
-        # Phase C's refit: read back what phase B wrote and add one network to it.
+        # Fitting the projector: read back what the stepper wrote and add one network to it.
         arguments = lmm_io.checkpoint_arguments(lmm_io.load_checkpoint(self.path))
         arguments.update(projector_weights=projector[0], projector_biases=projector[1],
                          projector_losses=[(0.1, 0.4, 0.05, 0.55, 0.6)],

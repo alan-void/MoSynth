@@ -133,7 +133,7 @@ class Compressor(Mlp):
     Encodes a pose, in both the spaces it is measured in, into a latent.
 
     Kept in the checkpoint and never run at inference -- the latents it produced are baked, and
-    phase C's projector replaces it outright. It is stored so a bake can be reproduced and so the
+    the projector replaces it outright. It is stored so a bake can be reproduced and so the
     latent diagnostics can be re-run against the model that caused them.
     """
 
@@ -158,9 +158,9 @@ class Decompressor(Mlp):
     """
     Reconstructs a pose from a matching feature vector and a latent.
 
-    This is the network that replaces reading a pose out of the database, and the only one phase A
-    needs at runtime. Its ``X`` half is the same query the classic matcher searches with, which is
-    what keeps the two methods comparable on identical data.
+    This is the network that replaces reading a pose out of the database, and the only one the
+    decompressor-only mode needs at runtime. Its ``X`` half is the same query the classic matcher
+    searches with, which is what keeps the two methods comparable on identical data.
     """
 
     def __init__(self, feature_size: int, latent_size: int, pose_size: int,

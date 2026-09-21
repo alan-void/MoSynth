@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ab6366a49793913686c91e7c316a5905e7b0b077451e54602ef65f5ead84d761",
+  "pageVersion": "sha256:519970d9a4c256827d14ad7f5f59ce4079fef40eff5eb34a5dde55b1c9732973",
   "claims": [
     {
       "id": "claim_5ab2b837fa1646a0bae373cf9500313d",
@@ -26,7 +26,7 @@
         },
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+          "version": "repo-file-v1:sha256:a5141ca8ca4129f2649f7b039e05d9b389b8d0482b19c758fcf4e044a0db928a"
         }
       ]
     },
@@ -36,7 +36,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         }
       ]
     },
@@ -46,7 +46,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:9cc64b4b31b2c5b8c23b5c08daffaee0f7eadd8384aecbdd0254c58e4d6aa00e"
+          "version": "repo-file-v1:sha256:80be553844d9b704e08cf85ea83f7cce067875ce62fb982da42a6ed8b1caaef1"
         }
       ]
     },
@@ -84,11 +84,11 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+          "version": "repo-file-v1:sha256:a5141ca8ca4129f2649f7b039e05d9b389b8d0482b19c758fcf4e044a0db928a"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+          "version": "repo-file-v1:sha256:996d3e7270e93e662f3b6b12d5200dbbf8694607f66d49e4a92d9cf41c4ea79c"
         }
       ]
     },
@@ -98,7 +98,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_io.py",
-          "version": "repo-file-v1:sha256:68ef2b64e687afa3d65bd3d36d7f0efc3577d7f8121cac4fd0b07ec436e9e3e8"
+          "version": "repo-file-v1:sha256:393f649ecba0efa98b2e4f9253f684dd5b7e4a23da171e687b76a2085bb7050d"
         }
       ]
     },
@@ -108,7 +108,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+          "version": "repo-file-v1:sha256:a5141ca8ca4129f2649f7b039e05d9b389b8d0482b19c758fcf4e044a0db928a"
         },
         {
           "resource": "repo://Assets/Pfnn/PfnnStage.cs",
@@ -122,11 +122,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         },
         {
           "resource": "repo://Python/lmm_model.py",
-          "version": "repo-file-v1:sha256:9bd2f66ac5a901d7449b86fc25acb7f1018eda1cb85a4f6a49c3b19848f1f95a"
+          "version": "repo-file-v1:sha256:729645a880c068540c1f4b87723d4c3dd86d2a641002924cc1513a8f05beb922"
         }
       ]
     },
@@ -136,7 +136,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+          "version": "repo-file-v1:sha256:a5141ca8ca4129f2649f7b039e05d9b389b8d0482b19c758fcf4e044a0db928a"
         },
         {
           "resource": "repo://Python/lmm_fk.py",
@@ -150,11 +150,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         },
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         }
       ]
     },
@@ -164,11 +164,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         },
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         }
       ]
     },
@@ -178,7 +178,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         }
       ]
     },
@@ -188,7 +188,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         }
       ]
     },
@@ -198,7 +198,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         }
       ]
     },
@@ -208,11 +208,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         },
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:9cc64b4b31b2c5b8c23b5c08daffaee0f7eadd8384aecbdd0254c58e4d6aa00e"
+          "version": "repo-file-v1:sha256:80be553844d9b704e08cf85ea83f7cce067875ce62fb982da42a6ed8b1caaef1"
         }
       ]
     },
@@ -222,21 +222,21 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         },
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:9cc64b4b31b2c5b8c23b5c08daffaee0f7eadd8384aecbdd0254c58e4d6aa00e"
+          "version": "repo-file-v1:sha256:80be553844d9b704e08cf85ea83f7cce067875ce62fb982da42a6ed8b1caaef1"
         }
       ]
     },
     {
       "id": "claim_990cba9936ab4d79859177577f8f5ba0",
-      "statement": "The phase B stepper is fitted against latents the compressor has already baked and never runs the compressor at all, which removes the option of making the latent steppable by making it constant rather than merely penalising it.",
+      "statement": "The stepper is fitted against latents the compressor has already baked and never runs the compressor at all, which removes the option of making the latent steppable by making it constant rather than merely penalising it.",
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         }
       ]
     },
@@ -246,11 +246,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         },
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         }
       ]
     },
@@ -260,15 +260,15 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_model.py",
-          "version": "repo-file-v1:sha256:9bd2f66ac5a901d7449b86fc25acb7f1018eda1cb85a4f6a49c3b19848f1f95a"
+          "version": "repo-file-v1:sha256:729645a880c068540c1f4b87723d4c3dd86d2a641002924cc1513a8f05beb922"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+          "version": "repo-file-v1:sha256:996d3e7270e93e662f3b6b12d5200dbbf8694607f66d49e4a92d9cf41c4ea79c"
         },
         {
           "resource": "repo://Python/lmm_io.py",
-          "version": "repo-file-v1:sha256:68ef2b64e687afa3d65bd3d36d7f0efc3577d7f8121cac4fd0b07ec436e9e3e8"
+          "version": "repo-file-v1:sha256:393f649ecba0efa98b2e4f9253f684dd5b7e4a23da171e687b76a2085bb7050d"
         }
       ]
     },
@@ -278,11 +278,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         },
         {
           "resource": "repo://Assets/Lmm/LmmConfig.cs",
-          "version": "repo-file-v1:sha256:9cc64b4b31b2c5b8c23b5c08daffaee0f7eadd8384aecbdd0254c58e4d6aa00e"
+          "version": "repo-file-v1:sha256:80be553844d9b704e08cf85ea83f7cce067875ce62fb982da42a6ed8b1caaef1"
         }
       ]
     },
@@ -292,11 +292,11 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+          "version": "repo-file-v1:sha256:a5141ca8ca4129f2649f7b039e05d9b389b8d0482b19c758fcf4e044a0db928a"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+          "version": "repo-file-v1:sha256:996d3e7270e93e662f3b6b12d5200dbbf8694607f66d49e4a92d9cf41c4ea79c"
         }
       ]
     },
@@ -306,11 +306,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         },
         {
           "resource": "repo://Python/lmm_io.py",
-          "version": "repo-file-v1:sha256:68ef2b64e687afa3d65bd3d36d7f0efc3577d7f8121cac4fd0b07ec436e9e3e8"
+          "version": "repo-file-v1:sha256:393f649ecba0efa98b2e4f9253f684dd5b7e4a23da171e687b76a2085bb7050d"
         },
         {
           "resource": "repo://Assets/Lmm/Editor/LmmTraining.cs",
@@ -324,7 +324,7 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+          "version": "repo-file-v1:sha256:996d3e7270e93e662f3b6b12d5200dbbf8694607f66d49e4a92d9cf41c4ea79c"
         },
         {
           "resource": "repo://Assets/Lmm/Editor/LmmAgreementCheck.cs",
@@ -338,11 +338,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         },
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         }
       ]
     },
@@ -352,11 +352,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         },
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         }
       ]
     },
@@ -366,11 +366,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         },
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         }
       ]
     },
@@ -380,11 +380,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         },
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         }
       ]
     },
@@ -394,11 +394,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+          "version": "repo-file-v1:sha256:996d3e7270e93e662f3b6b12d5200dbbf8694607f66d49e4a92d9cf41c4ea79c"
         },
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         }
       ]
     },
@@ -408,11 +408,11 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+          "version": "repo-file-v1:sha256:a5141ca8ca4129f2649f7b039e05d9b389b8d0482b19c758fcf4e044a0db928a"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+          "version": "repo-file-v1:sha256:996d3e7270e93e662f3b6b12d5200dbbf8694607f66d49e4a92d9cf41c4ea79c"
         }
       ]
     },
@@ -422,7 +422,7 @@
       "evidence": [
         {
           "resource": "repo://Assets/Lmm/LmmStage.cs",
-          "version": "repo-file-v1:sha256:b70f8a6f9964c0fca4fe466dd4685d25a2e5a79f49139aceda34c8296fad5774"
+          "version": "repo-file-v1:sha256:a5141ca8ca4129f2649f7b039e05d9b389b8d0482b19c758fcf4e044a0db928a"
         },
         {
           "resource": "repo://Assets/MotionMatching/Runtime/Core/MotionSynthesisComponentExtensions.cs",
@@ -436,11 +436,11 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_io.py",
-          "version": "repo-file-v1:sha256:68ef2b64e687afa3d65bd3d36d7f0efc3577d7f8121cac4fd0b07ec436e9e3e8"
+          "version": "repo-file-v1:sha256:393f649ecba0efa98b2e4f9253f684dd5b7e4a23da171e687b76a2085bb7050d"
         },
         {
           "resource": "repo://Python/lmm_trainer.py",
-          "version": "repo-file-v1:sha256:8e01d9dc386f2bcc056473cab36b08509ffe876a9e73ec123f474c2fa4e98a07"
+          "version": "repo-file-v1:sha256:8e36a4d69cae641591f0301ec6dcc84a4e2f708e8c8dab27e379aad23f3a406b"
         }
       ]
     },
@@ -450,17 +450,17 @@
       "evidence": [
         {
           "resource": "repo://Python/lmm_dataset.py",
-          "version": "repo-file-v1:sha256:05df28c267742478e903336ae907a6e33f08f71236e83ff4d75561561f42d9f5"
+          "version": "repo-file-v1:sha256:3a737eb3933c1b96dcac3566a2f6a0200c2d5409907b7a8db61f8dbd63bef0c3"
         },
         {
           "resource": "repo://Python/lmm_runtime.py",
-          "version": "repo-file-v1:sha256:6848e8ad867034c6d6aee1df4f5a0aac60744b34b96e763fa8fcc78d33832fb4"
+          "version": "repo-file-v1:sha256:996d3e7270e93e662f3b6b12d5200dbbf8694607f66d49e4a92d9cf41c4ea79c"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-09-21T14:54:36.568Z"
+    "at": "2026-09-21T18:19:24.204Z"
   }
 }

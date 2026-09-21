@@ -20,7 +20,7 @@ Four vectors, and the whole method is in how they relate:
 ``Z`` comes from one frame in *two spaces*, not from two frames. The paper's Algorithm 1 is
 ``Z <- C([Y Q])``, and its stated reason is that the compressor "was able to copy features directly
 to the latent space if it found them useful". Temporal structure in the latent comes from the
-velocity regulariser instead, which is what leaves it steppable in phase B.
+velocity regulariser instead, which is what leaves it steppable for the stepper.
 
 A frame still only has a latent when its successor is in the same clip -- see :func:`compressible`.
 The pair is what the velocity terms of the loss are differenced over, and sampling across a clip
@@ -120,7 +120,7 @@ CHARACTER_RATE_WEIGHTS = {'positions': 2.0, 'rotations_6d': 0.75}
 # against the per-frame delta it would be easy to write by mistake.
 #
 # w_vreg is the one number here worth tuning, and the trainer takes it as an argument for that
-# reason. It decides whether the latent evolves smoothly enough for the phase B stepper to advance,
+# reason. It decides whether the latent evolves smoothly enough for the stepper to advance,
 # and the two magnitude terms work against it: both shrink |Z|, which shrinks the absolute step
 # this penalises, while the *relative* step -- the thing that actually decides steppability -- is
 # not penalised by any of the three. So the equilibrium is data-dependent in a way the other
@@ -174,7 +174,7 @@ PROJECTOR_NOISE_FLOOR = 1.0
 #
 # One scale for the whole vector rather than a separate, smaller one for the pose half. The halves
 # do arrive with different errors -- the trajectory half is whatever the controller asks for, while
-# the pose half is the stepper's own state -- but phase B measured that state drifting 0.258 of X's
+# the pose half is the stepper's own state -- but that state was measured drifting 0.258 of X's
 # spread over the ten frames between searches, which is comfortably inside the range this already
 # covers. A second scale would be a knob with nothing behind it.
 PROJECTOR_SIGMA = 1.0
@@ -185,7 +185,7 @@ PROJECTOR_SIGMA = 1.0
 NEAREST_NEIGHBOUR_CHUNK = 16384
 
 # Free-run lengths the stepper's drift is reported at, in database frames. Ten is the one that
-# decides whether phase B works: the stage searches every `searchInterval` seconds, 10/60 by
+# decides whether the stepper works: the stage searches every `searchInterval` seconds, 10/60 by
 # default, so ten frames is how long the state has to survive uncorrected. Thirty is there to show
 # whether it degrades past that cadence or explodes.
 DRIFT_HORIZONS = (5, 10, 20, 30)
@@ -357,7 +357,7 @@ def stepper_windows(training_set: TrainingSet,
     """
     (m,) frame indices ``i`` where every frame of ``i .. i + window`` carries a latent.
 
-    The starts of the unrolled runs the phase B stepper trains on. **No window crosses a clip
+    The starts of the unrolled runs the stepper trains on. **No window crosses a clip
     boundary**, and that falls out of :func:`compressible` rather than being checked again here: a
     frame only has a latent when its successor is in the same clip, so ``window + 1`` consecutive
     latents are ``window + 1`` consecutive frames of one animation. Training across a cut would
@@ -397,7 +397,7 @@ def build_vectors(training_set: TrainingSet, spec: LmmSpec):
     Pack the whole database once, as the arrays training indexes into.
 
     Everything is returned per database frame rather than per sample, because the autoencoder,
-    the latent bake and the phase B stepper all index the same frames differently and copying a
+    the latent bake and the stepper all index the same frames differently and copying a
     gathered subset for each would cost more than the gather.
 
     :return: ``(x (n, feature_size), y (n, pose_size), q (n, character_size),

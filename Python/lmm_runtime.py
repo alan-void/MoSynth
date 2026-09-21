@@ -7,12 +7,12 @@ whole pose, while the character's state -- which feature vector it is holding, w
 on the C# side, where the profiler and the inspector can see it and a benchmark run can reset it
 without reaching across the boundary.
 
-**The latent table stays in Python.** Phase A's runtime mode reads a latent per tick by database
-frame, and that lookup is free on this side of the boundary while marshalling a 200 000-row table
-across it at startup is not. So the stage passes a frame index and gets a pose back, in the one
-call it was already making. Once the stepper is running the latent is no longer one of the baked
-rows, so the stage carries it and :meth:`LmmPolicy.tick` takes it back -- advancing the state and
-decompressing it in the one call, because they always happen together.
+**The latent table stays in Python.** The ``DecompressorOnly`` runtime mode reads a latent per tick
+by database frame, and that lookup is free on this side of the boundary while marshalling a
+200 000-row table across it at startup is not. So the stage passes a frame index and gets a pose
+back, in the one call it was already making. Once the stepper is running the latent is no longer
+one of the baked rows, so the stage carries it and :meth:`LmmPolicy.tick` takes it back --
+advancing the state and decompressing it in the one call, because they always happen together.
 
 Forward kinematics is the caller's job, as it is for the PFNN: the network predicts **joint-local**
 rotations, and the authority on the rest offsets that turn those into a posed character is the rig.
@@ -88,7 +88,7 @@ class LmmPolicy:
         self._y_std = checkpoint.y_std
         self._latents = checkpoint.latents
 
-        # The two halves of the state, concatenated once: what the phase C projector's answer is
+        # The two halves of the state, concatenated once: what the projector's answer is
         # denormalised against. It regresses the state itself, so these are the statistics the
         # checkpoint already carries rather than a second set to keep in step with the first.
         self._state_mean = torch.from_numpy(
@@ -106,7 +106,7 @@ class LmmPolicy:
 
     def _load_stepper(self, checkpoint) -> None:
         """
-        The phase B network, and the statistics that turn its answer back into real rates.
+        The stepper network, and the statistics that turn its answer back into real rates.
 
         Refused rather than loaded half-built if the rate statistics are missing: a stepper whose
         output is left normalised would advance the state by roughly the right shape at entirely
@@ -127,7 +127,7 @@ class LmmPolicy:
         self._rate_std = torch.from_numpy(checkpoint.xz_rate_std).to(self.device)
 
     def _load_projector(self, checkpoint) -> None:
-        """The phase C network, which answers a query with a state instead of finding one."""
+        """The projector network, which answers a query with a state instead of finding one."""
         self.projector = Projector(
             checkpoint.feature_size, checkpoint.latent_size,
             hidden_units=checkpoint.projector_weights[0].shape[0],
@@ -205,8 +205,8 @@ class LmmPolicy:
         """
         Reconstruct a pose from a query vector and the latent baked for one database frame.
 
-        The phase A path: the stage decides which frame it is holding and this looks the latent up,
-        so nothing but the query and the pose crosses the boundary per tick.
+        The ``DecompressorOnly`` path: the stage decides which frame it is holding and this looks
+        the latent up, so nothing but the query and the pose crosses the boundary per tick.
 
         :param features: the matching feature vector, normalised exactly as the database is -- i.e.
             what ``MotionMatchingStage.FillQueryVector`` produces.
@@ -218,8 +218,8 @@ class LmmPolicy:
         """
         Reconstruct a pose from a query vector and an arbitrary latent.
 
-        The general entry point, used by the ablation diagnostics now and by the phase B stepper
-        later, when the latent the stage carries is no longer one of the baked rows.
+        The general entry point, used by the ablation diagnostics now and by the stepper later,
+        when the latent the stage carries is no longer one of the baked rows.
 
         :return: ``pose_size`` floats, in the order :meth:`pose_blocks` declares.
         """
@@ -245,7 +245,7 @@ class LmmPolicy:
         """
         Advance the state by one synthesis tick and reconstruct the pose it now describes.
 
-        The phase B path, and one boundary crossing rather than two: the stepper's answer is only
+        The stepper's path, and one boundary crossing rather than two: its answer is only
         ever wanted as the decompressor's input, so splitting them would marshal a sixty-five-float
         state across for no reason.
 
@@ -289,7 +289,7 @@ class LmmPolicy:
                 z[0].cpu().numpy().astype(np.float32).tolist())
 
     def has_stepper(self) -> bool:
-        """Whether this checkpoint can advance a state; the phase B modes refuse one that cannot."""
+        """Whether this checkpoint can advance a state; the stepper-based modes refuse one that cannot."""
         return self.stepper is not None
 
     def has_projector(self) -> bool:
@@ -298,7 +298,7 @@ class LmmPolicy:
 
     def project(self, features):
         """
-        Answer a query with a state the database could have held -- the phase C search tick.
+        Answer a query with a state the database could have held -- the projector's search tick.
 
         Kept separate from :meth:`tick` rather than folded into it, because it runs on search ticks
         only and because **the accept decision stays in C#**, where the authored feature weights
@@ -346,7 +346,7 @@ class LmmPolicy:
                 z * self._state_std[size:] + self._state_mean[size:])
 
     def latent(self, frame: int) -> list:
-        """One baked latent, for diagnostics and for seeding the phase B stepper."""
+        """One baked latent, for diagnostics and for seeding the stepper."""
         return self._latents[frame].astype(np.float32).tolist()
 
     def _as_state(self, features, latent):
@@ -409,8 +409,8 @@ def reconstruction_report(policy: LmmPolicy, training_set, frames: int = 0,
     """
     Score a checkpoint against the database it was trained on, in metres rather than loss units.
 
-    This is the honest test of phase A. The training loss is computed on weighted blocks in mixed
-    units, which makes it comparable between runs and comparable to nothing else -- it cannot say
+    This is the honest test of the decompressor. The training loss is computed on weighted blocks
+    in mixed units, which makes it comparable between runs and comparable to nothing else -- it cannot say
     whether a foot is a centimetre or a hand's breadth out of place.
 
     Joint positions come from **forward kinematics of the predicted rotations**, which is the only
@@ -524,7 +524,7 @@ def rollout_report(policy: LmmPolicy, training_set, seeds: int = 512,
     """
     Free-run the stepper from held-out database states and measure how far it has wandered.
 
-    This is the honest test of phase A: the stepper is asked to advance a state it produced itself,
+    This is the honest test of the stepper: it is asked to advance a state it produced itself,
     over and over, with nothing correcting it. Scored one frame at a time from true states it would
     look far better and mean far less, because the failure mode is compounding error and a
     single-step score cannot see compounding.
@@ -534,10 +534,10 @@ def rollout_report(policy: LmmPolicy, training_set, seeds: int = 512,
     on its own. The **joint error** is what that drift does to the character, in metres, after
     decompressing the drifted state and running forward kinematics on it.
 
-    Ten frames is the horizon that decides whether phase B works, because the stage searches every
-    ``searchInterval`` seconds -- 10/60 by default, which is ten database frames at 60 Hz. Beyond
-    that the numbers say whether the model degrades or explodes, which is a different question and
-    one the ``Full`` mode of phase C will ask again with a longer cadence.
+    Ten frames is the horizon that decides whether the stepper works, because the stage searches
+    every ``searchInterval`` seconds -- 10/60 by default, which is ten database frames at 60 Hz.
+    Beyond that the numbers say whether the model degrades or explodes, which is a different
+    question and one the ``Full`` mode's projector will ask again with a longer cadence.
 
     :param seeds: how many states to run from, evenly spread over the scored region.
     :param holdout: run only from the last fraction of the eligible starts, which is the tail the
@@ -604,8 +604,8 @@ def projector_report(policy: LmmPolicy, training_set, queries: int = 2048,
     """
     Score the projector against the search it replaces, on queries no frame answers exactly.
 
-    This is the honest test of phase C, and the reason it has to be its own report: the training
-    loss falls steadily whether or not the answers are the ones the search would have given. What
+    This is the honest test of the projector, and the reason it has to be its own report: the
+    training loss falls steadily whether or not the answers are the ones the search would have given. What
     matters is the comparison against the lookup itself -- see
     :func:`lmm_dataset.recall_against_search` for what each number means.
 
@@ -683,8 +683,8 @@ def full_rollout_report(policy: LmmPolicy, training_set, seeds: int = 256, frame
     Projector, stepper and decompressor together, in the loop ``LmmStage`` runs in its ``Full``
     mode: every ``search_interval`` frames the query is answered by the projector and taken only if
     it is nearer than the state already held, and in between the stepper carries that state
-    forward. Nothing reads the database. **This is the only honest test of phase C**, because every
-    per-frame score the three networks produce stays plausible long after the loop as a whole has
+    forward. Nothing reads the database. **This is the only honest test of the projector**, because
+    every per-frame score the three networks produce stays plausible long after the loop as a whole has
     stopped producing motion.
 
     The controller is held still: each seed goes on asking for the trajectory its own frame asked

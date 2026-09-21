@@ -40,10 +40,10 @@ sources:
     resource: repo://Python/lmm_trainer.py
   - id: openwiki-source-58d35cd9c30979b2ff43e031
     resource: repo://Python/training_data.py
-generated: {by: "claude-code", at: "2026-09-21T14:47:08.791Z"}
+generated: {by: "claude-code", at: "2026-09-21T18:19:24.204Z"}
 verified:
   - by: openwiki/0.3.3
-    at: 2026-09-21T14:54:36.568Z
+    at: 2026-09-21T18:19:24.204Z
 ---
 
 # Learned motion matching
@@ -183,9 +183,10 @@ a small weighting to regularization losses". They come from the author's release
 `w_vreg` looks tiny beside the others because it multiplies a *per-second* derivative: a factor of
 sixty against the per-frame delta it would be easy to write instead.
 
-**The velocity regulariser is what makes phase B possible at all.** Nothing else makes `Z` continuous
-in time, and without it phase A looks perfect while the stepper is unlearnable — a failure you
-discover a phase late.
+**The velocity regulariser is what makes the stepper trainable at all.** Nothing else makes `Z`
+continuous in time, and without it the autoencoder looks perfect while the stepper is unlearnable —
+a failure that only surfaces once stepper training starts, well after the autoencoder looks
+finished.
 
 ### Normalisation: once for `X`, per-block for `Y` and `Q`
 
@@ -229,13 +230,13 @@ other two are here because they look like measurements of it, and are not.
 
 #### The one that counts: can the latent's step be predicted?
 
-Phase B's stepper advances `(X, Z)` one frame at a time, so what it needs is for `Z' − Z` to be a
+The stepper advances `(X, Z)` one frame at a time, so what it needs is for `Z' − Z` to be a
 *function* of `(X, Z)`. `latent_step_predictability` asks exactly that: the held-out R² of a ridge
 regression from `(X, Z)` to the next step. It is the **linear lower bound** on what a 512×2 network
 could learn — a nonlinear stepper will do better, but not arbitrarily better.
 
 Measured on Edinburgh: **R² = +0.173.** A linear model explains 17% of the step's variance. That is
-a weak foundation, and it was the honest advance warning about phase B — one that
+a weak foundation, and it was the honest advance warning about the stepper — one that
 [the fitted stepper bore out](#the-stepper-is-measured-by-free-running-it-and-nothing-else-will-do),
 missing its drift bar at the search cadence.
 
@@ -317,7 +318,7 @@ stepper is fitted against the latent table already baked into the checkpoint.
 
 The failure this rules out is subtle. Train the two together and the pair has a far cheaper route to
 a steppable latent than learning to step it: make the latent constant. Reconstruction would pay for
-that, but not by enough, and the symptom is a phase B that looks like it worked. Taking the latents
+that, but not by enough, and the symptom is a stepper that looks like it worked. Taking the latents
 as a fixed input removes the option rather than penalising it.
 
 It is also why `refit_stepper` exists as a separate entry point — *Fit Stepper Only* on the config,
@@ -325,7 +326,7 @@ or `lmm_trainer.py --stepper-only`. The autoencoder is the half-hour half and th
 against what it already produced, so trying a different window or a longer schedule need not pay for
 it again. That path reads the `.mmfeatures` alone and not the three hundred megabytes of `.mmpose`
 beside it: everything else it needs is in the checkpoint, and `latent_valid` is *exactly* the frame
-mask phase A derived, so there is no second definition of which frames carry a latent for the two to
+mask the autoencoder derived, so there is no second definition of which frames carry a latent for the two to
 disagree about.
 
 ### Unrolled, never single-step
@@ -399,7 +400,7 @@ only slow. The autoencoder has no such knob because patience would never fire.
 | 128 | 33 k | 4,000 | 6.1008 | 0.299 / 0.386 |
 | 64 | 13 k | 9,000 | 6.3173 | 0.337 / 0.401 |
 
-So the early overfit is the same wall phase A hit, arriving sooner. The autoencoder sees 108,265
+So the early overfit is the same wall the autoencoder hit, arriving sooner. The autoencoder sees 108,265
 independent frames; the stepper sees windows that overlap by nineteen frames out of twenty, so its
 genuinely independent content is nearer 5,400 trajectories — and it memorises them in two thousand
 steps.
@@ -434,7 +435,7 @@ uniform metric approximates a search nobody runs, and the comparison against the
 then quietly measuring two different things. The stage refuses a checkpoint whose weights no longer
 match the config's.
 
-### One noise scale, and phase B is why there is not a second
+### One noise scale, and the stepper is why there is not a second
 
 Each feature is displaced by its own spread plus one, scaled by a per-sample `sigma` drawn uniformly
 over `[0, projectorNoise]`. Two decisions there:
@@ -451,7 +452,7 @@ over `[0, projectorNoise]`. Two decisions there:
 An earlier design had **two** scales, a wide one for the trajectory half and a narrow one for the
 pose half, on the argument that their runtime errors have different characters: the trajectory half
 is whatever the controller wants, while the pose half is the stepper's own drifting state. The
-argument is sound and the second scale is still unnecessary, because phase B measured the quantity
+argument is sound and the second scale is still unnecessary, because fitting the stepper measured the quantity
 it was guessing at. The stepper drifts **0.258 of `X`'s spread** over the ten frames between
 searches, which sits comfortably inside the range one uniform scale already covers. The measurement
 retired the knob rather than setting it.
@@ -474,8 +475,8 @@ compares: it takes the projection only when it is nearer the query than the stat
 projector that is close in `X` but systematically wrong about *how* close would bend every accept
 decision on the tick path in the same direction, and nothing downstream could see it happening.
 
-The latents are an input and never a parameter, for the reason they are in phase B: fitting them
-alongside would offer a cheaper route to an easily projected latent than learning to project it.
+The latents are an input and never a parameter, for the same reason as in stepper training: fitting
+them alongside would offer a cheaper route to an easily projected latent than learning to project it.
 
 ### What it costs, and when it stops
 
@@ -530,11 +531,11 @@ whole basis of the comparison, and it is why `LmmConfig` is not an `IPoseSetSour
 `PfnnConfig` and `MotionFieldConfig` are.
 
 It also owns the **search weights**, which is the opposite of `MotionMatchingStage`, where they live
-on the stage. Training has to see them: the phase C projector learns to approximate a
+on the stage. Training has to see them: the projector learns to approximate a
 nearest-neighbour lookup under a particular metric, and one fitted against uniform weights would
 approximate a search nobody runs. They go into the checkpoint and `LmmStage` refuses a checkpoint
-whose weights no longer match — checked from phase A, so the answer is never "it worked until we
-turned the projector on".
+whose weights no longer match — checked from the decompressor-only mode onward, so the answer is
+never "it worked until we turned the projector on".
 
 The artefact is one file, `StreamingAssets/Lmm/<name>/<name>.lmm.npz`: every network's parameters,
 the normalisation, the baked latents, and a full description of the packing. Unversioned, per the
@@ -636,8 +637,8 @@ exactly the startup time and the memory the mode exists to remove.
 
 The `MotionMatchingData` asset is still referenced, and that is worth stating plainly rather than
 claiming a saving that has not been made: the control inputs read its trajectory horizons for their
-own prediction, and constructing a `FeatureSet` loads the `.mmpose` beside the `.mmfeatures`. Phase
-C removes the *search*, not the dependency.
+own prediction, and constructing a `FeatureSet` loads the `.mmpose` beside the `.mmfeatures`. `Full`
+mode removes the *search*, not the dependency.
 
 ### The accept rule, and the discontinuity flag
 
@@ -684,11 +685,11 @@ the gap between them is the point rather than an inconvenience.
 
 **The first is what `DecompressorOnly` actually exhibits.** In that mode the search returns a
 *database* frame, and the stage decompresses that frame's own `X` and its baked `Z` — a pair the
-decompressor saw in training. So phase A's runtime quality is the training-set number.
+decompressor saw in training. So `DecompressorOnly`'s runtime quality is the training-set number.
 
 **The second is what the later modes exhibit**, because a stepper and a projector synthesise
 `(X, Z)` pairs that are not database rows. A 2.6× gap between the two was the honest advance warning
-that they have less headroom than phase A suggests, and the stepper's measured 7.09 cm after a full
+that they have less headroom than the training-set number suggests, and the stepper's measured 7.09 cm after a full
 search interval of free running is that warning collected.
 
 For scale, the paper reports 1.4 cm mean with 1.1 cm std (§6.3). That is *their* accuracy on *their*
@@ -775,7 +776,7 @@ The **latent error** is the number that discriminates, and it is the one the pla
 include. At 0.6 of the latent's own spread the projector's latent is further from the true
 neighbour's than ten frames of free-running stepper drift (0.369). Part of that is the measure
 over-penalising — a query does not determine a latent uniquely, and several latents decode to much
-the same pose given the same `X` — but it is the weakest number phase C has, and it is the one that
+the same pose given the same `X` — but it is the weakest number the projector has, and it is the one that
 would move with more motion in the database.
 
 ### The full loop has to be free-run, and nothing else will do
@@ -818,7 +819,7 @@ derives the one the rig is posed in.
   neighbour's distance, which is the search itself within measurement, but its *latent* sits about
   0.6 of the latent spread from that neighbour's — further than ten frames of stepper drift. The
   full loop survives thirty seconds regardless, so this is a quality ceiling rather than a
-  stability problem, and it is the same data limit phases A and B both ran into.
+  stability problem, and it is the same data limit the autoencoder and the stepper both ran into.
 - **The top-1% recall bar is not discriminating on this database.** It reads 100% for a trained
   projector and 100% for a 400-iteration one alike. It is reported because it would catch a
   projector answering from the wrong neighbourhood entirely, not because passing it means anything.
@@ -836,10 +837,11 @@ derives the one the rig is posed in.
 - **The stepper misses its drift bar.** At the ten-frame search cadence it drifts 0.258 of `X`'s
   spread and 0.369 of `Z`'s, against a bar of 0.25 on both, and the character stands 7.09 cm from
   where the database says. It degrades rather than diverges, and the search corrects it every ten
-  frames, so `Stepper` mode is usable — but the margin phase C needs is not there yet. Phase A's
-  advance warning (a linear model predicts the latent's step with held-out R² of only +0.173) was
-  accurate, and the width sweep rules out the cheap explanation: this is data, not capacity.
-- **What would move it is more motion, not more training.** The same conclusion phase A reached, and
+  frames, so `Stepper` mode is usable — but the margin the projector needs is not there yet. The
+  autoencoder's advance warning (a linear model predicts the latent's step with held-out R² of only
+  +0.173) was accurate, and the width sweep rules out the cheap explanation: this is data, not
+  capacity.
+- **What would move it is more motion, not more training.** The same conclusion the autoencoder's training reached, and
   the stepper reaches it harder: its windows overlap by nineteen frames in twenty, so 62,757 windows
   carry nearer 5,400 trajectories' worth of independent content. LAFAN1 and Bandai-Namco sit on the
   same rig with longer clips.

@@ -28,14 +28,14 @@ public enum LmmMode
 
     /// <summary>
     /// Adds the stepper, which advances the state between searches so playback no longer walks the
-    /// database. Phase B.
+    /// database.
     /// </summary>
     Stepper,
 
     /// <summary>
     /// Adds the projector, which replaces the search itself: the query is answered with a state
     /// rather than looked up, so nothing walks the database and no acceleration structure is
-    /// built over it. Phase C, and the whole method.
+    /// built over it. This is the whole method.
     /// </summary>
     Full,
 }
@@ -62,7 +62,7 @@ public enum LmmMode
 /// query's own shape: the projector answers a search with a state instead of a frame, so the
 /// acceleration structure is never built. The asset is still referenced, because the control
 /// inputs read its trajectory horizons and <see cref="FeatureSet"/> loads the poses beside the
-/// features — phase C removes the search, not the dependency.
+/// features — the projector removes the search, not the dependency.
 /// </para>
 /// <para>
 /// <b>The controller's trajectory is never spliced into <c>X</c> between searches.</b> The stepper

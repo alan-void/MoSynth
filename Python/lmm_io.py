@@ -90,7 +90,7 @@ class LmmCheckpoint:
     losses: np.ndarray       # (epochs, len(loss_columns)) float32
     loss_columns: list
 
-    # Phase B and C. Present and empty until those phases train them.
+    # The stepper and the projector. Present and empty until each is trained.
     stepper_weights: list = field(default_factory=list)
     stepper_biases: list = field(default_factory=list)
     # (feature_size + latent_size,) standardisation of the per-second rate the stepper regresses.
@@ -195,7 +195,8 @@ def _add_loss_table(arrays: dict, prefix: str, rows, columns) -> None:
 
     columns = list(columns)
     # Not `rows or []`: a curve read back off a loaded checkpoint arrives as an ndarray, whose
-    # truth value raises. Phase C's refit passes phase B's curve straight through, so it does.
+    # truth value raises. Refitting the projector passes the stepper's curve straight through, so
+    # it does.
     rows = [] if rows is None else list(rows)
     arrays[f'{prefix}_losses'] = (
         np.ascontiguousarray(rows, dtype=np.float32).reshape(len(rows), -1) if len(rows)
@@ -360,9 +361,9 @@ def load_checkpoint(path: str, log=print):
                               if 'xz_rate_mean' in f else None),
                 xz_rate_std=(np.ascontiguousarray(f['xz_rate_std'], dtype=np.float32)
                              if 'xz_rate_std' in f else None),
-                # Read conditionally rather than as a required key, so a phase A checkpoint written
-                # before the stepper existed still loads -- it simply has no stepper, which
-                # `stages_trained` already says.
+                # Read conditionally rather than as a required key, so a decompressor-only
+                # checkpoint written before the stepper existed still loads -- it simply has no
+                # stepper, which `stages_trained` already says.
                 stepper_losses=(np.ascontiguousarray(f['stepper_losses'], dtype=np.float32)
                                 if 'stepper_losses' in f else None),
                 stepper_loss_columns=([str(name) for name in f['stepper_loss_columns']]
