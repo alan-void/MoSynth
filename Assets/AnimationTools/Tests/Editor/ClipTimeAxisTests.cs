@@ -52,10 +52,8 @@ public class ClipTimeAxisTests
     [Test]
     public void PrepareIgnoresAPlaceholderWidth()
     {
-        // A pane is laid out at a placeholder width before it is measured, and seeding the zoom from
-        // that once drew a whole clip into one pixel with no way back. The zoom floor is now
-        // absolute rather than "the clip must fit", so ignoring the placeholder is the only thing
-        // standing between that bug and the user.
+        // A pane is laid out at a placeholder width before it is measured; seeding the zoom from it
+        // would draw the whole clip into one pixel, and the absolute zoom floor would not undo that.
         var axis = new ClipTimeAxis();
         axis.Prepare(new Rect(0f, 0f, 1f, 60f), FrameCount);
         Assert.AreEqual(0f, axis.pixelsPerFrame, 1e-6f);

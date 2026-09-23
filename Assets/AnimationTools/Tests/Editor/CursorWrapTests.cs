@@ -8,10 +8,8 @@ namespace AnimationTools.Tests
 /// Where a panned cursor is sent when it leaves the panel it is panning.
 /// </summary>
 /// <remarks>
-/// The geometry is the whole of what can be tested here - moving the OS cursor is a native call, and
-/// whether the wrap looks right is a question for the running Editor. What this pins is that the jump
-/// is exactly one panel across, because the drag subtracts the same figure from the next event's
-/// delta and a mismatch shows up as a lurch mid-pan.
+/// Verifies the jump is exactly one panel across, since the drag subtracts the same figure from the
+/// next event's delta. Moving the OS cursor itself is a native call and is not tested.
 /// </remarks>
 public class CursorWrapTests
 {

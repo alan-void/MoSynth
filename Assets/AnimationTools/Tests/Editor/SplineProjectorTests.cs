@@ -138,7 +138,7 @@ public class SplineProjectorTests
     [Test]
     public void FigureEightDoesNotJumpBranchesAtTheCrossing()
     {
-        // The regression this class exists for. Walking one lobe through the crossing, a global
+        // The case this class exists for. Walking one lobe through the crossing, a global
         // nearest-point search flips to the other branch as the two come together; a continuous one
         // must not.
         var spline = BuildFigureEightSpline();
@@ -173,7 +173,7 @@ public class SplineProjectorTests
     [Test]
     public void FigureEightGlobalSearchDoesJumpBranches()
     {
-        // Establishes that the fixture actually exercises the bug: the same walk, projected globally,
+        // Establishes that the fixture is actually ambiguous: the same walk, projected globally,
         // lands on the far branch somewhere near the crossing. Without this the test above could pass
         // on a fixture that was never ambiguous.
         var spline = BuildFigureEightSpline();

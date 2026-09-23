@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using AnimationTools;
 using Python.Runtime;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,18 +16,11 @@ namespace Pfnn.Editor
 /// database, and reports how far apart they are.
 /// </summary>
 /// <remarks>
-/// A model is trained on arrays produced by one of these and run on arrays produced by the other.
-/// If the two disagree about the reference frame, the units, or the rate convention, nothing
-/// throws: the network simply produces bad motion and the cause is invisible from the symptom. Both
-/// sides are unit-tested against the same properties, but until this ran, nothing had compared the
-/// actual numbers.
-/// <para>
-/// A diagnostic rather than a test, because it needs a generated database and a working interpreter
-/// — neither of which the edit-mode suites are allowed to assume. Positions and rotations should
-/// agree to float precision. The rates agree only to first order by construction, so they are
-/// reported separately: Python differences consecutive frame-local poses, while C# composes the
-/// instantaneous rate implied by a pose's own velocity channels.
-/// </para>
+/// A model is trained on one side's arrays and run on the other's, and a disagreement there throws
+/// nothing — it only produces bad motion. A menu diagnostic rather than a test because it needs a
+/// generated database and an interpreter. Positions and rotations should agree to float precision;
+/// rates only to first order, since Python differences consecutive frames while C# reads the
+/// pose's velocity channels.
 /// </remarks>
 public static class PfnnAgreementCheck
 {
@@ -91,10 +86,8 @@ public static class PfnnAgreementCheck
         var frameTime = poseSet.FrameTime;
 
         var boneCount = skeleton.BoneCount;
-        using var positions = new Unity.Collections.NativeArray<Unity.Mathematics.float3>(
-            boneCount, Unity.Collections.Allocator.Temp);
-        using var rotations = new Unity.Collections.NativeArray<Unity.Mathematics.quaternion>(
-            boneCount, Unity.Collections.Allocator.Temp);
+        using var positions = new NativeArray<float3>(boneCount, Allocator.Temp);
+        using var rotations = new NativeArray<quaternion>(boneCount, Allocator.Temp);
 
         var step = Mathf.Max(1, poseSet.NumberPoses / SampleCount);
         var frames = new int[Mathf.Min(SampleCount, poseSet.NumberPoses / Mathf.Max(1, step))];

@@ -11,9 +11,7 @@ namespace AnimationTools.Editor
     /// </summary>
     public static class ClipComponentTrackRegistry
     {
-        // Built on first use rather than from a static initializer: TypeCache is rebuilt by the same
-        // domain reload that clears this, and an [InitializeOnLoad] can run before every assembly
-        // is ready.
+        // Built on first use: an [InitializeOnLoad] can run before every assembly is ready.
         private static Dictionary<Type, Type> _trackTypeByComponentType;
 
         /// <summary>Whether a component type resolves to something other than the default track.</summary>
@@ -89,8 +87,7 @@ namespace AnimationTools.Editor
 
                     if (registry.TryGetValue(componentType, out var existing))
                     {
-                        // Order by name so the winner does not depend on assembly load order: an
-                        // intermittently-applied track is far harder to diagnose than a consistent one.
+                        // Order by name so the winner does not depend on assembly load order.
                         var winner = string.CompareOrdinal(existing.FullName, trackType.FullName) <= 0
                             ? existing
                             : trackType;

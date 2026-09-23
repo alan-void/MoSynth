@@ -9,11 +9,7 @@ namespace Lmm.Tests
 /// The search metric a learned matcher is trained under, and the database it is allowed to learn.
 /// </summary>
 /// <remarks>
-/// The trajectory half of the query itself needs no test here: both stages call the one
-/// <see cref="MotionMatchingQuery.FillTrajectory"/>, so they ask the same question by construction
-/// rather than by assertion. What is not guaranteed by construction is the *weights* — those are
-/// expanded once in C# for the search and once in Python for training, and the two agreeing is
-/// what stops the projector approximating a search nobody runs.
+/// Verifies the C# weight expansion, which must agree with Python's expansion at training time.
 /// </remarks>
 public class LmmQueryTests
 {
@@ -143,8 +139,7 @@ public class LmmQueryTests
     [Test]
     public void TryValidate_RefusesAPoseOnlyDatabase()
     {
-        // A MotionMatchingData with no feature channels bakes no .mmfeatures, so there is no query
-        // vector to learn against — the one thing a learned matcher cannot do without.
+        // No feature channels means no .mmfeatures, so no query vector to learn against.
         var data = ScriptableObject.CreateInstance<MotionMatchingData>();
         data.name = "PoseOnly";
 

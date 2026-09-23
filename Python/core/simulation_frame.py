@@ -6,9 +6,8 @@ position and rotation, bones 1+ carry rest offsets and parent-local rotations. T
 ground-projected, yaw-only frame the motion field is defined in is not stored -- it is
 reconstructed here from a reference bone and a bone-local "forward" axis. The definition
 is structural, not authored: the reference bone is joint 0 and the forward axis is the
-one that points along character forward in joint 0's rest rotation. Deriving it keeps one
-skeleton for the clips, the database and the rig, and makes the frame exactly reproducible
-on the C# side (``SimulationFrame``), which builds the same definition off the skeleton.
+one that points along character forward in joint 0's rest rotation, which is what the C#
+side (``SimulationFrame``) builds too. See openwiki/animation-tools/simulation-frame.md.
 
 Conventions, all shared with the rest of this package:
 
@@ -139,11 +138,8 @@ def forward_kinematics(positions: np.ndarray,
     """
     World position and rotation of *every* bone, for a whole sequence at once.
 
-    :func:`bone_world_transform` walks the chain up from one bone, which is the right shape
-    when a caller wants the reference bone and nothing else. This is the other case: every
-    bone, where walking each chain separately would redo the shared prefix once per leaf.
-    Bones are stored in depth-first order, so a single forward pass sees every parent before
-    its children.
+    Use :func:`bone_world_transform` when only one bone is wanted. Bones are stored in
+    depth-first order, so a single forward pass sees every parent before its children.
 
     :param positions: (n, num_bones, 3) parent-local joint positions; slot 0 is the root's
         world position.

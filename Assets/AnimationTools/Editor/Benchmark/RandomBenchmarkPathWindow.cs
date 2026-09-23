@@ -8,9 +8,8 @@ namespace AnimationTools.Editor
 /// Parameters for a batch of random benchmark paths, and the button that writes it.
 /// </summary>
 /// <remarks>
-/// A window rather than a bare menu item because the batch has parameters worth seeing before
-/// committing to a sweep that runs one character per path: the seed that reproduces it, and the
-/// longest lap, which is what decides whether a run fits inside the config's time limit.
+/// A window so the seed and the longest lap (which decides whether a run fits the config's time
+/// limit) are visible before committing to a sweep.
 /// </remarks>
 public class RandomBenchmarkPathWindow : EditorWindow
 {
@@ -138,9 +137,8 @@ public class RandomBenchmarkPathWindow : EditorWindow
         EditorGUILayout.SelectableLabel(preview.ToString(),
             EditorStyles.textArea, GUILayout.Height(Mathf.Min(160f, 16f * count + 8f)));
 
-        // A big path can outlast the config's per-run limit, which surfaces as a timeout rather than
-        // as anything that looks like a path problem. Open paths are scaled to the same length as a
-        // loop of the same extent, so one figure covers every kind.
+        // A big path surfaces as a run timeout, not as a path problem. Open paths are scaled to the
+        // length of a loop of the same extent, so one figure covers every kind.
         var longest = 2f * Mathf.PI * extent.y;
         EditorGUILayout.HelpBox(
             $"Longest path is roughly {longest:0} m, about {longest:0} s to cover at 1 m/s. " +
@@ -150,7 +148,7 @@ public class RandomBenchmarkPathWindow : EditorWindow
 
     private void Generate()
     {
-        // Generating replaces whatever scene is open, so the usual save prompt has to come first.
+        // Generating replaces the open scene, so the save prompt comes first.
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
         var settings = RandomPathSettings.Default;

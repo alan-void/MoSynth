@@ -15,7 +15,7 @@ public sealed class PositionChannel : SpacedBoneChannelDescriptor
 
     public override int FloatCount => 3;
     public override int SectionKey => ChannelSections.Position;
-    
+
     public void Set(StateBuffer buffer, StateBufferLayout layout, float3 position)
     {
         var handle = layout.BindChannel(this);

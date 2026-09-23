@@ -7,13 +7,10 @@ namespace MotionMatching
 {
 /// <summary>
 /// Plays a pose database straight through, frame by frame and looping, with no search and no
-/// control input. The way to look at what is actually in a database — to check an import, an
-/// extraction or a retarget — with the rest of the pipeline out of the way.
+/// control input, to inspect an import, extraction or retarget in isolation.
 /// </summary>
 /// <remarks>
-/// Like <see cref="MotionMatchingStage"/> it plays poses stored over the database's own rig, so the
-/// component's skeleton has to be that rig. Nothing else is needed: it can stand in as the only
-/// stage on a component.
+/// The component's skeleton must be the database's own rig. It can be the only stage on a component.
 /// </remarks>
 [Serializable]
 public class PoseSetVisualizerStage : MoSynthStage
@@ -71,7 +68,6 @@ public class PoseSetVisualizerStage : MoSynthStage
     {
         if (_poseSet == null) return true;
 
-        // Advance frames with time
         _currentFrameTime = CurrentFrame + math.frac(_currentFrameTime);
         _currentFrameTime += deltaTime / _poseSet.FrameTime;
         CurrentFrame = (int)math.floor(_currentFrameTime);

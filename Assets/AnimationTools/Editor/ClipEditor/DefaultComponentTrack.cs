@@ -9,8 +9,7 @@ namespace AnimationTools.Editor
     /// </summary>
     /// <remarks>
     /// The inspector is one <c>PropertyField</c> over the managed reference, which the
-    /// SubclassSelector drawer expands into every field the component declares. So a component type
-    /// added tomorrow is authorable in this window immediately, with no editor code at all.
+    /// SubclassSelector drawer expands into every field, so a new component type needs no editor code.
     /// </remarks>
     public sealed class DefaultComponentTrack : AnimationClipComponentTrack
     {
@@ -23,8 +22,7 @@ namespace AnimationTools.Editor
         {
             if (Event.current.type != EventType.Repaint) return;
 
-            // No per-frame data to place, so the bar spans the slice: that is the extent the
-            // component's annotation is about, and pretending to more would be a lie.
+            // No per-frame data to place, so the bar spans the slice the annotation is about.
             var editor = context.Editor;
             var axis = context.Axis;
 

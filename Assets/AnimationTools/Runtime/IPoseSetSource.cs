@@ -4,17 +4,8 @@ using Unity.Mathematics;
 namespace AnimationTools
 {
 /// <summary>
-/// Everything the pose-database pipeline needs from the asset it is extracting.
-///
-/// <see cref="PoseSet"/>, <see cref="PoseExtractor"/> and <see cref="PoseSerializer"/> used to take
-/// a <see cref="MotionMatchingData"/> directly, which meant anything wanting a pose database also
-/// had to be a full Motion Matching asset -- trajectory features, pose features, skeleton map and
-/// all. Only a handful of those members actually reach the pose path, and this interface is
-/// exactly that handful, so a consumer such as MotionField's config can supply a database without
-/// dragging in the feature-set machinery it never uses.
-///
-/// This lives in the AnimationTools runtime assembly since it is generic pose-database
-/// infrastructure, not specific to any one motion-synthesis technique.
+/// Everything the pose-database pipeline needs from the asset it is extracting, so any config can
+/// supply a pose database without being a full motion matching asset.
 /// </summary>
 public interface IPoseSetSource
 {

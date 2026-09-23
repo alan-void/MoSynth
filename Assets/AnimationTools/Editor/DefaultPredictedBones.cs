@@ -9,11 +9,8 @@ namespace AnimationTools.Editor
 /// tips, predict everything else.
 /// </summary>
 /// <remarks>
-/// A name heuristic, and deliberately confined to an authoring button rather than run anywhere in
-/// a training or inference path. Fingers barely move in locomotion, so a model that predicts them
-/// spends most of its capacity learning constants — but which bones those are is a property of a
-/// particular rig. Pressing the button writes the answer into the asset, where it can be read,
-/// corrected, and seen to be what the model was trained on.
+/// A name heuristic, deliberately confined to an authoring button: the result is written into the
+/// asset, where it can be corrected and seen to be what the model was trained on.
 /// </remarks>
 public static class DefaultPredictedBones
 {
@@ -31,9 +28,8 @@ public static class DefaultPredictedBones
     /// skeleton order. Empty for a skeleton that is not set.
     /// </summary>
     /// <remarks>
-    /// Returns the names rather than writing them, because the assets that carry such a list differ
-    /// in how they record a change — undo, a dirty flag, a stale-checkpoint flag — and that is the
-    /// caller's business.
+    /// Returns the names rather than writing them: how a change is recorded (undo, dirty flag,
+    /// stale-checkpoint flag) is the caller's business.
     /// </remarks>
     public static List<string> Excluded(Skeleton skeleton)
     {

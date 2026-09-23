@@ -11,10 +11,8 @@ namespace AnimationTools.Editor
 /// <see cref="BenchmarkRunResult"/>.
 /// </summary>
 /// <remarks>
-/// Everything is computed from the recording on disk rather than from live state, so a report can
-/// be rebuilt from the .bin/.json pair alone, and so the calculators stay pure and unit-testable.
-/// Channels are looked up by name and treated as optional: a recording made with a narrower channel
-/// set still yields whichever metrics its columns support, with the rest left NaN.
+/// Computed from the recording on disk, so a report can be rebuilt from the .bin/.json pair alone.
+/// Channels are optional: a metric whose columns are missing is left NaN.
 /// </remarks>
 public static class BenchmarkRunEvaluator
 {
@@ -77,8 +75,7 @@ public static class BenchmarkRunEvaluator
         }
         else
         {
-            // Every motion-quality figure is anchored on the root's trajectory, so without it there
-            // is nothing to compute rather than something to compute badly.
+            // Every motion-quality figure is anchored on the root's trajectory.
             Debug.LogWarning($"[Benchmark] \"{manifestPath}\" has no \"root\" channel; motion quality is unavailable.");
         }
 
@@ -86,10 +83,8 @@ public static class BenchmarkRunEvaluator
     }
 
     /// <summary>
-    /// Reduces the cost columns over the analysis window. The settle frames are dropped here as
-    /// well as from the quality metrics, because the first ticks of a run carry one-off setup —
-    /// a motion field importing its Python modules, a search warming its caches — that would
-    /// otherwise dominate the mean.
+    /// Reduces the cost columns over the analysis window. Settle frames are dropped because a
+    /// run's first ticks carry one-off setup (Python imports, cache warm-up).
     /// </summary>
     private static SynthesisCostMetricsResult EvaluateCost(RecordingReader reader, float[] times, float settleTime)
     {

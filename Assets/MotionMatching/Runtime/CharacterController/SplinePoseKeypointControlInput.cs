@@ -13,14 +13,8 @@ namespace MotionMatching
 /// spline following.
 /// </summary>
 /// <remarks>
-/// <para>
-/// The facing this reports comes from the keypoints, not from the path tangent. The database bakes
-/// its Direction channels as the character's facing, and nothing downstream steers the character
-/// toward the controller — <see cref="AnimationTools.MotionSynthesisComponent"/> integrates the
-/// matched clip's own yaw rate — so the direction query is the only influence this input has over
-/// which way the character ends up facing. Feeding it the direction of travel would fight the foot
-/// constraints on any pose whose facing differs from its heading.
-/// </para>
+/// The facing it reports comes from the keypoints, not the path tangent, because the database bakes
+/// its Direction channels as facing. See openwiki/motion-matching/spline-pose-keypoints.md.
 /// <para>
 /// Assumes the keypoint animation uses the same rig as the motion-matching data, so a channel's bone
 /// resolves against the keypoint skeleton.
@@ -69,9 +63,7 @@ public class SplinePoseKeypointControlInput : SplineControlInput
 
     private void OnValidate()
     {
-        // The Inspector writes the inherited field directly and never goes through the property above,
-        // so a Spline Container assigned there would sit in the component looking as though it did
-        // something. Clear it where it is actually set.
+        // The Inspector writes the inherited field directly, bypassing the property's guard.
         if (splineContainer == null) return;
         splineContainer = null;
         Debug.LogWarning("[SplinePoseKeypointControlInput] Cleared the assigned Spline Container: this " +
@@ -79,9 +71,8 @@ public class SplinePoseKeypointControlInput : SplineControlInput
     }
 
     /// <summary>
-    /// The path's stored facing rather than the direction it travels in. Overriding here rather than
-    /// at <see cref="GetTrajectoryFeature"/> means the trajectory query, the debug gizmos and
-    /// <see cref="SplineControlInput.GetCurrentRotation"/> all report the same thing.
+    /// The path's stored facing rather than the direction it travels in. Overridden here so the
+    /// trajectory query, the gizmos and <see cref="SplineControlInput.GetCurrentRotation"/> agree.
     /// </summary>
     protected override float2 SampleDirection(float t, float3 positionAtT)
     {

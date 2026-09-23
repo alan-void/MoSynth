@@ -8,10 +8,9 @@ namespace AnimationTools.Editor
     /// visible frame range everything else culls against.
     /// </summary>
     /// <remarks>
-    /// A single instance is shared by the ruler, the slice overlay, the playhead and every track
-    /// lane, so nothing else in the timeline may derive an x from a frame. Horizontal scrolling is
-    /// this struct rather than a <c>GUI.BeginScrollView</c> for the same reason - two sources of
-    /// horizontal offset is how a lane drifts out of step with the ruler above it.
+    /// Shared by the ruler, slice overlay, playhead and every lane, so nothing else may derive an x
+    /// from a frame. Horizontal scroll lives here rather than in a <c>GUI.BeginScrollView</c> so a
+    /// lane cannot drift out of step with the ruler.
     /// </remarks>
     [Serializable]
     public struct ClipTimeAxis
@@ -29,11 +28,8 @@ namespace AnimationTools.Editor
         /// Below this a rect is a layout placeholder, not a measured pane, and is ignored.
         /// </summary>
         /// <remarks>
-        /// <c>GUILayoutUtility.GetRect</c> hands back a dummy rect during a <c>Layout</c> pass.
-        /// Seeding the zoom from that once drew a whole clip into a single pixel, and the fix used
-        /// to be re-clamping to fit every frame - which is exactly the limit that made zooming out
-        /// past the clip impossible. Ignoring the placeholder outright protects against the same bug
-        /// without constraining the zoom.
+        /// <c>GUILayoutUtility.GetRect</c> hands back a dummy rect during a <c>Layout</c> pass, and
+        /// seeding the zoom from it would squeeze the whole clip into a pixel.
         /// </remarks>
         private const float MinimumMeasuredWidth = 8f;
 
@@ -50,10 +46,7 @@ namespace AnimationTools.Editor
         /// anything reads the axis.
         /// </summary>
         /// <remarks>
-        /// A placeholder rect is ignored rather than adopted, so the zoom can never be seeded from a
-        /// width the pane never had. That is what allows the zoom floor to be an absolute one:
-        /// zooming out past the end of the clip is a view you are allowed to hold, and <c>Home</c>
-        /// always brings the whole clip back.
+        /// A placeholder rect is ignored, never adopted, which is what lets the zoom floor be absolute.
         /// </remarks>
         public void Prepare(Rect viewRect, int frameCount)
         {
@@ -74,10 +67,8 @@ namespace AnimationTools.Editor
 
         /// <summary>The fractional frame at the left edge, which may sit outside the clip.</summary>
         /// <remarks>
-        /// The scroll is deliberately unbounded - the clip is content to look at, not a wall to bump
-        /// into - so these two are the honest answer to "what is on screen" and
-        /// <see cref="FirstVisibleFrame"/> is the answer clamped to frames that actually exist. Draw
-        /// the ruler from these; index anything with the other pair.
+        /// The scroll is deliberately unbounded. Draw the ruler from this pair; index frames with
+        /// <see cref="FirstVisibleFrame"/> / <see cref="LastVisibleFrame"/>, which are clamped.
         /// </remarks>
         public float LeftEdgeFrame => scrollFrames;
 
@@ -123,10 +114,7 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>Scrolls by a pixel delta in view space; positive moves the content left.</summary>
-        /// <remarks>
-        /// Nothing stops this at the ends of the clip. A pan that runs out of content is a view you
-        /// are allowed to hold, the ruler keeps numbering into it, and <c>Home</c> is the way back.
-        /// </remarks>
+        /// <remarks>Deliberately unbounded at the clip's ends; <c>Home</c> is the way back.</remarks>
         public void PanPixels(float deltaX)
         {
             if (pixelsPerFrame <= 0f) return;

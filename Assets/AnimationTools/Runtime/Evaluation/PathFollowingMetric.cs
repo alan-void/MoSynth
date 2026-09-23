@@ -70,7 +70,7 @@ public class PathFollowingMetric : MonoBehaviour
             var entry = splineControlInputs[i];
             if (entry == null) continue;
             if (entry is IMotionSynthesisSplineControlInput) continue;
-    
+
             Debug.LogError($"PathFollowingMetric \"{name}\": {entry.GetType().Name} on \"{entry.name}\" does not implement IMotionSynthesisSplineControlInput.", this);
             splineControlInputs[i] = null;
         }
@@ -175,18 +175,18 @@ public class PathFollowingMetric : MonoBehaviour
             {
                 var reader = RecordingReader.Load(entry.Recorder.ManifestPath);
 
-                var timeCh = reader.GetChannel("time");
-                var rootCh = reader.GetChannel("root");
-                var fwdCh = reader.GetChannel("rootForward");
+                var timeChannel = reader.GetChannel("time");
+                var rootChannel = reader.GetChannel("root");
+                var forwardChannel = reader.GetChannel("rootForward");
 
                 var times = new float[reader.FrameCount];
                 var positions = new float3[reader.FrameCount];
                 var forwards = new float3[reader.FrameCount];
                 for (var f = 0; f < reader.FrameCount; f++)
                 {
-                    times[f] = reader.GetFloat(f, timeCh, 0);
-                    positions[f] = reader.GetFloat3(f, rootCh);
-                    forwards[f] = reader.GetFloat3(f, fwdCh);
+                    times[f] = reader.GetFloat(f, timeChannel, 0);
+                    positions[f] = reader.GetFloat3(f, rootChannel);
+                    forwards[f] = reader.GetFloat3(f, forwardChannel);
                 }
 
                 var result = PathFollowingMetricsCalculator.Evaluate(

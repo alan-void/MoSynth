@@ -16,11 +16,8 @@ namespace AnimationTools.Editor
     /// focused.
     /// </summary>
     /// <remarks>
-    /// The shell is UI Toolkit for its splitters and toolbar; the preview, timeline and inspector
-    /// are each an <c>IMGUIContainer</c>. That split is deliberate:
-    /// <see cref="PreviewRenderUtility"/> is an IMGUI API in all but name, and drawing a lane is the
-    /// public seam other people extend, so it speaks the IMGUI the rest of this project's editors
-    /// already use. See <c>openwiki/animation-tools/clip-editor.md</c>.
+    /// A UI Toolkit shell around three <c>IMGUIContainer</c>s (preview, timeline, inspector). See
+    /// <c>openwiki/animation-tools/clip-editor.md</c>.
     /// </remarks>
     public sealed class AnnotatedClipEditorWindow : EditorWindow
     {
@@ -77,10 +74,8 @@ namespace AnimationTools.Editor
 
         private void OnEnable()
         {
-            // Cheap, and it gives lanes a MouseMove when the platform sends one. It is not what
-            // makes modal operators follow the cursor - this window has no OnGUI, so its IMGUI runs
-            // in IMGUIContainers where that flag is not on the delivery path. TimelineModalOperator
-            // samples the cursor on repaint instead.
+            // Not relied on: IMGUIContainers may still get no MouseMove, so TimelineModalOperator
+            // samples the cursor on repaint.
             wantsMouseMove = true;
 
             _timeline = new ClipTimelineView();
@@ -99,8 +94,7 @@ namespace AnimationTools.Editor
         {
             _context?.CancelModal();
 
-            // A window closed mid-pan would otherwise leave the whole Editor wrapping the cursor at
-            // the screen edge, with nothing left running to turn it off.
+            // A window closed mid-pan would otherwise leave the whole Editor wrapping the cursor.
             EditorGUIUtility.SetWantsMouseJumping(0);
 
             Undo.undoRedoPerformed -= OnUndoRedo;
@@ -136,9 +130,8 @@ namespace AnimationTools.Editor
             _timelinePane.style.flexGrow = 1f;
             _timelinePane.style.minHeight = 100f;
 
-            // Keys reach a lane only if the panel has focused this container. The timeline claims
-            // IMGUI keyboard focus on a lane click (ClipTimelineView), and this is the other half:
-            // without it the inspector pane's property fields keep panel focus for good.
+            // Keys reach a lane only if the panel has focused this container; ClipTimelineView
+            // claims IMGUI keyboard focus on a lane click, and this is the other half.
             _timelinePane.focusable = true;
             _timelinePane.RegisterCallback<PointerDownEvent>(_ => _timelinePane.Focus());
 
@@ -194,8 +187,6 @@ namespace AnimationTools.Editor
             });
             toolbar.Add(secondsToggle);
 
-            // Add Component lives under the component list in the timeline's gutter, where the
-            // Inspector puts it, rather than here.
             toolbar.Add(new ToolbarMenu { text = "Lanes" }.WithDeferredMenu(BuildLanesMenu));
 
             return toolbar;
@@ -273,9 +264,8 @@ namespace AnimationTools.Editor
             RebuildTracks();
             _focusedRowIndex = _rows.Count - 1;
 
-            // A component you just added is always shown. Lane visibility is remembered per
-            // component type, so without this a type whose lane was hidden earlier comes back
-            // hidden - which looks exactly like the component not having been added at all.
+            // Lane visibility is remembered per component type, so a just-added component could
+            // otherwise come back hidden.
             if (_focusedRowIndex >= 0)
             {
                 _rows[_focusedRowIndex].Visible = true;
@@ -447,9 +437,8 @@ namespace AnimationTools.Editor
         /// Re-reads every open editor from its asset.
         /// </summary>
         /// <remarks>
-        /// A tool that writes to a clip directly rather than through a <c>SerializedObject</c> — a
-        /// batch over selected assets, say — leaves an open window showing a stale copy, and nothing
-        /// else tells it so.
+        /// Call after writing to a clip other than through a <c>SerializedObject</c>; nothing else
+        /// tells an open window its copy is stale.
         /// </remarks>
         public static void RefreshOpenWindows()
         {
@@ -488,10 +477,8 @@ namespace AnimationTools.Editor
 
             _playbackFrames -= steps;
 
-            // Advanced from the playhead rather than from a clock of its own, so scrubbing while
-            // playing relocates playback instead of being overwritten by it a frame later. The fold
-            // is not decoration: SeekToClipFrame clamps to the clip, not the slice, so the playhead
-            // can legitimately be sitting outside the slice when this reads it.
+            // Advanced from the playhead, so scrubbing while playing relocates playback. The fold
+            // matters: the playhead can sit outside the slice, since seeking clamps to the clip.
             var sliceFrame = _context.ClipToSliceFrame(_context.PlayheadClipFrame) + steps;
             sliceFrame = (sliceFrame % sliceFrames + sliceFrames) % sliceFrames;
 
@@ -500,11 +487,9 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>
-        /// Space, from anywhere in the window. Registered with the shortcut manager rather than
-        /// handled as a key event, because the panes are separate IMGUI containers with their own
-        /// focus and a play key that only worked in whichever one you last clicked would be worse
-        /// than none; it also stays out of the way while a text field is being typed into, and is
-        /// rebindable in Preferences alongside every other Editor shortcut.
+        /// Space, from anywhere in the window. A shortcut-manager binding rather than a key event,
+        /// because each pane has its own IMGUI focus; it also stays out of text fields and is
+        /// rebindable.
         /// </summary>
         [Shortcut("MoSynth/Clip Editor/Play or Pause", typeof(AnnotatedClipEditorWindow), KeyCode.Space)]
         private static void TogglePlaybackShortcut(ShortcutArguments args)
@@ -596,8 +581,7 @@ namespace AnimationTools.Editor
 
             if (_timeline.ViewStateChanged) SaveViewState();
 
-            // A running mode follows the cursor by sampling it on repaint, so it needs repaints to
-            // keep coming while no event does. See TimelineModalOperator.
+            // A running mode samples the cursor on repaint, so repaints must keep coming.
             if (_context.Modal.IsActive) Repaint();
 
             if (_frameLabel != null)

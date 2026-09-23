@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using AnimationTools;
-using MotionMatching;
 using Unity.Mathematics;
 using UnityEngine;
 using SkeletonBone = AnimationTools.SkeletonBone;
@@ -12,9 +11,8 @@ namespace MotionMatching.Editor
 /// features extracted from them, played back frame by frame.
 /// </summary>
 /// <remarks>
-/// Checks that extraction produced what you meant, before any synthesis is involved. It shows the
-/// <em>features</em> as well as the poses, so a trajectory feature pointing the wrong way — the usual
-/// cause of a search picking odd frames — is visible here and nowhere else.
+/// Shows the features as well as the poses, so a trajectory feature pointing the wrong way (the
+/// usual cause of a search picking odd frames) is visible before any synthesis is involved.
 /// </remarks>
 public class MotionMatchingDataVisualiser : MonoBehaviour
 {
@@ -33,16 +31,10 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
 
     private void Awake()
     {
-        // PoseSet
         _poseSet = motionMatchingData.GetOrImportPoseSet();
-
-        // FeatureSet
         _featureSet = motionMatchingData.GetOrImportFeatureSet();
-
-        // Skeleton
         _skeletonTransforms = SkeletonRigBuilder.CreateHierarchyWithMap(_poseSet.Skeleton, transform);
 
-        // FPS
         if (lockFPS)
         {
             Application.targetFrameRate = Mathf.RoundToInt(1.0f / _poseSet.FrameTime);
@@ -62,7 +54,7 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
             var positions = pose.Positions;
             var rotations = pose.Rotations;
             _skeletonTransforms[0].localPosition = positions[0];
-            for (int i = 0; i < rotations.Length; i++)
+            for (var i = 0; i < rotations.Length; i++)
             {
                 _skeletonTransforms[i].localRotation = rotations[i];
             }
@@ -73,7 +65,7 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
             // Parked at the origin in its rest pose, so the rig is readable while playback is off.
             currentFrame = 0;
             _skeletonTransforms[0].localPosition = float3.zero;
-            for (int i = 0; i < _skeletonTransforms.Length; i++)
+            for (var i = 0; i < _skeletonTransforms.Length; i++)
             {
                 _skeletonTransforms[i].localRotation = quaternion.identity;
             }
@@ -96,29 +88,27 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        // Skeleton
         if (_skeletonTransforms == null || _poseSet == null) return;
 
         Gizmos.color = Color.red;
-        for (int i = 1; i < _skeletonTransforms.Length; i++) // bone 0 has no parent bone to draw to
+        for (var i = 1; i < _skeletonTransforms.Length; i++) // bone 0 has no parent bone to draw to
         {
-            Transform t = _skeletonTransforms[i];
+            var t = _skeletonTransforms[i];
             GizmosExtensions.DrawLine(t.parent.position, t.position, 3);
         }
 
         if (!play) return;
-        // Character
-        int currentFrame = math.max(0, this.currentFrame - 1); // FeatureDebug increments CurrentFrame after update... OnDrawGizmos is called after update
-        var pose = _poseSet.GetPoseBuffer(currentFrame);
+        // Update has already advanced currentFrame past the frame on screen.
+        var drawnFrame = math.max(0, currentFrame - 1);
+        var pose = _poseSet.GetPoseBuffer(drawnFrame);
         FeatureSet.GetWorldOriginCharacter(pose, _poseSet.Skeleton.GetSkeletonData(), _poseSet.SimulationFrame,
             out float3 characterOrigin, out float3 characterForward);
         Gizmos.color = new Color(1.0f, 0.0f, 0.5f, 1.0f);
         Gizmos.DrawSphere(characterOrigin, spheresRadius);
         GizmosExtensions.DrawArrow(characterOrigin, characterOrigin + characterForward, thickness: 3);
 
-        // Forward Trajectory Direction Features
         Gizmos.color = Color.gray;
-        for (int t = 0; t < motionMatchingData.trajectoryFeatures.Count; t++)
+        for (var t = 0; t < motionMatchingData.trajectoryFeatures.Count; t++)
         {
             var trajectoryFeature = motionMatchingData.trajectoryFeatures[t];
             if (trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Direction &&
@@ -131,7 +121,6 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
             }
         }
 
-        // Contacts
         if (debugContacts)
         {
             if (!BoneNameConventions.TryFindContactBone(_poseSet.Skeleton, left: true, out var leftToesIndex))
@@ -155,14 +144,15 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
             }
         }
 
-        // Feature Set
         if (_featureSet == null) return;
 
-        DrawFeatureGizmos(_featureSet, motionMatchingData, spheresRadius, currentFrame, characterOrigin, characterForward,
+        DrawFeatureGizmos(_featureSet, motionMatchingData, spheresRadius, drawnFrame, characterOrigin, characterForward,
             _skeletonTransforms, _poseSet.Skeleton, Color.blue, debugPose: debugPose, debugTrajectory: debugTrajectory);
     }
 
-    private static List<float3> _positionFeatures = new();
+    // Simulation-frame position predictions of the frame being drawn; direction arrows anchor to them.
+    private static readonly List<float3> _positionFeatures = new();
+
     public static void DrawFeatureGizmos(FeatureSet set, MotionMatchingData mmData, float spheresRadius, int currentFrame,
         float3 characterOrigin, float3 characterForward, Transform[] joints, Skeleton skeleton,
         Color trajectoryColor, bool debugPose = true, bool debugTrajectory = true)
@@ -171,17 +161,13 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
 
         quaternion characterRot = quaternion.LookRotation(characterForward, math.up());
 
-        // TODO: find a better way to store this information
         _positionFeatures.Clear();
-
-        // Trajectory Features ---------------------------------------------------------------------------
-        // Collect simulation-frame Position predictions; Direction gizmos anchor their arrows to them
-        for (int t = 0; t < mmData.trajectoryFeatures.Count; t++)
+        for (var t = 0; t < mmData.trajectoryFeatures.Count; t++)
         {
             var trajectoryFeature = mmData.trajectoryFeatures[t];
             if (trajectoryFeature.simulationBone && trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Position)
             {
-                for (int p = 0; p < trajectoryFeature.predictionFrames.Length; p++)
+                for (var p = 0; p < trajectoryFeature.predictionFrames.Length; p++)
                 {
                     float3 value = trajectoryFeature.Unpack(set, currentFrame, t, p);
                     value = characterOrigin + math.mul(characterRot, value);
@@ -189,24 +175,24 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
                 }
             }
         }
-        // Draw Trajectory Features
+
         if (debugTrajectory)
         {
-            for (int t = 0; t < mmData.trajectoryFeatures.Count; t++)
+            for (var t = 0; t < mmData.trajectoryFeatures.Count; t++)
             {
                 var trajectoryFeature = mmData.trajectoryFeatures[t];
-                for (int p = 0; p < trajectoryFeature.predictionFrames.Length; p++)
+                for (var p = 0; p < trajectoryFeature.predictionFrames.Length; p++)
                 {
                     DrawTrajectoryPoint(trajectoryFeature, set, currentFrame, t, p, trajectoryColor, characterOrigin, characterForward,
                         characterRot, spheresRadius, joints, skeleton);
                 }
             }
         }
-        // Pose Features ---------------------------------------------------------------------------
+
         if (debugPose)
         {
             Gizmos.color = new Color(0.0f, 0.8f, 0.8f);
-            for (int p = 0; p < mmData.poseFeatures.Count; p++)
+            for (var p = 0; p < mmData.poseFeatures.Count; p++)
             {
                 var poseFeature = mmData.poseFeatures[p];
                 float3 value = set.GetPoseFeature(currentFrame, p, true);
@@ -243,9 +229,8 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
         int predictionIndex, Color trajectoryColor, float3 characterOrigin, float3 characterForward,
         quaternion characterRot, float spheresRadius, Transform[] joints, Skeleton skeleton)
     {
-        int t = trajectoryFeatureIndex;
-        int p = predictionIndex;
-        //Gizmos.color = trajectoryColor * (1.25f - (float)p / trajectoryFeature.FramesPrediction.Length);
+        var t = trajectoryFeatureIndex;
+        var p = predictionIndex;
         Gizmos.color = trajectoryColor + (new Color(1.0f, 1.0f, 1.0f) - trajectoryColor) * ((float)p / trajectoryFeature.predictionFrames.Length);
         if (trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Position ||
             trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Direction)
@@ -269,7 +254,6 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
                         jointPos = joints[jointIndex].position;
                     }
                     value = math.mul(characterRot, value);
-                    //GizmosExtensions.DrawArrow(jointPos, jointPos + value, 0.1f, thickness: 3);
                     GizmosExtensions.DrawArrow(jointPos, jointPos + value * 0.4f, 0.15f, thickness: 4);
                     break;
             }

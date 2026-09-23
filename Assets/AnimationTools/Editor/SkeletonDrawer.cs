@@ -10,15 +10,12 @@ namespace AnimationTools.Editor
 /// they can reach.
 /// </summary>
 /// <remarks>
-/// An imported model exposes only its top-level children as sub-assets — for a typical FBX that is
-/// the mesh node and the topmost bone — so a bone any deeper is reachable from neither the Project
-/// window nor the object picker, and the field alone could not express "this skeleton starts at
-/// Model:Hips". Hence the dropdown. The field is what makes the control look droppable, and is also
-/// how a skeleton gets cleared, which is why the dropdown offers no "(none)".
+/// An imported model exposes only its top-level children as sub-assets, so a deeper bone is
+/// reachable only through the dropdown. The field is how a skeleton gets cleared, so the dropdown
+/// offers no "(none)".
 /// <para/>
-/// Scene objects are refused: a skeleton reads its rest pose live off these Transforms, so a scene
-/// rig would report whatever pose it is currently animated to. <see cref="SkeletonBoneOverrides"/>
-/// is what binds a skeleton to a live rig.
+/// Scene objects are refused: a skeleton reads its rest pose live off these Transforms. See
+/// openwiki/animation-tools/skeletons-and-rig-binding.md.
 /// </remarks>
 [CustomPropertyDrawer(typeof(Skeleton))]
 public class SkeletonDrawer : PropertyDrawer
@@ -68,10 +65,8 @@ public class SkeletonDrawer : PropertyDrawer
     /// Assigns whatever is dropped on the control, verbatim.
     /// </summary>
     /// <remarks>
-    /// Handled by hand rather than through an <see cref="EditorGUI.ObjectField(Rect,GUIContent,Object,System.Type,bool)"/>:
-    /// that control normalises a dragged sub-asset up to its model's main asset, which is precisely
-    /// why dropping the exposed <c>Model:Root</c> node used to land the whole FBX instead. Reading
-    /// <see cref="DragAndDrop.objectReferences"/> gets what the user actually dragged.
+    /// Handled by hand because <see cref="EditorGUI.ObjectField(Rect,GUIContent,Object,System.Type,bool)"/>
+    /// normalises a dragged sub-asset up to its model's main asset.
     /// </remarks>
     private static void HandleDrop(Rect position, SerializedProperty rootProp)
     {
@@ -112,10 +107,8 @@ public class SkeletonDrawer : PropertyDrawer
     }
 
     /// <summary>
-    /// The asset the root bone belongs to, which is its topmost ancestor — the same derivation
-    /// <see cref="AnimationClipBaker"/> uses to find the object a clip's curve paths are relative
-    /// to. Null when nothing is assigned, or when the assignment is a missing reference: Unity
-    /// reports one of those as non-null, so reaching through it would throw on every repaint.
+    /// The root bone's topmost ancestor, as <see cref="AnimationClipBaker"/> derives it. Null when
+    /// nothing is assigned or the reference is missing (which Unity reports as non-null).
     /// </summary>
     private static Transform ResolveRig(SerializedProperty rootProp)
     {

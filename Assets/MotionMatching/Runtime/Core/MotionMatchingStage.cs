@@ -15,14 +15,8 @@ namespace MotionMatching
 /// answer is a clear yes.
 /// </summary>
 /// <remarks>
-/// Three replaceable parts: <see cref="mmData"/> (the database), the control input steering the
-/// character (what it is being asked to do) and <see cref="mmSearch"/> (how the database is
-/// searched).
-/// <para>
-/// Playback and search run on separate clocks — playback advances every tick, search at most once
-/// per <see cref="searchInterval"/>. The database's poses are stored over its own rig, so
-/// <see cref="Init"/> refuses to run unless the component's skeleton is that same rig.
-/// </para>
+/// Playback advances every tick; search runs at most once per <see cref="searchInterval"/>. The
+/// component's skeleton must be the database's own rig. See openwiki/motion-matching/matching-stage.md.
 /// </remarks>
 [Serializable]
 public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
@@ -40,14 +34,9 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
     [SerializeReference] [SubclassSelector]
     public MotionMatchingSearch mmSearch = new BvhMotionMatchingSearch();
 
-    /// <summary>
-    /// The interval in seconds between two Motion Matching searches when there are no sudden input changes.
-    /// </summary>
+    /// <summary>Seconds between searches when there are no sudden input changes.</summary>
     public float searchInterval = 10.0f / 60.0f;
 
-    /// <summary>
-    /// The time left until the next search.
-    /// </summary>
     private float _searchTimeLeft;
 
     [Tooltip("How important is the trajectory (future positions + future directions)")]
@@ -73,13 +62,13 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
     private List<float> featureWeights = new();
 
     /// <summary>Per-float weights handed to the search; length is the feature vector size.</summary>
-    NativeArray<float> _featureWeights;
+    private NativeArray<float> _featureWeights;
 
     /// <summary>
     /// Snapshot of the authored per-float weights. <see cref="FillQueryVector"/> masks inactive bone
     /// channels to zero in <see cref="_featureWeights"/> and restores active ones from here.
     /// </summary>
-    NativeArray<float> _authoredFeatureWeights;
+    private NativeArray<float> _authoredFeatureWeights;
 
     public NativeArray<float> FeatureWeights => _featureWeights;
 
@@ -91,9 +80,7 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
 
     public NativeArray<float> QueryFeatureVector => _queryFeatureVector;
 
-    /// <summary>
-    /// Current frame index in the pose/feature set
-    /// </summary>
+    /// <summary>Current frame index in the pose/feature set.</summary>
     public int CurrentFrame { get; private set; }
 
     /// <summary>
@@ -102,15 +89,12 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
     /// </summary>
     private NativeArray<bool> _tagMask;
 
-    /// <summary>
-    /// Current frame index as float to keep track of variable frame rate
-    /// </summary>
+    /// <summary>Playhead as a float, so fractional frames carry across ticks at any synthesis rate.</summary>
     private float _currentFrameTime;
 
     private float _databaseFrameRate;
 
     private bool _warnedNoControlInput;
-
 
     // Contact TODO: this frame? prev frame ?
     public bool IsLeftFootContact { get; private set; }
@@ -150,8 +134,7 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
         _databaseFrameRate = 1f / _poseSet.FrameTime;
 
         _featureWeights = new NativeArray<float>(featureSet.FeatureSize, Allocator.Domain);
-        // copy serialized weights
-        for (int i = 0; i < math.min(featureWeights.Count, _featureWeights.Length); i++)
+        for (var i = 0; i < math.min(featureWeights.Count, _featureWeights.Length); i++)
         {
             _featureWeights[i] = featureWeights[i];
         }
@@ -165,7 +148,7 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
             _tagMask[i] = true;
         }
 
-        // Search first Frame valid (to start with a valid pose)
+        // Start on the first valid frame.
         for (var i = 0; i < featureSet.NumberFeatureVectors; i++)
         {
             if (!featureSet.IsValidFeature(i)) continue;
@@ -177,10 +160,8 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
     }
 
     /// <summary>
-    /// Whatever is steering the character this stage runs on, or null while nothing is. Resolved on
-    /// every read rather than cached: a control input claims its character when it enables, which
-    /// can be long after <see cref="Init"/>, and swapping one for another is done by enabling and
-    /// disabling them.
+    /// Whatever is steering the character, or null while nothing is. Not cached, because a control
+    /// input can claim the character, or be swapped, long after <see cref="Init"/>.
     /// </summary>
     private MotionMatchingControlInput ControlInput => _owner?.ControlInput as MotionMatchingControlInput;
 
@@ -274,7 +255,7 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
     public static float SqrDistance(ReadOnlySpan<float> featureVectorA, ReadOnlySpan<float> featureVectorB, ReadOnlySpan<float> featureWeights)
     {
         var sqrDistance = 0.0f;
-        for (int i = 0; i < featureVectorA.Length; i++)
+        for (var i = 0; i < featureVectorA.Length; i++)
         {
             var diff = featureVectorA[i] - featureVectorB[i];
             sqrDistance += diff * diff * featureWeights[i];
@@ -385,7 +366,7 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
             _authoredFeatureWeights = new NativeArray<float>(featureSize, Allocator.Domain);
         }
 
-        for (int i = 0; i < featureWeights.Count; i++)
+        for (var i = 0; i < featureWeights.Count; i++)
         {
             _featureWeights[i] = featureWeights[i];
             _authoredFeatureWeights[i] = featureWeights[i];

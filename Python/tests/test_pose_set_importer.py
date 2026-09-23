@@ -3,10 +3,8 @@ Reading a ``.mmpose``.
 
 The fixtures here write the file the way ``PoseSerializer.Serialize`` does -- the layout written
 up in ``openwiki/animation-tools/on-disk-formats.md`` -- so that the Python reader is checked
-against the format rather than against itself. Nothing else in either suite does that, and the
-gait phase block is the newest reason to: it is evaluated in Unity and only read here, so a
-disagreement about where it sits in the file would surface as a silently wrong phase rather than
-as an error.
+against the format rather than against itself. The gait phase block matters most: a disagreement
+about where it sits would surface as a silently wrong phase rather than as an error.
 """
 
 import os
@@ -96,8 +94,8 @@ class PhaseBlockTests(unittest.TestCase):
         np.testing.assert_allclose(pose_set.phase, self.phase)
 
     def test_a_file_that_stops_before_the_phase_block_is_refused(self):
-        # The format carries no version, so a database written before the block existed has to be
-        # caught by its content being missing rather than by a header saying so.
+        # The format carries no version, so a file missing the block has to be caught by its
+        # content being absent rather than by a header saying so.
         path = os.path.join(self.directory, 'stale.mmpose')
         write_mmpose(path, self.n_poses, ['root', 'spine', 'foot'], [-1, 0, 1],
                      self.phase, self.phase_rate)

@@ -4,13 +4,9 @@ using UnityEngine;
 
 namespace MotionField
 {
-// Benchmark overrides for the motion field. They live here rather than in AnimationTools because
-// AnimationTools is the assembly this one depends on, not the other way round; the
-// [SerializeReference] list on a BenchmarkMethod picks them up wherever they are declared.
-//
-// Deliberately absent: overrides for MotionFieldConfig hyperparameters (kNeighbors, tugRatio, the
-// per-bone weights). Those live on a shared ScriptableObject, so writing them would dirty the asset
-// and leak into every later run in the sweep. Sweeping them needs a config asset per variant.
+// Declared beside the stage because AnimationTools cannot reference this assembly. There are no
+// MotionFieldConfig overrides: writing a shared ScriptableObject would leak into every later run,
+// so sweeping its hyperparameters needs a config asset per variant.
 
 /// <summary>Runs the character's motion field under a different policy.</summary>
 [Serializable]

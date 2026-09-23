@@ -7,9 +7,8 @@ namespace AnimationTools.Editor
     /// frame: the phase as a filled band, and each foot's contact as a bar under it.
     /// </summary>
     /// <remarks>
-    /// Kept apart from the track that draws it because it is pure - given phase, rate and contact
-    /// arrays it produces pixels and nothing else, so its two structural rules (a frame with no
-    /// measurable cycle flags the whole band; a full cycle reaches the top row) are testable.
+    /// Pure, so its rules are testable: a frame with no measurable cycle flags the whole band, and a
+    /// full cycle reaches the top row.
     /// </remarks>
     public static class GaitPhaseSignalBuilder
     {

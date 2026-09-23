@@ -1,36 +1,20 @@
 """
 UMAP embedding of the motion field, for the Unity debug visualizer.
 
-The motion field is a cloud of motion states in a 138-dimensional similarity
-space (46 weighted joint position/velocity triples). Nothing about a stalled
-policy is visible in that space directly, so this module projects it to 3D once,
-offline, and writes the result next to the trained value function. Unity draws
-the projection and overlays the live query, its k nearest neighbours and the tug
-target, which turns "the character froze" into a picture of *where* in the field
-it froze.
+The motion field is a cloud of motion states in a high-dimensional similarity
+space, so this module projects it to 3D once, offline, and writes the result next
+to the trained value function. Unity draws the projection and overlays the live
+query, its k nearest neighbours and the tug target, showing *where* in the field
+a stalled character froze.
 
-The field's own k-NN metric is a sum of per-joint L2 norms -- an L2,1 mixed
-norm, not the flat L2 that UMAP would otherwise assume. Embedding under the
-wrong metric would draw neighbourhoods the field does not actually see, so the
-k-NN graph is built here with the field's metric and handed to UMAP via
-`precomputed_knn`.
+The field's k-NN metric is a sum of per-joint L2 norms, not the flat L2 UMAP
+assumes, so the k-NN graph is built here with the field's metric and handed to
+UMAP via `precomputed_knn`. That rules out `reducer.transform()`, so Unity places
+the live state at the similarity-weighted barycenter of its neighbours instead.
 
-One consequence of `precomputed_knn`: `reducer.transform()` is unavailable, so a
-novel pose cannot be projected exactly. Unity instead places the live state at
-the similarity-weighted barycenter of its neighbours' embeddings, which costs
-nothing and is the same interpolation the field already uses for values.
-
-By default only the *position* half of the feature is projected. Embedding the
-whole thing lays out a phase space, where one pose held at two speeds lands in
-two places and nothing on screen distinguishes "a different pose" from "the same
-pose, moving differently" -- which is what made the first version of this cloud
-hard to read. Positions alone lay out a pose manifold instead.
-
-Velocity does not disappear from the picture, it changes form. Since
-`pose_v[i] = (Pose(i+1) - Pose(i)) / frame_time`, a state's one-frame lookahead
-`x + v * frame_time` *is* the next state, so in a position-only projection the
-velocity of state i points exactly at the point for state i+1 -- the
-frame-adjacency edge Unity already draws. The edges become the velocity field.
+By default only the *position* half of the feature is projected, laying out a
+pose manifold rather than a phase space; velocity shows up as the frame-adjacency
+edges. See openwiki/motion-field/pose-manifold-embedding.md.
 """
 
 from __future__ import annotations
@@ -52,11 +36,12 @@ METRIC_EUCLIDEAN = 'euclidean'
 
 # 'position' -- joint positions only: a pose manifold, with velocity carried by
 #               the frame-adjacency edges. See the module docstring.
-# 'full'     -- positions and velocities, the original phase-space projection.
+# 'full'     -- positions and velocities: a phase-space projection.
 FEATURE_POSITION = 'position'
 FEATURE_FULL = 'full'
 
 DEFAULT_KNN_CHUNK = 256
+
 
 def _noop_progress(stage: str, fraction: float) -> None:
     pass
@@ -67,9 +52,8 @@ def compute_knn(features: np.ndarray, k: int, device: str = None,
     """
     k nearest neighbours of every state under the motion field's own metric.
 
-    `MotionField.get_batched_knn` already does this but returns similarity
-    weights; UMAP needs the raw distances, so the search is repeated here rather
-    than widening that function's contract for one caller.
+    `MotionField.get_batched_knn` returns similarity weights; UMAP needs the raw
+    distances.
 
     :param features: (states, feature_rows, 3) float32, i.e. `state_features`.
     :param k: neighbours per state, including the state itself.
@@ -102,12 +86,9 @@ def build_edges(state_frames: np.ndarray):
     """
     Directed state->state+1 links, and the clip each state came from.
 
-    `motion_field.action_predictor.build_state_indices` drops the last frame of every clip,
-    so its output is one contiguous run of source frames per clip. Two adjacent
-    states are a real transition exactly when their source frames are adjacent
-    too -- deriving the links from that rather than re-deriving clip arithmetic
-    keeps this in step with whatever boundary rule the state builder uses, and
-    stops a link being drawn across a cut the database never contains.
+    Two adjacent states are a real transition exactly when their source frames
+    are adjacent too, which keeps this in step with whatever boundary rule
+    `motion_field.action_predictor.build_state_indices` uses.
 
     :param state_frames: (states,) source frame index per state.
     :return: (edges int32 (m, 2), state_clip int32 (states,))
@@ -149,14 +130,9 @@ def compute_embedding(data_dir: str, db_name: str, out_path: str,
         alone (the default -- see the module docstring), `FEATURE_FULL` for the
         whole position+velocity feature.
 
-        Two consequences of position mode worth knowing. `vel_weight` stops
-        affecting the projection entirely, and `pos_weight` only scales it
-        uniformly, which cannot reorder neighbours and which UMAP normalises
-        away regardless; per-joint *position* weights do still shape the layout.
-        Both weights are still recorded in the file. And `load_embedding` will
-        still warn when the bone weights change, including a velocity-only
-        change that cannot have moved a single point -- over-warning is the safe
-        direction for a staleness check, so it is left alone.
+        In position mode `vel_weight` has no effect and `pos_weight` only scales
+        uniformly, which cannot reorder neighbours; per-joint *position* weights
+        still shape the layout. Both weights are recorded in the file regardless.
     :return: summary dict for logging on the C# side.
     """
     progress = progress or _noop_progress
@@ -172,10 +148,8 @@ def compute_embedding(data_dir: str, db_name: str, out_path: str,
                                vel_weight=vel_weight, bone_weights=bone_weights)
     features = motion_field.state_features
     if feature_mode == FEATURE_POSITION:
-        # build_motion_states stacks bone_count weighted position rows on top of
-        # bone_count weighted velocity rows; the first half is the pose. Slicing
-        # here covers both uses below -- the k-NN graph and the matrix UMAP fits
-        # are derived from this one array.
+        # build_motion_states stacks position rows above velocity rows; the first
+        # half is the pose.
         features = np.ascontiguousarray(features[:, :motion_field.bone_count, :])
 
     states_count = int(features.shape[0])
@@ -275,12 +249,9 @@ def load_embedding(path: str, states_count: int = None, log=print):
     """
     Load `<name>.mfembed.npz`.
 
-    Every row of the embedding is a row of the pose database, so an embedding
-    loaded against a re-extracted `.mmpose` addresses the wrong states. The only
-    check left is the state count: nothing here hashes the database, so an
-    embedding fitted on a *different* database of the same length is loaded and
-    drawn as if it were current. Recompute the embedding after every Generate
-    Pose Database.
+    The only staleness check is the state count: an embedding fitted on a
+    different database of the same length is drawn as if it were current.
+    Recompute the embedding after every Generate Pose Database.
 
     Returns `None` rather than raising on any problem -- a missing or unreadable
     embedding must degrade to "draw nothing", never throw inside `Py.GIL()`.
@@ -326,9 +297,7 @@ def load_embedding_arrays(path: str, states_count: int = None, log=None):
     `motion_field.action_predictor.get_pose_arrays`.
 
     :param log: optional `callable(str)`. Unity passes one in so rejection
-        reasons reach the Editor console -- the default `print` goes to stdout,
-        which PythonNET does not forward, making a stale embedding look like a
-        silent no-op.
+        reasons reach the Editor console; PythonNET does not forward stdout.
     :return: (embedding_xyz, edges_pairs, speed, states_count) as flat Python
         lists, or ([], [], [], 0) when there is no usable embedding.
     """

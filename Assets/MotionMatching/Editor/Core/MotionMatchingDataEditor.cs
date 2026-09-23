@@ -11,14 +11,14 @@ namespace MotionMatching
 /// the runtime loads.
 /// </summary>
 /// <remarks>
-/// The asset is a recipe, not the data. Edits take effect only when <see cref="GenerateDatabases"/>
-/// runs, and stale generated files are not detected, so regenerate after any change.
+/// The asset is a recipe, not the data: edits take effect only when <see cref="GenerateDatabases"/>
+/// runs, so regenerate after any change.
 /// </remarks>
 [CustomEditor(typeof(MotionMatchingData))]
 public class MotionMatchingDataEditor : UnityEditor.Editor
 {
-    private bool TrajectoryFeaturesSelectorFoldout;
-    private bool PoseFeaturesSelectorFoldout;
+    private bool _trajectoryFeaturesFoldout;
+    private bool _poseFeaturesFoldout;
 
     private bool _generateButtonError;
 
@@ -35,14 +35,8 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     /// side reads.
     /// </summary>
     /// <remarks>
-    /// The steps depend on each other, so the order is fixed: extract poses, serialize them
-    /// (.mmpose — also what the Python side reads), compute joint forward axes, extract the features
-    /// derived from those poses, serialize those too.
-    /// <para>
-    /// An asset with no feature channels bakes only the pose half, leaving a pose-only database. The
-    /// .mmpose is what the Python training path and the pose visualizer read, so it is useful on its
-    /// own; there is simply no vector to search.
-    /// </para>
+    /// Each step depends on the one before. An asset with no feature channels bakes only the
+    /// .mmpose, which Python and the pose visualizer can still use.
     /// </remarks>
     public static void GenerateDatabases(MotionMatchingData mmData)
     {
@@ -115,14 +109,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         EditorGUILayout.PropertyField(_animationClipsProperty);
     }
 
-    private void DrawSkeleton()
-    {
-        EditorGUILayout.Separator();
-        EditorGUILayout.LabelField("Skeleton", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(_skeletonProperty);
-    }
-
-    // ContactVelocityThreshold + Contact Bones
     private void DrawContactThreshold(Transform rigRoot)
     {
         EditorGUILayout.Separator();
@@ -139,12 +125,11 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
             _rightContactBoneProperty, rigRoot);
     }
 
-    // Trajectory Features ------------------------------------------------------------------------------------
     private void DrawTrajectoryFeatures(Transform rigRoot)
     {
-        TrajectoryFeaturesSelectorFoldout =
-            EditorGUILayout.BeginFoldoutHeaderGroup(TrajectoryFeaturesSelectorFoldout, "Trajectory Features");
-        if (TrajectoryFeaturesSelectorFoldout)
+        _trajectoryFeaturesFoldout =
+            EditorGUILayout.BeginFoldoutHeaderGroup(_trajectoryFeaturesFoldout, "Trajectory Features");
+        if (_trajectoryFeaturesFoldout)
         {
             EditorGUI.indentLevel++;
             // Deleting mid-loop would change the control count between the layout and repaint passes
@@ -152,7 +137,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
             for (var i = 0; i < _trajectoryFeaturesProperty.arraySize; i++)
             {
                 var trajectoryFeature = _trajectoryFeaturesProperty.GetArrayElementAtIndex(i);
-                // Header
                 EditorGUILayout.BeginVertical(GUI.skin.box);
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField((i + 1).ToString());
@@ -163,10 +147,8 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
-                // Name
                 var nameProp = trajectoryFeature.FindPropertyRelative("name");
                 nameProp.stringValue = EditorGUILayout.TextField("Name", nameProp.stringValue);
-                // Feature Type
                 var featureTypeProp = trajectoryFeature.FindPropertyRelative("featureType");
                 featureTypeProp.intValue = (int)(TrajectoryFeatureChannel.Type)EditorGUILayout.EnumPopup("Type",
                     (TrajectoryFeatureChannel.Type)featureTypeProp.intValue);
@@ -195,12 +177,11 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         EditorGUILayout.EndFoldoutHeaderGroup();
     }
 
-    // Pose Features ------------------------------------------------------------------------------------
     private void DrawPoseFeatures(Transform rigRoot)
     {
-        PoseFeaturesSelectorFoldout =
-            EditorGUILayout.BeginFoldoutHeaderGroup(PoseFeaturesSelectorFoldout, "Pose Features");
-        if (PoseFeaturesSelectorFoldout)
+        _poseFeaturesFoldout =
+            EditorGUILayout.BeginFoldoutHeaderGroup(_poseFeaturesFoldout, "Pose Features");
+        if (_poseFeaturesFoldout)
         {
             EditorGUI.indentLevel++;
             // Deleting mid-loop would change the control count between the layout and repaint passes
@@ -208,7 +189,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
             for (var i = 0; i < _poseFeaturesProperty.arraySize; i++)
             {
                 var poseFeature = _poseFeaturesProperty.GetArrayElementAtIndex(i);
-                // Header
                 EditorGUILayout.BeginVertical(GUI.skin.box);
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField((i + 1).ToString());
@@ -219,7 +199,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
-                //  Properties
                 var nameProp = poseFeature.FindPropertyRelative("name");
                 nameProp.stringValue = EditorGUILayout.TextField("Name", nameProp.stringValue);
                 var featureTypeProp = poseFeature.FindPropertyRelative("featureType");
@@ -249,7 +228,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         EditorGUILayout.EndFoldoutHeaderGroup();
     }
 
-    // Generate Databases
     private void DrawGenerateButton(MotionMatchingData data)
     {
         EditorGUILayout.Separator();
@@ -271,7 +249,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
 
         GUI.enabled = true;
 
-        // Error Check
         if (data.JointsLocalForwardError)
         {
             EditorGUILayout.HelpBox("Internal error detected. Please regenerate databases.", MessageType.Error);
@@ -339,7 +316,6 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         if (featureType == TrajectoryFeatureChannel.Type.Position ||
             featureType == TrajectoryFeatureChannel.Type.Direction)
         {
-            // Bone
             var simulationBoneProp = trajectoryFeature.FindPropertyRelative("simulationBone");
             var boneProp = trajectoryFeature.FindPropertyRelative("bone");
             var zeroXProp = trajectoryFeature.FindPropertyRelative("zeroX");

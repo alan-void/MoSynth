@@ -27,22 +27,13 @@ public struct SimulationFrameDef
 /// </summary>
 /// <remarks>
 /// <para>
-/// Storage convention: a pose is exactly the clip's own space. Bone 0 is the rig's real root and
-/// carries world position and rotation; bones 1.. carry rest offsets and parent-local rotations.
-/// Velocity channels are plain finite differences of those same channels, so bone 0's velocity is
-/// world-space too.
+/// A pose is stored in the clip's own space: bone 0 carries world position and rotation, bones 1..
+/// rest offsets and parent-local rotations, and velocities are finite differences of those.
 /// </para>
 /// <para>
-/// The simulation frame is the ground-projected, facing-aligned frame a character controller
-/// works in. It is computed from a reference bone (<see cref="SimulationFrameDef"/>) on demand:
-/// position is the reference bone's world position flattened onto the XZ plane, rotation is the
-/// yaw that aims at the bone's flattened forward axis. It is therefore yaw-only by construction,
-/// and never stored — nothing can drift out of sync with the pose it came from.
-/// </para>
-/// <para>
-/// Idempotence: expressing a pose's bone 0 frame-locally (<see cref="ToFrameLocal(float3,float3,quaternion)"/>)
-/// yields a pose whose own derived frame is the identity, which is what lets a pose be re-anchored
-/// under an arbitrary world transform and re-derived without loss.
+/// The frame is the reference bone's position flattened onto XZ, with the yaw of its flattened
+/// forward axis. Never stored, so it cannot drift from its pose; and expressing bone 0 frame-locally
+/// yields a pose whose own frame is the identity. See openwiki/animation-tools/simulation-frame.md.
 /// </para>
 /// </remarks>
 public static class SimulationFrame

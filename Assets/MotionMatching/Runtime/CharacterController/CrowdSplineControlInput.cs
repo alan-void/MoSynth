@@ -14,14 +14,9 @@ namespace MotionMatching
 /// offsets it sideways around whoever is in the way, and it settles back onto the path once clear.
 /// </summary>
 /// <remarks>
-/// The workhorse for populating a scene: give each character its own spline and they walk their
-/// routes while negotiating each other at crossings.
-/// <para>
 /// Unlike <see cref="SplineControlInput"/> the point on the spline can wait for the character to
 /// catch up (<see cref="UpdateOnlyWhenCharacterMoving"/>), so avoidance does not let the target run
-/// away. That also makes it a poorer path-following benchmark, since the reference reacts to the
-/// character it is measuring.
-/// </para>
+/// away. That makes it a poor path-following benchmark: the reference reacts to what it measures.
 /// </remarks>
 public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwareCharacterControler, IMotionSynthesisSplineControlInput
 {
@@ -63,92 +58,80 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
     public bool DebugSteering = false;
 
     /// <summary>Position along the spline, normalized to 0..1.</summary>
-    private float T;
+    private float _splineT;
 
     /// <summary>Set while the point on the spline is waiting for the character to catch up.</summary>
-    private bool IsStopped;
+    private bool _isStopped;
 
     /// <summary>Current avoidance force. Smoothed toward the raw steering by SteeringChangeFactor.</summary>
     public float2 Steering { get; private set; }
 
     /// <summary>Accumulated sideways displacement from the spline, worked off once the way is clear.</summary>
-    private float2 SteeringOffset;
+    private float2 _steeringOffset;
 
-    private float2 CurrentPosition;
-    private float2 CurrentDirection;
-    private float2[] PredictedPositions;
-    private float2[] PredictedDirections;
+    private float2 _currentPosition;
+    private float2 _currentDirection;
+    private float2[] _predictedPositions;
+    private float2[] _predictedDirections;
 
-    // Features -----------------------------------------------------------------
-    private int TrajectoryPosFeatureIndex;
-    private int TrajectoryRotFeatureIndex;
-    private int[] TrajectoryPosPredictionFrames;
-    private int[] TrajectoryRotPredictionFrames;
+    private int _trajectoryPosFeatureIndex;
+    private int _trajectoryRotFeatureIndex;
+    private int[] _trajectoryPosPredictionFrames;
+    private int[] _trajectoryRotPredictionFrames;
 
-    private int NumberPredictionPos
-    {
-        get { return TrajectoryPosPredictionFrames.Length; }
-    }
+    private int NumberPredictionPos => _trajectoryPosPredictionFrames.Length;
 
-    private int NumberPredictionRot
-    {
-        get { return TrajectoryRotPredictionFrames.Length; }
-    }
+    private int NumberPredictionRot => _trajectoryRotPredictionFrames.Length;
 
-    // Crowds ------------------------------------------------------------------
-    private Obstacle[] Obstacles;
-    private NativeArray<(float2, float, float2)> ObstaclesCirclesArray;
-    private NativeArray<int> ObstaclesCirclesArrayCount;
-    private List<List<(Obstacle, bool)>> CandidateCirclesObstacles;
-    private NativeArray<(float2, float2, float2)> ObstaclesEllipsesArray;
-    private NativeArray<int> ObstaclesEllipsesArrayCount;
-    private List<List<(Obstacle, bool)>> CandidateEllipseObstacles;
-    // --------------------------------------------------------------------------
+    private Obstacle[] _obstacles;
+    private NativeArray<(float2, float, float2)> _obstaclesCirclesArray;
+    private NativeArray<int> _obstaclesCirclesArrayCount;
+    private List<List<(Obstacle, bool)>> _candidateCirclesObstacles;
+    private NativeArray<(float2, float2, float2)> _obstaclesEllipsesArray;
+    private NativeArray<int> _obstaclesEllipsesArrayCount;
+    private List<List<(Obstacle, bool)>> _candidateEllipseObstacles;
 
     private void Start()
     {
-        // Get the feature indices
-        TrajectoryPosFeatureIndex = -1;
-        TrajectoryRotFeatureIndex = -1;
+        _trajectoryPosFeatureIndex = -1;
+        _trajectoryRotFeatureIndex = -1;
         for (int i = 0; i < synthesizer.GetMmData().trajectoryFeatures.Count; ++i)
         {
             if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
-                TrajectoryPosFeatureIndex = i;
+                _trajectoryPosFeatureIndex = i;
             if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
-                TrajectoryRotFeatureIndex = i;
+                _trajectoryRotFeatureIndex = i;
         }
 
-        Debug.Assert(TrajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
-        Debug.Assert(TrajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
+        Debug.Assert(_trajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
+        Debug.Assert(_trajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
 
-        TrajectoryPosPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
+        _trajectoryPosPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[_trajectoryPosFeatureIndex]
             .predictionFrames;
-        TrajectoryRotPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
+        _trajectoryRotPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[_trajectoryRotFeatureIndex]
             .predictionFrames;
-        // TODO: generalize this, allow for different number of prediction frames
-        Debug.Assert(TrajectoryPosPredictionFrames.Length == TrajectoryRotPredictionFrames.Length,
+        Debug.Assert(_trajectoryPosPredictionFrames.Length == _trajectoryRotPredictionFrames.Length,
             "Trajectory Position and Trajectory Direction Prediction Frames must be the same for PathCharacterController");
-        for (int i = 0; i < TrajectoryPosPredictionFrames.Length; ++i)
+        for (int i = 0; i < _trajectoryPosPredictionFrames.Length; ++i)
         {
-            Debug.Assert(TrajectoryPosPredictionFrames[i] == TrajectoryRotPredictionFrames[i],
+            Debug.Assert(_trajectoryPosPredictionFrames[i] == _trajectoryRotPredictionFrames[i],
                 "Trajectory Position and Trajectory Direction Prediction Frames must be the same for PathCharacterController");
         }
 
-        PredictedPositions = new float2[NumberPredictionPos];
-        PredictedDirections = new float2[NumberPredictionRot];
-        CandidateCirclesObstacles = new List<List<(Obstacle, bool)>>();
+        _predictedPositions = new float2[NumberPredictionPos];
+        _predictedDirections = new float2[NumberPredictionRot];
+        _candidateCirclesObstacles = new List<List<(Obstacle, bool)>>();
         for (int i = 0; i < NumberPredictionPos; ++i)
         {
-            CandidateCirclesObstacles.Add(new List<(Obstacle, bool)>());
+            _candidateCirclesObstacles.Add(new List<(Obstacle, bool)>());
         }
 
-        CandidateEllipseObstacles = new List<List<(Obstacle, bool)>>();
+        _candidateEllipseObstacles = new List<List<(Obstacle, bool)>>();
         for (int i = 0; i < NumberPredictionPos; ++i)
         {
-            CandidateEllipseObstacles.Add(new List<(Obstacle, bool)>());
+            _candidateEllipseObstacles.Add(new List<(Obstacle, bool)>());
         }
 
-        // Crowds
         OnObstaclesUpdated(ObstacleManager.Instance.GetObstacles());
     }
 
@@ -171,16 +154,16 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
         float speed = Speed / SplineContainer.CalculateLength();
         float delta = speed * DatabaseDeltaTime * 0.1f;
 
-        void updateT()
+        void UpdateT()
         {
-            T += speed * Time.deltaTime;
+            _splineT += speed * Time.deltaTime;
             if (Loop)
             {
-                T = math.frac(T);
+                _splineT = math.frac(_splineT);
             }
         }
 
-        float getTDelta(float t, float delta)
+        float GetTDelta(float t, float delta)
         {
             float tDelta = t + delta;
             if (SplineContainer.Spline.Closed)
@@ -195,24 +178,24 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
             return tDelta;
         }
 
-        float3 pos = SplineContainer.EvaluatePosition(T);
-        CurrentPosition = pos.xz;
-        float3 nextPos = SplineContainer.EvaluatePosition(getTDelta(T, delta));
+        float3 pos = SplineContainer.EvaluatePosition(_splineT);
+        _currentPosition = pos.xz;
+        float3 nextPos = SplineContainer.EvaluatePosition(GetTDelta(_splineT, delta));
         float2 predDir = new(nextPos.x - pos.x, nextPos.z - pos.z);
-        if (math.lengthsq(predDir) < 1e-9) predDir = CurrentDirection;
-        CurrentDirection = math.normalize(predDir);
+        if (math.lengthsq(predDir) < 1e-9) predDir = _currentDirection;
+        _currentDirection = math.normalize(predDir);
 
-        if (!IsStopped)
+        if (!_isStopped)
         {
             for (int i = 0; i < NumberPredictionPos; i++)
             {
-                float t = getTDelta(T, TrajectoryPosPredictionFrames[i] * speed * DatabaseDeltaTime);
+                float t = GetTDelta(_splineT, _trajectoryPosPredictionFrames[i] * speed * DatabaseDeltaTime);
                 float3 predPos = SplineContainer.EvaluatePosition(t);
-                PredictedPositions[i] = predPos.xz;
-                float3 predNextPos = SplineContainer.EvaluatePosition(getTDelta(t, delta));
+                _predictedPositions[i] = predPos.xz;
+                float3 predNextPos = SplineContainer.EvaluatePosition(GetTDelta(t, delta));
                 float2 predNextDir = new(predNextPos.x - predPos.x, predNextPos.z - predPos.z);
-                if (math.lengthsq(predNextDir) < 1e-9) predNextDir = CurrentDirection;
-                PredictedDirections[i] = math.normalize(predNextDir);
+                if (math.lengthsq(predNextDir) < 1e-9) predNextDir = _currentDirection;
+                _predictedDirections[i] = math.normalize(predNextDir);
             }
         }
 
@@ -221,66 +204,65 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
             float2 characterPos = new(synthesizer.RootPosition.x, synthesizer.RootPosition.z);
             float distance = math.length(new float2(nextPos.x - characterPos.x, nextPos.z - characterPos.y));
             float3 deltaPos =
-                SplineContainer.EvaluatePosition(getTDelta(T,
-                    TrajectoryPosPredictionFrames[^1] * speed * DatabaseDeltaTime));
+                SplineContainer.EvaluatePosition(GetTDelta(_splineT,
+                    _trajectoryPosPredictionFrames[^1] * speed * DatabaseDeltaTime));
             float distanceDelta = math.length(new float2(deltaPos.x - characterPos.x, deltaPos.z - characterPos.y));
-            if (distanceDelta < distance || (!IsStopped && distance < DistanceToMove))
+            if (distanceDelta < distance || (!_isStopped && distance < DistanceToMove))
             {
-                IsStopped = false;
-                updateT();
+                _isStopped = false;
+                UpdateT();
             }
             else
             {
-                IsStopped = distance > DistanceResumeMoving;
+                _isStopped = distance > DistanceResumeMoving;
                 for (int i = 0; i < NumberPredictionPos; i++)
                 {
-                    PredictedPositions[i] = math.lerp(PredictedPositions[i], CurrentPosition + SteeringOffset,
+                    _predictedPositions[i] = math.lerp(_predictedPositions[i], _currentPosition + _steeringOffset,
                         Time.deltaTime);
-                    PredictedDirections[i] = PredictedDirections[i];
                 }
             }
         }
         else
         {
-            updateT();
-            IsStopped = false;
+            UpdateT();
+            _isStopped = false;
         }
 
         if (DoSteering)
         {
-            if (IsStopped)
+            if (_isStopped)
             {
-                // PredictedPositions was not updated
+                // The predictions were not refreshed this frame, so take off last frame's offset first.
                 for (int i = 0; i < NumberPredictionPos; i++)
                 {
-                    PredictedPositions[i] -= SteeringOffset;
+                    _predictedPositions[i] -= _steeringOffset;
                 }
             }
 
             float2 steeringPos = new(synthesizer.RootPosition.x, synthesizer.RootPosition.z);
             float2 targetSteering = CrowdControlInput.ComputeSteering(steeringPos,
-                new Vector3(CurrentDirection.x, 0.0f, CurrentDirection.y),
-                Obstacles, SteeringLookAhead, SteeringForce, debug: DebugSteering);
-            targetSteering += -SteeringOffset * SteeringSplineForce;
+                new Vector3(_currentDirection.x, 0.0f, _currentDirection.y),
+                _obstacles, SteeringLookAhead, SteeringForce, debug: DebugSteering);
+            targetSteering += -_steeringOffset * SteeringSplineForce;
             Steering = math.lerp(Steering, targetSteering, Time.deltaTime * SteeringChangeFactor);
-            SteeringOffset += Steering * Time.deltaTime;
+            _steeringOffset += Steering * Time.deltaTime;
 
             for (int i = 0; i < NumberPredictionPos; i++)
             {
-                PredictedPositions[i] += SteeringOffset;
+                _predictedPositions[i] += _steeringOffset;
             }
         }
     }
 
     private void OnObstaclesUpdated(List<Obstacle> obstacles)
     {
-        Obstacles = new Obstacle[obstacles.Count - (IgnoreObstacle == null ? 0 : 1)];
+        _obstacles = new Obstacle[obstacles.Count - (IgnoreObstacle == null ? 0 : 1)];
         int it = 0;
         for (int i = 0; i < obstacles.Count; i++)
         {
             if (obstacles[i] != IgnoreObstacle)
             {
-                Obstacles[it] = obstacles[i];
+                _obstacles[it] = obstacles[i];
                 it += 1;
             }
         }
@@ -288,8 +270,7 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
 
     public quaternion GetCurrentRotation()
     {
-        Quaternion rot = Quaternion.LookRotation(new Vector3(CurrentDirection.x, 0, CurrentDirection.y));
-        return rot;
+        return Quaternion.LookRotation(new Vector3(_currentDirection.x, 0, _currentDirection.y));
     }
 
     public override void GetTrajectoryFeature(TrajectoryFeatureChannel feature, int index, Transform character,
@@ -316,7 +297,6 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
         }
     }
 
-
     public (
         NativeArray<(float2, float, float2)>,
         NativeArray<int>,
@@ -324,38 +304,38 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
         NativeArray<int>
         ) GetNearbyObstacles(Transform character, float obstacleDistanceThreshold)
     {
-        for (int p = 0; p < CandidateCirclesObstacles.Count; p++)
+        for (int p = 0; p < _candidateCirclesObstacles.Count; p++)
         {
-            CandidateCirclesObstacles[p].Clear();
+            _candidateCirclesObstacles[p].Clear();
         }
 
-        for (int p = 0; p < CandidateEllipseObstacles.Count; p++)
+        for (int p = 0; p < _candidateEllipseObstacles.Count; p++)
         {
-            CandidateEllipseObstacles[p].Clear();
+            _candidateEllipseObstacles[p].Clear();
         }
 
         int candidateObstaclesCirclesCount = 0;
         int candidateObstaclesEllipsesCount = 0;
         float candidateThreshold = MaximumEllipseLength + obstacleDistanceThreshold;
-        for (int p = 0; p < PredictedPositions.Length; p++)
+        for (int p = 0; p < _predictedPositions.Length; p++)
         {
             float3 predPos = synthesizer.GetMainPositionFeature(p);
-            for (int i = 0; i < Obstacles.Length; i++)
+            for (int i = 0; i < _obstacles.Length; i++)
             {
-                Obstacle obs = Obstacles[i];
+                Obstacle obs = _obstacles[i];
                 (float3 obsPos, bool isEllipse, _) = obs.GetProjWorldPosition(p);
                 if (isEllipse)
                 {
                     if (math.distance(predPos, obsPos) < candidateThreshold + MaximumEllipseLength)
                     {
-                        CandidateEllipseObstacles[p].Add((obs, false));
+                        _candidateEllipseObstacles[p].Add((obs, false));
                         candidateObstaclesEllipsesCount += 1;
                     }
 
                     if (math.distance(predPos, obs.GetProjWorldPosition(p, forceCurrent: true).Item1) <
                         candidateThreshold + obs.Radius)
                     {
-                        CandidateCirclesObstacles[p].Add((obs, true));
+                        _candidateCirclesObstacles[p].Add((obs, true));
                         candidateObstaclesCirclesCount += 1;
                     }
                 }
@@ -363,70 +343,70 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
                 {
                     if (math.distance(predPos, obsPos) < candidateThreshold + obs.Radius)
                     {
-                        CandidateCirclesObstacles[p].Add((obs, false));
+                        _candidateCirclesObstacles[p].Add((obs, false));
                         candidateObstaclesCirclesCount += 1;
                     }
                 }
             }
         }
 
-        if (ObstaclesCirclesArray.IsCreated || ObstaclesCirclesArrayCount.IsCreated ||
-            ObstaclesEllipsesArray.IsCreated || ObstaclesEllipsesArrayCount.IsCreated)
+        if (_obstaclesCirclesArray.IsCreated || _obstaclesCirclesArrayCount.IsCreated ||
+            _obstaclesEllipsesArray.IsCreated || _obstaclesEllipsesArrayCount.IsCreated)
         {
-            ObstaclesCirclesArray.Dispose();
-            ObstaclesCirclesArrayCount.Dispose();
-            ObstaclesEllipsesArray.Dispose();
-            ObstaclesEllipsesArrayCount.Dispose();
+            _obstaclesCirclesArray.Dispose();
+            _obstaclesCirclesArrayCount.Dispose();
+            _obstaclesEllipsesArray.Dispose();
+            _obstaclesEllipsesArrayCount.Dispose();
         }
 
-        ObstaclesCirclesArrayCount = new NativeArray<int>(CandidateCirclesObstacles.Count, Allocator.TempJob);
-        ObstaclesCirclesArray =
+        _obstaclesCirclesArrayCount = new NativeArray<int>(_candidateCirclesObstacles.Count, Allocator.TempJob);
+        _obstaclesCirclesArray =
             new NativeArray<(float2, float, float2)>(candidateObstaclesCirclesCount, Allocator.TempJob);
-        ObstaclesEllipsesArrayCount = new NativeArray<int>(CandidateEllipseObstacles.Count, Allocator.TempJob);
-        ObstaclesEllipsesArray =
+        _obstaclesEllipsesArrayCount = new NativeArray<int>(_candidateEllipseObstacles.Count, Allocator.TempJob);
+        _obstaclesEllipsesArray =
             new NativeArray<(float2, float2, float2)>(candidateObstaclesEllipsesCount, Allocator.TempJob);
         int itCircle = 0;
         int itEllipse = 0;
-        for (int p = 0; p < PredictedPositions.Length; p++)
+        for (int p = 0; p < _predictedPositions.Length; p++)
         {
-            ObstaclesCirclesArrayCount[p] = CandidateCirclesObstacles[p].Count;
-            for (int i = 0; i < CandidateCirclesObstacles[p].Count; i++)
+            _obstaclesCirclesArrayCount[p] = _candidateCirclesObstacles[p].Count;
+            for (int i = 0; i < _candidateCirclesObstacles[p].Count; i++)
             {
-                (Obstacle obstacle, bool forceCurrent) = CandidateCirclesObstacles[p][i];
+                (Obstacle obstacle, bool forceCurrent) = _candidateCirclesObstacles[p][i];
                 (float3 world, _, _) = obstacle.GetProjWorldPosition(p, forceCurrent: forceCurrent);
                 float3 localPos = character.InverseTransformPoint(world);
-                ObstaclesCirclesArray[itCircle++] = (new float2(localPos.x, localPos.z),
+                _obstaclesCirclesArray[itCircle++] = (new float2(localPos.x, localPos.z),
                     obstacle.Radius,
                     new float2(obstacle.GetMinHeightWorld(), obstacle.GetMaxHeightWorld()));
             }
 
-            ObstaclesEllipsesArrayCount[p] = CandidateEllipseObstacles[p].Count;
-            for (int i = 0; i < CandidateEllipseObstacles[p].Count; i++)
+            _obstaclesEllipsesArrayCount[p] = _candidateEllipseObstacles[p].Count;
+            for (int i = 0; i < _candidateEllipseObstacles[p].Count; i++)
             {
-                (Obstacle obstacle, bool forceCurrent) = CandidateEllipseObstacles[p][i];
+                (Obstacle obstacle, bool forceCurrent) = _candidateEllipseObstacles[p][i];
                 (float3 world, _, float4 ellipse) = obstacle.GetProjWorldPosition(p, forceCurrent: forceCurrent);
                 float3 localPos = character.InverseTransformPoint(world);
                 float3 primaryAxis = new(ellipse.x, 0.0f, ellipse.y);
                 float3 secondaryAxis = new(ellipse.z, 0.0f, ellipse.w);
                 primaryAxis = character.InverseTransformDirection(primaryAxis);
                 secondaryAxis = character.InverseTransformDirection(secondaryAxis);
-                ObstaclesEllipsesArray[itEllipse++] = (new float2(localPos.x, localPos.z),
+                _obstaclesEllipsesArray[itEllipse++] = (new float2(localPos.x, localPos.z),
                     new float2(primaryAxis.x, primaryAxis.z),
                     new float2(secondaryAxis.x, secondaryAxis.z));
             }
         }
 
-        return (ObstaclesCirclesArray, ObstaclesCirclesArrayCount, ObstaclesEllipsesArray, ObstaclesEllipsesArrayCount);
+        return (_obstaclesCirclesArray, _obstaclesCirclesArrayCount, _obstaclesEllipsesArray, _obstaclesEllipsesArrayCount);
     }
 
     private float2 GetWorldPredictedPos(int index)
     {
-        return PredictedPositions[index];
+        return _predictedPositions[index];
     }
 
     private float2 GetWorldPredictedDir(int index)
     {
-        return PredictedDirections[index];
+        return _predictedDirections[index];
     }
 
     public override float3 GetWorldInitPosition()
@@ -443,7 +423,7 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
 
     public override float3 GetPosition()
     {
-        return new Vector3(CurrentPosition.x, 0, CurrentPosition.y);
+        return new Vector3(_currentPosition.x, 0, _currentPosition.y);
     }
 
     public override float GetTargetSpeed()
@@ -453,7 +433,7 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
 
     public float2 GetPredictedPosition(int index)
     {
-        return PredictedPositions[index];
+        return _predictedPositions[index];
     }
 
     SplineContainer IMotionSynthesisSplineControlInput.SplineContainer
@@ -466,10 +446,10 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
 
     private void OnDestroy()
     {
-        if (ObstaclesCirclesArray.IsCreated) ObstaclesCirclesArray.Dispose();
-        if (ObstaclesCirclesArrayCount.IsCreated) ObstaclesCirclesArrayCount.Dispose();
-        if (ObstaclesEllipsesArray.IsCreated) ObstaclesEllipsesArray.Dispose();
-        if (ObstaclesEllipsesArrayCount.IsCreated) ObstaclesEllipsesArrayCount.Dispose();
+        if (_obstaclesCirclesArray.IsCreated) _obstaclesCirclesArray.Dispose();
+        if (_obstaclesCirclesArrayCount.IsCreated) _obstaclesCirclesArrayCount.Dispose();
+        if (_obstaclesEllipsesArray.IsCreated) _obstaclesEllipsesArray.Dispose();
+        if (_obstaclesEllipsesArrayCount.IsCreated) _obstaclesEllipsesArrayCount.Dispose();
     }
 
 #if UNITY_EDITOR
@@ -481,16 +461,14 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
 
         const float heightOffset = 0.01f;
 
-        // Draw Current Position And Direction
         if (!Application.isPlaying) return;
         Gizmos.color = new Color(1.0f, 0.3f, 0.1f, 1.0f);
         Vector3 currentPos = (Vector3)GetPosition() + Vector3.up * heightOffset * 2;
         Gizmos.DrawSphere(currentPos, 0.1f);
         GizmosExtensions.DrawLine(currentPos, currentPos + (Quaternion)GetCurrentRotation() * Vector3.forward, 12);
 
-        // Draw Prediction
-        if (PredictedPositions == null || PredictedPositions.Length != NumberPredictionPos ||
-            PredictedDirections == null || PredictedDirections.Length != NumberPredictionRot) return;
+        if (_predictedPositions == null || _predictedPositions.Length != NumberPredictionPos ||
+            _predictedDirections == null || _predictedDirections.Length != NumberPredictionRot) return;
         Gizmos.color = new Color(0.6f, 0.3f, 0.8f, 1.0f);
         for (int i = 0; i < NumberPredictionPos; i++)
         {
@@ -501,7 +479,6 @@ public class CrowdSplineControlInput : MotionMatchingControlInput, IObstacleAwar
             GizmosExtensions.DrawLine(predictedPos, predictedPos + new Vector3(dirf2.x, 0.0f, dirf2.y) * 0.5f, 12);
         }
 
-        // Draw Steering
         if (DoSteering && math.lengthsq(Steering) > 0.0001f)
         {
             Gizmos.color = new Color(0.1f, 0.8f, 0.1f, 1.0f);

@@ -90,7 +90,6 @@ class Skeleton:
         return local_positions
 
 
-
 class Joint:
     def __init__(self,
                  name,

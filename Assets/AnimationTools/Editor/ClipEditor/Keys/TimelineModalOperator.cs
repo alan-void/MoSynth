@@ -25,20 +25,10 @@ namespace AnimationTools.Editor
     /// confirm or cancel.
     /// </summary>
     /// <remarks>
-    /// The point of the mode is that a cancel writes nothing at all. A track previews the operator's
-    /// value while it runs and commits once on <see cref="TimelineModalResult.Confirmed"/>, so an
-    /// abandoned drag costs no undo entry and no re-bake of the clip.
-    /// <para>
-    /// The cursor is sampled on <see cref="EventType.Repaint"/> as well as on mouse events, and the
-    /// window repaints continuously while a mode is up. That is deliberate: the clip editor is a
-    /// UI Toolkit window whose IMGUI lives in <c>IMGUIContainer</c>s, so <c>MouseMove</c> with no
-    /// button held cannot be relied on to arrive. IMGUI keeps <c>mousePosition</c> current on
-    /// repaints - it is what hover highlighting reads - so a repaint is enough to follow the mouse.
-    /// </para>
-    /// <para>
-    /// Only one operator may run at a time, or two of them fight over <c>hotControl</c>;
-    /// <see cref="ClipEditorContext"/> owns that.
-    /// </para>
+    /// A track previews the value while the mode runs and commits once on
+    /// <see cref="TimelineModalResult.Confirmed"/>, so a cancel writes nothing. The cursor is also
+    /// sampled on <see cref="EventType.Repaint"/>, because in a UI Toolkit window <c>MouseMove</c>
+    /// with no button held may never arrive. <see cref="ClipEditorContext"/> ensures only one runs.
     /// </remarks>
     public sealed class TimelineModalOperator
     {
@@ -55,9 +45,8 @@ namespace AnimationTools.Editor
         /// what was confirmed.
         /// </summary>
         /// <remarks>
-        /// Kept separate from <see cref="IsActive"/> deliberately. Clearing the kind as part of
-        /// finishing left the caller switching on <c>None</c> in the very handler meant to apply the
-        /// edit, so every confirmed grab, scale and box select silently did nothing.
+        /// Separate from <see cref="IsActive"/>: finishing must not clear it, since the caller
+        /// switches on it to apply the confirmed edit.
         /// </remarks>
         public TimelineModalKind Kind { get; private set; }
 
@@ -100,9 +89,8 @@ namespace AnimationTools.Editor
         /// scale happens about <paramref name="pivotFrame"/> - the playhead, as in Blender.
         /// </summary>
         /// <param name="controlId">
-        /// Allocated by the caller with <c>GUIUtility.GetControlID</c> unconditionally every
-        /// repaint. Allocating it here instead would hand out a different id depending on whether a
-        /// key had been pressed, which is how IMGUI control ids drift between Layout and Repaint.
+        /// Allocated by the caller with <c>GUIUtility.GetControlID</c> unconditionally every event,
+        /// so IMGUI control ids do not drift between Layout and Repaint.
         /// </param>
         public void Begin(TimelineModalKind kind, int controlId, Vector2 mouse, float pixelsPerFrame,
             int pivotFrame, float pivotX, bool extend = false)
@@ -121,8 +109,7 @@ namespace AnimationTools.Editor
             FrameDelta = 0;
             ScaleFactor = 1f;
 
-            // Guarded because the operator is also driven directly by tests, where there is no
-            // GUI in progress to own a hot control.
+            // Tests drive the operator with no GUI in progress to own a hot control.
             if (Event.current == null) return;
 
             GUIUtility.hotControl = controlId;
@@ -249,10 +236,7 @@ namespace AnimationTools.Editor
         /// The factor is the ratio of the cursor's distance from the pivot to where it started, so
         /// dragging away from the playhead spreads the keys and dragging towards it pulls them in.
         /// </summary>
-        /// <remarks>
-        /// Starting the mode with the cursor on the pivot has no ratio to measure from, so the
-        /// reference is floored at a pixel rather than dividing by zero.
-        /// </remarks>
+        /// <remarks>The reference is floored at a pixel so a start on the pivot cannot divide by zero.</remarks>
         private float ScaleFromMouse()
         {
             var reference = _startMouse.x - _pivotX;

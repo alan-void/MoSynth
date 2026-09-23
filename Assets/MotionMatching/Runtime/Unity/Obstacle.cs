@@ -146,8 +146,8 @@ namespace MotionMatching
             }
             if (t0 < 0)
             {
-                t0 = t1; // If t0 is negative, let's use t1 instead.
-                if (t0 < 0) return false; // Both t0 and t1 are negative.
+                t0 = t1;
+                if (t0 < 0) return false;
             }
             hitPoint1 = rayOrigin + rayDirection * t0;
             hitDistance1 = t0;
@@ -162,7 +162,6 @@ namespace MotionMatching
             Vector3 position = transform.position;
             GizmosExtensions.DrawWireCircle(new Vector3(position.x, GetMinHeightWorld(), position.z), Radius, Quaternion.identity);
             GizmosExtensions.DrawWireCircle(new Vector3(position.x, GetMaxHeightWorld(), position.z), Radius, Quaternion.identity);
-            //Draw.Disc(new Vector3(position.x, GetMinHeightWorld(), position.z), Radius * MotionMatchingController.GIZMOS_MULTIPLIER, new Color(0.2f, 0.2f, 0.2f));
         }
     }
 }

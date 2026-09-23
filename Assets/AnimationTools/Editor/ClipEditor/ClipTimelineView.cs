@@ -10,10 +10,8 @@ namespace AnimationTools.Editor
     /// and the playhead over all of it.
     /// </summary>
     /// <remarks>
-    /// The axis runs over <em>whole-clip</em> frames rather than the slice, because the slice's own
-    /// handles live on this ruler - on a slice-local axis, dragging the start handle would slide
-    /// every lane sideways under the cursor. Tracks convert to their own frame space through
-    /// <see cref="ClipEditorContext.SliceToClipFrame"/>.
+    /// The axis runs over <em>whole-clip</em> frames, because the slice's own handles live on this
+    /// ruler: on a slice-local axis, dragging the start handle would slide every lane sideways.
     /// </remarks>
     public sealed class ClipTimelineView
     {
@@ -74,11 +72,8 @@ namespace AnimationTools.Editor
         /// key events at all.
         /// </summary>
         /// <remarks>
-        /// This is a UI Toolkit window whose IMGUI runs inside <c>IMGUIContainer</c>s, so keys go to
-        /// whichever element the panel has focused. A container only takes that focus once an IMGUI
-        /// control inside it owns <c>GUIUtility.keyboardControl</c> - and until this existed, nothing
-        /// in the timeline ever claimed it, so focus lived permanently in the inspector pane's
-        /// property fields and no lane binding could ever fire.
+        /// In a UI Toolkit window an <c>IMGUIContainer</c> only takes key focus once an IMGUI control
+        /// inside it owns <c>GUIUtility.keyboardControl</c>.
         /// </remarks>
         private int _laneKeyboardControlId;
 
@@ -117,8 +112,8 @@ namespace AnimationTools.Editor
 
             Axis.Prepare(laneAreaRect, frameCount);
 
-            // Before the ruler and the rows, because alt+left is a pan here and a box select to a
-            // track, and whichever sees the MouseDown first wins it.
+            // Before the rows: alt+left is a pan here and a box select to a track, and whichever
+            // sees the MouseDown first wins it.
             HandlePan(laneAreaRect, editor);
 
             var rulerRect = new Rect(rect.x, rect.y, rect.width, RulerHeight);
@@ -138,8 +133,7 @@ namespace AnimationTools.Editor
             DrawOutsideSlice(overlayRect, editor, frameCount);
             DrawPlayhead(overlayRect, editor);
 
-            // Drawn last and outside the scroll view, so the component list is divided from the
-            // timeline by one unbroken line rather than by each row's own right edge.
+            // Drawn last and outside the scroll view, as one unbroken line down the gutter.
             if (Event.current.type == EventType.Repaint)
             {
                 EditorGUI.DrawRect(new Rect(rect.x + HeaderWidth - 1f, rect.y, 1f, rect.height),
@@ -187,9 +181,7 @@ namespace AnimationTools.Editor
 
                 ClipTimelineTicks.Choose(Axis.pixelsPerFrame, out var major, out var minor);
 
-                // The screen's own range, not the clip's: panned past either end the ruler keeps
-                // counting - negative on the left - which is the only thing telling you where you
-                // have got to out there.
+                // The screen's range, not the clip's: panned past either end the ruler keeps counting.
                 var first = Mathf.FloorToInt(Axis.LeftEdgeFrame);
                 var last = Mathf.CeilToInt(Axis.RightEdgeFrame);
 
@@ -291,8 +283,7 @@ namespace AnimationTools.Editor
                 editor.EndFrameProperty.intValue = Mathf.Max(frame, editor.StartFrame);
             }
 
-            // Applied without committing so the drag stays live without re-baking the clip on every
-            // mouse-move; the commit happens once on mouse-up.
+            // Not committed, so the clip is not re-baked per mouse-move; commit happens on mouse-up.
             editor.SerializedClip.ApplyModifiedPropertiesWithoutUndo();
             editor.Repaint();
         }
@@ -301,17 +292,9 @@ namespace AnimationTools.Editor
         /// Middle-drag, or alt + left-drag, moves the view: frames horizontally, lanes vertically.
         /// </summary>
         /// <remarks>
-        /// A real drag with a control ID and <c>hotControl</c>, rather than a bare <c>MouseDrag</c>
-        /// case testing the rect it started in. That older shape died the moment the cursor left the
-        /// lane area, which on a gesture whose whole purpose is to leave the content behind is most
-        /// of the way to not working at all.
-        /// <para>
-        /// The cursor is what makes it limitless in practice: <see cref="CursorWrap"/> keeps it inside
-        /// the lane area and brings it back in at the opposite edge, so one gesture never runs out of
-        /// desk. <c>SetWantsMouseJumping</c> stays on underneath for the platforms that wrap cannot
-        /// serve. Vertical panning still stops at the ends of the lane list, because those lanes are
-        /// inside a <c>GUI.BeginScrollView</c> that clamps the offset it hands back.
-        /// </para>
+        /// Takes <c>hotControl</c> so the drag survives the cursor leaving the lane area, and
+        /// <see cref="CursorWrap"/> brings the cursor back in at the opposite edge. Vertical panning
+        /// stops at the ends of the lane list because <c>GUI.BeginScrollView</c> clamps its offset.
         /// </remarks>
         private void HandlePan(Rect laneAreaRect, ClipEditorContext editor)
         {
@@ -389,8 +372,7 @@ namespace AnimationTools.Editor
 
             ClaimKeyboardFocus(laneAreaRect, bodyRect);
 
-            // Content x starts at rect.x, so a lane drawn in here and the ruler drawn outside share
-            // the same horizontal coordinates and cannot drift apart.
+            // Content x starts at rect.x, so lanes in here and the ruler outside share x coordinates.
             var contentWidth = rect.width - scrollbar;
             var contentRect = new Rect(rect.x, 0f, contentWidth, contentHeight);
             Scroll = GUI.BeginScrollView(bodyRect, Scroll, contentRect, false, false);
@@ -407,9 +389,7 @@ namespace AnimationTools.Editor
                 var headerRect = new Rect(rect.x, y, HeaderWidth, row.LaneHeight);
                 var laneRect = new Rect(laneAreaRect.x, y, laneAreaRect.width, row.LaneHeight);
 
-                // Clicking a lane focuses its row, so the inspector follows what you are editing and
-                // the track's own key bindings become reachable. Deliberately not consumed - the
-                // track still needs this click.
+                // Clicking a lane focuses its row. Not consumed: the track still needs the click.
                 if (Event.current.type == EventType.MouseDown && Event.current.button == 0 &&
                     laneRect.Contains(Event.current.mousePosition))
                 {
@@ -467,9 +447,8 @@ namespace AnimationTools.Editor
         /// Keeps the gutter usable and leaves room for the lanes beside it.
         /// </summary>
         /// <remarks>
-        /// The available width is ignored until the pane has actually been measured. During a
-        /// <see cref="EventType.Layout"/> pass <c>GUILayoutUtility.GetRect</c> hands back a
-        /// degenerate rect, and clamping against that would reset the user's width on every pass.
+        /// The available width is ignored until the pane has been measured: a
+        /// <see cref="EventType.Layout"/> pass hands back a degenerate rect.
         /// </remarks>
         private static float ClampHeaderWidth(float width, float availableWidth)
         {
@@ -543,9 +522,7 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>
-        /// Zoom, pan and the view-framing keys. Scrubbing is deliberately not here: the playhead
-        /// moves from the ruler and from the step keys, never from a click in a lane, because a lane
-        /// click is how you select a key and the two would fight over every diamond.
+        /// Zoom, pan and the view-framing keys. A click in a lane never scrubs, because it selects keys.
         /// </summary>
         private void HandleTimelineInput(Rect laneAreaRect, ClipEditorContext editor, int frameCount)
         {
@@ -575,9 +552,7 @@ namespace AnimationTools.Editor
                     editor.Repaint();
                     return;
 
-                // Home is Blender's View All, which frames the keys rather than the scene's range.
-                // The whole clip keeps a key of its own, since a trimmed clip has no other way back
-                // to the material outside its slice.
+                // Home frames the keys, as Blender's View All does; Shift+Home frames the whole clip.
                 case EventType.KeyDown when e.keyCode == KeyCode.Home:
                     if (e.shift || !TryGetContentRange(out var firstKey, out var lastKey))
                     {
@@ -592,8 +567,6 @@ namespace AnimationTools.Editor
                     editor.Repaint();
                     return;
 
-                // Home and "." rather than A, because A is select-all in a keyframe lane. Both are
-                // Blender's own view keys, so the window moves towards that keymap, not away.
                 case EventType.KeyDown when e.keyCode is KeyCode.Period or KeyCode.KeypadPeriod:
                     if (TryGetFocusedSelection(out var firstSelected, out var lastSelected))
                     {

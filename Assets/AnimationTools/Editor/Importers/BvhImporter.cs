@@ -16,6 +16,7 @@ namespace MotionMatching.Editor
     {
         public float unitScale = 0.01f;
         public bool onlyFirstFrame;
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var fileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
@@ -108,8 +109,7 @@ namespace MotionMatching.Editor
                 clip.SetCurve(paths[b], typeof(Transform), "localRotation.w", new AnimationCurve(rotWKeys));
             }
 
-            // May flip quaternion key signs to remove double-cover discontinuities between keys;
-            // the result samples to rotation-equivalent values, and consumers are hemisphere-corrected.
+            // May flip key signs across the double cover; consumers are hemisphere-corrected.
             clip.EnsureQuaternionContinuity();
             return clip;
         }
@@ -120,17 +120,17 @@ namespace MotionMatching.Editor
             var channelAxisOrders = new List<AxisOrder>();
 
             var parentIndexStack = new Stack<int>();
-            var whitespace = new char[] { ' ', '\t', '\r', '\n' };
+            var whitespace = new[] { ' ', '\t', '\r', '\n' };
 
             var words = File.ReadAllText(ctx.assetPath).Split(whitespace, System.StringSplitOptions.RemoveEmptyEntries);
-            // string[] words = Regex.Split(bvh.text, "[\\s+|\\r*\\n+]+");
             var w = 0;
             // ROOT
             if (words[w++] != "HIERARCHY") Debug.LogError("[BVHImporter] HIERARCHY not found");
             if (words[w++] != "ROOT") Debug.LogError("[BVHImporter] ROOT not found");
             var rootName = words[w++];
             ReadLeftBracket(words, ref w);
-            ReadOffset(words, ref w); // consumed but discarded: root position always comes from motion channel 0, never HIERARCHY
+            // Discarded: the root position always comes from motion channel 0.
+            ReadOffset(words, ref w);
             ReadChannels(channelAxisOrders, words, ref w, true);
             var bones = new List<BvhJoint>
             {
@@ -167,35 +167,13 @@ namespace MotionMatching.Editor
                     RestLocalPosition = (float3)offset,
                     RestLocalRotation = quaternion.identity
                 });
-                if (words[w] == "End")
-                {
-                    w += 1;
-                    if (words[w++] != "Site") Debug.LogError("[BVHImporter] End Site not found");
-                    ReadLeftBracket(words, ref w);
-                    ReadOffset(words, ref w);
-                    if (!ReadRightBracket(words, ref w)) Debug.LogError("[BVHImporter] End Site right bracket not found");
-                }
-                while (words[w] == "End")
-                {
-                    w += 1;
-                    if (words[w++] != "Site") Debug.LogError("[BVHImporter] End Site not found");
-                    ReadLeftBracket(words, ref w);
-                    ReadOffset(words, ref w);
-                    if (!ReadRightBracket(words, ref w)) Debug.LogError("[BVHImporter] End Site right bracket not found");
-                }
+                SkipEndSites(words, ref w);
                 while (ReadRightBracket(words, ref w))
                 {
                     brackets -= 1;
                     if (parentIndexStack.Count > 0) parent = parentIndexStack.Pop();
                 }
-                while (words[w] == "End")
-                {
-                    w += 1;
-                    if (words[w++] != "Site") Debug.LogError("[BVHImporter] End Site not found");
-                    ReadLeftBracket(words, ref w);
-                    ReadOffset(words, ref w);
-                    if (!ReadRightBracket(words, ref w)) Debug.LogError("[BVHImporter] End Site right bracket not found");
-                }
+                SkipEndSites(words, ref w);
                 while (ReadRightBracket(words, ref w))
                 {
                     brackets -= 1;
@@ -212,10 +190,9 @@ namespace MotionMatching.Editor
             if (words[w++] != "Time:") Debug.LogError("[BVHImporter] Time: not found");
             var frameTime = float.Parse(words[w++], CultureInfo.InvariantCulture);
 
-            // A .bvh imports like a small FBX: the rig is the main object and the AnimationClip a
-            // sub-asset. The bone hierarchy sits under a container because Unity renames the main
-            // object to the file name, which would clobber the root bone's name and break
-            // name-based binding.
+            // The rig is the main object and the clip a sub-asset, like an FBX. Bones sit under a
+            // container because Unity renames the main object to the file name, which would
+            // clobber the root bone's name and break name-based binding.
             var container = new GameObject(fileName);
             var boneTransforms = BuildJointHierarchy(bones, container.transform);
             var skeleton = new Skeleton(boneTransforms[0]);
@@ -254,6 +231,19 @@ namespace MotionMatching.Editor
             return (skeleton, rootPositions, boneRotations, frameTime);
         }
 
+        /// <summary>End sites carry only a leaf tip's offset, which the skeleton does not keep.</summary>
+        private static void SkipEndSites(string[] words, ref int w)
+        {
+            while (words[w] == "End")
+            {
+                w += 1;
+                if (words[w++] != "Site") Debug.LogError("[BVHImporter] End Site not found");
+                ReadLeftBracket(words, ref w);
+                ReadOffset(words, ref w);
+                if (!ReadRightBracket(words, ref w)) Debug.LogError("[BVHImporter] End Site right bracket not found");
+            }
+        }
+
         private static void ReadLeftBracket(string[] words, ref int w)
         {
             if (words[w++] != "{") Debug.LogError("[BVHImporter] { not found");
@@ -275,7 +265,8 @@ namespace MotionMatching.Editor
             if (words[w++] != "OFFSET") Debug.LogError("[BVHImporter] OFFSET not found");
             offset.x = float.Parse(words[w++], CultureInfo.InvariantCulture);
             offset.y = float.Parse(words[w++], CultureInfo.InvariantCulture);
-            offset.z = -float.Parse(words[w++], CultureInfo.InvariantCulture); // Unity is left-handed and BVH is right-handed (Z is opposite sign)
+            // BVH is right-handed and Unity left-handed, so Z flips sign.
+            offset.z = -float.Parse(words[w++], CultureInfo.InvariantCulture);
             return offset;
         }
 
@@ -291,31 +282,26 @@ namespace MotionMatching.Editor
 
             if (root)
             {
-                // The root **must** provide 3 translation + 3 rotation = 6 channels.
                 if (numChannels != 6)
                 {
                     Debug.LogError("[BVHImporter] The root joint must have exactly 6 channels");
                 }
 
-                // Remember in which order the three position axes appear (XYZ / XZY …)
                 channels.Add(ReadChannelPosition(words, ref w));
             }
             else
             {
-                // Non-root joints may come with 3 **or** 6 channels depending on the exporter.
-                // When 6, the first three are XYZ-position that we can safely ignore.
+                // Some exporters give non-root joints position channels too; they are ignored.
                 if (numChannels == 6)
                 {
-                    // Consume and discard the position axis order
                     ReadChannelPosition(words, ref w);
                 }
                 else if (numChannels != 3)
                 {
                     Debug.LogError($"[BVHImporter] Unexpected channel count ({numChannels}) at joint — expected 3 or 6");
                 }
-                // If there are only 3 channels — nothing to skip, cursor is already after the count.
             }
-            // Rotation channels are always 3, so we can safely read them.
+
             channels.Add(ReadChannelRotation(words, ref w));
         }
 
@@ -425,13 +411,14 @@ namespace MotionMatching.Editor
 
             switch (rotationOrder)
             {
-                // Why some are negative? Because Unity is left-handed and BVH is right-handed. See: https://stackoverflow.com/questions/31191752/right-handed-euler-angles-xyz-to-left-handed-euler-angles-xyz
-                case AxisOrder.XYZ: return Quaternion.AngleAxis(-v1, Vector3.right) * Quaternion.AngleAxis(-v2, Vector3.up) * Quaternion.AngleAxis(v3, Vector3.forward); // XYZ
-                case AxisOrder.XZY: return Quaternion.AngleAxis(-v1, Vector3.right) * Quaternion.AngleAxis(v2, Vector3.forward) * Quaternion.AngleAxis(-v3, Vector3.up); // XZY
-                case AxisOrder.YXZ: return Quaternion.AngleAxis(-v1, Vector3.up) * Quaternion.AngleAxis(-v2, Vector3.right) * Quaternion.AngleAxis(v3, Vector3.forward); // YXZ
-                case AxisOrder.YZX: return Quaternion.AngleAxis(-v1, Vector3.up) * Quaternion.AngleAxis(v2, Vector3.forward) * Quaternion.AngleAxis(-v3, Vector3.right); // YZX
-                case AxisOrder.ZXY: return Quaternion.AngleAxis(v1, Vector3.forward) * Quaternion.AngleAxis(-v2, Vector3.right) * Quaternion.AngleAxis(-v3, Vector3.up); // ZXY
-                case AxisOrder.ZYX: return Quaternion.AngleAxis(v1, Vector3.forward) * Quaternion.AngleAxis(-v2, Vector3.up) * Quaternion.AngleAxis(-v3, Vector3.right); // ZYX
+                // Mirroring Z (right- to left-handed) negates the X and Y angles. See:
+                // https://stackoverflow.com/questions/31191752/right-handed-euler-angles-xyz-to-left-handed-euler-angles-xyz
+                case AxisOrder.XYZ: return Quaternion.AngleAxis(-v1, Vector3.right) * Quaternion.AngleAxis(-v2, Vector3.up) * Quaternion.AngleAxis(v3, Vector3.forward);
+                case AxisOrder.XZY: return Quaternion.AngleAxis(-v1, Vector3.right) * Quaternion.AngleAxis(v2, Vector3.forward) * Quaternion.AngleAxis(-v3, Vector3.up);
+                case AxisOrder.YXZ: return Quaternion.AngleAxis(-v1, Vector3.up) * Quaternion.AngleAxis(-v2, Vector3.right) * Quaternion.AngleAxis(v3, Vector3.forward);
+                case AxisOrder.YZX: return Quaternion.AngleAxis(-v1, Vector3.up) * Quaternion.AngleAxis(v2, Vector3.forward) * Quaternion.AngleAxis(-v3, Vector3.right);
+                case AxisOrder.ZXY: return Quaternion.AngleAxis(v1, Vector3.forward) * Quaternion.AngleAxis(-v2, Vector3.right) * Quaternion.AngleAxis(-v3, Vector3.up);
+                case AxisOrder.ZYX: return Quaternion.AngleAxis(v1, Vector3.forward) * Quaternion.AngleAxis(-v2, Vector3.up) * Quaternion.AngleAxis(-v3, Vector3.right);
             }
 
             return Quaternion.identity;
@@ -441,15 +428,15 @@ namespace MotionMatching.Editor
         {
             if (translationOrder == AxisOrder.None) Debug.LogError("[BVHImporter] translationOrder is None. There was an error while reading the channels");
 
-            // BVH's z+ axis is Unity's left (z-) (Unity is left-handed BVH is right-handed)
+            // BVH is right-handed and Unity left-handed, so Z flips sign.
             switch (translationOrder)
             {
-                case AxisOrder.XYZ: return new Vector3(v1, v2, -v3); // XYZ
-                case AxisOrder.XZY: return new Vector3(v1, v3, -v2); // XZY
-                case AxisOrder.YXZ: return new Vector3(v2, v1, -v3); // YXZ
-                case AxisOrder.YZX: return new Vector3(v3, v1, -v2); // YZX
-                case AxisOrder.ZXY: return new Vector3(v2, v3, -v1); // ZXY
-                case AxisOrder.ZYX: return new Vector3(v3, v2, -v1); // ZYX
+                case AxisOrder.XYZ: return new Vector3(v1, v2, -v3);
+                case AxisOrder.XZY: return new Vector3(v1, v3, -v2);
+                case AxisOrder.YXZ: return new Vector3(v2, v1, -v3);
+                case AxisOrder.YZX: return new Vector3(v3, v1, -v2);
+                case AxisOrder.ZXY: return new Vector3(v2, v3, -v1);
+                case AxisOrder.ZYX: return new Vector3(v3, v2, -v1);
             }
             return Vector3.zero;
         }
@@ -458,6 +445,5 @@ namespace MotionMatching.Editor
         {
             XYZ, XZY, YXZ, YZX, ZXY, ZYX, None
         }
-
     }
 }

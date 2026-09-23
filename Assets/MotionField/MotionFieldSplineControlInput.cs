@@ -47,9 +47,8 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
     public float LookaheadDistance { get => lookaheadDistance; set => lookaheadDistance = value; }
 
     /// <summary>
-    /// Tracks where on the path the character is. Continuity matters here rather than raw proximity:
-    /// on a path that crosses itself, the globally nearest point flips branches at the crossing and
-    /// takes the steering target with it.
+    /// Tracks where on the path the character is continuously, so a self-crossing path does not
+    /// flip the nearest point to the other branch.
     /// </summary>
     private readonly SplineProjector _projector = new();
 

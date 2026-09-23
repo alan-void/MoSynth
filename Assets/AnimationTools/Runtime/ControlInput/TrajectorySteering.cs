@@ -4,15 +4,13 @@ namespace AnimationTools
 {
 /// <summary>
 /// The maths a stick-driven control input uses to turn a movement request into the future half
-/// of a predicted trajectory. Pure, so the continuity these functions exist to guarantee
-/// can be measured without standing up a character.
+/// of a predicted trajectory. Pure, so its continuity can be tested without a character.
 /// </summary>
 /// <remarks>
-/// Everything here is the same exponential the shared <see cref="Spring"/> implements, from Daniel
-/// Holden's <a href="https://theorangeduck.com/page/spring-roll-call">spring roll call</a>. The
-/// window reaches a full second ahead, so a sample that far out is essentially the goal itself: any
-/// step in the goal arrives at the far end of the trajectory undamped. Rate-limiting the goal is
-/// what keeps the whole window continuous — see <c>openwiki/pfnn/pfnn-stage.md</c>.
+/// The dampers are <see cref="Spring"/>'s, from Daniel Holden's
+/// <a href="https://theorangeduck.com/page/spring-roll-call">spring roll call</a>. A step in the goal
+/// reaches the far end of the window undamped, so the goal itself must be rate-limited; see
+/// openwiki/pfnn/pfnn-stage.md.
 /// </remarks>
 public static class TrajectorySteering
 {
@@ -22,8 +20,7 @@ public static class TrajectorySteering
 
     /// <summary>
     /// As <see cref="DampToward"/>, for a heading held as a unit vector. Damping the vector rather
-    /// than the angle takes the shortest arc without any wrap handling, but its result is no longer
-    /// unit length.
+    /// than the angle takes the shortest arc without wrap handling; the result is renormalized.
     /// </summary>
     public static float2 DampFacing(float2 facing, float2 travel, float halfLife, float dt) =>
         math.normalizesafe(DampToward(facing, travel, halfLife, dt), facing);
@@ -34,11 +31,8 @@ public static class TrajectorySteering
     /// stands.
     /// </summary>
     /// <remarks>
-    /// Stepped a frame at a time rather than jumped straight to the horizon. The implicit form is
-    /// exact at any step size but <c>Spring</c>'s exponential is an approximation, and jumping a
-    /// full second in one call drifts ~2 cm from the path the character will actually take — which
-    /// is the whole point of the prediction. Same reasoning as <c>DirectionControlInput</c>'s
-    /// <c>PredictPositions</c>.
+    /// Stepped a frame at a time because <c>Spring</c>'s exponential is approximate: jumping a full
+    /// second in one call drifts ~2 cm from the path the character will actually take.
     /// </remarks>
     /// <param name="endVelocity">The velocity at that horizon, i.e. the direction of travel there.</param>
     public static float2 PredictOffset(float2 velocity, float2 acceleration, float2 goalVelocity,
@@ -60,11 +54,8 @@ public static class TrajectorySteering
     /// within <paramref name="maxAngle"/> radians of it, at its original length.
     /// </summary>
     /// <remarks>
-    /// A network answers a trajectory that bends further from the character's facing than its
-    /// training data ever did by extrapolating, which is not a graceful failure — see
-    /// <c>openwiki/pfnn/training-and-checkpoints.md</c>. Holding the request inside a cone that
-    /// turns with the character keeps it on ground the model has seen, and spends a reversal as a
-    /// sustained turn rather than as one step the pose has to absorb.
+    /// Keeps a network's input inside what its training data covered, and spends a reversal as a
+    /// sustained turn rather than one step. See openwiki/pfnn/training-and-checkpoints.md.
     /// </remarks>
     /// <param name="reference">A unit vector the cone is centred on, normally the character's facing.</param>
     public static float2 ClampToCone(float2 request, float2 reference, float maxAngle)
@@ -75,9 +66,8 @@ public static class TrajectorySteering
         var direction = request / length;
         if (math.dot(direction, reference) >= math.cos(maxAngle)) return request;
 
-        // Directly astern is the one request with two equally good answers, and an unstable choice
-        // there would dither instead of turning. Taking the sign of an exact zero decides it, and
-        // the first frame of the turn makes the cross product unambiguous from then on.
+        // Directly astern has two equally good answers; resolving an exact zero to one side stops it
+        // dithering, and after the first frame of the turn the cross product is unambiguous.
         var cross = reference.x * direction.y - reference.y * direction.x;
         var angle = cross >= 0f ? maxAngle : -maxAngle;
         var sin = math.sin(angle);
@@ -93,11 +83,8 @@ public static class TrajectorySteering
     /// character, all of it at the far end of the window.
     /// </summary>
     /// <remarks>
-    /// A model trained on the path the character really took has only ever seen a future half its
-    /// past half could lead into, and a request is under no such obligation — see
-    /// <c>openwiki/pfnn/pfnn-stage.md</c>. Grading the two by horizon keeps the samples beside the
-    /// character on paths a body could follow while leaving the far end, which is what it is
-    /// actually steering toward, entirely the caller's to set.
+    /// Keeps the near samples on paths a body could follow while the far end, which is what steers,
+    /// stays the caller's. See openwiki/pfnn/pfnn-stage.md.
     /// </remarks>
     /// <param name="falloff">Above one holds the prediction further out, below one hands over sooner.</param>
     public static float HorizonBlend(int frameOffset, int horizonFrames, float falloff) =>

@@ -12,21 +12,8 @@ namespace Pfnn
 /// model in Python behind PythonNET.
 /// </summary>
 /// <remarks>
-/// Each tick the stage assembles what the network was trained to see — a trajectory window either
-/// side of now, the joints as they stand, the gait phase — reads back the next pose and the
-/// trajectory it expects to follow, and writes the pose through
-/// <see cref="CharacterSpacePose.Apply"/>. The character travels because the predicted root
-/// delta is written into bone 0's velocity channels, which
-/// <see cref="MotionSynthesisComponent"/> reads back to advance the transform.
-/// <para>
-/// The stage owns the state — phase, joints, trajectory history — rather than leaving it in Python.
-/// A motion field's state is an index into a database and is cheap to keep across the boundary; a
-/// PFNN's state is a pose that has to be written into a <see cref="PoseBuffer"/> anyway.
-/// </para>
-/// <para>
-/// See the wiki's PFNN section for the vector layouts and the training-time definitions these have
-/// to agree with.
-/// </para>
+/// The stage owns the state — phase, joints, trajectory history — because a PFNN's state is a pose
+/// that has to be written into a <see cref="PoseBuffer"/> anyway. See openwiki/pfnn/pfnn-stage.md.
 /// </remarks>
 [Serializable]
 public class PfnnStage : MoSynthStage, IDisposable
@@ -53,8 +40,7 @@ public class PfnnStage : MoSynthStage, IDisposable
 
     [SerializeField]
     [Tooltip("How much of the near end of the trajectory comes from the network's own predicted " +
-             "future rather than from the request. 0 hands the request over whole, which is how " +
-             "this behaved before the model predicted a trajectory at all.")]
+             "future rather than from the request. 0 hands the request over whole.")]
     [Range(0f, 1f)]
     public float trajectoryFeedback = 1f;
 
@@ -93,9 +79,8 @@ public class PfnnStage : MoSynthStage, IDisposable
     /// it was packed into.
     /// </summary>
     /// <remarks>
-    /// Reading the packed floats rather than re-asking the control input is the point: this is what
-    /// the model was queried with, so a packing or frame error shows up as a visibly wrong drawing
-    /// instead of hiding behind a picture that redraws the intent correctly.
+    /// Read from the packed floats rather than the control input, so a packing or frame error shows
+    /// up as a visibly wrong drawing.
     /// </remarks>
     /// <param name="framesAhead">The sample's offset from now, negative for the history half.</param>
     public void GetWindowSample(int index, out int framesAhead, out float2 world, out float2 direction)
@@ -132,10 +117,9 @@ public class PfnnStage : MoSynthStage, IDisposable
 
     private PfnnTrajectory _trajectory;
 
-    // The future half of the window the network predicted last tick, in world space. World rather
-    // than the frame it was predicted for, because the character's real next frame can differ from
-    // the one the root delta described — RootFollowStage moves it, and the first tick suppresses
-    // the rate channels — and re-reading the real frame corrects for that instead of accumulating.
+    // The future half of the window the network predicted last tick, in world space: the character's
+    // real next frame can differ from the predicted one (RootFollowStage moves it), and re-reading
+    // the real frame corrects for that instead of accumulating the error.
     private float2[] _predictedPositions;
     private float2[] _predictedDirections;
     private int[] _futureSlots;    // window index -> slot in the two arrays above, or -1
@@ -348,10 +332,8 @@ public class PfnnStage : MoSynthStage, IDisposable
             _contacts[0] = leftContact ? 1f : 0f;
             _contacts[1] = rightContact ? 1f : 0f;
 
-            // Gait phase only ever advances: GaitPhase builds it as a monotone unwrapped angle, so
-            // every training target was non-negative and a negative prediction is the network
-            // extrapolating outside what it was shown. Letting one through would run the cycle
-            // backwards, which no amount of later frames recovers from.
+            // Every training phase delta was non-negative (GaitPhase is monotone), so a negative
+            // prediction is extrapolation; letting it through runs the cycle backwards unrecoverably.
             Phase = Repeat(Phase + math.max(0f, phaseDelta), Tau);
         }
         catch (Exception e)
@@ -425,9 +407,8 @@ public class PfnnStage : MoSynthStage, IDisposable
     /// Keep the trajectory the network predicted, in world space, for the next tick to steer with.
     /// </summary>
     /// <remarks>
-    /// It describes the window of the frame the character is about to be in, so it is taken out of
-    /// the frame the root delta lands on rather than the one it was measured from — which is what
-    /// makes it exactly the future half the next tick needs, with nothing to shift or interpolate.
+    /// Taken out of the frame the root delta lands on, not the one it was measured from, so it is
+    /// exactly the future half the next tick needs.
     /// </remarks>
     private void StorePrediction(float[] positions, float[] directions,
         float dx, float dz, float dyaw)
@@ -451,9 +432,8 @@ public class PfnnStage : MoSynthStage, IDisposable
     /// becomes the next tick's input.
     /// </summary>
     /// <remarks>
-    /// One forward pass over the skeleton. A bone the model does not predict takes its rest local
-    /// rotation against its parent, which is well defined because the predicted set is closed under
-    /// parent — a bone is always excluded together with its subtree.
+    /// A bone the model does not predict takes its rest local rotation against its parent, which is
+    /// well defined because a bone is always excluded together with its subtree.
     /// </remarks>
     private void BuildCharacterSpacePose(float[] rotations6d, float[] jointVelocities,
         float rootHeight)
@@ -474,11 +454,9 @@ public class PfnnStage : MoSynthStage, IDisposable
                 : _positions[parent] +
                   math.rotate(_rotations[parent], _skeletonData.RestLocalPositions[bone]);
 
-            // The network predicts a linear rate per bone but no angular one, so the angular rate
-            // is differenced from the rotations — which is the same quantity training.training_data stores,
-            // differences of consecutive frame-local poses. On the first tick there is no previous
-            // frame to difference against, only the rig's rest pose, and bone 0's share of that
-            // would be integrated onto the character's Transform as a tick of root motion.
+            // The network predicts no angular rate, so it is differenced from consecutive rotations,
+            // as training.training_data does. Zero on the first tick: differencing against the seed
+            // pose would integrate a spurious tick of root motion through bone 0.
             _velocities[bone] = slot >= 0 ? ReadFloat3(jointVelocities, slot) : float3.zero;
             _angularVelocities[bone] = _hasPreviousPose
                 ? AngularVelocity(_previousRotations[bone], _rotations[bone], _databaseFrameTime)
@@ -499,8 +477,7 @@ public class PfnnStage : MoSynthStage, IDisposable
     /// A rotation from the two-axis form the network regresses, by Gram-Schmidt.
     /// </summary>
     /// <remarks>
-    /// The C# counterpart of <c>training.training_data.rotations_from_6d</c>. A regressed pair of columns is
-    /// not orthonormal, and this is the projection that makes it a rotation again (Zhou et al.).
+    /// The C# counterpart of <c>training.training_data.rotations_from_6d</c> (Zhou et al. 2019).
     /// </remarks>
     private static quaternion RotationFrom6D(float[] source, int slot)
     {

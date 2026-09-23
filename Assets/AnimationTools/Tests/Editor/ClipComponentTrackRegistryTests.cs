@@ -30,9 +30,8 @@ public class RegistryTestBaseTrack : AnimationClipComponentTrack
 /// Which track the clip editor picks for a component.
 /// </summary>
 /// <remarks>
-/// The case worth guarding is the silent one: renaming or moving a component type leaves its track
-/// registered against a type that no longer exists, and the window falls back to the default track
-/// with no error, because nothing can tell that apart from a component that simply has no track.
+/// Verifies the shipped components resolve to their own tracks: a track registered against a
+/// renamed or moved type silently falls back to the default one.
 /// </remarks>
 public class ClipComponentTrackRegistryTests
 {

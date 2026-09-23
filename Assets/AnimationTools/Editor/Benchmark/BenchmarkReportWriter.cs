@@ -173,9 +173,8 @@ public static class BenchmarkReportWriter
     }
 
     /// <summary>
-    /// Top-level shape of results.json. JsonUtility cannot serialise a bare array, so the run's
-    /// results live inside this wrapper alongside the machine/version context needed to interpret
-    /// wall-clock cost numbers that only mean anything relative to one another on one machine.
+    /// Top-level shape of results.json: JsonUtility cannot serialise a bare array. The machine
+    /// context is there because wall-clock cost only compares within one machine.
     /// </summary>
     [Serializable]
     private class BenchmarkReport

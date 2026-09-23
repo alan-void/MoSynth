@@ -101,11 +101,9 @@ public static class PoseSetImporter
     }
 
     /// <summary>
-    /// The serialized pose database, extracting it from the clips when no file is on disk. Null
-    /// when <see cref="TryValidate"/> fails, which is why it stays silent in that case: callers are
-    /// reached from OnValidate every Inspector repaint, and report through the inspector instead.
-    /// A set extracted at runtime is written back to disk in the editor, so the fallback pays for
-    /// itself only once.
+    /// The serialized pose database, extracting it from the clips (and, in the editor, writing it
+    /// back) when no file is on disk. Silently null when <see cref="TryValidate"/> fails, since
+    /// callers reach it from OnValidate every Inspector repaint.
     /// </summary>
     public static PoseSet GetOrImport(IPoseSetSource source)
     {

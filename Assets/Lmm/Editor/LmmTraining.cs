@@ -10,13 +10,8 @@ namespace Lmm.Editor
 /// Drives <c>lmm.trainer</c> for a config: every network, or one of the later two on its own.
 /// </summary>
 /// <remarks>
-/// A class of its own rather than a method on the inspector, because the set of hyperparameters
-/// that crosses the boundary is the thing that has to match what the config says — and a second
-/// caller (a batch menu item, a headless build step) writing its own kwargs dict is how the two
-/// would drift apart.
-/// <para>
-/// The interpreter runs in this process, synchronously on the main thread.
-/// </para>
+/// The single place the config's hyperparameters are marshalled, so every caller sends the same
+/// kwargs. Runs synchronously on the main thread.
 /// </remarks>
 public static class LmmTraining
 {
@@ -30,9 +25,8 @@ public static class LmmTraining
     /// Refit only the stepper, against the latents the checkpoint already carries.
     /// </summary>
     /// <remarks>
-    /// Deliberately does <em>not</em> set <see cref="LmmConfig.hasTrained"/>: it leaves the
-    /// autoencoder exactly as stale or as fresh as it found it, and the inspector cannot tell
-    /// which field an edit moved. Saying the checkpoint is up to date would be a guess.
+    /// Does not set <see cref="LmmConfig.hasTrained"/>: the autoencoder stays as stale or fresh as
+    /// it was, and the inspector cannot tell which field an edit moved.
     /// </remarks>
     public static void RunStepper(LmmConfig config) => Execute(config, Fit.Stepper);
 
@@ -40,10 +34,7 @@ public static class LmmTraining
     /// Refit only the projector, against the latents the checkpoint already carries.
     /// </summary>
     /// <remarks>
-    /// The same bargain <see cref="RunStepper"/> offers, and a better one: the projector is the
-    /// network with the most left to tune — how far its training queries are displaced, how long
-    /// the fit runs — and none of it touches the latent space it is aiming at. Leaves
-    /// <see cref="LmmConfig.hasTrained"/> alone for the same reason.
+    /// Leaves <see cref="LmmConfig.hasTrained"/> alone, as <see cref="RunStepper"/> does.
     /// </remarks>
     public static void RunProjector(LmmConfig config) => Execute(config, Fit.Projector);
 
@@ -96,8 +87,7 @@ public static class LmmTraining
 
                 if (fit == Fit.Everything)
                 {
-                    // Only on the success path: train() throwing leaves the old checkpoint on disk,
-                    // and it is no less stale than it was a moment ago.
+                    // Only on success: if train() throws, the old checkpoint on disk is still stale.
                     config.hasTrained = true;
                     EditorUtility.SetDirty(config);
                     AssetDatabase.SaveAssetIfDirty(config);
@@ -121,11 +111,6 @@ public static class LmmTraining
     /// <summary>
     /// Every network, from the database up. Must be called with the GIL held.
     /// </summary>
-    /// <remarks>
-    /// The database belongs to the <c>MotionMatchingData</c>; only the checkpoint is this config's
-    /// own. That split is the point of the asset: it learns someone else's database rather than
-    /// owning one.
-    /// </remarks>
     private static PyObject TrainEverything(LmmConfig config, dynamic trainer,
         Action<string, double> report)
     {
@@ -167,9 +152,7 @@ public static class LmmTraining
     /// The stepper alone, against an existing checkpoint. Must be called with the GIL held.
     /// </summary>
     /// <remarks>
-    /// The stepper's own hyperparameters lose their prefix here, because
-    /// <c>refit_stepper</c> forwards them straight to <c>fit_stepper</c> — on that side there is
-    /// only one network and nothing to disambiguate them from.
+    /// Kwargs are unprefixed because <c>refit_stepper</c> forwards them to <c>fit_stepper</c>.
     /// </remarks>
     private static PyObject FitStepper(LmmConfig config, dynamic trainer,
         Action<string, double> report)
@@ -197,9 +180,7 @@ public static class LmmTraining
     /// The projector alone, against an existing checkpoint. Must be called with the GIL held.
     /// </summary>
     /// <remarks>
-    /// Loses its prefix the way <see cref="FitStepper"/>'s does, and for the same reason:
-    /// <c>refit_projector</c> forwards straight to <c>fit_projector</c>, where there is only one
-    /// network and nothing to disambiguate the names from.
+    /// Kwargs are unprefixed because <c>refit_projector</c> forwards them to <c>fit_projector</c>.
     /// </remarks>
     private static PyObject FitProjector(LmmConfig config, dynamic trainer,
         Action<string, double> report)
@@ -243,9 +224,8 @@ public static class LmmTraining
     /// with the GIL held.
     /// </summary>
     /// <remarks>
-    /// Sent per definition rather than per float because that is how they are authored, and Python
-    /// expands them against the same schema the C# side does. Sending the expansion instead would
-    /// mean the two sides could not disagree — and could also not notice that they had.
+    /// Sent unexpanded so Python expands them independently, and the stage can catch the two sides
+    /// disagreeing.
     /// </remarks>
     private static PyList AuthoredWeights(LmmConfig config)
     {

@@ -6,10 +6,8 @@ namespace Lmm.Tests
 /// Reading a checkpoint's declared pose layout.
 /// </summary>
 /// <remarks>
-/// The format carries no version byte by design, and blocks are appended over time, so every
-/// earlier block of an older checkpoint still slices out correctly — a width alone cannot tell a
-/// stale file from a current one. These tests are the guarantee that the block names and widths do
-/// the job instead.
+/// The format is unversioned, so these verify that block names and widths alone reject a layout
+/// this code cannot read.
 /// </remarks>
 public class LmmLayoutTests
 {

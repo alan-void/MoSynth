@@ -119,9 +119,8 @@ public class PoseFkTests
     }
 
     /// <summary>
-    /// Every loop in PoseFK is bounded by the skeleton but indexes the pose, so a bone-count
-    /// disagreement used to surface as an IndexOutOfRangeException from inside NativeSlice with
-    /// nothing in it to say which two things disagreed — once per repaint, from the asset preview.
+    /// PoseFK loops are bounded by the skeleton but index the pose, so a bone-count mismatch must
+    /// throw a message naming both counts rather than an opaque IndexOutOfRangeException.
     /// </summary>
     [Test]
     public void LocalToCharacter_PoseAndSkeletonDescribeDifferentRigs_ThrowsWithBothCounts()

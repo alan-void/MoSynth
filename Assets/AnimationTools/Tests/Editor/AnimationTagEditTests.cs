@@ -8,10 +8,8 @@ namespace AnimationTools.Tests
     /// The arithmetic behind every keyframe edit in the tag lane.
     /// </summary>
     /// <remarks>
-    /// These exist because normalising can remove keys the caller asked for, and the track has to be
-    /// able to tell what actually happened. Collisions are the interesting case: a moved key landing
-    /// on a stationary one is not an error to reject but a cancellation to report, and a caller that
-    /// assumed otherwise would keep a selection pointing at frames that no longer hold a key.
+    /// Verifies edits report what normalising actually did — in particular that a key moved onto
+    /// another cancels both — so the track's selection never points at frames without a key.
     /// </remarks>
     public class AnimationTagEditTests
     {

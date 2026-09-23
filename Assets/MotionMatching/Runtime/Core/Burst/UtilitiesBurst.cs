@@ -8,8 +8,7 @@ using UnityEngine;
 /// into someone" is a point-to-ellipse distance query.
 /// </summary>
 /// <remarks>
-/// An ellipse has no closed-form nearest point, so the exact method here is iterative. All of it
-/// follows
+/// An ellipse has no closed-form nearest point, so the exact method here is iterative. It follows
 /// <a href="https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf">Eberly,
 /// Distance from a Point to an Ellipse</a>.
 /// </remarks>
@@ -65,9 +64,9 @@ public static class UtilitiesBurst
     /// symmetric about both axes, so callers fold the query into this quadrant and unfold the
     /// result. The degenerate cases are split out because the general solve divides by zero there.
     /// </summary>
-    // 'ellipse' are the extents of the ellipse axis, 'ellipse.x' >= 'ellipse.y' > 0
-    // 'p' is the query point, 'p' >= 0
-    // 'closest' is the ellipse point closest to the point 'p'
+    /// <param name="ellipse">Semi-axis extents, with x &gt;= y &gt; 0.</param>
+    /// <param name="p">Query point, with both components &gt;= 0.</param>
+    /// <param name="closest">The point on the ellipse closest to <paramref name="p"/>.</param>
     [BurstCompile]
     private static float PositiveQuarterDistanceToEllipse(in float2 ellipse, in float2 p, out float2 closest, in int maxIterations = 149)
     {
@@ -80,7 +79,7 @@ public static class UtilitiesBurst
             {
                 float2 z = p / ellipse;
                 float g = z.x * z.x + z.y * z.y - 1.0f;
-                if (math.abs(g) > 1e-9) // != 0
+                if (math.abs(g) > 1e-9)
                 {
                     float r0 = (ellipse.x / ellipse.y) * (ellipse.x / ellipse.y);
                     float sbar = GetRoot(r0, z.x, z.y, g, maxIterations);
@@ -135,16 +134,6 @@ public static class UtilitiesBurst
     {
         Debug.Assert(ellipse.x > 0.0 && ellipse.y > 0.0);
 
-        // UNCOMMENT THIS TO MAKE THIS CIRCLE CHECK ---
-        //if (!ignoreCircleDebug)
-        //{
-        //    float circleRadius = math.max(ellipse.x, ellipse.y);
-        //    float distanceCircle = math.distance(query, centerEllipse) - circleRadius;
-        //    closest = centerEllipse + math.normalize(query - centerEllipse) * circleRadius;
-        //    return distanceCircle;
-        //}
-        // END CIRCLE CHECK ---------------------------
-
         float2 p = query;
         float2 e = ellipse;
         float2 primary = primaryAxisUnit;
@@ -158,8 +147,7 @@ public static class UtilitiesBurst
             secondary = primaryAxisUnit;
         }
 
-        // interpret the center of the sphere as the query point
-        // change to ellipse coordinate frame
+        // Into the ellipse's own frame, then fold into the positive quadrant.
         p = p - centerEllipse;
         p = new(math.dot(math.normalize(primary), p),
                 math.dot(math.normalize(secondary), p));
@@ -204,33 +192,21 @@ public static class UtilitiesBurst
     /// <param name="secondaryAxisUnit">The normalized direction of the secondary axis.</param>
     /// <param name="ellipseExtents">A float2 where x is the extent along the primary axis and y is the extent along the secondary axis.</param>
     /// <param name="angleInDegrees">The angle in degrees (0 to 360) at which to generate the point, measured from the primary axis.</param>
-    /// <returns>The point on the ellipse circumference in world space at the specified angle.</returns>
+    /// <param name="result">The point on the ellipse circumference in world space.</param>
     [BurstCompile]
     public static void GeneratePointOnEllipse(in float2 centerEllipse, in float2 primaryAxisUnit, in float2 secondaryAxisUnit,
                                               in float2 ellipseExtents, in float angleInDegrees, out float2 result)
     {
-        // 1. Convert angle from degrees to radians
         float angleInRadians = angleInDegrees * Mathf.Deg2Rad;
 
-        // 2. Calculate point on a hypothetical unrotated ellipse at the given angle
-        // The parametric equations for an unrotated ellipse aligned with x and y axes are:
-        // x = a * cos(theta)
-        // y = b * sin(theta)
-        // In our case, 'a' is ellipseExtents.x and 'b' is ellipseExtents.y
         float2 pointOnUnrotatedEllipse = new float2(
             ellipseExtents.x * math.cos(angleInRadians),
             ellipseExtents.y * math.sin(angleInRadians)
         );
 
-        // 3. Rotate and translate the point based on the ellipse's orientation and center
-        // We can use the primary and secondary axis units as basis vectors for rotation.
-        // The point on the rotated ellipse is the center plus the contribution along
-        // the primary and secondary axes based on the calculated unrotated point.
-        float2 pointOnRotatedEllipse = centerEllipse +
-                                       primaryAxisUnit * pointOnUnrotatedEllipse.x +
-                                       secondaryAxisUnit * pointOnUnrotatedEllipse.y;
-
-        result = pointOnRotatedEllipse;
+        result = centerEllipse +
+                 primaryAxisUnit * pointOnUnrotatedEllipse.x +
+                 secondaryAxisUnit * pointOnUnrotatedEllipse.y;
     }
 
     /// <summary>

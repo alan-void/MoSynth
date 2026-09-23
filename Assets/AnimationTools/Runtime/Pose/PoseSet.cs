@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AnimationTools;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -7,16 +6,13 @@ using UnityEngine;
 namespace AnimationTools
 {
 /// <summary>
-/// Stores the full pose representation of all poses for Motion Matching.
-/// Poses are stored as flat <see cref="PoseBuffer"/> frames in a single
-/// <see cref="PoseSequence"/> over a <see cref="AnimationTools.Skeleton"/> that is exactly the
-/// clips' own skeleton: bone 0 is the rig's root, carrying clip world position and rotation.
-/// Read frames with <see cref="GetPoseBuffer"/>; write new ones through
-/// <see cref="BeginClip"/> or <see cref="AppendRawFrames"/>.
+/// A pose database: every clip's full poses as flat <see cref="PoseBuffer"/> frames in one
+/// <see cref="PoseSequence"/>, over the clips' own skeleton (bone 0 carries clip world position and
+/// rotation). Read with <see cref="GetPoseBuffer"/>; write through <see cref="BeginClip"/> or
+/// <see cref="AppendRawFrames"/>.
 /// </summary>
 public class PoseSet
 {
-    // Public ---
     public float FrameTime { get; private set; } = -1.0f;
     public int NumberPoses => _poseCount;
     public int NumberClips => _clips.Count;
@@ -41,10 +37,8 @@ public class PoseSet
 
     /// <summary>Gait phase of a stored pose, in radians in <c>[0, Tau)</c>.</summary>
     /// <remarks>
-    /// Not a pose channel: every channel is bone-keyed, and nothing in C# reads phase back out of a
-    /// database. It rides alongside the poses because the Python training set reads it rather than
-    /// reconstructing it — one evaluation of <see cref="GaitPhase"/>, from the clips' authored
-    /// footfalls, is what stops the two halves drifting apart.
+    /// Not a pose channel, since channels are bone-keyed and C# never reads phase back. It rides
+    /// alongside the poses so Python training reads the one <see cref="GaitPhase"/> evaluation.
     /// </remarks>
     public float GetPhase(int poseIndex) => _phase[poseIndex];
 
@@ -60,7 +54,6 @@ public class PoseSet
         _phaseRate[poseIndex] = phaseRate;
     }
 
-    // Private ---
     private readonly List<AnimationClip> _clips = new();
     private readonly List<AnimationTag> _tags = new();
     private readonly Dictionary<string, int> _tagNameToIndex = new();
@@ -126,7 +119,6 @@ public class PoseSet
     /// </summary>
     public PoseFrameRange BeginClip(int frameCount, float frameTime)
     {
-        // Check if the skeleton and frameTime are compatible
         Debug.Assert(_skeleton != null, "Skeleton should be set first. Use SetSkeleton(...)");
         if (FrameTime == -1.0f) FrameTime = frameTime;
         Debug.Assert(math.abs(FrameTime - frameTime) < 0.001f, "Frame time should be the same for all clips");
@@ -201,18 +193,16 @@ public class PoseSet
     /// </summary>
     private void AddTag(int animationClip, AnnotatedAnimationClip.Tag dataTag)
     {
-        // Tag Index
-        if (!_tagNameToIndex.TryGetValue(dataTag.name, out int tagIndex))
+        if (!_tagNameToIndex.TryGetValue(dataTag.name, out var tagIndex))
         {
             tagIndex = _tags.Count;
             _tagNameToIndex[dataTag.name] = tagIndex;
             _tags.Add(new AnimationTag(dataTag.name));
         }
 
-        // Write tag ranges
-        AnimationTag animationTag = _tags[tagIndex];
-        int frameOffset = _clips[animationClip].Start;
-        for (int i = 0; i < dataTag.start.Length; ++i)
+        var animationTag = _tags[tagIndex];
+        var frameOffset = _clips[animationClip].Start;
+        for (var i = 0; i < dataTag.start.Length; ++i)
         {
             animationTag.AddRange(dataTag.start[i] + frameOffset, dataTag.end[i] + frameOffset);
         }
@@ -234,7 +224,7 @@ public class PoseSet
     /// </summary>
     public void ConvertTagsToNativeArrays()
     {
-        foreach (AnimationTag tag in _tags)
+        foreach (var tag in _tags)
         {
             tag.ConvertToNativeArray();
         }
@@ -275,7 +265,7 @@ public class PoseSet
     public int GetAnimationClipIndex(int poseIndex)
     {
         var animationClip = -1;
-        for (int clipIdx = 0; clipIdx < _clips.Count; ++clipIdx)
+        for (var clipIdx = 0; clipIdx < _clips.Count; ++clipIdx)
         {
             if (poseIndex >= _clips[clipIdx].Start && poseIndex < _clips[clipIdx].End)
             {
@@ -335,7 +325,7 @@ public class PoseSet
         // caches one), so Dispose only releases the tags.
         if (_tags != null)
         {
-            foreach (AnimationTag tag in _tags)
+            foreach (var tag in _tags)
             {
                 tag.Dispose();
             }
@@ -360,7 +350,8 @@ public class PoseSet
     {
         public readonly string Name;
 
-        private List<int> _startRangesList; // Temporal lists until they are converted to NativeArrays
+        // Build-time lists; null once converted to NativeArrays.
+        private List<int> _startRangesList;
         private List<int> _endRangesList;
 
         private NativeArray<int> _startRanges;

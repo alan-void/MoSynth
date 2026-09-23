@@ -27,12 +27,9 @@ public struct PythonPaths
 /// Edited through <c>Project Settings &gt; MoSynth &gt; Python</c>.
 /// </summary>
 /// <remarks>
-/// An interpreter's location is a property of a machine, so a path serialized into a shared asset
-/// names someone else's drive on every other machine. <c>UserSettings/</c> is gitignored by the
-/// standard Unity .gitignore, so this file never travels; it is plain JSON so shell and Python
-/// tooling can read the same venv the Editor uses. The environment variables in
-/// <see cref="PythonRuntime"/> still win, since they also reach a build machine that has no project
-/// folder to read.
+/// Interpreter paths belong to a machine, so they live in gitignored <c>UserSettings/</c> as plain
+/// JSON other tooling can read. The environment variables in <see cref="PythonRuntime"/> take
+/// precedence, since they also reach a machine with no project folder.
 /// </remarks>
 public static class PythonPathSettings
 {

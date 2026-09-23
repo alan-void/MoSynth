@@ -28,81 +28,73 @@ public class JointLivePlotter : MonoBehaviour
         AngularVelocityY,
         AngularVelocityZ,
     }
-    
-    
+
     [Header("Chart Settings")]
     public GameObject chartTemplate;
-    
+
     public List<PlottableType> plots;
     [Tooltip("How many seconds of data to show on the graph")]
     public float timeWindow = 5f;
     [Tooltip("How often to sample the data (seconds)")]
     public float updateInterval = 0.05f;
 
-    private readonly List<LineChart> charts = new List<LineChart>();
-    private readonly List<GameObject> spawnedCharts = new List<GameObject>();
-    private float timer = 0f;
-    private Vector3 lastPosition;
-    private Vector3 lastVelocity;
-    private Vector3 lastAngles;
-
-    private bool rebuildScheduled;
+    private readonly List<LineChart> _charts = new List<LineChart>();
+    private float _timer;
+    private Vector3 _lastPosition;
+    private Vector3 _lastVelocity;
+    private Vector3 _lastAngles;
 
     void Start()
     {
         RebuildCharts();
 
-        lastPosition = targetJoint != null ? targetJoint.position : Vector3.zero;
-        lastAngles = targetJoint != null ? targetJoint.eulerAngles : Vector3.zero;
+        _lastPosition = targetJoint != null ? targetJoint.position : Vector3.zero;
+        _lastAngles = targetJoint != null ? targetJoint.eulerAngles : Vector3.zero;
 
         UpdateTimeWindow();
     }
 
     void Update()
     {
-        if (targetJoint == null || charts.Count == 0) return;
+        if (targetJoint == null || _charts.Count == 0) return;
 
-        timer += Time.deltaTime;
-        
-        // Only sample data at the specified interval for performance and readability
-        if (timer >= updateInterval)
+        _timer += Time.deltaTime;
+        if (_timer >= updateInterval)
         {
             PlotData();
-            timer = 0f;
+            _timer = 0f;
         }
     }
 
     private void PlotData()
     {
-        // 1. Calculate Kinematics (Finite Differences)
-        Vector3 currentPosition = targetJoint.position;
-        Vector3 currentVelocity = (currentPosition - lastPosition) / updateInterval;
-        Vector3 currentAcceleration = (currentVelocity - lastVelocity) / updateInterval;
+        // Finite differences over one sampling interval.
+        var position = targetJoint.position;
+        var velocity = (position - _lastPosition) / updateInterval;
+        var acceleration = (velocity - _lastVelocity) / updateInterval;
 
-        Vector3 currentAngles = targetJoint.eulerAngles;
-        Vector3 currentAngularVelocity = new Vector3(
-            Mathf.DeltaAngle(lastAngles.x, currentAngles.x),
-            Mathf.DeltaAngle(lastAngles.y, currentAngles.y),
-            Mathf.DeltaAngle(lastAngles.z, currentAngles.z)) / updateInterval;
+        var angles = targetJoint.eulerAngles;
+        var angularVelocity = new Vector3(
+            Mathf.DeltaAngle(_lastAngles.x, angles.x),
+            Mathf.DeltaAngle(_lastAngles.y, angles.y),
+            Mathf.DeltaAngle(_lastAngles.z, angles.z)) / updateInterval;
 
-        // 2. Add Data to Charts
-        string timeStr = Time.time.ToString("F1");
+        var timeLabel = Time.time.ToString("F1");
 
-        int count = Mathf.Min(plots.Count, charts.Count);
-        for (int i = 0; i < count; i++)
+        var count = Mathf.Min(plots.Count, _charts.Count);
+        for (var i = 0; i < count; i++)
         {
-            var chart = charts[i];
+            var chart = _charts[i];
             if (chart == null) continue;
 
-            float value = GetPlotValue(plots[i], currentPosition, currentVelocity, currentAcceleration, currentAngles, currentAngularVelocity);
-            chart.AddXAxisData(timeStr);
+            var value = GetPlotValue(plots[i], position, velocity, acceleration, angles, angularVelocity);
+            chart.AddXAxisData(timeLabel);
             chart.AddData(0, value);
         }
 
-        // 3. Cache states for next frame calculation
-        lastPosition = currentPosition;
-        lastVelocity = currentVelocity;
-        lastAngles = currentAngles;
+        _lastPosition = position;
+        _lastVelocity = velocity;
+        _lastAngles = angles;
     }
 
     private static float GetPlotValue(
@@ -134,14 +126,13 @@ public class JointLivePlotter : MonoBehaviour
         }
     }
 
-    // Call this if you change the timeWindow variable at runtime
+    /// <summary>Applies <see cref="timeWindow"/> to every chart; call after changing it at runtime.</summary>
     public void UpdateTimeWindow()
     {
-        int maxDataPoints = Mathf.CeilToInt(timeWindow / updateInterval);
+        var maxDataPoints = Mathf.CeilToInt(timeWindow / updateInterval);
 
-        for (int i = 0; i < charts.Count; i++)
+        foreach (var chart in _charts)
         {
-            var chart = charts[i];
             if (chart == null) continue;
 
             var xAxis = chart.GetChartComponent<XAxis>();
@@ -156,7 +147,7 @@ public class JointLivePlotter : MonoBehaviour
 
     public void RebuildCharts()
     {
-        for (int i = transform.childCount - 1; i >= 0; i--)
+        for (var i = transform.childCount - 1; i >= 0; i--)
         {
             var child = transform.GetChild(i);
             if (child == chartTemplate.transform) continue;
@@ -178,29 +169,24 @@ public class JointLivePlotter : MonoBehaviour
 #endif
             Destroy(child.gameObject);
         }
-        
-        spawnedCharts.Clear();
-        charts.Clear();
+
+        _charts.Clear();
 
         if (plots == null) plots = new List<PlottableType>();
 
-
-        for (int i = 0; i < plots.Count; i++)
+        foreach (var plot in plots)
         {
             var instance = Instantiate(chartTemplate, transform);
             instance.SetActive(true);
-            instance.name = chartTemplate.name + "_" + plots[i];
+            instance.name = chartTemplate.name + "_" + plot;
             var lineChart = instance.GetComponent<LineChart>();
 
             lineChart.ClearData();
-            lineChart.ClearData();
-            charts.Add(lineChart);
-            spawnedCharts.Add(instance);
+            _charts.Add(lineChart);
 
             var title = lineChart.GetChartComponent<Title>();
-            title.text = plots[i].ToString();
+            title.text = plot.ToString();
         }
-
     }
 
     private void OnValidate()
@@ -208,17 +194,4 @@ public class JointLivePlotter : MonoBehaviour
         RebuildCharts();
         UpdateTimeWindow();
     }
-
-    // private void OnDisable()
-    // {
-    //     if (!Application.isPlaying) return;
-    //
-    //     for (int i = 0; i < spawnedCharts.Count; i++)
-    //     {
-    //         if (spawnedCharts[i] != null) Destroy(spawnedCharts[i]);
-    //     }
-    //
-    //     spawnedCharts.Clear();
-    //     charts.Clear();
-    // }
 }

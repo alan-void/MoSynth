@@ -6,13 +6,10 @@ weights, input normalisation, and bone selection.
 arrays out as one flat vector. That decision is the model's, but the *machinery* for making it
 is not: a block layout, a way to slice a block back out, a check that a checkpoint was written
 against the layout being read, and weights that make a three-float block count for as much as a
-hundred-float one. All four were written for the PFNN first and are none of them specific to it.
+hundred-float one.
 
-**There are two copies of this code right now.** :mod:`pfnn.dataset` still carries its own, and
-this module is a deliberate copy rather than a refactor of it -- the PFNN work was in flight when
-learned motion matching needed the same primitives, and editing that module would have collided.
-Fixing one copy and not the other is the failure to watch for; the duplication goes away when
-:mod:`pfnn.dataset` re-exports from here.
+**:mod:`pfnn.dataset` carries its own copy of these primitives.** A fix to one copy must be made
+to the other until :mod:`pfnn.dataset` re-exports from here.
 
 Conventions are inherited unchanged from :mod:`training.training_data`: quaternions xyzw, y-up left-handed
 with the character facing +z, every rate per second, and the ground plane written as ``(x, z)``.
@@ -56,11 +53,9 @@ def check_blocks(stored_names, block_layout, what: str = 'output') -> None:
     """
     Refuse a checkpoint packed with a different set of blocks than this code reads.
 
-    The failure this catches is silent rather than loud. Blocks are appended, so every block an
-    older checkpoint does carry still slices out correctly, and the new one comes back as a
-    truncated view instead of raising -- a character that moves badly for no visible reason. The
-    checkpoint stores the names it was written with for the same reason ``.mmpose`` carries a
-    skeleton block instead of a version number: the content is the check.
+    Without this the mismatch is silent: blocks are appended, so a block missing from an older
+    checkpoint comes back as a truncated view instead of raising. The stored names are the check,
+    in place of a version number.
 
     :param stored_names: the block names the checkpoint was written with, in order.
     :param block_layout: ``(name, offset, count)`` per block, as this code reads them.
@@ -88,10 +83,8 @@ def block_weights(block_layout, importance) -> np.ndarray:
     """
     Per-float weights that make each block count for what it is worth, not for how wide it is.
 
-    Normalising the targets equalises the *floats*, which is not the same thing and is the trap this
-    exists to avoid: the root velocity is three floats beside a hundred and sixty of joint rotation,
-    so an unweighted loss spends about 2% of its gradient on the only block that decides whether the
-    character travels, stands still, or turns.
+    Normalising the targets equalises the *floats*, not the blocks: unweighted, a three-float root
+    velocity beside a hundred and sixty floats of joint rotation gets about 2% of the gradient.
 
     Weights are scaled so they average one, which keeps the loss the same order of magnitude as the
     unweighted mean and lets an existing learning rate carry over.

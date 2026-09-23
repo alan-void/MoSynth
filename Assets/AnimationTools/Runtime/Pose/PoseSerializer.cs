@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AnimationTools;
 using UnityEngine;
 using Unity.Mathematics;
 using System.IO;
@@ -11,40 +10,36 @@ namespace AnimationTools
 {
 using static AnimationTools.BinarySerializerExtensions;
 
+/// <summary>
+/// Reads and writes a <see cref="PoseSet"/> as a <c>.mmpose</c> file, which Python reads too.
+/// See openwiki/animation-tools/on-disk-formats.md.
+/// </summary>
 public class PoseSerializer
 {
-    /// <summary>
-    /// Stores the full pose representation of all poses for Motion Matching in a binary format
-    /// in the specified path with name filename and extension .mmpose
-    /// </summary>
+    /// <summary>Writes <paramref name="poseSet"/> to <c>path/fileName.mmpose</c>, creating the folder.</summary>
     public void Serialize(PoseSet poseSet, string path, string fileName)
     {
-        Directory.CreateDirectory(path); // create directory and parent directories if they don't exist
+        Directory.CreateDirectory(path);
 
-        // Write Poses
         using (var stream = File.Open(Path.Combine(path, fileName + ".mmpose"), FileMode.Create))
         {
             using (var writer = new BinaryWriter(stream, Encoding.UTF8))
             {
                 WriteSkeleton(writer, poseSet.Skeleton);
 
-                // Serialize Number Animation Clips
                 writer.Write((uint)poseSet.NumberClips);
-                // Serialize Animation Clips
-                for (int i = 0; i < poseSet.NumberClips; ++i)
+                for (var i = 0; i < poseSet.NumberClips; ++i)
                 {
-                    PoseSet.AnimationClip clip = poseSet.GetAnimationClip(i);
+                    var clip = poseSet.GetAnimationClip(i);
                     writer.Write((uint)clip.Start);
                     writer.Write((uint)clip.End);
                     writer.Write(clip.FrameTime);
                 }
 
-                // Serialize Number Poses & Number Joints & Number Tags
                 writer.Write((uint)poseSet.NumberPoses);
                 writer.Write((uint)poseSet.Skeleton.BoneCount);
                 writer.Write((uint)poseSet.NumberTags);
-                // Serialize Poses
-                for (int i = 0; i < poseSet.NumberPoses; ++i)
+                for (var i = 0; i < poseSet.NumberPoses; ++i)
                 {
                     var frame = poseSet.GetPoseBuffer(i);
                     WriteFloat3Slice(writer, frame.Positions);
@@ -57,15 +52,14 @@ public class PoseSerializer
 
                 WritePhase(writer, poseSet);
 
-                // Serialize Tags
-                for (int i = 0; i < poseSet.NumberTags; ++i)
+                for (var i = 0; i < poseSet.NumberTags; ++i)
                 {
-                    PoseSet.AnimationTag animationTag = poseSet.GetTag(i);
+                    var animationTag = poseSet.GetTag(i);
                     writer.Write(animationTag.Name);
                     writer.Write((uint)animationTag.NumberRanges);
-                    for (int r = 0; r < animationTag.NumberRanges; ++r)
+                    for (var r = 0; r < animationTag.NumberRanges; ++r)
                     {
-                        animationTag.GetRange(r, out int startRange, out int endRange);
+                        animationTag.GetRange(r, out var startRange, out var endRange);
                         writer.Write((uint)startRange);
                         writer.Write((uint)endRange);
                     }
@@ -75,81 +69,70 @@ public class PoseSerializer
     }
 
     /// <summary>
-    /// Reads the full pose representation of all poses for Motion Matching from a binary format
-    /// in the specified path with name filename and extension .mmpose, over the given
-    /// <paramref name="skeleton"/>. Returns true if poseSet was successfully deserialized, false
-    /// otherwise.
+    /// Reads <c>path/fileName.mmpose</c> over <paramref name="skeleton"/>. False when the file is
+    /// missing, truncated, or was extracted over a different bone tree.
     /// </summary>
     public bool Deserialize(string path, string fileName, Skeleton skeleton, out PoseSet poseSet)
     {
         poseSet = new PoseSet();
         if (skeleton == null || !skeleton.IsSet) return false;
 
-        // --------------------
-        // Read Pose File
-        // --------------------
-        string posePath = Path.Combine(path, fileName + ".mmpose");
+        var posePath = Path.Combine(path, fileName + ".mmpose");
         if (!File.Exists(posePath))
             return false;
 
-        byte[] poseData = File.ReadAllBytes(posePath);
-        using (var ms = new MemoryStream(poseData))
+        var poseData = File.ReadAllBytes(posePath);
+        using (var stream = new MemoryStream(poseData))
         {
-            using (var reader = new BinaryReader(ms, Encoding.UTF8))
+            using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {
                 if (!ReadAndCheckSkeleton(reader, fileName, skeleton)) return false;
 
                 poseSet.SetSkeleton(skeleton);
 
-                uint nClips = reader.ReadUInt32();
-                poseSet.SetClipCapacity(nClips);
-                for (int i = 0; i < nClips; i++)
+                var clipCount = reader.ReadUInt32();
+                poseSet.SetClipCapacity(clipCount);
+                for (var i = 0; i < clipCount; i++)
                 {
-                    uint start = reader.ReadUInt32();
-                    uint end = reader.ReadUInt32();
-                    float frameTime = reader.ReadSingle();
+                    var start = reader.ReadUInt32();
+                    var end = reader.ReadUInt32();
+                    var frameTime = reader.ReadSingle();
                     poseSet.AddAnimationClipDeserialized(new PoseSet.AnimationClip((int)start, (int)end, frameTime));
                 }
 
-                uint nPoses = reader.ReadUInt32();
-                uint nJoints = reader.ReadUInt32();
-                uint nTags = reader.ReadUInt32();
+                var poseCount = reader.ReadUInt32();
+                var jointCount = reader.ReadUInt32();
+                var tagCount = reader.ReadUInt32();
                 // The skeleton block already agreed with the asset, so this only fires on a file
                 // whose two bone counts disagree with each other — a truncated or corrupt write.
-                if (nJoints != skeleton.BoneCount)
+                if (jointCount != skeleton.BoneCount)
                 {
-                    Debug.LogError($"\"{fileName}.mmpose\" says {nJoints} joints in its pose header but " +
+                    Debug.LogError($"\"{fileName}.mmpose\" says {jointCount} joints in its pose header but " +
                                    $"{skeleton.BoneCount} in its skeleton block; the file is corrupt. " +
                                    "Regenerate the databases.");
                     return false;
                 }
 
-                // Precompute sizes for the buffers (they remain constant across iterations)
-                int float3BufferSize = (int)nJoints * 3 * sizeof(float);
-                int quaternionBufferSize = (int)nJoints * 4 * sizeof(float);
+                var float3BufferSize = (int)jointCount * 3 * sizeof(float);
+                var quaternionBufferSize = (int)jointCount * 4 * sizeof(float);
+                var float3Buffer = new byte[float3BufferSize];
+                var quaternionBuffer = new byte[quaternionBufferSize];
 
-                // Allocate reusable buffers once outside the loop
-                byte[] float3Buffer = new byte[float3BufferSize];
-                byte[] quaternionBuffer = new byte[quaternionBufferSize];
+                poseSet.SetPoseCapacity(poseCount);
+                var frames = poseSet.AppendRawFrames((int)poseCount);
 
-                poseSet.SetPoseCapacity(nPoses);
-                var frames = poseSet.AppendRawFrames((int)nPoses);
-
-                // A short read is a truncated file -- an interrupted write, or a database from
-                // another rig whose header promised more poses than it holds -- so it is reported
-                // and refused rather than asserted. The header counts have already been reconciled
-                // against the live skeleton, which is what makes truncation the remaining
-                // explanation.
+                // The header counts already agree with the skeleton, so a short read can only be a
+                // truncated file; it is reported and refused rather than asserted.
                 bool ReadBlock(byte[] buffer, int byteCount, int poseIndex)
                 {
                     if (reader.Read(buffer, 0, byteCount) == byteCount) return true;
 
-                    Debug.LogError($"\"{fileName}.mmpose\" ends inside pose {poseIndex} of {nPoses}; " +
+                    Debug.LogError($"\"{fileName}.mmpose\" ends inside pose {poseIndex} of {poseCount}; " +
                                    "the file is truncated. Regenerate the databases.");
                     return false;
                 }
 
-                for (int i = 0; i < nPoses; i++)
+                for (var i = 0; i < poseCount; i++)
                 {
                     var frame = frames[i];
                     var positions = frame.Positions;
@@ -157,10 +140,9 @@ public class PoseSerializer
                     var velocities = frame.Velocities;
                     var angularVelocities = frame.AngularVelocities;
 
-                    // --- Read JointLocalPositions ---
                     if (!ReadBlock(float3Buffer, float3BufferSize, i)) return false;
                     var positionsSpan = MemoryMarshal.Cast<byte, float>(float3Buffer);
-                    for (int j = 0; j < nJoints; j++)
+                    for (var j = 0; j < jointCount; j++)
                     {
                         positions[j] = new float3(
                             positionsSpan[j * 3],
@@ -169,10 +151,9 @@ public class PoseSerializer
                         );
                     }
 
-                    // --- Read JointLocalRotations ---
                     if (!ReadBlock(quaternionBuffer, quaternionBufferSize, i)) return false;
-                    Span<float> rotationsSpan = MemoryMarshal.Cast<byte, float>(quaternionBuffer);
-                    for (int j = 0; j < nJoints; j++)
+                    var rotationsSpan = MemoryMarshal.Cast<byte, float>(quaternionBuffer);
+                    for (var j = 0; j < jointCount; j++)
                     {
                         rotations[j] = new quaternion(
                             rotationsSpan[j * 4],
@@ -182,10 +163,9 @@ public class PoseSerializer
                         );
                     }
 
-                    // --- Read JointLocalVelocities ---
                     if (!ReadBlock(float3Buffer, float3BufferSize, i)) return false;
-                    Span<float> velocitiesSpan = MemoryMarshal.Cast<byte, float>(float3Buffer);
-                    for (int j = 0; j < nJoints; j++)
+                    var velocitiesSpan = MemoryMarshal.Cast<byte, float>(float3Buffer);
+                    for (var j = 0; j < jointCount; j++)
                     {
                         velocities[j] = new float3(
                             velocitiesSpan[j * 3],
@@ -194,10 +174,9 @@ public class PoseSerializer
                         );
                     }
 
-                    // --- Read JointLocalAngularVelocities ---
                     if (!ReadBlock(float3Buffer, float3BufferSize, i)) return false;
-                    Span<float> angularVelocitiesSpan = MemoryMarshal.Cast<byte, float>(float3Buffer);
-                    for (int j = 0; j < nJoints; j++)
+                    var angularVelocitiesSpan = MemoryMarshal.Cast<byte, float>(float3Buffer);
+                    for (var j = 0; j < jointCount; j++)
                     {
                         angularVelocities[j] = new float3(
                             angularVelocitiesSpan[j * 3],
@@ -206,20 +185,19 @@ public class PoseSerializer
                         );
                     }
 
-                    // --- Read contact flags ---
                     frame.SetBool(poseSet.LeftFootContactHandle, reader.ReadUInt32() == 1u);
                     frame.SetBool(poseSet.RightFootContactHandle, reader.ReadUInt32() == 1u);
                 }
 
-                if (!ReadPhase(reader, ms, fileName, poseSet, (int)nPoses)) return false;
+                if (!ReadPhase(reader, stream, fileName, poseSet, (int)poseCount)) return false;
 
-                for (int i = 0; i < nTags; i++)
+                for (var i = 0; i < tagCount; i++)
                 {
-                    string name = reader.ReadString();
-                    int nRanges = (int)reader.ReadUInt32();
-                    List<int> tagStarts = new List<int>(nRanges);
-                    List<int> tagEnds = new List<int>(nRanges);
-                    for (int r = 0; r < nRanges; r++)
+                    var name = reader.ReadString();
+                    var rangeCount = (int)reader.ReadUInt32();
+                    var tagStarts = new List<int>(rangeCount);
+                    var tagEnds = new List<int>(rangeCount);
+                    for (var r = 0; r < rangeCount; r++)
                     {
                         tagStarts.Add((int)reader.ReadUInt32());
                         tagEnds.Add((int)reader.ReadUInt32());
@@ -237,11 +215,8 @@ public class PoseSerializer
 
     // --- Gait phase block -------------------------------------------------------------------
     //
-    // Phase and its rate, one pair per pose, after the poses. It is evaluated once in C# from the
-    // clips' authored footfalls and carried here rather than reconstructed on the Python side from
-    // the contact flags, so what the clip editor draws is what a model trains on — the same
-    // argument that put the skeleton in this file. C# never reads it back; it exists for the
-    // training set. A rate of zero marks a frame with no measurable cycle.
+    // Phase and its rate, one pair per pose, evaluated in C# from the authored footfalls so Python
+    // trains on what the clip editor draws. A rate of zero marks a frame with no measurable cycle.
 
     private static void WritePhase(BinaryWriter writer, PoseSet poseSet)
     {
@@ -253,9 +228,8 @@ public class PoseSerializer
     }
 
     /// <summary>
-    /// Reads the gait phase block, refusing a file that stops short of it. The format carries no
-    /// version, so a database written before the block existed is caught by checking the content is
-    /// actually there — which also catches a truncated write.
+    /// Reads the gait phase block, refusing a file that stops short of it. The format is unversioned,
+    /// so a stale or truncated file is caught by checking the content is there.
     /// </summary>
     private static bool ReadPhase(BinaryReader reader, Stream stream, string fileName, PoseSet poseSet,
         int poseCount)
@@ -277,13 +251,9 @@ public class PoseSerializer
 
     // --- Skeleton block ---------------------------------------------------------------------
     //
-    // The bones this database was extracted over, written ahead of the poses. C# does not need
-    // them — a config carries its own Skeleton and reads rest pose live off the Transforms — but
-    // the Python half has no ScriptableObject to read, and needs joint names for the bone-weight
-    // table, parent indices for FK, and rest offsets for root-space positions. Keeping the block
-    // in the same file as the poses is what stops the two drifting apart, which is exactly what a
-    // separate .mmskeleton did. The simulation frame is not written: both halves derive it from
-    // bone 0's rest rotation, which the bone entries already carry.
+    // The bones this database was extracted over, for Python, which has no Skeleton asset to read.
+    // Kept in the same file as the poses so the two cannot drift apart. The simulation frame is not
+    // written: both sides derive it from bone 0's rest rotation.
 
     private static void WriteSkeleton(BinaryWriter writer, Skeleton skeleton)
     {

@@ -2,22 +2,17 @@
 Runs a trained Learned Motion Matching model one frame at a time, for the Unity stage and for
 offline inspection.
 
-The policy here is **stateless**, as ``pfnn.runtime``'s is: it takes a whole query and returns a
-whole pose, while the character's state -- which feature vector it is holding, which latent -- lives
-on the C# side, where the profiler and the inspector can see it and a benchmark run can reset it
-without reaching across the boundary.
+The policy here is **stateless**, as ``pfnn.runtime``'s is: the character's state -- which
+feature vector and latent it is holding -- lives on the C# side.
 
-**The latent table stays in Python.** The ``DecompressorOnly`` runtime mode reads a latent per tick
-by database frame, and that lookup is free on this side of the boundary while marshalling a
-200 000-row table across it at startup is not. So the stage passes a frame index and gets a pose
-back, in the one call it was already making. Once the stepper is running the latent is no longer
-one of the baked rows, so the stage carries it and :meth:`LmmPolicy.tick` takes it back --
-advancing the state and decompressing it in the one call, because they always happen together.
+**The latent table stays in Python**, so it is never marshalled across the boundary: the
+``DecompressorOnly`` mode passes a frame index and gets a pose back. Once the stepper is running the
+latent is no longer a baked row, so the stage carries it and :meth:`LmmPolicy.tick` advances and
+decompresses it in one call.
 
-Forward kinematics is the caller's job, as it is for the PFNN: the network predicts **joint-local**
-rotations, and the authority on the rest offsets that turn those into a posed character is the rig.
-The stage does it with ``SkeletonData``; :func:`reconstruction_report` below does it with
-:mod:`lmm.fk`, which is the same definition the loss was written in.
+Forward kinematics is the caller's job, as it is for the PFNN, since the rig is the authority on rest
+offsets: the stage does it with ``SkeletonData``, and the reports below with :mod:`lmm.fk`, the
+definition the loss was written in.
 
 Everything crossing the PythonNET boundary is a flat Python list of floats, never an ndarray --
 pythonnet marshals a list straight into a C# ``float[]``.
@@ -87,9 +82,8 @@ class LmmPolicy:
         self._y_std = checkpoint.y_std
         self._latents = checkpoint.latents
 
-        # The two halves of the state, concatenated once: what the projector's answer is
-        # denormalised against. It regresses the state itself, so these are the statistics the
-        # checkpoint already carries rather than a second set to keep in step with the first.
+        # The two halves of the state concatenated: what the projector's answer is denormalised
+        # against.
         self._state_mean = torch.from_numpy(
             np.concatenate([checkpoint.x_mean, checkpoint.z_mean])).to(self.device)
         self._state_std = torch.from_numpy(
@@ -107,9 +101,8 @@ class LmmPolicy:
         """
         The stepper network, and the statistics that turn its answer back into real rates.
 
-        Refused rather than loaded half-built if the rate statistics are missing: a stepper whose
-        output is left normalised would advance the state by roughly the right shape at entirely
-        the wrong speed, which looks like a tuning problem rather than a broken file.
+        Refused if the rate statistics are missing: a stepper left normalised advances the state at
+        the wrong speed, which would look like a tuning problem rather than a broken file.
         """
         if checkpoint.xz_rate_mean is None or checkpoint.xz_rate_std is None:
             raise ValueError('this checkpoint carries a stepper but not the rate statistics it was '
@@ -185,9 +178,8 @@ class LmmPolicy:
         Database frames with no latent -- the last frame of every clip, and any frame whose
         matching feature vector Unity marked invalid.
 
-        Returned as the exceptions rather than as a per-frame mask because there are a few thousand
-        of them against a few hundred thousand frames, and marshalling the mask would cost more than
-        the information in it.
+        Returned as the exceptions rather than a per-frame mask, which would be far larger to
+        marshal.
         """
         return [int(frame) for frame in np.flatnonzero(~self.checkpoint.latent_valid)]
 
@@ -204,8 +196,7 @@ class LmmPolicy:
         """
         Reconstruct a pose from a query vector and the latent baked for one database frame.
 
-        The ``DecompressorOnly`` path: the stage decides which frame it is holding and this looks
-        the latent up, so nothing but the query and the pose crosses the boundary per tick.
+        The ``DecompressorOnly`` path: only the query and the pose cross the boundary per tick.
 
         :param features: the matching feature vector, normalised exactly as the database is -- i.e.
             what ``MotionMatchingStage.FillQueryVector`` produces.
@@ -217,8 +208,7 @@ class LmmPolicy:
         """
         Reconstruct a pose from a query vector and an arbitrary latent.
 
-        The general entry point, used by the ablation diagnostics now and by the stepper later,
-        when the latent the stage carries is no longer one of the baked rows.
+        For a latent that is not one of the baked rows.
 
         :return: ``pose_size`` floats, in the order :meth:`pose_blocks` declares.
         """
@@ -244,13 +234,9 @@ class LmmPolicy:
         """
         Advance the state by one synthesis tick and reconstruct the pose it now describes.
 
-        The stepper's path, and one boundary crossing rather than two: its answer is only
-        ever wanted as the decompressor's input, so splitting them would marshal a sixty-five-float
-        state across for no reason.
-
-        Advancing *before* decompressing is what the ``DecompressorOnly`` mode does with its
-        playhead -- it moves it by ``delta_time`` and then reads the frame it landed on -- so the
-        two modes differ in where the state comes from and in nothing else.
+        The stepper's path, in one boundary crossing. Advancing *before* decompressing matches the
+        ``DecompressorOnly`` mode's playhead, so the two modes differ only in where the state comes
+        from.
 
         :param features: the query vector the character is holding, in the database's own units.
         :param latent: the latent beside it.
@@ -299,11 +285,8 @@ class LmmPolicy:
         """
         Answer a query with a state the database could have held -- the projector's search tick.
 
-        Kept separate from :meth:`tick` rather than folded into it, because it runs on search ticks
-        only and because **the accept decision stays in C#**, where the authored feature weights
-        live and where the classic matcher makes the same decision about the same numbers. Handing
-        back a verdict instead of a candidate would move that comparison to the side of the
-        boundary that cannot be held to the matcher's own implementation of it.
+        Separate from :meth:`tick` because it runs on search ticks only, and because **the accept
+        decision stays in C#**, beside the classic matcher's implementation of the same comparison.
 
         :param features: the query, as ``MotionMatchingStage.FillQueryVector`` produces it.
         :return: ``(features, latent)`` -- the state to take if the caller decides it is better
@@ -367,9 +350,8 @@ class LmmPolicy:
         """
         One integration of the stepper, batched. Caller holds ``torch.no_grad()``.
 
-        The network answers with a **rate per second**, denormalised here, and the state is
-        integrated as every other predicted motion channel in this project is. That is what makes
-        the tick rate and the database's frame rate independent of each other.
+        The network answers with a **rate per second**, so the tick rate is independent of the
+        database's frame rate.
         """
         features, latent = state
         size = self.checkpoint.feature_size
@@ -408,14 +390,9 @@ def reconstruction_report(policy: LmmPolicy, training_set, frames: int = 0,
     """
     Score a checkpoint against the database it was trained on, in metres rather than loss units.
 
-    This is the honest test of the decompressor. The training loss is computed on weighted blocks
-    in mixed units, which makes it comparable between runs and comparable to nothing else -- it cannot say
-    whether a foot is a centimetre or a hand's breadth out of place.
-
-    Joint positions come from **forward kinematics of the predicted rotations**, which is the only
-    place they can come from: the decompressor predicts joint-local rotations and the root's height,
-    and nothing else. That is also what the stage poses the rig with, so the number measured here is
-    the number the character exhibits.
+    The training loss is in weighted mixed units; this says whether a foot is a centimetre or a
+    hand's breadth out of place. Joint positions come from forward kinematics of the predicted
+    rotations -- see :func:`joint_positions`.
 
     :param frames: how many latent-carrying frames to score, evenly spread; 0 scores all of them.
     :param holdout: score only the last fraction of the training pairs -- the same contiguous tail
@@ -424,7 +401,7 @@ def reconstruction_report(policy: LmmPolicy, training_set, frames: int = 0,
     :return: a summary dict, also logged.
     """
     spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
-                                  policy.latent_size())
+                              policy.latent_size())
     x, y, q, latent_exists = dataset.build_vectors(training_set, spec)
 
     if holdout:
@@ -504,9 +481,8 @@ def joint_positions(predicted: np.ndarray, pose_layout, n_bones: int, offsets, h
     """
     (n, n_bones, 3) where a predicted pose actually puts every joint, in the character frame.
 
-    The one place joint positions can come from: the decompressor predicts joint-*local* rotations
-    and the root's height, and nothing else. Every report here measures against these rather than
-    against anything read out of the database, because this is what the stage poses the rig with.
+    The decompressor predicts only joint-*local* rotations and the root's height, so this is what
+    the stage poses the rig with, and what every report here measures.
     """
     local_six = torch.from_numpy(np.ascontiguousarray(
         neural_packing.block(predicted, pose_layout, 'rotations_6d').reshape(-1, n_bones, 6)))
@@ -523,20 +499,10 @@ def rollout_report(policy: LmmPolicy, training_set, seeds: int = 512,
     """
     Free-run the stepper from held-out database states and measure how far it has wandered.
 
-    This is the honest test of the stepper: it is asked to advance a state it produced itself,
-    over and over, with nothing correcting it. Scored one frame at a time from true states it would
-    look far better and mean far less, because the failure mode is compounding error and a
-    single-step score cannot see compounding.
-
-    Two kinds of number per horizon. The **drift** is the state's distance from where the database
-    says it should be, in units of each half's own spread -- comparable between runs, meaningless
-    on its own. The **joint error** is what that drift does to the character, in metres, after
-    decompressing the drifted state and running forward kinematics on it.
-
-    Ten frames is the horizon that decides whether the stepper works, because the stage searches
-    every ``searchInterval`` seconds -- 10/60 by default, which is ten database frames at 60 Hz.
-    Beyond that the numbers say whether the model degrades or explodes, which is a different
-    question and one the ``Full`` mode's projector will ask again with a longer cadence.
+    Only a free run sees compounding error. Per horizon, the **drift** is the state's distance from
+    the database in units of each half's own spread, and the **joint error** is what that does to
+    the character, in metres. Ten frames, the default search cadence, is the horizon that decides
+    whether the stepper works.
 
     :param seeds: how many states to run from, evenly spread over the scored region.
     :param holdout: run only from the last fraction of the eligible starts, which is the tail the
@@ -549,7 +515,7 @@ def rollout_report(policy: LmmPolicy, training_set, seeds: int = 512,
 
     horizons = tuple(sorted(horizons or dataset.DRIFT_HORIZONS))
     spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
-                                  policy.latent_size())
+                              policy.latent_size())
     x, _, q, latent_exists = dataset.build_vectors(training_set, spec)
     latents = policy.checkpoint.latents
     x_scale, z_scale = dataset.state_scales(x, latents, latent_exists)
@@ -603,16 +569,9 @@ def projector_report(policy: LmmPolicy, training_set, queries: int = 2048,
     """
     Score the projector against the search it replaces, on queries no frame answers exactly.
 
-    This is the honest test of the projector, and the reason it has to be its own report: the
-    training loss falls steadily whether or not the answers are the ones the search would have given. What
-    matters is the comparison against the lookup itself -- see
-    :func:`dataset.recall_against_search` for what each number means.
-
-    Measured at several displacements rather than one averaged draw, because the two ends behave
-    differently and an average over them hides it. At a small displacement the true neighbour is
-    nearly the frame the query came from and a near miss is cheap; at a large one the query is
-    somewhere the database barely reaches, which is exactly where a controller asking for the
-    impossible puts it.
+    A falling training loss does not say the answers match the search; see
+    :func:`dataset.recall_against_search` for what each number means. Reported per displacement
+    rather than averaged, because small and large displacements behave differently.
 
     :param queries: how many held-out frames to displace and answer.
     :param holdout: draw only from the last fraction of the latent-carrying frames -- the tail the
@@ -625,7 +584,7 @@ def projector_report(policy: LmmPolicy, training_set, queries: int = 2048,
                          'python -m lmm.trainer --projector-only.')
 
     spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
-                                  policy.latent_size())
+                              policy.latent_size())
     x, _, _, latent_exists = dataset.build_vectors(training_set, spec)
     latents = policy.checkpoint.latents
     _, z_scale = dataset.state_scales(x, latents, latent_exists)
@@ -680,21 +639,13 @@ def full_rollout_report(policy: LmmPolicy, training_set, seeds: int = 256, frame
     Run the whole method free of the database for thirty seconds and see whether it survives.
 
     Projector, stepper and decompressor together, in the loop ``LmmStage`` runs in its ``Full``
-    mode: every ``search_interval`` frames the query is answered by the projector and taken only if
-    it is nearer than the state already held, and in between the stepper carries that state
-    forward. Nothing reads the database. **This is the only honest test of the projector**, because
-    every per-frame score the three networks produce stays plausible long after the loop as a whole has
-    stopped producing motion.
+    mode, with nothing reading the database. Per-frame scores stay plausible long after the loop
+    has stopped producing motion, so this is the test that counts.
 
-    The controller is held still: each seed goes on asking for the trajectory its own frame asked
-    for. That is a control signal a character can follow indefinitely, which a replayed one cannot
-    be -- the clips here average two seconds and this runs for thirty -- and it is the harder ask,
-    because nothing in it ever pulls a drifting state back towards the data.
-
-    Three things are measured against the seeds' own frames: the speed the character travels at,
-    how far its joints reach from its root, and whether any of it stopped being finite. A model
-    that has quietly collapsed stands still with its arms at its sides, and reports an excellent
-    per-frame loss while doing it.
+    The controller is held still -- each seed keeps asking for its own frame's trajectory -- which
+    a character can follow indefinitely and nothing pulls back towards the data. Speed, joint reach
+    from the root, and finiteness are measured against the seeds' own frames; a collapsed model
+    stands still with its arms at its sides.
 
     :param seeds: states to run from, evenly spread over the scored region.
     :param frames: database frames to run for; 900 is thirty seconds at 30 Hz.
@@ -708,7 +659,7 @@ def full_rollout_report(policy: LmmPolicy, training_set, seeds: int = 256, frame
         raise ValueError('this checkpoint has no stepper, so a projected state cannot be carried')
 
     spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
-                                  policy.latent_size())
+                              policy.latent_size())
     x, _, q, latent_exists = dataset.build_vectors(training_set, spec)
     latents = policy.checkpoint.latents
     pose_offset = policy.checkpoint.pose_offset
@@ -738,8 +689,7 @@ def full_rollout_report(policy: LmmPolicy, training_set, seeds: int = 256, frame
             query = np.concatenate([request, state_x[:, pose_offset:]], axis=1)
             candidate_x, candidate_z = policy.project_batch(query)
 
-            # The same comparison the stage makes, in the same squared-distance metric: take the
-            # answer only when it is enough nearer than what is already held.
+            # The stage's accept rule, in its squared-distance metric.
             held = (((query - state_x) ** 2) * weights).sum(axis=1)
             offered = (((query - candidate_x) ** 2) * weights).sum(axis=1)
             take = offered < held * acceptance_ratio

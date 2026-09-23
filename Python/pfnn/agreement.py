@@ -1,17 +1,13 @@
 """
 Compares the C# and Python definitions of a character-frame pose on the same frames.
 
-Both sides are unit-tested against the same properties -- that a rigid translation leaves no motion
-inside the frame, that the root sits over the frame origin -- but until this existed, nothing had
-compared the numbers the two actually produce. That is the gap worth closing, because a
+Each side is unit-tested on its own; this compares the numbers the two actually produce, because a
 disagreement here does not throw. A model trained on one definition and run on the other simply
-produces bad motion, and the cause is invisible from the symptom.
+produces bad motion.
 
 Driven from Unity by ``MoSynth/Pfnn/Check Training Agreement``, which does the C# half and hands the
 arrays over. Positions and rotations should agree to float precision. Rates are deliberately not
-compared: the two sides differ there by construction -- Python differences consecutive frame-local
-poses of a stored database, C# composes the instantaneous rate implied by a pose's own velocity
-channels -- so a difference would say nothing that is not already documented.
+compared: the two sides differ there by construction (see openwiki/animation-tools/neural-synthesis.md).
 """
 
 from __future__ import annotations
@@ -56,9 +52,8 @@ def compare(data_dir: str, db_name: str, frames, csharp_positions, csharp_rotati
     worst_position = int(np.unravel_index(np.argmax(position_error), position_error.shape)[1])
     worst_rotation = int(np.unravel_index(np.argmax(angle_error), angle_error.shape)[1])
 
-    # The residual grows down the chain because forward kinematics composes in float32 on the C#
-    # side and float64 here, so reporting the depth of the worst bone is what tells accumulated
-    # rounding apart from a genuine disagreement, which would not care how deep a joint sits.
+    # C# composes FK in float32 and this side in float64, so rounding grows down the chain; the
+    # worst bone's depth tells accumulated rounding apart from a genuine disagreement.
     depths = _depths(training_set.parents)
 
     return (f'agreement over {frames.size} frames x {bone_count} bones: '

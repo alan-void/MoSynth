@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -13,10 +11,8 @@ namespace MotionMatching
     public static class TwoJointIK
     {
         /// <summary>
-        /// Solve 2-joint IK considering target as end effector for the joint c.
-        /// It is not limited to legs, but for example:
-        /// a can be seen as the root/hips, b as the knee, c as the ankle,
-        /// and the forward can be seen as the knee forward.
+        /// Rotates <paramref name="jointA"/> and <paramref name="jointB"/> so <paramref name="jointC"/>
+        /// lands on <paramref name="targetPos"/> (for a leg: hip, knee, ankle).
         /// </summary>
         /// <remarks>
         /// Two stages. <em>Extension</em>: the cosine rule gives the interior angles that make the
@@ -47,9 +43,9 @@ namespace MotionMatching
             float3 axisAC = math.normalize(cPos - aPos);
             forward = math.normalize(forward);
             float3 rotationAxis = math.normalize(math.cross(axisAC, forward));
-            // First make the vector AC have the same length as AT
-            // Use the dot product formula to obtain interior angles
-            float interiorAngleA = math.acos(math.clamp( // clamp to avoid numerical errors
+
+            // Extension: rotate A and B so |AC| equals |AT|.
+            float interiorAngleA = math.acos(math.clamp(
                                                 math.dot(
                                                     axisAC,
                                                     math.normalize(bPos - aPos)),
@@ -59,17 +55,15 @@ namespace MotionMatching
                                                     math.normalize(aPos - bPos),
                                                     math.normalize(cPos - bPos)),
                                                 -1f, 1f));
-            // Use the cosine rule to get the desired interior angles
             Debug.Assert(!float.IsNaN(math.acos(math.clamp((lengthBC * lengthBC - lengthAB * lengthAB - lengthAT * lengthAT) / (-2f * lengthAB * lengthAT), -1f, 1f))), "Numerical error");
             Debug.Assert(!float.IsNaN(math.acos(math.clamp((lengthAT * lengthAT - lengthAB * lengthAB - lengthBC * lengthBC) / (-2f * lengthAB * lengthBC), -1f, 1f))), "Numerical error");
             float desiredInteriorAngleA = math.acos(math.clamp((lengthBC * lengthBC - lengthAB * lengthAB - lengthAT * lengthAT) / (-2f * lengthAB * lengthAT), -1f, 1f));
             float desiredInteriorAngleB = math.acos(math.clamp((lengthAT * lengthAT - lengthAB * lengthAB - lengthBC * lengthBC) / (-2f * lengthAB * lengthBC), -1f, 1f));
-            // Local rotation angles for A and B
-            quaternion rotA = quaternion.AxisAngle(math.mul(math.inverse(jointA.rotation), rotationAxis), desiredInteriorAngleA - interiorAngleA); // mul by the inverse to make it joint local space
+            // Axes are taken into each joint's local space, since the rotations are applied locally.
+            quaternion rotA = quaternion.AxisAngle(math.mul(math.inverse(jointA.rotation), rotationAxis), desiredInteriorAngleA - interiorAngleA);
             quaternion rotB = quaternion.AxisAngle(math.mul(math.inverse(jointB.rotation), rotationAxis), desiredInteriorAngleB - interiorAngleB);
-            // Now we have the leg rotated so that the vector AC has the same length as AT
-            // Then, we rotate A by the rotation axis formed by cross product of AC and AT
-            // First, angle between AC and AT
+
+            // Aiming: swing A so AC points along AT.
             float3 axisAT = math.normalize(targetPos - aPos);
             float angleACAT = math.acos(math.clamp(
                                             math.dot(
@@ -78,7 +72,6 @@ namespace MotionMatching
                                             -1f, 1f));
             float3 rotationAxisACAT = math.normalize(math.cross(axisAC, axisAT));
             quaternion rotA2 = quaternion.AxisAngle(math.mul(math.inverse(jointA.rotation), rotationAxisACAT), angleACAT);
-            // Apply the rotations
             jointA.rotation = math.mul(jointA.rotation, math.mul(rotA2, rotA));
             jointB.rotation = math.mul(jointB.rotation, rotB);
         }

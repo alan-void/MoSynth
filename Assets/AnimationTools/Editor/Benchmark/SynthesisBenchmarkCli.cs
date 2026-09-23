@@ -10,11 +10,9 @@ namespace AnimationTools.Editor
 /// <c>-executeMethod AnimationTools.Editor.SynthesisBenchmarkCli.Run</c>.
 /// </summary>
 /// <remarks>
-/// The invocation must NOT pass <c>-quit</c>. A sweep runs in play mode, so this method returns
-/// long before it finishes; <c>-quit</c> would tear the Editor down mid-run. Batchmode Unity stays
-/// alive after <c>-executeMethod</c> returns on its own, and
-/// <see cref="SynthesisBenchmarkDriver"/> calls <see cref="EditorApplication.Exit"/> with the
-/// sweep's status code once the report is written. See <c>Tools/run-benchmark.ps1</c>.
+/// The invocation must NOT pass <c>-quit</c>: the sweep runs in play mode long after this returns,
+/// and <see cref="SynthesisBenchmarkDriver"/> calls <see cref="EditorApplication.Exit"/> itself.
+/// See <c>Tools/run-benchmark.ps1</c>.
 /// </remarks>
 public static class SynthesisBenchmarkCli
 {
@@ -47,8 +45,7 @@ public static class SynthesisBenchmarkCli
 
             var outputDirectory = SynthesisBenchmarkLauncher.ResolveOutputDirectory(output);
 
-            // Only headless runs should take the Editor down with them; a developer running this
-            // from a live Editor session wants their Editor back, not a process exit.
+            // Only headless runs take the Editor down with them.
             var headless = Application.isBatchMode;
 
             if (!SynthesisBenchmarkLauncher.Launch(config, outputDirectory, headless))
@@ -64,7 +61,7 @@ public static class SynthesisBenchmarkCli
 
     /// <summary>
     /// Value of a <c>-name value</c> pair on Unity's command line, or null. Unity ignores arguments
-    /// it does not recognise, which is what lets a sweep be parameterised this way at all.
+    /// it does not recognise, which is what makes custom ones possible.
     /// </summary>
     private static string GetArgument(string name)
     {
@@ -81,8 +78,7 @@ public static class SynthesisBenchmarkCli
     {
         Debug.LogError($"[Benchmark] {message}");
 
-        // Nothing downstream will run to set an exit code, so a headless invocation has to stop
-        // here or it would sit idle until the harness times out.
+        // Nothing downstream will set an exit code, so a headless run would otherwise sit idle.
         if (Application.isBatchMode) EditorApplication.Exit(1);
     }
 }

@@ -5,9 +5,8 @@ namespace AnimationTools
 /// character actually got", so a run can be ended by lap rather than by a wall-clock guess.
 /// </summary>
 /// <remarks>
-/// A guess is not available: MotionFieldSplineControlInput reports <see cref="float.NaN"/> for its
-/// target speed because the policy has no speed model, so lap time cannot be derived from path length. Measuring the character's own progress also keeps the
-/// comparison honest — a method that falls behind gets a longer run rather than a truncated lap.
+/// Some inputs have no speed model (target speed NaN), so lap time cannot be predicted; measuring
+/// progress also gives a method that falls behind a longer run rather than a truncated lap.
 /// <para>
 /// Closed splines accumulate signed deltas so the run survives the 1 -&gt; 0 wrap and shrugs off the
 /// backward jitter a synthesized root produces every gait cycle. Open splines cannot lap, so

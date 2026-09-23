@@ -1,6 +1,5 @@
 using System;
 using Unity.Collections;
-using UnityEngine;
 
 namespace MotionMatching
 {
@@ -10,14 +9,9 @@ namespace MotionMatching
 /// structure, a learned index — without touching <see cref="MotionMatchingStage"/>.
 /// </summary>
 /// <remarks>
-/// Inspector-authored via <c>[SerializeReference]</c>, so a concrete search must be
-/// <c>[Serializable]</c> with a parameterless constructor. <see cref="Initialize"/> runs once from
-/// the stage's Init, <see cref="FindBestFrame"/> once per search tick, <see cref="Dispose"/> at the
-/// end.
-/// <para>
-/// Every implementation must use the same distance metric, <see cref="MotionMatchingStage.SqrDistance"/>,
-/// since the caller compares results against it.
-/// </para>
+/// Authored via <c>[SerializeReference]</c>, so a concrete search must be <c>[Serializable]</c> with a
+/// parameterless constructor. Every implementation must use
+/// <see cref="MotionMatchingStage.SqrDistance"/>, since the caller compares results against it.
 /// </remarks>
 [Serializable]
 public abstract class MotionMatchingSearch

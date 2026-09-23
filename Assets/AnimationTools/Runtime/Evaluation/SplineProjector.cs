@@ -9,22 +9,10 @@ namespace AnimationTools
 /// jumping to whichever part of the spline happens to be closest.
 /// </summary>
 /// <remarks>
-/// <see cref="SplineUtility.GetNearestPoint"/> searches the whole spline. On a path that crosses
-/// itself that is actively wrong: at the crossing the globally nearest point flips to the other
-/// branch, and every consumer of the result flips with it — a pure-pursuit controller steers onto
-/// the wrong lobe, a lap counter reads the flip as a seam crossing, an error metric compares the
-/// character against a tangent pointing the other way.
-/// <para>
-/// The package has no windowed overload: both public <c>GetNearestPoint</c> forms hardcode a
-/// full-spline range, the range-aware internals are private, and <c>SplineSlice</c> is limited to
-/// whole knots and documents itself as unsuited to per-frame use. So this mirrors the package's own
-/// coarse-to-fine chord search over a caller-controlled window.
-/// </para>
-/// <para>
-/// Normalized spline parameters are uniform in arc length, which is what makes the window
-/// expressible in metres: a window of <c>d</c> metres is <c>d / spline.GetLength()</c> in normalized
-/// space, on any spline, wherever you are along it.
-/// </para>
+/// A global <see cref="SplineUtility.GetNearestPoint"/> flips branches where a path crosses itself,
+/// and the package has no windowed form, so this mirrors its coarse-to-fine chord search over a
+/// window. Normalized parameters are uniform in arc length, so a window of d metres is
+/// d / length. See openwiki/animation-tools/path-following-metrics.md.
 /// </remarks>
 public sealed class SplineProjector
 {
@@ -44,12 +32,10 @@ public sealed class SplineProjector
 
     /// <param name="minWindowMeters">Smallest window searched, however little the point moved. Covers
     /// a stationary character and the numerical slack around one.</param>
-    /// <param name="windowSlack">Multiple of the point's own displacement to search ahead of it. The
-    /// window is sized from actual movement rather than fixed, so the same projector serves a 30 Hz
-    /// controller stepping centimetres and a coarse recording stepping metres.</param>
+    /// <param name="windowSlack">Multiple of the point's own displacement to search ahead of it, so
+    /// the window scales from per-tick steps to coarse recordings.</param>
     /// <param name="reacquireDistanceMeters">Past this distance from the windowed result, give up on
-    /// continuity and search globally. Deliberately generous: re-acquiring is precisely what must not
-    /// happen at a crossing, so it is reserved for a point that is genuinely lost.</param>
+    /// continuity and search globally. Generous, since re-acquiring must not happen at a crossing.</param>
     public SplineProjector(
         float minWindowMeters = 0.5f,
         float windowSlack = 3f,

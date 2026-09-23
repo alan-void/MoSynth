@@ -39,9 +39,7 @@ public static class SynthesisBenchmarkMenu
     private static bool ValidateRunSweep() => !EditorApplication.isPlaying;
 
     /// <summary>
-    /// The config to run: whatever is selected, else the one used last, else the only one in the
-    /// project. Falling back this way means the common case — one benchmark config, run repeatedly —
-    /// needs no selection at all.
+    /// The config to run: whatever is selected, else the one used last, else the first in the project.
     /// </summary>
     private static SynthesisBenchmarkConfig ResolveConfig()
     {

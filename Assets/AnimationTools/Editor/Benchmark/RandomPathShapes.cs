@@ -98,19 +98,15 @@ public static class RandomPathShapes
     private const float SharpWalkTurnDegrees = 100f;
 
     /// <summary>
-    /// The path for one slot of a batch, or null if no candidate met the settings. Drawing from a
-    /// stream seeded on <paramref name="seed"/> and <paramref name="index"/> together -- rather than
-    /// one stream shared across the batch -- is what keeps a path's geometry independent of how many
-    /// other paths were generated alongside it, or of what kind they were.
+    /// The path for one slot of a batch, or null if no candidate met the settings. The stream is
+    /// seeded per slot, so a path's geometry does not depend on the rest of the batch.
     /// </summary>
     public static Spline Generate(RandomPathKind kind, int seed, int index, in RandomPathSettings settings) =>
         Generate(kind, seed, index, settings, out _);
 
     /// <summary>
     /// As <see cref="Generate(RandomPathKind,int,int,in RandomPathSettings)"/>, also reporting why the
-    /// last candidate was turned down. An unsatisfiable combination of settings is easy to ask for --
-    /// twenty knots inside a five meter extent leaves the sharp families no room between corners -- so
-    /// naming the predicate that failed is what tells the caller which setting to move.
+    /// last candidate was turned down, which tells the caller which setting to move.
     /// </summary>
     public static Spline Generate(RandomPathKind kind, int seed, int index, in RandomPathSettings settings,
         out string rejection)
@@ -138,9 +134,8 @@ public static class RandomPathShapes
     /// <summary>Which family the slot at <paramref name="index"/> belongs to.</summary>
     /// <remarks>
     /// A partition rather than a draw, so a kind is a pure function of the ratios and the slot. The
-    /// two levels nest: the batch splits into smooth and sharp, and each of those into loops, then
-    /// corridors, then walks -- so <paramref name="walkRatio"/> is a share of what does not loop, and
-    /// each ratio stays independently meaningful. Emitting in that order also groups the folder.
+    /// batch splits into smooth and sharp, and each into loops, corridors, then walks, so
+    /// <paramref name="walkRatio"/> is a share of what does not loop.
     /// </remarks>
     public static RandomPathKind KindForIndex(int index, int count, float smoothRatio, float closedRatio,
         float walkRatio)
@@ -207,13 +202,12 @@ public static class RandomPathShapes
         if (SelfIntersects(spline, SampleSpacingMeters, settings.minSelfClearance))
             return $"it crosses or comes within {settings.minSelfClearance:0.00} m of itself";
 
-        // Nothing bounds how tightly a smooth path may turn. The sharp families never had such a bound
-        // either, and how well a method follows a demanding curve is the measurement, not a defect --
-        // so the generator reports the tightest turn it drew instead of rejecting it.
+        // Turn tightness is never rejected: how well a method follows a demanding curve is the
+        // measurement. The generator reports it instead.
         if (IsSmooth(kind)) return null;
 
-        // A corner is a curvature singularity by construction, so the demand on the sharp families is
-        // instead that corners stay far enough apart to be separable and never become a reversal.
+        // A corner is a curvature singularity, so sharp paths are instead held to separable corners
+        // that never become a reversal.
         var separation = MinSegmentLength(spline);
         if (separation < settings.minSegmentLength)
         {
@@ -232,9 +226,8 @@ public static class RandomPathShapes
         math.max(KnotCountMin(settings), settings.knotCountMax);
 
     /// <summary>
-    /// Step length giving an open path the same total length as a ring of the same extent, so the
-    /// extent means one thing -- how big the path is -- across all six families, and a sweep's runs
-    /// stay comparable in duration.
+    /// Step length giving an open path the same total length as a ring of the same extent, so extent
+    /// means overall size in every family.
     /// </summary>
     private static float StepFor(float extent, int knotCount) => 2f * math.PI * extent / knotCount;
 
@@ -266,10 +259,8 @@ public static class RandomPathShapes
     /// A corridor advancing along +X with a lateral wobble.
     /// </summary>
     /// <remarks>
-    /// Deliberately not an unclosed ring: that would leave the start and end one segment apart, so
-    /// "reached the far end" would be indistinguishable from "back at the start" and a pure-pursuit
-    /// lookahead near the end would point across the gap. Because X strictly increases, the polyline
-    /// is the graph of a function of X and so cannot cross itself.
+    /// Not an unclosed ring, whose ends would sit one segment apart and confuse "reached the far end"
+    /// with "back at the start". X strictly increases, so the polyline cannot cross itself.
     /// </remarks>
     private static float3[] Corridor(ref Random rng, int knotCount, float step, bool smooth, float wobbleScale)
     {
@@ -294,9 +285,8 @@ public static class RandomPathShapes
     /// nor marches along an axis.
     /// </summary>
     /// <remarks>
-    /// Unlike the ring and the corridor this has no construction-level simplicity argument -- a
-    /// wanderer really can cross itself -- so it leans entirely on the rejection loop. Relaxation
-    /// shrinks the heading cap, which straightens the walk, and is what makes the retries converge.
+    /// Can cross itself, so it relies on the rejection loop; relaxation shrinks the heading cap,
+    /// straightening the walk, which is what makes the retries converge.
     /// </remarks>
     private static float3[] Walk(ref Random rng, int knotCount, float step, bool smooth, float wobbleScale)
     {
@@ -341,9 +331,8 @@ public static class RandomPathShapes
 
     /// <summary>
     /// Tightest turn anywhere on the path, in meters, as the smallest circumradius over a polyline
-    /// sampled at <paramref name="sampleSpacingMeters"/>. Diagnostic rather than enforced: nothing
-    /// rejects a candidate for turning tightly, and on a linear-tangent spline a corner is a genuine
-    /// curvature singularity, so the figure only means anything for the smooth families.
+    /// sampled at <paramref name="sampleSpacingMeters"/>. Diagnostic only, and meaningful only for the
+    /// smooth families: a linear-tangent corner is a curvature singularity.
     /// </summary>
     public static float MinTurnRadius(Spline spline, float sampleSpacingMeters)
     {
@@ -415,12 +404,8 @@ public static class RandomPathShapes
     /// <paramref name="minClearanceMeters"/> at points far apart along the path.
     /// </summary>
     /// <remarks>
-    /// The clearance half is the one that matters in practice: <see cref="SplineProjector"/> already
-    /// survives a clean crossing, but two branches running close and parallel let its windowed search
-    /// slide onto the wrong one, which a lap counter then reads as a seam crossing. Pairs near each
-    /// other along the path are exempt, being legitimately close in space: the tightest U-turn whose
-    /// arms are exactly the clearance apart has half that as its radius, so its arc is a little over
-    /// pi times the clearance.
+    /// Pairs within pi times the clearance along the path are exempt. See
+    /// openwiki/animation-tools/benchmarking.md for why clearance matters more than crossing.
     /// </remarks>
     public static bool SelfIntersects(Spline spline, float sampleSpacingMeters, float minClearanceMeters)
     {

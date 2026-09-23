@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using Unity.Mathematics;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -10,13 +9,12 @@ using UnityEditor;
 namespace AnimationTools
 {
 /// <summary>
-/// Stores annotation using tags and other information for a raw animation clip.
-/// To be used by Motion Synthesis Systems.
+/// A clip and its skeleton, narrowed to a <c>[startFrame, endFrame)</c> slice, plus the
+/// <see cref="AnimationClipComponent"/>s annotating it.
 /// </summary>
 [CreateAssetMenu(fileName = "New Annotated Clip", menuName = "MoSynth/AnnotatedAnimationClip")]
 public class AnnotatedAnimationClip : SkeletonAnimation
 {
-
     [Min(0)] [Tooltip("Start frame of the animation clip. 0 indexing, inclusive.")]
     public int startFrame;
 
@@ -33,11 +31,13 @@ public class AnnotatedAnimationClip : SkeletonAnimation
     [SerializeReference] [SubclassSelector]
     public List<AnimationClipComponent> components = new();
 
-    /// Number of frames in the [startFrame, endFrame) slice, clamped defensively — a serialized
-    /// endFrame can exceed the animation's frame count until OnValidate re-runs.
+    /// <summary>
+    /// Number of frames in the slice, clamped because a serialized endFrame can exceed the
+    /// animation's frame count until OnValidate re-runs.
+    /// </summary>
     public new int FrameCount => !HasClip ? 0 : Math.Max(0, Math.Min(endFrame, base.FrameCount) - startFrame);
 
-    /// Frame view offset by startFrame. Never Dispose the returned buffer.
+    /// <summary>Frame view offset by startFrame. Never Dispose the returned buffer.</summary>
     public new PoseBuffer GetFrame(int frameIndex) => PoseSequence.GetFrame(startFrame + frameIndex);
 
     /// <summary>
@@ -74,8 +74,7 @@ public class AnnotatedAnimationClip : SkeletonAnimation
         if (endFrame >= base.FrameCount)
             endFrame = base.FrameCount;
 
-        // Without this a start past the end survives, FrameCount reports 0, and every lane in the
-        // clip editor bails on its own emptiness guard - a blank window with nothing to explain it.
+        // A start past the end would leave FrameCount at 0 and the clip editor blank with no reason shown.
         if (startFrame > endFrame)
             startFrame = endFrame;
 
@@ -104,8 +103,10 @@ public class AnnotatedAnimationClip : SkeletonAnimation
     public struct Tag
     {
         public string name;
-        public int[] start; // Each element with index i, where, 0 <= i <= Start.Length == End.Length
-        public int[] end; // represents a range. That is, for an arbitrary i -> [Start[i], End[i]]
+
+        // Parallel arrays: range i is [start[i], end[i]].
+        public int[] start;
+        public int[] end;
     }
 
 #if UNITY_EDITOR

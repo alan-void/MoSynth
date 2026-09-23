@@ -1,20 +1,18 @@
 using System.Collections.Generic;
-using AnimationTools;
 
 namespace AnimationTools
 {
 /// <summary>
-/// Builds the single pose layout the motion-matching runtime shares: a full pose
-/// (parent-local position + rotation per bone, element index == bone index), per-bone
-/// velocities/angular velocities, and two foot-contact Bool channels. <see cref="PoseSet"/> and
-/// MotionSynthesisComponent both build through here over the same
-/// <see cref="AnimationTools.Skeleton"/>, so <see cref="PoseLayout.Build"/>'s cache hands them the
-/// same instance and frames can be copied between them (<see cref="PoseBuffer.CopyFrom"/>
-/// requires equal layout hashes). The contact host bone for each side must stay a pure function
-/// of the skeleton's bone names -- never of the skeleton's source -- so two independently built
-/// skeletons that are structurally equal always pick the same host bones and hash the same.
+/// Builds the single pose layout the pipeline shares: parent-local position + rotation per bone
+/// (element index == bone index), per-bone velocities and angular velocities, and two foot-contact
+/// Bool channels.
 /// </summary>
-    public static class PoseLayoutBuilder
+/// <remarks>
+/// <see cref="PoseSet"/> and <see cref="MotionSynthesisComponent"/> both build through here, so they
+/// get the same cached layout and frames copy between them. The contact host bones must stay a pure
+/// function of bone names, so structurally equal skeletons always hash the same.
+/// </remarks>
+public static class PoseLayoutBuilder
 {
     public readonly struct ContactHandles
     {

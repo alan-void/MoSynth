@@ -10,13 +10,8 @@ namespace Pfnn.Editor
 /// Drives <c>pfnn.trainer.train</c> for a config.
 /// </summary>
 /// <remarks>
-/// A class of its own rather than a method on the inspector, because the set of hyperparameters
-/// that crosses the boundary is the thing that has to match what the config says — and a second
-/// caller (a batch menu item, a headless build step) writing its own kwargs dict is how the two
-/// would drift apart.
-/// <para>
-/// The interpreter runs in this process, synchronously on the main thread.
-/// </para>
+/// The single place the config's hyperparameters are marshalled, so every caller sends the same
+/// kwargs. Runs synchronously on the main thread.
 /// </remarks>
 public static class PfnnTraining
 {
@@ -62,16 +57,14 @@ public static class PfnnTraining
                 kwargs["validation_fraction"] = ((double)config.validationFraction).ToPython();
                 kwargs["seed"] = config.seed.ToPython();
                 kwargs["device"] = config.DeviceName.ToPython();
-                // This config authors no matching features, so there is no .mmfeatures beside the
-                // poses to read.
+                // A PFNN config authors no matching features, so there is no .mmfeatures to read.
                 kwargs["with_features"] = false.ToPython();
                 kwargs["progress"] = report.ToPython();
 
                 using var summary = trainer.InvokeMethod("train", args, kwargs);
                 Debug.Log($"[PFNN] {summary}");
 
-                // Only on the success path: train() throwing leaves the old checkpoint on disk, and
-                // it is no less stale than it was a moment ago.
+                // Only on success: if train() throws, the old checkpoint on disk is still stale.
                 config.hasTrained = true;
                 EditorUtility.SetDirty(config);
                 AssetDatabase.SaveAssetIfDirty(config);

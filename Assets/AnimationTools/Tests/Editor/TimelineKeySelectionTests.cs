@@ -226,9 +226,8 @@ namespace AnimationTools.Tests
         [Test]
         public void AConfirmedModeStillReportsWhatItWas()
         {
-            // The owner reads Kind in the handler that applies the edit. Clearing it as part of
-            // finishing made every confirmed grab, scale and box select apply nothing at all - the
-            // keys drew at the previewed position and then snapped back.
+            // The owner reads Kind in the handler that applies the edit, so finishing must not clear
+            // it or every confirmed grab, scale and box select would apply nothing.
             var grab = Grab();
             grab.HandleEvent(new Event { type = EventType.MouseMove, mousePosition = new Vector2(200f, 10f) });
 

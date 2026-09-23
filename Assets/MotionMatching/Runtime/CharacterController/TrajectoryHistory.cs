@@ -7,14 +7,10 @@ namespace MotionMatching
 /// ground-plane samples, read back by interpolation anywhere inside the window it still holds.
 /// </summary>
 /// <remarks>
-/// A trajectory feature with a negative prediction frame samples the database frames <em>before</em>
-/// the query frame, so the query vector has to answer with the character's real past. A
-/// spring-driven input cannot compute that — its spring says where the object is going, and running
-/// it with a negative timestep does not run it backwards — so it has to remember instead. A path
-/// follower does not need this: it reads its own path behind it.
+/// Answers negative prediction horizons for spring-driven inputs, whose springs cannot be run
+/// backwards. See openwiki/motion-matching/control-inputs.md.
 /// <para>
-/// Samples go in at the render rate and come out at the database rate, so reads interpolate. A
-/// request older than the oldest retained sample fails rather than clamping, so a caller cannot
+/// A request older than the oldest retained sample fails rather than clamping, so a caller cannot
 /// mistake the start of a run for a long stand still.
 /// </para>
 /// </remarks>

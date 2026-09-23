@@ -55,9 +55,8 @@ public class AnimationClipBakerTests
     }
 
     /// <summary>
-    /// The regression guard against over-strictness. Rigs routinely leave leaf bones uncurved — the
-    /// project's own clips animate 22 of 27 bones, the rest being FBX "_end" markers — so demanding
-    /// full coverage would reject every asset in this repository.
+    /// Partial coverage is accepted: rigs routinely leave leaf bones such as FBX "_end" markers
+    /// uncurved.
     /// </summary>
     [Test]
     public void TryValidateClip_ClipAnimatesOnlySomeBones_Accepts()
@@ -110,9 +109,8 @@ public class AnimationClipBakerTests
     }
 
     /// <summary>
-    /// The divergence that produced the original console spam: a skeleton whose cached bone list no
-    /// longer describes the rig underneath it. The bake bails with a bare null here, so this check
-    /// is the only thing that can say why.
+    /// A skeleton whose cached bone list no longer describes its rig is reported with both counts;
+    /// the bake itself only returns null here.
     /// </summary>
     [Test]
     public void TryValidateClip_RigChangedSinceTheSkeletonWasBuilt_ReportsBothCounts()

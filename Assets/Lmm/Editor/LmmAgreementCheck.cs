@@ -11,27 +11,13 @@ using UnityEngine;
 namespace Lmm.Editor
 {
 /// <summary>
-/// Three diagnostics that need a generated database and a working interpreter, so none of them can
-/// be an edit-mode test: whether the two definitions of a character-frame pose agree, how well a
-/// trained checkpoint reconstructs the database it learned, and how far its stepper wanders when
-/// nothing corrects it.
+/// Menu diagnostics for a trained LMM checkpoint, which need a generated database and an
+/// interpreter and so cannot be edit-mode tests.
 /// </summary>
 /// <remarks>
-/// The agreement half is <c>PfnnAgreementCheck</c>'s, pointed at a <c>MotionMatchingData</c>
-/// instead of a <c>PfnnConfig</c> — it compares <see cref="CharacterSpacePose.Extract"/> against
-/// <c>training.training_data.build_training_set</c> on the same frames. A model is trained on arrays
-/// produced by one of those and run on arrays produced by the other, and a disagreement about the
-/// reference frame, the units or the rate convention does not throw: the network simply produces
-/// bad motion and the cause is invisible from the symptom.
-/// <para>
-/// The reconstruction half answers the question the training loss cannot. That loss is computed on
-/// standardised vectors with per-block weights, so it is comparable between runs and comparable to
-/// nothing else — it cannot say whether a foot is a centimetre or a hand's breadth out of place.
-/// </para>
-/// <para>
-/// The drift report answers what neither of the other two can reach: both score a single frame
-/// against its own database row, and a stepper fails by accumulating error over many frames.
-/// </para>
+/// The agreement check is <c>PfnnAgreementCheck</c>'s, pointed at a <c>MotionMatchingData</c>. The
+/// reconstruction report measures error in metres, which the standardised, weighted training loss
+/// cannot.
 /// </remarks>
 public static class LmmAgreementCheck
 {
@@ -61,10 +47,7 @@ public static class LmmAgreementCheck
     /// How far a free-running stepper wanders from the database, and what that costs in metres.
     /// </summary>
     /// <remarks>
-    /// The reconstruction report cannot answer this. It scores a pose against the latent the
-    /// compressor baked for that very frame, while between searches the stage feeds the
-    /// decompressor a latent the stepper produced — and the failure mode of a stepper is error
-    /// that compounds, which nothing measured one frame at a time can see.
+    /// A stepper fails by compounding error, which the per-frame reconstruction report cannot see.
     /// </remarks>
     [MenuItem("MoSynth/Lmm/Report Stepper Drift", priority = 302)]
     public static void CheckStepperDrift() => Report((runtime, policy, set, config) =>
@@ -83,10 +66,8 @@ public static class LmmAgreementCheck
     /// How the projector's answers compare with the nearest-neighbour search they replace.
     /// </summary>
     /// <remarks>
-    /// The one report the training loss cannot stand in for: that loss falls steadily whether or
-    /// not the answers are the ones the search would have given. Reported at three displacements
-    /// rather than one average, because a query that barely misses and a query nothing in the
-    /// database answers are different questions and the average of them is neither.
+    /// The training loss falls whether or not the answers match the search. Reported per
+    /// displacement, since near-miss and far-off queries are different questions.
     /// </remarks>
     [MenuItem("MoSynth/Lmm/Report Projector Recall", priority = 303)]
     public static void CheckProjectorRecall() => Report((runtime, policy, set, config) =>
@@ -106,9 +87,8 @@ public static class LmmAgreementCheck
     /// Runs all three networks together, free of the database, for thirty seconds.
     /// </summary>
     /// <remarks>
-    /// The only honest test of the <c>Full</c> mode. Every per-frame score the three networks
-    /// produce stays plausible long after the loop as a whole has stopped producing motion, and a
-    /// model that has quietly collapsed stands still reporting an excellent loss while it does.
+    /// Per-frame scores stay plausible after the loop has collapsed into standing still, so only a
+    /// free-running rollout tests the <c>Full</c> mode.
     /// </remarks>
     [MenuItem("MoSynth/Lmm/Report Full Loop Rollout", priority = 304)]
     public static void CheckFullRollout() => Report((runtime, policy, set, config) =>
@@ -143,11 +123,6 @@ public static class LmmAgreementCheck
     /// <summary>
     /// Loads the checkpoint and its database once, then hands both to <paramref name="report"/>.
     /// </summary>
-    /// <remarks>
-    /// Shared because the loading is the slow part — a few hundred megabytes of poses — and
-    /// because a second copy of it would be a second place for the database and the checkpoint to
-    /// be resolved differently.
-    /// </remarks>
     private static void Report(Action<dynamic, dynamic, dynamic, LmmConfig> report) => Run(config =>
     {
         if (!File.Exists(config.GetCheckpointPath()))
@@ -176,9 +151,7 @@ public static class LmmAgreementCheck
     /// making an interactive check take minutes on a database of a few hundred thousand.
     /// </summary>
     /// <remarks>
-    /// They are drawn from the held-out tail the config trained against, not from the whole
-    /// database, so the number answers how well the model generalises rather than how well it
-    /// memorised — which on a database this size are very different questions.
+    /// Drawn from the held-out tail, so the number measures generalisation rather than memorisation.
     /// </remarks>
     private const int ReportFrames = 8192;
 

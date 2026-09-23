@@ -6,12 +6,12 @@ using UnityEngine;
 namespace AnimationTools
 {
 /// <summary>
-/// Shared CPython bootstrap for everything on the MotionField side.
-///
-/// The interpreter is process-wide and can only be configured once, so both the runtime stage and
-/// the editor trainer have to come through here rather than each calling
-/// <see cref="PythonEngine.Initialize()"/> with their own paths.
+/// Shared CPython bootstrap for every synthesis method that runs Python.
 /// </summary>
+/// <remarks>
+/// The interpreter is process-wide and configurable only once, so every caller comes through here
+/// rather than calling <see cref="PythonEngine.Initialize()"/> with its own paths.
+/// </remarks>
 public static class PythonRuntime
 {
     /// <summary>
@@ -19,10 +19,8 @@ public static class PythonRuntime
     /// <see cref="PythonPathSettings"/>.
     /// </summary>
     /// <remarks>
-    /// An interpreter lives wherever a particular machine put it, so the path is a property of the
-    /// machine, not of the project. The variable wins over the settings file because it is the only
-    /// one of the two that reaches a machine with no project folder to read -- a build agent, or a
-    /// player.
+    /// Wins over the settings file because it also reaches a machine with no project folder to read,
+    /// such as a build agent or a player.
     /// </remarks>
     public const string PythonDllVariable = "MOSYNTH_PYTHON_DLL";
 
@@ -123,7 +121,7 @@ public static class PythonRuntime
         {
             if (!string.IsNullOrWhiteSpace(venvPath))
             {
-                string sitePackages = Path.Combine(venvPath, "Lib", "site-packages");
+                var sitePackages = Path.Combine(venvPath, "Lib", "site-packages");
                 if (!Directory.Exists(sitePackages))
                 {
                     throw new DirectoryNotFoundException(
@@ -154,7 +152,7 @@ public static class PythonRuntime
     /// <summary>
     /// Import a module from the project's Python folder.
     /// </summary>
-    /// <param name="moduleName"></param>
+    /// <param name="moduleName">Dotted module path from the Python folder, e.g. <c>pfnn.runtime</c>.</param>
     /// <param name="reload">
     /// Pick up edits to the .py files without restarting Unity, by dropping the whole project
     /// module graph first -- see <see cref="InvalidateProjectModules"/>. Call it once before a
@@ -172,20 +170,9 @@ public static class PythonRuntime
     /// next import re-reads them from disk. Returns how many were dropped.
     /// </summary>
     /// <remarks>
-    /// This replaces a per-module <c>importlib.reload</c>, which only re-executes the one module it
-    /// is handed. Its dependencies stay cached, so reloading <c>MotionField</c> after adding a
-    /// symbol to <c>motion_field.io</c> re-runs the new import line against the old dependency and
-    /// dies on ImportError -- editing a shared module was effectively impossible without restarting
-    /// the editor.
-    ///
-    /// Dropping the graph wholesale also means a group of imports issued after one call sees a
-    /// single consistent generation of the code. Reloading module by module does not: each reload
-    /// rebinds only that module's classes, so two modules can end up holding different class
-    /// objects for the same class.
-    ///
-    /// Live Python objects created before the call keep working -- they hold a reference to the
-    /// class they were built from, which simply is no longer the one a fresh import returns. Call
-    /// this only where everything downstream is about to be rebuilt.
+    /// Dropping the whole graph, rather than <c>importlib.reload</c> per module, keeps dependencies
+    /// fresh and gives later imports one consistent generation of classes. Objects created earlier
+    /// keep their old classes, so call this only where everything downstream is about to be rebuilt.
     /// </remarks>
     public static int InvalidateProjectModules()
     {

@@ -9,12 +9,10 @@ namespace Pfnn
 /// and running that same spring further ahead with no new input is the future trajectory.
 /// </summary>
 /// <remarks>
-/// The construction is the one <c>DirectionControlInput</c> documents, and the maths is the shared
-/// <see cref="Spring"/> — from Daniel Holden's <a
-/// href="https://theorangeduck.com/page/spring-roll-call#controllers">spring roll call</a>. What
-/// differs is only how much of it the network is shown: a PFNN reads the whole predicted path
-/// rather than a handful of authored horizons, which is also why the request itself is rate-limited
-/// and not only the body's response to it — see <see cref="steeringHalfLife"/>.
+/// The same construction as <c>DirectionControlInput</c>, on the shared <see cref="Spring"/> from
+/// Daniel Holden's <a href="https://theorangeduck.com/page/spring-roll-call#controllers">spring
+/// roll call</a>. A PFNN reads the whole predicted path, which is why the request itself is also
+/// rate-limited — see <see cref="steeringHalfLife"/>.
 /// </remarks>
 public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirectionControlInput
 {
@@ -59,8 +57,7 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
     {
         base.Awake();
 
-        // The facing has to start where the character is actually pointing. Starting it at world
-        // +z would ask a character facing any other way to turn round on its very first frame.
+        // Start from the character's real facing, or the first frame asks it to turn to world +z.
         var forward = synthesizer != null ? synthesizer.transform.forward : Vector3.forward;
         _facing = math.normalizesafe(new float2(forward.x, forward.z), new float2(0f, 1f));
     }
@@ -79,21 +76,18 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
 
         var deltaTime = Time.deltaTime;
 
-        // Held inside a cone around the character's own facing before it is damped, because the
-        // network extrapolates badly on a path that bends further than its training data ever did.
+        // The network extrapolates badly on paths bending further than its training data did.
         // See openwiki/pfnn/training-and-checkpoints.md.
         var request = TrajectorySteering.ClampToCone(_desiredDirection * maxSpeed, CharacterForward(),
             math.radians(maxRequestAngle));
 
-        // The request is rate-limited before the body ever sees it, because a keyboard delivers it
-        // as a step. A trajectory sample a second ahead has converged onto the goal, so it inherits
-        // any step in the goal whole, while the samples near the character do not move at all.
+        // Rate-limited because a keyboard delivers the request as a step, which the far trajectory
+        // samples would otherwise inherit whole while the near ones do not move.
         _goalVelocity = TrajectorySteering.DampToward(_goalVelocity, request,
             steeringHalfLife, deltaTime);
 
-        // The controller for a *velocity* goal, which is what a stick gives. A position spring aimed
-        // at a velocity has a fixed point that depends on the step size rather than on the request:
-        // it settled at 3.26 m/s for maxSpeed 1 at 30 fps, and drifted with the frame rate.
+        // A velocity-goal controller: a position spring aimed at a velocity settles at a speed that
+        // depends on the frame rate rather than on the request. See openwiki/pfnn/pfnn-stage.md.
         var travelled = float2.zero;
         Spring.CharacterPositionUpdate(ref travelled, ref _velocity, ref _acceleration, _goalVelocity,
             velocityHalfLife, deltaTime);
@@ -107,8 +101,8 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
     }
 
     /// <summary>
-    /// The character's own facing on the ground plane, which is the axis the stage measures the
-    /// trajectory window against — so it is the axis the cone has to be centred on.
+    /// The character's facing on the ground plane: the axis the stage measures the trajectory window
+    /// against, so the one the cone is centred on.
     /// </summary>
     private float2 CharacterForward()
     {
@@ -117,9 +111,8 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
     }
 
     /// <summary>
-    /// Nothing in this component polls input, so a character whose driver was never wired up simply
-    /// stands still, and every component involved reports itself healthy. Saying so once is the only
-    /// signal that distinguishes it from a character nobody has steered yet.
+    /// Warns once if no input has arrived: an unwired driver otherwise looks like a healthy
+    /// character that nobody has steered yet.
     /// </summary>
     private void WarnIfNothingIsDriving()
     {
@@ -138,9 +131,8 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
     public override bool TryGetFutureSample(int frameOffset, out float2 position,
         out float2 direction)
     {
-        // Never driven is the base contract's "nothing to say": the stage then substitutes the
-        // character's own position and facing, which is the same answer this would give but leaves
-        // the two states distinguishable at the seam.
+        // Never driven is the base contract's "nothing to say"; the stage substitutes the
+        // character's own position and facing.
         if (!_everDriven)
         {
             position = default;
@@ -151,8 +143,7 @@ public class PfnnDirectionControlInput : PfnnControlInput, IMotionSynthesisDirec
         var origin = RootPosition;
         var frameTime = 1f / math.max(1f, Synthesizer.synthesisFrameRate);
 
-        // The same springs, run on with no new input. Their own state must not move, so this reads
-        // it by value -- what the character does is decided in OnUpdate, once.
+        // The same springs run on with no new input, read by value: only OnUpdate advances them.
         var offset = TrajectorySteering.PredictOffset(_velocity, _acceleration, _goalVelocity, frameOffset,
             frameTime, velocityHalfLife, out var horizonVelocity);
         position = new float2(origin.x, origin.z) + offset;

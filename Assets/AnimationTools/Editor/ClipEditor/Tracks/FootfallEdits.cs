@@ -8,10 +8,9 @@ namespace AnimationTools.Editor
     /// the drawing so the rules that lose data if they are wrong can be tested.
     /// </summary>
     /// <remarks>
-    /// One of those rules is silent when broken: <c>GaitPhase</c> drops any anchor that is not
-    /// strictly later than the one before it, and reports nothing. So a move returns an ascending
-    /// list, always, and clamps to the clip - never to the slice, which says which frames are
-    /// extracted and not which frames may be annotated.
+    /// <c>GaitPhase</c> silently drops any anchor not strictly later than the one before it, so every
+    /// edit returns an ascending list. Moves clamp to the clip, never to the slice: the slice says
+    /// which frames are extracted, not which may be annotated.
     /// </remarks>
     public static class FootfallEdits
     {
@@ -41,8 +40,8 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>
-        /// The largest delta that keeps every selected anchor inside the slice, so a drag stops at
-        /// the edge rather than pushing anchors off it to be deleted on commit.
+        /// The largest delta that keeps every selected anchor inside the clip, so a drag stops at
+        /// the edge.
         /// </summary>
         public static int ClampDelta(IReadOnlyList<GaitPhase.Footfall> footfalls,
             ICollection<int> selection, int delta, int clipFrameCount)
@@ -93,8 +92,8 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>
-        /// Adds an anchor at a slice frame, choosing the foot opposite the nearest earlier anchor -
-        /// the right guess when the reason you are adding one is a contact detection missed.
+        /// Adds an anchor at a clip frame, choosing the foot opposite the nearest earlier anchor -
+        /// the right guess when filling in a contact detection missed.
         /// </summary>
         public static List<GaitPhase.Footfall> Add(IReadOnlyList<GaitPhase.Footfall> footfalls,
             int clipFrame, int clipFrameCount)

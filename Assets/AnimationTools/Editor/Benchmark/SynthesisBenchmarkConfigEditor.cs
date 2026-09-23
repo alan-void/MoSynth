@@ -11,9 +11,8 @@ namespace AnimationTools.Editor
 /// the folder currently resolves to, and the button that runs the sweep.
 /// </summary>
 /// <remarks>
-/// The preview exists because <see cref="SynthesisBenchmarkConfig.pathPrefabFolder"/> is resolved at
-/// sweep start, not at edit time — without it there is no way to see what a run will actually cover
-/// until it is already covering it.
+/// <see cref="SynthesisBenchmarkConfig.pathPrefabFolder"/> is resolved at sweep start, so the
+/// preview is the only way to see what a run will cover before it starts.
 /// </remarks>
 [CustomEditor(typeof(SynthesisBenchmarkConfig))]
 public class SynthesisBenchmarkConfigEditor : UnityEditor.Editor
@@ -67,8 +66,7 @@ public class SynthesisBenchmarkConfigEditor : UnityEditor.Editor
             if (GUILayout.Button("Run Sweep", GUILayout.Height(28)))
             {
                 Selection.activeObject = config;
-                // Deferred: the sweep replaces the open scene and enters play mode, neither of which
-                // belongs inside an OnInspectorGUI call.
+                // Deferred: replacing the scene and entering play mode do not belong in OnInspectorGUI.
                 EditorApplication.delayCall += SynthesisBenchmarkMenu.RunSweep;
             }
         }
@@ -78,8 +76,7 @@ public class SynthesisBenchmarkConfigEditor : UnityEditor.Editor
     }
 
     /// <summary>
-    /// The same resolution the driver performs, minus the logging. Kept here rather than shared with
-    /// the driver because this one has to stay silent — it runs on every inspector repaint.
+    /// The same resolution the driver performs, minus the logging, since this runs every repaint.
     /// </summary>
     private static List<GameObject> PreviewPaths(SynthesisBenchmarkConfig config, out List<string> skipped)
     {

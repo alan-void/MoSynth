@@ -12,16 +12,8 @@ namespace AnimationTools.Editor
 /// Generates the standard suite of benchmark paths as <see cref="SplineContainer"/> prefabs.
 /// </summary>
 /// <remarks>
-/// Hand-drawn splines are fine for looking at a character, but they make a poor benchmark: nobody
-/// can say afterwards what a method was actually being asked to do. These are parametric and
-/// regenerable, and each one isolates a different demand — a constant-curvature circle, straights
-/// joined by tight ends, a path that reverses its turn direction, and corners sharp enough that no
-/// locomotion clip can follow them without overshooting.
-/// <para>
-/// All four are closed, because a lap is the run length and an open path can only be traversed once.
-/// All lie in the XZ plane with an unscaled container, which is what the metrics and
-/// MotionFieldSplineControlInput both assume.
-/// </para>
+/// Parametric and regenerable, each isolating one demand. All are closed and lie in the XZ plane
+/// with an unscaled container, which the metrics and MotionFieldSplineControlInput both assume.
 /// </remarks>
 public static class BenchmarkPathGenerator
 {
@@ -42,8 +34,7 @@ public static class BenchmarkPathGenerator
     /// </summary>
     public static List<GameObject> Create()
     {
-        // The generated objects have to live in some scene to be saved as prefabs. An empty
-        // untitled one keeps that side effect off whatever the user was working in.
+        // Prefabs are saved from scene objects; an empty scene keeps that off the user's own.
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         var folder = BenchmarkStarterAssets.PathsFolder;
@@ -112,9 +103,8 @@ public static class BenchmarkPathGenerator
     }
 
     /// <summary>
-    /// Linear tangents, so the corners are genuinely discontinuous in heading. No locomotion clip can
-    /// turn that fast, so this is the path where corner overshoot dominates the trajectory error —
-    /// which is the point of including it.
+    /// Linear tangents, so heading is discontinuous at the corners and overshoot dominates the
+    /// trajectory error.
     /// </summary>
     private static Spline SharpCorners(float halfLength, float halfWidth)
     {

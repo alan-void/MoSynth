@@ -1,8 +1,5 @@
-// Gizmo drawing goes through UnityEditor.Handles, so the whole file -- its using directives
-// included -- is editor-only. The guard has to start above them: a `using UnityEditor` outside it
-// fails to resolve in a player build even when nothing below is compiled.
+// Editor-only, and the guard must enclose the usings: `using UnityEditor` fails to resolve in a player build.
 #if UNITY_EDITOR
-using System;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -18,12 +15,7 @@ namespace MotionMatching
             Handles.DrawBezier(startPosition, endPosition, startPosition, endPosition, Gizmos.color, null, thickness * Mathf.Min(1.0f, (3.0f / d)));
         }
 
-        /// <summary>
-        /// Draws a wire cube with a given rotation 
-        /// </summary>
-        /// <param name="center"></param>
-        /// <param name="size"></param>
-        /// <param name="rotation"></param>
+        /// <summary>Draws a wire cube with a given rotation.</summary>
         public static void DrawWireCube(Vector3 center, Vector3 size, Quaternion rotation = default(Quaternion))
         {
             var old = Gizmos.matrix;
@@ -55,27 +47,14 @@ namespace MotionMatching
             Gizmos.matrix = old;
         }
 
-
-        /// <summary>
-        /// Draws a flat wire circle (up)
-        /// </summary>
-        /// <param name="center"></param>
-        /// <param name="radius"></param>
-        /// <param name="segments"></param>
-        /// <param name="rotation"></param>
+        /// <summary>Draws a flat wire circle facing up.</summary>
         public static void DrawWireCircle(Vector3 center, float radius, Quaternion rotation, int segments = 20)
         {
             DrawWireArc(center, radius, 360, rotation, segments);
         }
 
-        /// <summary>
-        /// Draws an arc with a rotation around the center
-        /// </summary>
-        /// <param name="center">center point</param>
-        /// <param name="radius">radiu</param>
-        /// <param name="angle">angle in degrees</param>
-        /// <param name="segments">number of segments</param>
-        /// <param name="rotation">rotation around the center</param>
+        /// <summary>Draws a flat arc rotated around its center.</summary>
+        /// <param name="angle">Angle in degrees.</param>
         public static void DrawWireArc(Vector3 center, float radius, float angle, Quaternion rotation, int segments = 20)
         {
             var old = Gizmos.matrix;
@@ -93,19 +72,10 @@ namespace MotionMatching
             Gizmos.matrix = old;
         }
 
-
-        /// <summary>
-        /// Draws an arc with a rotation around an arbitraty center of rotation
-        /// </summary>
-        /// <param name="center">the circle's center point</param>
-        /// <param name="radius">radius</param>
-        /// <param name="angle">angle in degrees</param>
-        /// <param name="segments">number of segments</param>
-        /// <param name="rotation">rotation around the centerOfRotation</param>
-        /// <param name="centerOfRotation">center of rotation</param>
+        /// <summary>Draws a flat arc rotated around an arbitrary center of rotation.</summary>
+        /// <param name="angle">Angle in degrees.</param>
         public static void DrawWireArc(Vector3 center, float radius, float angle, int segments, Quaternion rotation, Vector3 centerOfRotation)
         {
-
             var old = Gizmos.matrix;
             if (rotation.Equals(default(Quaternion)))
                 rotation = Quaternion.identity;
@@ -123,13 +93,8 @@ namespace MotionMatching
             Gizmos.matrix = old;
         }
 
-        /// <summary>
-        /// Draws an arc with a rotation around an arbitraty center of rotation
-        /// </summary>
-        /// <param name="matrix">Gizmo matrix applied before drawing</param>
-        /// <param name="radius">radius</param>
-        /// <param name="angle">angle in degrees</param>
-        /// <param name="segments">number of segments</param>
+        /// <summary>Draws a flat arc under an arbitrary gizmo matrix.</summary>
+        /// <param name="angle">Angle in degrees.</param>
         public static void DrawWireArc(Matrix4x4 matrix, float radius, float angle, int segments)
         {
             var old = Gizmos.matrix;
@@ -146,13 +111,7 @@ namespace MotionMatching
             Gizmos.matrix = old;
         }
 
-        /// <summary>
-        /// Draws a wire cylinder face up with a rotation around the center
-        /// </summary>
-        /// <param name="center"></param>
-        /// <param name="radius"></param>
-        /// <param name="height"></param>
-        /// <param name="rotation"></param>
+        /// <summary>Draws an upright wire cylinder rotated around its center.</summary>
         public static void DrawWireCylinder(Vector3 center, float radius, Quaternion rotation, float height)
         {
             var old = Gizmos.matrix;
@@ -161,25 +120,18 @@ namespace MotionMatching
             Gizmos.matrix = Matrix4x4.TRS(center, rotation, Vector3.one);
             var half = height / 2;
 
-            //draw the 4 outer lines
             Gizmos.DrawLine(Vector3.right * radius - Vector3.up * half, Vector3.right * radius + Vector3.up * half);
             Gizmos.DrawLine(-Vector3.right * radius - Vector3.up * half, -Vector3.right * radius + Vector3.up * half);
             Gizmos.DrawLine(Vector3.forward * radius - Vector3.up * half, Vector3.forward * radius + Vector3.up * half);
             Gizmos.DrawLine(-Vector3.forward * radius - Vector3.up * half, -Vector3.forward * radius + Vector3.up * half);
 
-            //draw the 2 cricles with the center of rotation being the center of the cylinder, not the center of the circle itself
+            // The caps rotate around the cylinder's center, not their own.
             DrawWireArc(center + Vector3.up * half, radius, 360, 20, rotation, center);
             DrawWireArc(center + Vector3.down * half, radius, 360, 20, rotation, center);
             Gizmos.matrix = old;
         }
 
-        /// <summary>
-        /// Draws a wire capsule face up
-        /// </summary>
-        /// <param name="center"></param>
-        /// <param name="radius"></param>
-        /// <param name="height"></param>
-        /// <param name="rotation"></param>
+        /// <summary>Draws an upright wire capsule.</summary>
         public static void DrawWireCapsule(Vector3 center, float radius, float height, Quaternion rotation)
         {
             if (rotation.Equals(default(Quaternion)))
@@ -188,34 +140,23 @@ namespace MotionMatching
             Gizmos.matrix = Matrix4x4.TRS(center, rotation, Vector3.one);
             var half = height / 2 - radius;
 
-            //draw cylinder base
             DrawWireCylinder(center, radius, rotation, height - radius * 2);
 
-            //draw upper cap
-            //do some cool stuff with orthogonal matrices
+            // Each cap is two perpendicular half-circle arcs.
             var mat = Matrix4x4.Translate(center + rotation * Vector3.up * half) * Matrix4x4.Rotate(rotation * Quaternion.AngleAxis(90, Vector3.forward));
             DrawWireArc(mat, radius, 180, 20);
             mat = Matrix4x4.Translate(center + rotation * Vector3.up * half) * Matrix4x4.Rotate(rotation * Quaternion.AngleAxis(90, Vector3.up) * Quaternion.AngleAxis(90, Vector3.forward));
             DrawWireArc(mat, radius, 180, 20);
 
-            //draw lower cap
             mat = Matrix4x4.Translate(center + rotation * Vector3.down * half) * Matrix4x4.Rotate(rotation * Quaternion.AngleAxis(90, Vector3.up) * Quaternion.AngleAxis(-90, Vector3.forward));
             DrawWireArc(mat, radius, 180, 20);
             mat = Matrix4x4.Translate(center + rotation * Vector3.down * half) * Matrix4x4.Rotate(rotation * Quaternion.AngleAxis(-90, Vector3.forward));
             DrawWireArc(mat, radius, 180, 20);
 
             Gizmos.matrix = old;
-
         }
 
-        /// <summary>
-        /// Draws a flat wire ellipse with a primary and secondary axis
-        /// </summary>
-        /// <param name="center">Center of the ellipse</param>
-        /// <param name="primaryAxis">Primary axis (direction and magnitude in float2)</param>
-        /// <param name="secondaryAxis">Secondary axis (direction and magnitude in float2)</param>
-        /// <param name="rotation">Rotation of the ellipse</param>
-        /// <param name="segments">Number of segments to draw the ellipse</param>
+        /// <summary>Draws a flat wire ellipse from two ground-plane semi-axes (direction and length).</summary>
         public static void DrawWireEllipse(float3 center, float2 primaryAxis, float2 secondaryAxis, Quaternion rotation, int segments = 20, float thickness = 1.5f)
         {
             var old = Gizmos.matrix;
@@ -230,7 +171,6 @@ namespace MotionMatching
                 Gizmos.DrawLine(from, to);
                 from = to;
             }
-            // Close the ellipse loop
             Gizmos.DrawLine(from, CalculateEllipsePoint(primaryAxis, secondaryAxis, 0));
 
             Gizmos.matrix = old;

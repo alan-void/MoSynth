@@ -8,10 +8,8 @@ namespace AnimationTools.Editor
     /// drawn at any zoom as a single blit with a moving UV window.
     /// </summary>
     /// <remarks>
-    /// This is what makes the timeline independent of clip length. A per-frame vector draw costs one
-    /// primitive per frame every repaint; this costs one draw call, and zooming or panning changes
-    /// only the UVs. The rebuild is the expensive part, so it happens only when the data version
-    /// moves.
+    /// Keeps the timeline's draw cost independent of clip length: zooming or panning changes only the
+    /// UVs, and the expensive rebuild happens only when the data version moves.
     /// </remarks>
     public sealed class TimelineSignalTexture : IDisposable
     {

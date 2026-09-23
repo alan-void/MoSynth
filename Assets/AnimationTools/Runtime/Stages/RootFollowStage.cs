@@ -10,10 +10,8 @@ namespace AnimationTools
 /// is exactly on the target every tick, so it cannot lag behind it.
 /// </summary>
 /// <remarks>
-/// The correction is written as frame velocity on bone 0, not as a Transform move, because the
-/// component integrates that velocity to advance the character. Going through the same channel the
-/// animation does is what lets the two be blended and rate-limited against each other; writing the
-/// Transform directly would put a correction where nothing downstream could see it.
+/// The correction is written as frame velocity on bone 0, the channel the component integrates, so
+/// it can be blended and rate-limited against the animation rather than hidden in a Transform move.
 /// <para>
 /// Place it after whatever produces the pose, and after <c>Inertialization</c> — the blend smooths
 /// the pose stream, and running it afterwards would smooth the correction away with it.

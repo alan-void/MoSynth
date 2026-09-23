@@ -139,9 +139,8 @@ public class GaitPhaseTests
     [Test]
     public void FramesOutsideTheAnchorsReportNoCycle()
     {
-        // This is what stops a standing intro being given phase it never walked. On the untrimmed
-        // walk1_subject1 clip the first footfall is at frame 132, and extrapolating backwards was
-        // inventing 2.87 complete cycles over 4.4 seconds of standing still.
+        // This is what stops a standing intro being given phase it never walked. See
+        // openwiki/animation-tools/animation-sources.md.
         var footfalls = Footfalls((10, GaitPhase.Foot.Right), (30, GaitPhase.Foot.Left));
 
         Evaluate(footfalls, 50, out _, out var rate);
@@ -198,9 +197,9 @@ public class GaitPhaseTests
     public void AStandingLeadInSurvivesTheAccelerationBeforeTheFirstFootfall()
     {
         // A character that stands and then walks off is already moving when it takes its first
-        // step, so the lead-in is part stand and part acceleration. Judged as one stretch those few
-        // moving frames condemn the whole stand: on the Edinburgh set that threw away 8,929 of the
-        // 13,951 frames the character was actually still for.
+        // step, so the lead-in is part stand and part acceleration. Judged as one stretch, those few
+        // moving frames would condemn the whole stand, so frames are judged one at a time. See
+        // openwiki/animation-tools/animation-sources.md.
         var footfalls = Footfalls((30, GaitPhase.Foot.Right), (45, GaitPhase.Foot.Left));
 
         Evaluate(footfalls, MovingBetween(50, 20, 50), out var phase, out var rate);

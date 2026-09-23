@@ -8,13 +8,13 @@ using Unity.Jobs;
 namespace MotionMatching
 {
 /// <summary>
-/// Stores all features vectors of all poses for Motion Matching
+/// The feature vector of every pose in a database, their validity, and the normalization statistics.
 /// </summary>
 public class FeatureSet
 {
     private readonly MmFeatureLayout _featureLayout;
 
-    public int NumberFeatureVectors { get; private set; } // Total number of feature vectors
+    public int NumberFeatureVectors { get; private set; }
 
     /// <summary>Total size in floats of a feature vector.</summary>
     public int FeatureSize => _featureLayout.FloatCount;
@@ -34,7 +34,7 @@ public class FeatureSet
     /// </summary>
     public int PoseOffset => _featureLayout.PoseStart;
 
-    private NativeArray<bool> _valid; // TODO: Refactor to avoid needing this
+    private NativeArray<bool> _valid;
     private StateSequence _features; // One frame per pose: trajectory features then pose features
     private float[] _mean; // Size: FeatureSize
     private float[] _standardDeviation; // Size: FeatureSize
@@ -220,7 +220,6 @@ public class FeatureSet
     {
         if (!_largeBoundingBoxMax.IsCreated)
         {
-            // Build BVH Acceleration Structure
             var nFrames = GetFeatures().Length / FeatureSize;
             var numberBoundingBoxLarge = (nFrames + BVHConsts.LargeBVHSize - 1) / BVHConsts.LargeBVHSize;
             var numberBoundingBoxSmall = (nFrames + BVHConsts.SmallBVHSize - 1) / BVHConsts.SmallBVHSize;
@@ -248,7 +247,6 @@ public class FeatureSet
         smallBoundingBoxMax = _smallBoundingBoxMax;
     }
 
-    // Deserialize ---------------------------------------
     public void SetValid(NativeArray<bool> valid)
     {
         Debug.Assert(valid.Length == NumberFeatureVectors, "Valid array has wrong size");
@@ -278,11 +276,8 @@ public class FeatureSet
         Debug.Assert(standardDeviation.Length == FeatureSize, standardDeviation.Length + " != " + FeatureSize);
         _standardDeviation = standardDeviation;
     }
-    // --------------------------------------------------
 
-    /// <summary>
-    /// Normalizes the trajectory features (pose features remaing untouched)
-    /// </summary>
+    /// <summary>Normalizes the trajectory features in place, leaving the pose features untouched.</summary>
     public void NormalizeTrajectory(Span<float> featureVector)
     {
         Debug.Assert(_mean != null, "Mean is not initialized");
@@ -295,9 +290,7 @@ public class FeatureSet
         }
     }
 
-    /// <summary>
-    /// Normalizes all features (trajectory + pose)
-    /// </summary>
+    /// <summary>Normalizes every feature in place, trajectory and pose.</summary>
     public void NormalizeFeatureVector(NativeArray<float> featureVector)
     {
         Debug.Assert(_mean != null, "Mean is not initialized");
@@ -310,9 +303,7 @@ public class FeatureSet
         }
     }
 
-    /// <summary>
-    /// Returns a copy of the feature vector with the features before normalization
-    /// </summary>
+    /// <summary>Reverses normalization in place.</summary>
     public void DenormalizeFeatureVector(NativeArray<float> featureVector)
     {
         Debug.Assert(_mean != null, "Mean is not initialized");
@@ -326,14 +317,12 @@ public class FeatureSet
     }
 
     /// <summary>
-    /// Normalizes the features by subtracting mean and dividing by the standard deviation
+    /// Computes the statistics over the valid vectors, then normalizes every valid vector in place.
     /// </summary>
     public void NormalizeFeatures()
     {
-        // Compute Mean and Standard Deviation
         ComputeMeanAndStandardDeviation();
 
-        // Normalize all feature vectors
         var features = _features.Data;
         for (var i = 0; i < NumberFeatureVectors; i++)
         {
@@ -351,14 +340,10 @@ public class FeatureSet
     private void ComputeMeanAndStandardDeviation()
     {
         var nTotalDimensions = FeatureSize;
-        // Mean for each dimension
         _mean = new float[nTotalDimensions];
-        // Variance for each dimension
         Span<float> variance = stackalloc float[nTotalDimensions];
-        // Standard Deviation for each dimension
         _standardDeviation = new float[nTotalDimensions];
 
-        // Compute Means for each dimension of each feature
         var count = 0;
         for (var i = 0; i < NumberFeatureVectors; i++)
         {
@@ -379,7 +364,6 @@ public class FeatureSet
             _mean[i] /= count;
         }
 
-        // Compute Variance for each dimension of each feature - variance = (x - mean)^2 / n
         for (var i = 0; i < NumberFeatureVectors; i++)
         {
             var featureIndex = i * FeatureSize;
@@ -398,7 +382,8 @@ public class FeatureSet
             variance[i] /= count;
         }
 
-        // Compute Standard Deviations of a feature as the average std across all dimensions - std = sqrt(variance)
+        // One standard deviation per feature, averaged over its dimensions, so normalization keeps
+        // the relative scale of a feature's own components.
         for (var d = 0; d < NumberTrajectoryFeatures; d++)
         {
             var predictionCount = GetPredictionCount(d);
@@ -449,7 +434,8 @@ public class FeatureSet
     }
 
     /// <summary>
-    /// Extract the feature vectors from poseSet
+    /// Extracts a feature vector for every pose with enough history and lookahead in its clip; the rest
+    /// are marked invalid.
     /// </summary>
     public void Extract(PoseSet poseSet, MotionMatchingData mmData)
     {
@@ -500,8 +486,7 @@ public class FeatureSet
 
     public static float3 GetLocalDirectionFromCharacter(float3 worldDir, float3 characterForward)
     {
-        var localDir = math.mul(math.inverse(quaternion.LookRotation(characterForward, math.up())), worldDir);
-        return localDir;
+        return math.mul(math.inverse(quaternion.LookRotation(characterForward, math.up())), worldDir);
     }
 
     /// <summary>

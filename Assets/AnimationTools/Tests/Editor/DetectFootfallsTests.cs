@@ -8,9 +8,8 @@ namespace AnimationTools.Tests
 /// Which clips a bulk footfall detection touches, and what it says it did.
 /// </summary>
 /// <remarks>
-/// The decision is the part worth pinning: anchors are hand-correctable and nothing records that a
-/// clip was corrected, so a run that quietly redetects a clip holding anchors destroys work with no
-/// way to notice. Selection gathering and the prompt itself are editor UI and are not covered here.
+/// Verifies clips already holding anchors are skipped unless asked, since nothing records that
+/// anchors were hand-corrected. Selection gathering and the prompt are editor UI and not covered.
 /// </remarks>
 public class DetectFootfallsTests
 {

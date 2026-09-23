@@ -2,7 +2,6 @@ using System;
 using AnimationTools;
 using UnityEngine;
 using Unity.Mathematics;
-using Unity.Collections;
 using UnityEngine.Serialization;
 
 namespace MotionMatching
@@ -12,9 +11,8 @@ namespace MotionMatching
 /// <see cref="MotionMatchingControlInput"/>.
 /// </summary>
 /// <remarks>
-/// A spring moves this component's Transform toward the velocity the stick asks for, smoothing the
-/// jerky input into something a body could do. Running that same spring further ahead, with no new
-/// input, is what produces the predicted trajectory.
+/// A spring moves this component's Transform toward the velocity the stick asks for; running the same
+/// spring further ahead produces the predicted trajectory.
 /// <para>
 /// Maths from <a href="https://theorangeduck.com/page/spring-roll-call#controllers">spring roll
 /// call</a>.
@@ -47,7 +45,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     [Range(-1.0f, 1.0f)]
     public float inputBigChangeThreshold = 0.5f;
 
-    // Settings for the reconciliation methods further down, which are not currently called.
+    // Settings for the reconciliation methods further down, which nothing calls yet.
 
     [Tooltip("Time to close half the gap between the synthesized character and this simulation object.")]
     [Range(0.0f, 2.0f)] public float positionAdjustmentHalflife = 0.1f;
@@ -72,15 +70,13 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     public bool debugPrediction = true;
     public bool debugClamping = true;
 
-    // --- Input ----------------------------------------------------------------------------------
-
     /// <summary>Latest stick/WASD vector, in the XZ plane. Length scales speed up to <see cref="maxSpeed"/>.</summary>
     private float2 _inputMovement;
 
     /// <summary>While set, the character keeps its facing and strafes instead of turning to face travel.</summary>
     private bool _orientationFixed;
 
-    // --- Facing: current spring state, then one predicted state per horizon ----------------------
+    // Facing: current spring state, then one predicted state per horizon.
 
     /// <summary>Where the facing spring is being pulled toward, i.e. the input direction.</summary>
     private quaternion _desiredRotation;
@@ -89,7 +85,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     private float3 _angularVelocity;
     private float3[] _predictedAngularVelocities;
 
-    // --- Position: current spring state, then one predicted state per horizon --------------------
+    // Position: current spring state, then one predicted state per horizon.
 
     private float2[] _predictedPosition;
     private float2 _velocity;
@@ -97,11 +93,7 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     private float2 _acceleration;
     private float2[] _predictedAcceleration;
 
-    // --- Resolved database feature layout, cached in Start --------------------------------------
-
     private TrajectoryFeaturePair _features;
-
-    // --- Past horizons --------------------------------------------------------------------------
 
     /// <summary>
     /// Where the simulation object has been, for the negative prediction frames of a trajectory
@@ -146,7 +138,6 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     {
         var prevInputMovement = _inputMovement;
         _inputMovement = movementDirection;
-        // Desired Rotation
         if (!_orientationFixed && math.length(movementDirection) > 0.0001f)
         {
             var desiredDirection = math.normalize(movementDirection);
@@ -154,7 +145,6 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
                 quaternion.LookRotation(new float3(desiredDirection.x, 0.0f, desiredDirection.y), transform.up);
         }
 
-        // Input Changed Quickly
         if (math.dot(prevInputMovement, _inputMovement) < inputBigChangeThreshold)
         {
             NotifyInputChangedQuickly();
@@ -170,31 +160,22 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     /// <summary>Advances the simulation object one frame and refreshes the predicted trajectory.</summary>
     protected override void OnUpdate()
     {
-        // Rotations
         quaternion currentRotation = transform.rotation;
         PredictRotations(currentRotation, DatabaseDeltaTime);
-        // Update Current Rotation
         var newRot = ComputeNewRot(currentRotation);
 
-        // Positions
         var desiredSpeed = _inputMovement * maxSpeed;
         var currentPos = new float2(transform.position.x, transform.position.z);
-        // Predict
         PredictPositions(currentPos, desiredSpeed, DatabaseDeltaTime);
-        // Update Current Position
         var newPos = ComputeNewPos(currentPos, desiredSpeed);
 
-        // Update Character Controller
         if (math.lengthsq(_velocity) > minimumVelocityClamp * minimumVelocityClamp)
         {
-            // Update Transform
             transform.position = new float3(newPos.x, transform.position.y, newPos.y);
             transform.rotation = newRot;
         }
 
         RecordHistory();
-
-        // if (DoClamping) ClampMotionMatching();
     }
 
     /// <summary>
@@ -205,15 +186,12 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     {
         if (_history == null) return;
 
-        var position = transform.position;
-        var forward = transform.forward;
         _history.Record(Time.time, PlanarPosition(transform), PlanarForward(transform));
     }
 
     /// <summary>
-    /// Where the simulation object was <paramref name="framesBack"/> database frames ago, falling
-    /// back to where it is now for the first second or so of a run, before the history reaches that
-    /// far back — which is what a character that had been standing still would have recorded anyway.
+    /// Where the simulation object was <paramref name="framesBack"/> database frames ago, or where it
+    /// is now while the history does not yet reach that far back (as if it had been standing still).
     /// </summary>
     private void GetPastState(int framesBack, out float2 position, out float2 forward)
     {
@@ -236,12 +214,10 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     {
         for (var i = 0; i < PredictionCount; i++)
         {
-            // Init Predicted values
             _predictedRotations[i] = currentRotation;
             _predictedAngularVelocities[i] = _angularVelocity;
             if (_features.PredictionFrames[i] < 0) continue;
 
-            // Predict
             Spring.SimpleSpringDamperImplicit(ref _predictedRotations[i], ref _predictedAngularVelocities[i],
                 _desiredRotation, 1.0f - responsivenessDirections,
                 _features.PredictionFrames[i] * averagedDeltaTime);
@@ -255,7 +231,6 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     /// <see cref="GetTrajectoryFeature"/> answers those from the history.
     /// </summary>
     /// <remarks>Horizons must be in ascending order, since the chain steps by their differences.</remarks>
-    /* https://theorangeduck.com/page/spring-roll-call#controllers */
     private void PredictPositions(float2 currentPos, float2 desiredSpeed, float averagedDeltaTime)
     {
         var lastPredictionFrames = 0;
@@ -301,14 +276,12 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         return newPos;
     }
 
-    // Pulling the synthesized character back to the simulation object, which the search alone does
-    // not keep in sync. None of the three run today: they need the unimplemented adjustment API on
-    // MotionSynthesisComponent -- see the comment there.
+    // Pulling the synthesized character back to the simulation object. None of the three is called:
+    // they need the unimplemented adjustment API on MotionSynthesisComponent (see the comment there).
 
     /// <summary>Hard leash, capped at <see cref="maxDistanceMmAndCharacterController"/>.</summary>
     private void ClampMotionMatching()
     {
-        // Clamp Position
         float3 characterController = transform.position;
         var mmPos = synthesizer.RootPosition;
         if (math.distance(characterController, mmPos) > maxDistanceMmAndCharacterController)
@@ -329,18 +302,14 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         float3 characterController = transform.position;
         var mmPos = synthesizer.RootPosition;
         var differencePosition = characterController - mmPos;
-        // Damp the difference using the adjustment halflife and dt
         var adjustmentPosition =
             Spring.DampAdjustmentImplicit(differencePosition, positionAdjustmentHalflife, Time.deltaTime);
-        // Clamp adjustment if the length is greater than the character velocity
-        // multiplied by the ratio
         var maxLength = posMaximumAdjustmentRatio * math.length(synthesizer.RootVelocity) * Time.deltaTime;
         if (math.length(adjustmentPosition) > maxLength)
         {
             adjustmentPosition = maxLength * math.normalize(adjustmentPosition);
         }
 
-        // Move the simulation bone towards the simulation object
         synthesizer.SetPosAdjustment(adjustmentPosition);
     }
 
@@ -349,14 +318,9 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     {
         quaternion characterController = transform.rotation;
         var mmRot = synthesizer.RootRotation;
-        // Find the difference in rotation (from character to simulation object)
-        // Note: if numerically unstable, try quaternion.Normalize(quaternion.Inverse(characterController) * motionMatching)
         var differenceRotation = math.mul(math.inverse(mmRot), characterController);
-        // Damp the difference using the adjustment halflife and dt
         var adjustmentRotation =
             Spring.DampAdjustmentImplicit(differenceRotation, rotationAdjustmentHalfLife, Time.deltaTime);
-        // Clamp adjustment if the length is greater than the character angular velocity
-        // multiplied by the ratio
         var maxLength = rotMaximumAdjustmentRatio * math.length(synthesizer.RootAngularVelocity) * Time.deltaTime;
         if (math.length(MathExtensions.QuaternionToScaledAngleAxis(adjustmentRotation)) > maxLength)
         {
@@ -365,7 +329,6 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
                     MathExtensions.QuaternionToScaledAngleAxis(adjustmentRotation)));
         }
 
-        // Rotate the simulation bone towards the simulation object
         synthesizer.SetRotAdjustment(adjustmentRotation);
     }
 
@@ -385,11 +348,8 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
     /// </summary>
     /// <remarks>
     /// A negative horizon is answered from the recorded history rather than the spring; see
-    /// <see cref="TrajectoryHistory"/>. Before enough has been recorded it falls back to the current
-    /// state, which is what a character that has been standing still would have recorded anyway.
+    /// <see cref="GetPastState"/>.
     /// </remarks>
-    // TODO: the trajectory construction should be inside the animation system
-    // and not the character controller. Move it
     public override void GetTrajectoryFeature(
         TrajectoryFeatureChannel feature, int index,
         Transform character, Span<float> output
@@ -461,7 +421,6 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
         var transformPos = (Vector3)GetPosition() + Vector3.up * verticalOffset;
         if (debugCurrent)
         {
-            // Draw Current Position & Velocity
             Gizmos.color = new Color(1.0f, 0.3f, 0.1f, 1.0f);
             Gizmos.DrawSphere(transformPos, radius);
             GizmosExtensions.DrawLine(transformPos,
@@ -472,7 +431,6 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
 
         if (debugPrediction)
         {
-            // Draw Predicted Position & Velocity
             Gizmos.color = new Color(0.6f, 0.3f, 0.8f, 1.0f);
             for (var i = 0; i < _predictedPosition.Length; ++i)
             {
@@ -486,7 +444,6 @@ public class DirectionControlInput : MotionMatchingControlInput, IMotionSynthesi
 
         if (debugClamping)
         {
-            // Draw Clamp Circle
             if (doClamping)
             {
                 Gizmos.color = new Color(0.1f, 1.0f, 0.1f, 1.0f);

@@ -7,32 +7,18 @@ namespace MotionMatching
 {
 /// <summary>
 /// Turns intent — a stick direction, a spline to follow, a crowd to avoid — into the trajectory
-/// features that <see cref="MotionMatchingStage"/> searches the animation database with. This is
-/// the "what should the character be doing" half of motion matching; the stage is the "which
-/// animation frame looks most like that" half.
+/// features that <see cref="MotionMatchingStage"/> searches the animation database with.
 /// </summary>
 /// <remarks>
-/// Every subclass works the same way: it drives a lightweight <em>simulation object</em> (usually
-/// its own Transform), then predicts where that object will be at each of the database's prediction
-/// horizons. Those predictions are the trajectory. Nothing here poses the character — the character
-/// follows only because the search keeps picking frames that move like the prediction.
-/// <para>
-/// Subclasses differ in how the desired motion is decided: from a stick
-/// (<see cref="DirectionControlInput"/>), from a path (<see cref="SplineControlInput"/>,
-/// <see cref="PathControlInput"/>), or from a path plus avoidance (the Crowd variants).
-/// </para>
-/// <para>
-/// To add one: implement <see cref="OnUpdate"/> and <see cref="GetTrajectoryFeature"/>. Also
-/// implement <see cref="IMotionSynthesisDirectionControlInput"/> or
-/// <see cref="IMotionSynthesisSplineControlInput"/> so synthesis-agnostic tools, such as the
-/// path-following metrics harness, can drive it.
-/// </para>
+/// A subclass drives a lightweight simulation object and predicts it at each prediction horizon;
+/// nothing here poses the character. To add one, implement <see cref="OnUpdate"/> and
+/// <see cref="GetTrajectoryFeature"/>, plus <see cref="IMotionSynthesisDirectionControlInput"/> or
+/// <see cref="IMotionSynthesisSplineControlInput"/> so synthesis-agnostic tools can drive it.
+/// See openwiki/motion-matching/control-inputs.md.
 /// </remarks>
 public abstract class MotionMatchingControlInput : MotionSynthesisControlInput
 {
-    // TODO: Create a OnValidate() (other name because it will collide with Unity's
-    //       that validates if the current MMData has the necessary trajectories requeried
-    //       by the current controller (eg. simulation bone pos + dir, or HMD + L/R controllers pos + dir)
+    // TODO: validate that the current MotionMatchingData has the trajectory features this input needs.
 
     private bool _highInputChange;
 
@@ -43,9 +29,8 @@ public abstract class MotionMatchingControlInput : MotionSynthesisControlInput
     public float DatabaseDeltaTime { get; private set; }
 
     /// <summary>
-    /// Advances the input, before the synthesis tick. The component synthesizes in LateUpdate, so
-    /// running here is what makes "the trajectory the stage searched with" this frame's trajectory
-    /// rather than the previous one's.
+    /// Advances the input before the synthesis tick (which runs in LateUpdate), so the stage searches
+    /// with this frame's trajectory.
     /// </summary>
     private void Update()
     {
@@ -54,8 +39,7 @@ public abstract class MotionMatchingControlInput : MotionSynthesisControlInput
     }
 
     /// <summary>
-    /// Call this method to notify Motion Matching that a large change in the input has been made.
-    /// Therefore, an immediate Motion Matching search should be performed.
+    /// Requests an immediate search, for an input change too large to wait out the search interval.
     /// </summary>
     protected void NotifyInputChangedQuickly()
     {
@@ -67,9 +51,8 @@ public abstract class MotionMatchingControlInput : MotionSynthesisControlInput
     /// instead of waiting out its interval. Reading it clears it.
     /// </summary>
     /// <remarks>
-    /// Latched rather than raised as an event: inputs bind to their character when they enable,
-    /// which can be after the stage was initialised, so there is no moment at which the stage could
-    /// reliably have subscribed.
+    /// Latched rather than an event, because an input can bind after the stage initialises and so
+    /// there is no reliable moment for the stage to subscribe.
     /// </remarks>
     public bool ConsumeHighInputChange()
     {
@@ -79,38 +62,26 @@ public abstract class MotionMatchingControlInput : MotionSynthesisControlInput
     }
 
     /// <summary>
-    /// Use this instead of Unity's Update() method. Advance the simulation object and refresh the
-    /// predictions here.
+    /// Use this instead of Unity's Update(): advance the simulation object and refresh the predictions.
     /// </summary>
     protected abstract void OnUpdate();
 
-    /// <summary>
-    /// Return the initial world position of the character controller.
-    /// </summary>
+    /// <summary>The world position the character should start at.</summary>
     public abstract float3 GetWorldInitPosition();
 
-    /// <summary>
-    /// Return the initial world direction of the character controller.
-    /// </summary>
+    /// <summary>The world direction the character should start facing.</summary>
     public abstract float3 GetWorldInitDirection();
 
-    /// <summary>
-    /// Return the current world position of the character controller.
-    /// </summary>
+    /// <summary>The current world position of the simulation object.</summary>
     public abstract float3 GetPosition();
 
-    /// <summary>
-    /// Return the target speed of the character, which may be different from the current speed.
-    /// </summary>
+    /// <summary>The speed the character is asked to move at, which may differ from its current speed.</summary>
     public abstract float GetTargetSpeed();
 
     /// <summary>
-    /// Get the prediction in character space of a simulation-frame trajectory feature. Only called
-    /// for channels with <c>simulationBone</c> set; bone channels go through
+    /// One horizon of a simulation-frame trajectory feature, in character space. Only called for
+    /// channels with <c>simulationBone</c> set; bone channels go through
     /// <see cref="GetBoneTrajectoryFeature"/>.
-    /// e.g., suppose that the feature is the projected position of the character at frames 20, 40 and 60 in the future:
-    ///       then, since the projected position is 2D (2 floats), thus, output[0] and output[1] should be filled with the X and Z coordinates.
-    ///       e.g., when index==1, it should return the position of the character at frame 40.
     /// </summary>
     /// <param name="index">Which prediction horizon, indexing the feature's predictionFrames.</param>
     /// <param name="character">
@@ -124,8 +95,7 @@ public abstract class MotionMatchingControlInput : MotionSynthesisControlInput
     /// <summary>
     /// One horizon of a bone (non-simulation-frame) trajectory channel, in character space.
     /// Return true after filling <paramref name="output"/> to switch the channel on for this search;
-    /// return false (the default) to switch it off — the stage zeroes its weights so it contributes
-    /// nothing to the query until a provider supplies real targets.
+    /// return false (the default) to switch it off, and the stage zeroes its weights.
     /// </summary>
     public virtual bool GetBoneTrajectoryFeature(TrajectoryFeatureChannel feature, int index, Transform character,
         Span<float> output)

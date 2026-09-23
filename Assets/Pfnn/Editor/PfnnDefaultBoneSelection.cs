@@ -6,10 +6,6 @@ namespace Pfnn.Editor
 /// <summary>
 /// Writes <see cref="DefaultPredictedBones"/>' answer into a <see cref="PfnnConfig"/>.
 /// </summary>
-/// <remarks>
-/// The heuristic itself moved to <c>AnimationTools.Editor</c> when a second synthesis method
-/// needed the same starting point; what stays here is how a PFNN config records it.
-/// </remarks>
 public static class PfnnDefaultBoneSelection
 {
     /// <summary>

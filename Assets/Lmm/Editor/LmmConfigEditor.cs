@@ -11,8 +11,6 @@ namespace Lmm.Editor
 /// <summary>
 /// Inspector for <see cref="LmmConfig"/>: point it at a database, choose which bones the
 /// decompressor predicts, then train.
-///
-/// Training runs in-process through PythonNET, synchronously on the main thread.
 /// </summary>
 [CustomEditor(typeof(LmmConfig))]
 public class LmmConfigEditor : UnityEditor.Editor
@@ -39,8 +37,8 @@ public class LmmConfigEditor : UnityEditor.Editor
 
         serializedObject.Update();
 
-        // Scoped to the fields on purpose: GUI.changed is also set by a button press, so a blanket
-        // check would wipe hasTrained the instant Train set it.
+        // Scoped to the fields: GUI.changed is also set by a button press, so a blanket check would
+        // wipe hasTrained the instant Train set it.
         EditorGUI.BeginChangeCheck();
         DrawPropertiesExcluding(serializedObject, "m_Script");
         var fieldsChanged = EditorGUI.EndChangeCheck();
@@ -80,8 +78,8 @@ public class LmmConfigEditor : UnityEditor.Editor
     // --- Database -------------------------------------------------------------------------------
 
     /// <summary>
-    /// What the config is learning, and whether it exists yet. This asset generates nothing itself;
-    /// the button that would is on the <c>MotionMatchingData</c>.
+    /// What the config is learning, and whether it has been generated on its
+    /// <c>MotionMatchingData</c>.
     /// </summary>
     private void DrawDatabaseSection(LmmConfig config)
     {
@@ -105,13 +103,8 @@ public class LmmConfigEditor : UnityEditor.Editor
     // --- Predicted bones ------------------------------------------------------------------------
 
     /// <summary>
-    /// Which bones the decompressor predicts, drawn as the skeleton hierarchy.
+    /// Which bones the decompressor predicts, drawn as the skeleton hierarchy with a row per joint.
     /// </summary>
-    /// <remarks>
-    /// The list on the asset is name-keyed and sparse, so a default list drawer would show a
-    /// handful of anonymous strings in whatever order they were clicked. Here every joint gets a
-    /// row, indented by its depth — the same treatment <c>PfnnConfigEditor</c> gives its selection.
-    /// </remarks>
     private void DrawBoneSection(LmmConfig config)
     {
         _showBones = EditorGUILayout.Foldout(_showBones, "Predicted Bones", true);
@@ -162,9 +155,8 @@ public class LmmConfigEditor : UnityEditor.Editor
     }
 
     /// <summary>
-    /// Include or exclude a bone together with everything below it, which is what keeps the
-    /// selection closed under parent. Including one also has to include its ancestors, or it would
-    /// be left with no frame to sit in.
+    /// Include or exclude a bone with its whole subtree, keeping the selection closed under parent.
+    /// Including one also includes its ancestors, which it needs as a frame.
     /// </summary>
     private void SetSubtreePredicted(LmmConfig config, int boneIndex, bool predicted)
     {
@@ -221,8 +213,7 @@ public class LmmConfigEditor : UnityEditor.Editor
             if (GUILayout.Button("Reload Skeleton")) InvalidateSkeleton();
         }
 
-        // Names the current skeleton does not have. Python refuses them outright rather than
-        // ignoring them, so leaving one in place would block training with a confusing message.
+        // Python refuses names the skeleton does not have, so surface them before training does.
         var orphans = config.excludedBones
             .Where(boneName => !_skeleton.TryFindByName(boneName, out _))
             .ToList();
@@ -309,8 +300,7 @@ public class LmmConfigEditor : UnityEditor.Editor
         {
             if (GUILayout.Button("Train LMM", GUILayout.Height(30))) LmmTraining.Run(config);
 
-            // The autoencoder is the half-hour half and the two later networks are fitted against
-            // latents it has already baked, so tuning either need not pay for it again.
+            // The autoencoder is the slow fit, and the later networks only need its baked latents.
             using (new EditorGUI.DisabledScope(!trained))
             using (new EditorGUILayout.HorizontalScope())
             {

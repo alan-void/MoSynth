@@ -12,10 +12,7 @@ namespace MotionField.Editor
 {
 /// <summary>
 /// Inspector for <see cref="MotionFieldConfig"/>: extract the pose database, then train the value
-/// function over it.
-///
-/// Training runs in-process through PythonNET, synchronously on the main thread. It takes roughly
-/// 20 s on a GPU for a 7.8k-state database.
+/// function over it. Training runs in-process through PythonNET, synchronously on the main thread.
 /// </summary>
 [CustomEditor(typeof(MotionFieldConfig))]
 public class MotionFieldConfigEditor : UnityEditor.Editor
@@ -24,8 +21,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     private bool _showImport;
     private bool _showBoneWeights = true;
 
-    // Skeleton of the generated database, cached because OnInspectorGUI repaints constantly and
-    // this comes off disk. Dropped on enable and whenever the database is regenerated.
+    // Cached because OnInspectorGUI repaints constantly; dropped on enable and on regeneration.
     private Skeleton _skeleton;
     private int[] _jointDepths;
     private bool _skeletonRead;
@@ -54,9 +50,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
         serializedObject.Update();
 
-        // Scoped to the fields on purpose. GUI.changed is also set by a button press, so clearing
-        // the flags from the blanket check at the bottom of this method would wipe hasTrained the
-        // instant Train Motion Field set it.
+        // Scoped to the fields: GUI.changed is also set by a button press, so a blanket check would
+        // wipe hasTrained the instant Train Motion Field set it.
         EditorGUI.BeginChangeCheck();
         DrawPropertiesExcluding(serializedObject, "m_Script", "leftContactBone", "rightContactBone");
         DrawContactBones(rigRoot);
@@ -67,8 +62,6 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         if (fieldsChanged)
         {
             // Which field moved is not knowable here, so every edit invalidates both artefacts.
-            // Over-flagging costs a rebuild; under-flagging costs a character that quietly moves
-            // worse than it should.
             MarkStale(config, database: true);
         }
 
@@ -157,9 +150,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     }
 
     /// <summary>
-    /// A <see cref="SkeletonBone"/> names a Transform, not a bare string, so a name copied from
-    /// another asset has to be resolved against this config's own rig immediately rather than
-    /// carried across unresolved. Returns an unset bone when the rig has no bone of that name.
+    /// Resolves a bone name copied from another asset against this config's rig, since a
+    /// <see cref="SkeletonBone"/> holds a Transform. Returns an unset bone when there is no match.
     /// </summary>
     private static SkeletonBone ResolveContactBone(string boneName, Transform rigRoot)
     {
@@ -179,7 +171,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         EditorGUILayout.LabelField("Pose Database", EditorStyles.boldLabel);
         EditorGUILayout.LabelField("Output", ProjectRelative(config.GetAssetPath()));
 
-        bool hasClips = config.animationClips != null && config.animationClips.Count > 0;
+        var hasClips = config.animationClips != null && config.animationClips.Count > 0;
         if (!hasClips)
         {
             EditorGUILayout.HelpBox("Assign at least one animation clip.", MessageType.Warning);
@@ -193,10 +185,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 "too.");
         }
 
-        // Gated on the same check ImportPoseSet runs, so a config with no skeleton -- or one its
-        // clips do not line up with -- cannot be generated into a database that would fail to load.
-        // DrawSkeletonValidation has already put the reason on screen. Matches
-        // MotionMatchingDataEditor, whose button is disabled by _generateButtonError.
+        // Gated on the check ImportPoseSet runs; DrawSkeletonValidation has already shown why.
         using (new EditorGUI.DisabledScope(!config.TryValidate(out _)))
         {
             if (GUILayout.Button("Generate Pose Database", GUILayout.Height(24)))
@@ -227,13 +216,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     }
 
     /// <summary>
-    /// Per-joint weights, drawn as the skeleton hierarchy.
+    /// Per-joint weights, drawn as the skeleton hierarchy with a row for every joint.
     /// </summary>
-    /// <remarks>
-    /// The list on the asset is name-keyed and sparse, so a default list drawer would show a
-    /// handful of anonymous elements in whatever order they were edited. Here every joint of the
-    /// database gets a row, indented by its depth, whether or not it carries a stored weight.
-    /// </remarks>
     private void DrawBoneWeightSection(MotionFieldConfig config)
     {
         _showBoneWeights = EditorGUILayout.Foldout(
@@ -272,10 +256,10 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
             EditorGUILayout.LabelField("Vel", EditorStyles.miniBoldLabel, GUILayout.Width(fieldWidth));
         }
 
-        for (int i = 0; i < _skeleton.BoneCount; i++)
+        for (var i = 0; i < _skeleton.BoneCount; i++)
         {
             var bone = _skeleton.GetBone(i);
-            MotionFieldConfig.BoneWeight weight = config.GetBoneWeight(bone.Name);
+            var weight = config.GetBoneWeight(bone.Name);
 
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -284,9 +268,9 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 EditorGUILayout.LabelField(new GUIContent(bone.Name, $"joint {i}"),
                     weight.IsNeutral ? EditorStyles.label : EditorStyles.boldLabel);
 
-                float position = EditorGUILayout.FloatField(
+                var position = EditorGUILayout.FloatField(
                     weight.position, GUILayout.Width(fieldWidth));
-                float velocity = EditorGUILayout.FloatField(
+                var velocity = EditorGUILayout.FloatField(
                     weight.velocity, GUILayout.Width(fieldWidth));
 
                 if (Mathf.Approximately(position, weight.position) &&
@@ -303,7 +287,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
     private void DrawBoneWeightFooter(MotionFieldConfig config)
     {
-        string[] weighted = config.boneWeights
+        var weighted = config.boneWeights
             .Where(w => !w.IsNeutral)
             .Select(w => $"{w.name} ({w.position:0.##}/{w.velocity:0.##})")
             .ToArray();
@@ -330,8 +314,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
             }
         }
 
-        // Entries naming joints the current skeleton does not have. They are ignored at runtime
-        // (Python logs them), but silently keeping them would make the summary above lie.
+        // Python ignores names the skeleton lacks, but keeping them would make the summary lie.
         var orphans = config.boneWeights
             .Where(w => !_skeleton.TryFindByName(w.name, out _))
             .ToList();
@@ -344,9 +327,6 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         if (GUILayout.Button("Remove Stale Entries"))
         {
             Undo.RecordObject(config, "Remove stale bone weights");
-            // Training ignores these already, so this cannot change a result -- but the flag is
-            // cheap and a config that says "retrain" when nothing needs it is the harmless way
-            // to be wrong.
             config.boneWeights.RemoveAll(w => !_skeleton.TryFindByName(w.name, out _));
             MarkStale(config, database: false);
         }
@@ -358,7 +338,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         if (_skeletonRead) return _skeleton != null;
         _skeletonRead = true;
 
-        if (!config.TryGetDatabaseSkeleton(out Skeleton skeleton) || skeleton.BoneCount == 0)
+        if (!config.TryGetDatabaseSkeleton(out var skeleton) || skeleton.BoneCount == 0)
         {
             return false;
         }
@@ -366,11 +346,11 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         _skeleton = skeleton;
         _jointDepths = new int[skeleton.BoneCount];
 
-        for (int i = 0; i < skeleton.BoneCount; i++)
+        for (var i = 0; i < skeleton.BoneCount; i++)
         {
-            int depth = 0;
-            int parent = skeleton.GetParentIndex(i);
-            // Bounded by the joint count so a cyclic parentIndex cannot hang the inspector.
+            var depth = 0;
+            var parent = skeleton.GetParentIndex(i);
+            // Bounded by the joint count so a cyclic parent index cannot hang the inspector.
             while (parent >= 0 && parent < skeleton.BoneCount && depth < skeleton.BoneCount)
             {
                 depth++;
@@ -387,9 +367,9 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     {
         EditorGUILayout.LabelField("Value Function", EditorStyles.boldLabel);
 
-        string valuePath = config.GetValueFunctionPath();
-        bool databaseExists = File.Exists(config.GetPoseDatabasePath());
-        bool trained = File.Exists(valuePath);
+        var valuePath = config.GetValueFunctionPath();
+        var databaseExists = File.Exists(config.GetPoseDatabasePath());
+        var trained = File.Exists(valuePath);
 
         EditorGUILayout.LabelField("Trained file",
             trained
@@ -427,9 +407,9 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     {
         EditorGUILayout.LabelField("Debug Visualization", EditorStyles.boldLabel);
 
-        string embeddingPath = config.GetEmbeddingPath();
-        bool databaseExists = File.Exists(config.GetPoseDatabasePath());
-        bool embedded = File.Exists(embeddingPath);
+        var embeddingPath = config.GetEmbeddingPath();
+        var databaseExists = File.Exists(config.GetPoseDatabasePath());
+        var embedded = File.Exists(embeddingPath);
 
         EditorGUILayout.LabelField("Embedding",
             embedded
@@ -489,8 +469,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
     private void TrainMotionField(MotionFieldConfig config)
     {
-        // The interpreter runs in this process. A domain reload while it is mid-call takes the
-        // editor down with it, so hold reloads off for the duration.
+        // A domain reload while the interpreter is mid-call takes the editor down with it, so hold
+        // reloads off for the duration.
         EditorApplication.LockReloadAssemblies();
         try
         {
@@ -532,8 +512,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 using PyObject summary = trainer.InvokeMethod("train", args, kwargs);
                 Debug.Log($"[MotionField] {summary}");
 
-                // Only on the success path: train() throwing leaves the old value function on disk,
-                // and it is no less stale than it was a moment ago.
+                // Only on success: if train() throws, the old value function on disk is still stale.
                 config.hasTrained = true;
                 EditorUtility.SetDirty(config);
                 AssetDatabase.SaveAssetIfDirty(config);
@@ -611,8 +590,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
     private static string ProjectRelative(string absolute)
     {
-        string root = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-        string full = Path.GetFullPath(absolute);
+        var root = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+        var full = Path.GetFullPath(absolute);
         return full.StartsWith(root, StringComparison.OrdinalIgnoreCase)
             ? full.Substring(root.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             : full;

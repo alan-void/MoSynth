@@ -8,10 +8,8 @@ namespace AnimationTools.Tests
     /// The key-to-action table every keyframe lane shares.
     /// </summary>
     /// <remarks>
-    /// Worth testing because a binding that resolves to the wrong action and one that resolves to
-    /// nothing look identical from inside the editor - you press a key and nothing happens. The
-    /// modifier cases are the ones that actually bite: read in the wrong order, <c>Alt+A</c> selects
-    /// everything instead of clearing it, and <c>Shift+D</c> deletes instead of duplicating.
+    /// The modifier cases matter most: resolved in the wrong order, <c>Alt+A</c> selects everything
+    /// instead of clearing, and <c>Shift+D</c> deletes instead of duplicating.
     /// </remarks>
     public class TimelineKeymapTests
     {

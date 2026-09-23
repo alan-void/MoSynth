@@ -14,17 +14,11 @@ namespace AnimationTools
 /// same foot falls twice running (which is what a missed contact looks like), linear between
 /// anchors, and the cycle zeroed on a right footfall.
 /// <para>
-/// A stretch with no footfalls in it is answered frame by frame, by how fast the character was
-/// moving, because standing and a missed contact are indistinguishable in the anchors alone. A
-/// standing frame sweeps at a fixed rate, so a model sees the whole cycle against a stationary
-/// trajectory and can learn that its output does not depend on phase there. Anything else is held
-/// at a rate of zero, which marks it unusable — extrapolating a walking rate over a stand invents gait: on the untrimmed
-/// <c>walk1_subject1</c> clip the first real footfall is at frame 132, and the 4.4 s of standing
-/// before it were once given 2.87 complete cycles of phase the character never walked. A model
-/// trained on that learns to cycle its legs while stationary.
-/// </para>
-/// <para>
-/// See <c>openwiki/animation-tools/neural-synthesis.md</c> for the standing rule and what it buys.
+/// A stretch with no footfalls is answered frame by frame by ground speed, since standing and a
+/// missed contact look alike in the anchors. A standing frame sweeps at a fixed rate so a model can
+/// learn phase does not matter there; a moving one is held at rate zero, marking it unusable,
+/// because extrapolating a walking rate over a stand invents gait. See
+/// openwiki/animation-tools/neural-synthesis.md.
 /// </para>
 /// </remarks>
 public static class GaitPhase
@@ -40,10 +34,8 @@ public static class GaitPhase
     /// The frame a foot was planted on, numbered against the whole baked clip.
     /// </summary>
     /// <remarks>
-    /// Clip-local, not slice-local, so that trimming a clip cannot change which moment of the
-    /// animation an anchor names. Slice-local addressing is measured from <c>startFrame</c>, so
-    /// moving the start silently slides every marker across the motion - the encoding least able to
-    /// survive the edit it was once claimed to survive.
+    /// Clip-local, not slice-local, so trimming a clip cannot change which moment of the animation
+    /// an anchor names.
     /// </remarks>
     [Serializable]
     public struct Footfall
@@ -142,12 +134,10 @@ public static class GaitPhase
             }
         }
 
-        // The lead-in and lead-out have no second anchor to land on, so every frame there answers
-        // for itself: one the character stood through sweeps at exactly the standing rate, wound
-        // back from -- or forward off -- the footfall it meets, and one it moved through holds the
-        // phase it inherits at a rate of zero. Frame by frame rather than all-or-nothing over the
-        // stretch, because a clip that stands and then walks off accelerates before its first heel
-        // strike: judged whole, those few moving frames condemn the entire stand behind them.
+        // The lead-in and lead-out have no second anchor, so each frame answers for itself: standing
+        // frames sweep at the standing rate from the footfall they meet, moving ones hold at rate
+        // zero. Per frame, because a clip that stands then walks off accelerates before its first
+        // heel strike, and judging the stretch whole would discard the stand.
         var firstFrame = anchors[0].frame;
         var lastFrame = anchors[anchors.Count - 1].frame;
         var lastTarget = targets[targets.Count - 1];
@@ -227,14 +217,8 @@ public static class GaitPhase
     /// Anchors inside the clip, in ascending frame order, with any repeated frame dropped.
     /// </summary>
     /// <remarks>
-    /// Two footfalls on one frame would make a zero-length segment, and the phase across it
-    /// undefined. Keeping the first is arbitrary but total; the alternative is a divide by zero,
-    /// which is what the Python side does today on such a clip.
-    /// <para>
-    /// This filter is also why nothing needs to delete an anchor for falling outside the clip: one
-    /// that does is skipped here and costs nothing. An <c>OnValidate</c> that removed them instead
-    /// destroyed a clip's gait data every time its range was touched.
-    /// </para>
+    /// Two footfalls on one frame would make a zero-length segment, so the first is kept. Anchors
+    /// outside the clip are skipped here, which is why nothing needs to delete them.
     /// </remarks>
     private static List<Footfall> UsableAnchors(IReadOnlyList<Footfall> footfalls, int frameCount)
     {
@@ -263,15 +247,10 @@ public static class GaitPhase
         {
             var step = anchors[i].foot != anchors[i - 1].foot ? math.PI : Tau;
 
-            // A gap the character stood through is not one stride taken slowly. Sweeping it at the
-            // standing rate outright would miss the anchor it has to land on, so the step grows by
-            // whole cycles instead: as near that rate as landing on the anchor allows, and still
-            // the correct foot. Handling it here is what keeps the fill loop below a straight line
-            // between two targets.
-            //
-            // Counted per frame, because a stand mid-clip is bracketed by the deceleration into it
-            // and the acceleration out again: demanding the whole gap be slow finds no stand at all
-            // and interpolates a stride across the stillness, which is the very thing this avoids.
+            // A gap the character stood through is not one slow stride: the step grows by whole
+            // cycles, as near the standing rate as still landing on the anchor with the right foot
+            // allows. Standing is counted per frame, since a mid-clip stand is bracketed by
+            // deceleration and acceleration that would hide it if the whole gap had to be slow.
             var standing = StandingFrames(speed, anchors[i - 1].frame, anchors[i].frame,
                 standingSpeed, standingSlope);
             if (standing > 0)
@@ -307,9 +286,8 @@ public static class GaitPhase
     /// the window around it was.
     /// </summary>
     /// <remarks>
-    /// Matches the filter <c>PoseExtractor.SmoothContacts</c> applies at bake time, edge clamping
-    /// included. It removes single-frame chatter, at the cost of moving a footfall's detected frame
-    /// by up to the radius and of erasing any stance shorter than half the window.
+    /// Removes single-frame chatter, at the cost of moving a footfall's detected frame by up to the
+    /// radius and erasing any stance shorter than half the window. Edges are clamped.
     /// </remarks>
     /// <param name="contacts">Flags interleaved per frame: <c>frame * 2</c> left, <c>+ 1</c> right.</param>
     public static void SmoothContacts(bool[] contacts, int frameCount, int radius)

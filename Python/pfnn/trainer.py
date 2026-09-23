@@ -1,13 +1,10 @@
 """
 Trains a phase-functioned network on a generated pose database.
 
-The loop is ordinary supervised regression -- the interesting parts are all upstream, in what
-:mod:`pfnn.dataset` decides an input and a target are. Loss is mean squared error on the
-**normalised** output, so no block drowns the others through its units, and it is weighted per block
-by :func:`dataset.block_weights`, so none drowns the others through its width either. Both are
-needed: normalising alone equalises the floats, which leaves the root delta -- three floats against
-a hundred and thirty-two of joint rotation -- holding 1.5% of the gradient despite being the block
-that decides whether the character travels at all.
+The loop is ordinary supervised regression; :mod:`pfnn.dataset` decides what an input and a target
+are. Loss is mean squared error on the **normalised** output, so no block drowns the others through
+its units, weighted per block by :func:`dataset.block_weights`, so none drowns the others through
+its width either.
 
 Validation holds out a **contiguous tail** rather than a random subset. Neighbouring frames of an
 animation are nearly the same pose, so a random split puts near-duplicates of the validation set
@@ -24,7 +21,6 @@ from __future__ import annotations
 import argparse
 import time
 
-import numpy as np
 import torch
 
 from pfnn import dataset
@@ -80,8 +76,7 @@ def train(data_dir: str,
         raise ValueError(f'{x.shape[0]} usable frames in {db_name}: nothing to train on. A clip '
                          'with no measurable gait cycle contributes none -- see GaitPhase in Unity.')
 
-    # The split is by index, and the packed samples are still in database order, so this is the tail
-    # of the animation rather than a scattering of frames from all over it.
+    # Samples are still in database order, so splitting by index holds out a contiguous tail.
     split = max(1, int(round(x.shape[0] * (1.0 - validation_fraction))))
     x_mean, x_std = dataset.normalization(x[:split])
     y_mean, y_std = dataset.normalization(y[:split])

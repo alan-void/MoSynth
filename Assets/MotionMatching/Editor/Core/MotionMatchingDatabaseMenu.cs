@@ -7,10 +7,8 @@ namespace MotionMatching
 /// Regenerates every <see cref="MotionMatchingData"/> asset in the project from a menu item.
 /// </summary>
 /// <remarks>
-/// The generated databases are unversioned and are not detected as stale until something reads
-/// them, so a change to an extraction format or a feature definition has to be answered by a
-/// regeneration of everything. Doing that one inspector button at a time means finding every asset
-/// by hand and missing one.
+/// The generated databases are unversioned, so any change to an extraction format or a feature
+/// definition requires regenerating all of them.
 /// </remarks>
 public static class MotionMatchingDatabaseMenu
 {

@@ -1,5 +1,6 @@
 import importlib
-import sys, time
+import sys
+import time
 
 _DEBUGGER_RETRY_SECONDS = 1.0
 
@@ -60,7 +61,8 @@ def connect_debugger():
             _reset_debugger()
 
         pydevd_pycharm = importlib.import_module("pydevd_pycharm")
-        pydevd_pycharm.settrace('localhost', port=9229, stdout_to_server=True, stderr_to_server=True, suspend=False)
+        pydevd_pycharm.settrace('localhost', port=9229, stdout_to_server=True,
+                                stderr_to_server=True, suspend=False)
     except Exception:
         # A debug server is normally absent outside a debugging session. Retry
         # later without flooding Unity's console with connection-refused errors.

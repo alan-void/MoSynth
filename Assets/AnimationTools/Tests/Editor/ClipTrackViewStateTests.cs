@@ -7,11 +7,9 @@ namespace AnimationTools.Tests
     /// Per-clip lane view state, and specifically what counts as a height the user chose.
     /// </summary>
     /// <remarks>
-    /// The distinction is load-bearing. A row whose height the user has set stops taking
-    /// <see cref="AnimationClipComponentTrack.RequestedLaneHeight"/>, so a track whose content grows
-    /// - a lane per tag channel - stops growing with it. Inferring "user set" from "a height was
-    /// stored" made that true of every row after the first save, which disabled the feature
-    /// entirely and looked like the lane simply never resizing.
+    /// Verifies that only a dragged height is restored as user-set: a user-set row stops taking
+    /// <see cref="AnimationClipComponentTrack.RequestedLaneHeight"/>, so a merely stored height must
+    /// not count.
     /// </remarks>
     public class ClipTrackViewStateTests
     {

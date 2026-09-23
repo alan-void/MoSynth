@@ -1,6 +1,6 @@
-import zmq
 import json
-import time
+
+import zmq
 
 
 def generate_mock_pose(frame_number: int, num_joints: int = 10) -> dict:
@@ -15,6 +15,7 @@ def generate_mock_pose(frame_number: int, num_joints: int = 10) -> dict:
         "RightFootContact": False
     }
 
+
 def main():
     context = zmq.Context()
     socket = context.socket(zmq.REP)
@@ -23,7 +24,7 @@ def main():
     print("Python ZeroMQ server listening on port 5555...")
 
     while True:
-        # Read raw bytes first so we don't crash on bad queued data
+        # Raw bytes first, so stale binary data in the queue cannot crash the decode.
         raw_message = socket.recv()
 
         try:
@@ -37,13 +38,10 @@ def main():
         try:
             frame_number = int(message)
             pose_data = generate_mock_pose(frame_number, 23)
-            # Send serialized JSON back to Unity
             socket.send_string(json.dumps(pose_data))
         except ValueError:
             print(f"Invalid frame number format: {message}")
             socket.send_string(json.dumps({"error": "Invalid frame number"}))
-
-
 
 
 if __name__ == "__main__":

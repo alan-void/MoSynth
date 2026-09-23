@@ -1,30 +1,18 @@
 """
 The networks of Learned Motion Matching (Holden et al. 2020).
 
-All of them are plain MLPs, and that is a constraint rather than an observation. The stage runs
-them through PythonNET today, but the reason to prefer a learned matcher over a database search is
-that a handful of small networks can run anywhere -- so nothing here may use an operation that
-cannot be exported to ONNX and handed to a Unity-native inference backend later. In practice that
-means every leaf module is a :class:`torch.nn.Linear` or an activation, which ``test_lmm_model``
-asserts rather than leaving to intent.
-
-All four networks live here.
+All of them are plain MLPs, and that is a constraint: nothing here may use an operation that cannot
+be exported to ONNX for a Unity-native inference backend. Every leaf module is a
+:class:`torch.nn.Linear` or an activation, which ``test_lmm_model`` asserts.
 
 * **Compressor** ``[Y Q] -> Z``, 516 wide and three hidden layers deep, with ELU.
 * **Decompressor** ``[X Z] -> Y``, 512 wide and **one** hidden layer deep, with ReLU.
 * **Stepper** ``[X Z] -> d/dt [X Z]``, 512 wide and two hidden layers deep, with ReLU.
 * **Projector** ``X -> [X Z]``, 512 wide and **four** hidden layers deep, with ReLU.
 
-Both the asymmetry and the mixed activations are the paper's (Table 1) and the reference
-implementation's shipped graphs agree with them. The asymmetry looks backwards and is not: decoding
-a latent into a pose is a smooth map, so it needs width rather than depth, while *encoding* has to
-discover the structure -- and the projector, which approximates a nearest-neighbour lookup, a
-function piecewise constant over as many pieces as the database has frames, needs the depth most of
-all.
-
-The compressor takes one frame in **two spaces**, not two frames in one. The paper's reason is that
-it "was able to copy features directly to the latent space if it found them useful"; what keeps the
-latent steppable is the velocity regulariser in the loss, not a temporal input here.
+Both the depth asymmetry and the mixed activations are the paper's (Table 1): decoding is a smooth
+map that needs width, while the projector approximates a piecewise-constant nearest-neighbour lookup
+and needs depth most.
 """
 
 from __future__ import annotations
@@ -32,14 +20,11 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-# Re-exported rather than rewritten: device selection is one decision, and two halves of the
-# project disagreeing about what 'auto' means on the same machine is exactly the kind of quiet
-# divergence this code is otherwise organised against.
+# Re-exported so PFNN and LMM agree on what 'auto' means.
 from pfnn.model import resolve_device
 
-# Widths read off the reference implementation's ONNX graphs, whose parameter counts reproduce the
-# shipped file sizes exactly -- so these are measured rather than recalled. The paper's Table 1
-# states the same depths and rounds both widths to 512.
+# Widths read off the reference implementation's ONNX graphs; the paper's Table 1 states the same
+# depths and rounds the widths to 512.
 COMPRESSOR_HIDDEN_UNITS = 516
 COMPRESSOR_HIDDEN_LAYERS = 3
 DECOMPRESSOR_HIDDEN_UNITS = 512
@@ -107,8 +92,7 @@ class Mlp(nn.Module):
         """
         Copy stored parameters back in, checking the shapes rather than trusting them.
 
-        A checkpoint whose widths no longer match the code that reads it is the failure the whole
-        format is written against, so it is refused here with the layer named.
+        A checkpoint whose widths no longer match this code is refused with the layer named.
         """
         layers = self.linear_layers
         if len(weights) != len(layers) or len(biases) != len(layers):
@@ -132,9 +116,8 @@ class Compressor(Mlp):
     """
     Encodes a pose, in both the spaces it is measured in, into a latent.
 
-    Kept in the checkpoint and never run at inference -- the latents it produced are baked, and
-    the projector replaces it outright. It is stored so a bake can be reproduced and so the
-    latent diagnostics can be re-run against the model that caused them.
+    Never run at inference: its latents are baked. It is stored so a bake can be reproduced and
+    the latent diagnostics re-run.
     """
 
     def __init__(self, pose_size: int, character_size: int, latent_size: int,
@@ -158,9 +141,8 @@ class Decompressor(Mlp):
     """
     Reconstructs a pose from a matching feature vector and a latent.
 
-    This is the network that replaces reading a pose out of the database, and the only one the
-    decompressor-only mode needs at runtime. Its ``X`` half is the same query the classic matcher
-    searches with, which is what keeps the two methods comparable on identical data.
+    Replaces reading a pose out of the database, and the only network the decompressor-only mode
+    needs at runtime.
     """
 
     def __init__(self, feature_size: int, latent_size: int, pose_size: int,
@@ -184,17 +166,12 @@ class Stepper(Mlp):
     """
     Advances the state ``[X Z]`` a frame at a time, so the database need not be played.
 
-    This is what replaces walking the ``.mmpose`` between searches. It takes **exactly the vector
-    the decompressor takes** -- the same concatenation, in the same units -- and that is deliberate:
-    the stage carries one copy of ``(X, Z)`` and hands it to both networks, so there is no second
-    normalisation of the state to get wrong.
+    Replaces walking the ``.mmpose`` between searches. It takes **exactly the vector the
+    decompressor takes**, so the stage carries one copy of ``(X, Z)`` for both networks.
 
-    It answers with a **rate per second**, not with the next state. The stage integrates
-    ``x += rate * dt``, which is the repository's convention for every predicted motion channel and
-    is what lets synthesis run at a rate the database was not sampled at. The output is normalised
-    per element by the rate statistics in the checkpoint, for the reason the decompressor's is: the
-    thirty-three feature rates and the thirty-two latent rates have nothing in common but the
-    concatenation, and a network regressing raw units would spend its capacity on their scales.
+    It answers with a **rate per second**, not the next state: the stage integrates
+    ``x += rate * dt``, so synthesis can run at a rate the database was not sampled at. The output
+    is normalised per element by the rate statistics in the checkpoint.
     """
 
     def __init__(self, feature_size: int, latent_size: int,
@@ -222,20 +199,12 @@ class Projector(Mlp):
     """
     Answers a query with a state the database could have held: ``X -> [X Z]``.
 
-    This is what replaces the search itself. Given the vector the controller is asking for, it
-    returns the nearest state the database actually contains -- the feature vector of that state
-    and the latent beside it -- so no frame is ever looked up and nothing has to be resident to
-    look it up in.
+    Replaces the search itself: it returns the nearest state the database contains -- its feature
+    vector and latent -- without any frame being looked up. Deepest of the four, because it
+    approximates a piecewise-constant nearest-neighbour lookup.
 
-    **Deepest of the four, and that is the point.** The other three approximate smooth maps; this
-    one approximates a nearest-neighbour lookup, which is piecewise constant with as many pieces as
-    the database has frames, and depth is what buys the pieces. Four hidden layers is the paper's
-    Table 1 and the reference implementation's shipped graph.
-
-    Its answer is **normalised per element**, and the statistics it is denormalised against are the
-    ones already in the checkpoint for the two halves of the state -- ``x_mean``/``x_std`` and
-    ``z_mean``/``z_std``. It regresses the state itself rather than a rate, so there is nothing new
-    to measure and no second set of numbers to get out of step with the first.
+    Its answer is **normalised per element** against the checkpoint's existing state statistics,
+    ``x_mean``/``x_std`` and ``z_mean``/``z_std``.
     """
 
     def __init__(self, feature_size: int, latent_size: int,
@@ -251,8 +220,7 @@ class Projector(Mlp):
         """
         :param query: (n, feature_size) what the controller is asking for, in the database's units.
         :return: ``(features, latent)``, both **normalised**. Denormalising them is the caller's
-            job, for the reason :meth:`Stepper.rate` leaves its answer normalised: the statistics
-            live in the checkpoint rather than in the network.
+            job: the statistics live in the checkpoint rather than in the network.
         """
         state = self(query)
         return state[:, :self.feature_size], state[:, self.feature_size:]

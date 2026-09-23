@@ -11,16 +11,14 @@ import os
 import numpy as np
 
 from core.pose import Pose, PoseDelta
-from core.skeleton import Joint, Skeleton
-
 from core.pose_set import PoseSet
-from formats.pose_set_importer import deserialize_pose_set
 from core.simulation_frame import derive_pose_set_frames
-
+from core.skeleton import Joint, Skeleton
 from debugging.python_net import connect_debugger
+from formats.pose_set_importer import deserialize_pose_set
 
 # Attaching costs a socket timeout per import and injects a PyCharm egg into
-# sys.path, which is pure overhead for batch work such as training. Opt in.
+# sys.path; set MOSYNTH_PYCHARM_DEBUG=0 to skip it for batch work such as training.
 if os.environ.get('MOSYNTH_PYCHARM_DEBUG', '1') != '0':
     connect_debugger()
 
@@ -29,11 +27,9 @@ def build_state_indices(clips, n_poses):
     """
     Frame indices that can serve as motion field states.
 
-    A state at frame i needs its own velocity `lv[i]` *and* the next frame's
-    velocity `lv[i + 1]` (which becomes pose_y). Frame i + 1 must therefore
-    belong to the same clip, so the last frame of every clip is dropped --
-    otherwise a state would predict its successor from the first frame of an
-    unrelated animation.
+    A state at frame i needs the next frame's velocity too (it becomes pose_y),
+    so frame i + 1 must be in the same clip and the last frame of every clip is
+    dropped.
     """
     if not clips:
         return np.arange(max(0, n_poses - 1), dtype=np.int64)
@@ -53,11 +49,9 @@ def with_virtual_root(skeleton: Skeleton) -> Skeleton:
     """
     Copy a skeleton under an extra parentless joint standing for the character frame.
 
-    The packed layout reserves slot 0 for that frame, which no rig bone corresponds to:
-    it is where the per-step translation and yaw the state is invariant to live. Giving
-    the joint tree a matching parentless joint keeps tree and array aligned, so bone
-    weights, feature rows and FK indices all refer to the same bone as the slot beside
-    them, and `fk_root_space` pins slot 0 to the origin as that invariance requires.
+    The packed layout reserves slot 0 for that frame, which no rig bone corresponds to.
+    A matching joint keeps the tree aligned with the array, so bone weights, feature rows
+    and FK indices all agree, and `fk_root_space` pins slot 0 to the origin.
 
     Copied rather than reparented in place, so the pose set's own skeleton goes on
     describing the pose set's own frame-free arrays.
@@ -105,20 +99,16 @@ def load_animations(data_dir='../Assets/StreamingAssets/MMDatabases/MotionMatchi
     quats = pose_set.local_rotations  # (n_poses, n_joints, 4)
     lav = pose_set.local_angular_velocities  # (n_poses, n_joints, 3) — rotation vectors, rad/s, xyz
 
-    # Character frame per pose, and its rates. Both are indexed by global pose index and
-    # both are clip-safe: no derived rate differences across a clip boundary.
+    # Indexed by global pose index, and clip-safe: no rate differences across a boundary.
     frames, rates = derive_pose_set_frames(pose_set)
 
     idx = build_state_indices(pose_set.clips, quats.shape[0])
     nxt = idx + 1
     n_target_poses = idx.shape[0]
 
-    # NOTE: the rates below are per-SECOND (the file's are, and the derived ones are
-    # divided by frame_time to match), and they are stored here as-is. Integrating them
-    # requires an explicit time step:
+    # The rates below are per-SECOND, so integrating them needs an explicit time step:
     #   pose_x[i].add(PoseDelta.from_array(pose_v[i]).scaled(frame_time)) == pose_x[i+1]
-    # Angular rates stay as rotation vectors; see PoseDelta for why converting
-    # them to quaternions here would alias every joint faster than pi rad/s.
+    # Angular rates stay as rotation vectors; see PoseDelta.
 
     # pose_x: current pose at frame i, expressed in the character frame
     #   slot 0 — frame position: zeroed (translation-invariant)
@@ -146,9 +136,7 @@ def load_animations(data_dir='../Assets/StreamingAssets/MMDatabases/MotionMatchi
 
     # pose_y: future velocity at frame i+1  =  (Pose(i+2) − Pose(i+1)) / frame_time
     #   Same layout as pose_v, shifted one frame forward. Frame i+2 can be one past the
-    #   end of a clip, which is why the derivation reconstructs that frame rather than
-    #   leaving the last rate of a clip undefined -- `build_state_indices` only
-    #   guarantees that i+1 is still inside the clip.
+    #   end of a clip; the derivation reconstructs that frame.
     pose_y = np.zeros((n_target_poses, bone_count + 2, 4), dtype=np.float32)
     pose_y[:, 0, :3] = rates.linear[nxt]
     pose_y[:, 1, :3] = rates.root_linear[nxt]
@@ -156,10 +144,10 @@ def load_animations(data_dir='../Assets/StreamingAssets/MMDatabases/MotionMatchi
     pose_y[:, 3, :3] = rates.root_angular[nxt]
     pose_y[:, 4:, :3] = lav[nxt, 1:, :]
 
-    # pose_contacts: foot contact flags aligned to frame i
     pose_contacts = pose_set.foot_contacts[idx, :].copy()
 
     return skeleton, pose_x, pose_v, pose_y, pose_contacts, pose_set.frameTime, pose_set
+
 
 def get_pose_arrays(skeleton: Skeleton,
                     current_x: np.ndarray,
@@ -169,12 +157,10 @@ def get_pose_arrays(skeleton: Skeleton,
     Flatten one synthesized pose into the arrays the C# side reads back. Plain lists
     rather than ndarrays, because PythonNET marshals those directly.
 
-    These arrays are indexed by rig bone, so they are one shorter than the packed
-    layout's joint count: C# stores no character frame, it derives one from bone 0 the
-    same way :mod:`core.simulation_frame` does. The pose handed over is already expressed in
-    its own frame, whose derived frame is therefore the identity -- so bone 0 simply
-    carries the frame-local root state, and the frame's own rates are folded into bone
-    0's velocities, which is where the C# side reads them back out of.
+    Indexed by rig bone, so one shorter than the packed layout: C# stores no character
+    frame, it derives one from bone 0. The pose is already in its own frame, so bone 0
+    carries the frame-local root state and the frame's own rates are folded into bone
+    0's velocities, where C# reads them back out.
 
     :returns: ``(positions, quaternions, linear_velocities, angular_velocities,
         left_foot_contact, right_foot_contact)``
@@ -188,17 +174,14 @@ def get_pose_arrays(skeleton: Skeleton,
     rotvecs = p_v.rotvecs[0]
     frame_rotvec = rotvecs[0]  # yaw rate, a rotation vector along +y
 
-    # Bone 0's world channels under an identity frame: the frame's own motion plus the
-    # root's motion within it. The cross term is the root swinging about the frame
-    # origin; it vanishes whenever the frame is derived from the root itself, since the
-    # root then sits directly above that origin.
+    # Bone 0's channels under an identity frame: the frame's own motion plus the root's
+    # within it. The cross term is the root swinging about the frame origin.
     lv = np.zeros_like(pos)
     lv[0] = p_v.rootVel[0] + np.cross(frame_rotvec, p_x.hipPos[0]) + p_v.hipVel[0]
 
     lav = rotvecs[1:].copy()
     lav[0] = lav[0] + frame_rotvec
 
-    # Ensure flat float arrays for PythonNet auto-marshalling
     pos = np.ascontiguousarray(pos, dtype=np.float32).flatten().tolist()
     quats = np.ascontiguousarray(quats, dtype=np.float32).flatten().tolist()
     lv = np.ascontiguousarray(lv, dtype=np.float32).flatten().tolist()

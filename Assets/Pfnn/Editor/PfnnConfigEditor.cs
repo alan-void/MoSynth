@@ -12,16 +12,13 @@ namespace Pfnn.Editor
 /// <summary>
 /// Inspector for <see cref="PfnnConfig"/>: extract the pose database, choose which bones the
 /// network predicts, then train it over them.
-///
-/// Training runs in-process through PythonNET, synchronously on the main thread.
 /// </summary>
 [CustomEditor(typeof(PfnnConfig))]
 public class PfnnConfigEditor : UnityEditor.Editor
 {
     private bool _showBones = true;
 
-    // Skeleton of the config, cached because OnInspectorGUI repaints constantly. Dropped on enable
-    // and whenever the database is regenerated.
+    // Cached because OnInspectorGUI repaints constantly; dropped on enable and on regeneration.
     private Skeleton _skeleton;
     private int[] _jointDepths;
     private bool _skeletonRead;
@@ -50,8 +47,8 @@ public class PfnnConfigEditor : UnityEditor.Editor
 
         serializedObject.Update();
 
-        // Scoped to the fields on purpose: GUI.changed is also set by a button press, so a blanket
-        // check would wipe hasTrained the instant Train set it.
+        // Scoped to the fields: GUI.changed is also set by a button press, so a blanket check would
+        // wipe hasTrained the instant Train set it.
         EditorGUI.BeginChangeCheck();
         DrawPropertiesExcluding(serializedObject, "m_Script", "leftContactBone", "rightContactBone");
         DrawContactBones(rigRoot);
@@ -155,14 +152,8 @@ public class PfnnConfigEditor : UnityEditor.Editor
     // --- Predicted bones ------------------------------------------------------------------------
 
     /// <summary>
-    /// Which bones the network predicts, drawn as the skeleton hierarchy.
+    /// Which bones the network predicts, drawn as the skeleton hierarchy with a row per joint.
     /// </summary>
-    /// <remarks>
-    /// The list on the asset is name-keyed and sparse, so a default list drawer would show a
-    /// handful of anonymous strings in whatever order they were clicked. Here every joint gets a
-    /// row, indented by its depth — the same treatment <c>MotionFieldConfigEditor</c> gives its bone
-    /// weights, for the same reason.
-    /// </remarks>
     private void DrawBoneSection(PfnnConfig config)
     {
         _showBones = EditorGUILayout.Foldout(_showBones, "Predicted Bones", true);
@@ -215,9 +206,8 @@ public class PfnnConfigEditor : UnityEditor.Editor
     }
 
     /// <summary>
-    /// Include or exclude a bone together with everything below it, which is what keeps the
-    /// selection closed under parent. Including one also has to include its ancestors, or it would
-    /// be left with no frame to sit in.
+    /// Include or exclude a bone with its whole subtree, keeping the selection closed under parent.
+    /// Including one also includes its ancestors, which it needs as a frame.
     /// </summary>
     private void SetSubtreePredicted(PfnnConfig config, int boneIndex, bool predicted)
     {
@@ -269,8 +259,7 @@ public class PfnnConfigEditor : UnityEditor.Editor
             if (GUILayout.Button("Reload Skeleton")) InvalidateSkeleton();
         }
 
-        // Names the current skeleton does not have. Python refuses them outright rather than
-        // ignoring them, so leaving one in place would block training with a confusing message.
+        // Python refuses names the skeleton does not have, so surface them before training does.
         var orphans = config.excludedBones
             .Where(boneName => !_skeleton.TryFindByName(boneName, out _))
             .ToList();

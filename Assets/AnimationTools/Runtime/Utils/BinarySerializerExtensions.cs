@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -51,7 +49,7 @@ namespace AnimationTools
         }
         public static void WriteFloat3Array(BinaryWriter writer, float3[] array)
         {
-            foreach (float3 value in array)
+            foreach (var value in array)
             {
                 WriteFloat3(writer, value);
             }
@@ -72,7 +70,7 @@ namespace AnimationTools
                 WriteQuaternion(writer, slice[i]);
             }
         }
-        
+
         public static void Write(BinaryWriter writer, Vector3[] array)
         {
             foreach (var value in array)
@@ -80,11 +78,10 @@ namespace AnimationTools
                 Write(writer, value);
             }
         }
-        
-        
+
         public static void WriteQuaternionArray(BinaryWriter writer, quaternion[] array)
         {
-            foreach (quaternion value in array)
+            foreach (var value in array)
             {
                 WriteQuaternion(writer, value);
             }
@@ -115,8 +112,8 @@ namespace AnimationTools
         }
         public static float3[] ReadFloat3Array(BinaryReader reader, uint length)
         {
-            float3[] array = new float3[length];
-            for (int i = 0; i < length; i++)
+            var array = new float3[length];
+            for (var i = 0; i < length; i++)
             {
                 array[i] = ReadFloat3(reader);
             }
@@ -124,8 +121,8 @@ namespace AnimationTools
         }
         public static quaternion[] ReadQuaternionArray(BinaryReader reader, uint length)
         {
-            quaternion[] array = new quaternion[length];
-            for (int i = 0; i < length; i++)
+            var array = new quaternion[length];
+            for (var i = 0; i < length; i++)
             {
                 array[i] = ReadQuaternion(reader);
             }

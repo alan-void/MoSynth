@@ -6,43 +6,25 @@ using Unity.Mathematics;
 namespace MotionMatching
 {
 /// <summary>
-/// Inertialization is a type of blending between two poses.
-///
-/// Typically to blend between two poses, we use crossfade.
-/// Both poses are stored queried during the transition,
-/// and they are blended during the transition.
-///
-/// The basic idea of inertialization is when we change the pose,
-/// we change a target pose instantly but compute offsets that
-/// take us from the current pose to the target one.
-/// Then, we decay this offset using a polynomial function or springs.
-/// Decaying the offset will progressively take us to the target pose.
+/// Smooths pose jumps by inertialization: on a jump the target pose is taken instantly, and the
+/// offset from the previous output to it is decayed with a spring, so only one pose stream is needed.
 /// </summary>
 /// <remarks>
-/// Working on offsets rather than poses is why this blend is used here: only one pose stream is
-/// needed, so an upstream stage can jump anywhere without keeping the abandoned animation alive, and
-/// when nothing has jumped the offset is zero so continuous animation passes through untouched.
-/// <para>
 /// Place after whatever produces pose jumps. It keys off
 /// <see cref="MotionSynthesisComponent.PoseDiscontinuity"/>, so a stage that jumps without raising
 /// that flag will not be smoothed.
-/// </para>
 /// <para>
-/// Bone 0 carries the root's world position and rotation, so blending it directly would smear the
-/// character across the world whenever the target pose comes from a different part of a clip. It is
-/// instead blended in the space of the simulation frame each pose derives (see
-/// <see cref="SimulationFrame"/>): frame-local position, rotation and rates, written back through
-/// the target pose's own frame. Bones 1.. are parent-local already and blend as they are.
+/// Bone 0 is blended in the space of its pose's own <see cref="SimulationFrame"/>, not in world
+/// space, so a jump to another part of a clip does not smear the character across the world.
+/// See openwiki/motion-matching/inertialization.md.
 /// </para>
 /// </remarks>
 [Serializable]
 public class Inertialization : MoSynthStage
 {
-    // OLD_IMPL: state and helpers from the pre-stage API, where a caller drove transitions
-    // explicitly via PoseTransition/*ContactTransition/Update rather than the stage's Apply doing it
-    // from PoseDiscontinuity. The maths at the bottom (InertializeJointTransition /
-    // InertializeJointUpdate) is shared and live; the entry points are not currently called.
-    #region OLD_IMPL
+    // State for the explicit-transition API (PoseTransition / *ContactTransition / Update), in which a
+    // caller drives transitions itself; Apply does not use those entry points.
+    #region Explicit-transition state
 
     [NonSerialized] public quaternion[] InertializedRotations;
     private float3[] _inertializedAngularVelocities;
@@ -62,16 +44,14 @@ public class Inertialization : MoSynthStage
     private float3 _offsetRightContact;
     private float3 _offsetRightContactVelocity;
 
-
     #endregion
 
-    MotionSynthesisComponent _owner;
+    private MotionSynthesisComponent _owner;
     private SkeletonData _skeletonData;
     private SimulationFrameDef _simulationFrame;
 
     public Inertialization()
     {
-
     }
 
     public Inertialization(int jointCount)
@@ -79,7 +59,7 @@ public class Inertialization : MoSynthStage
         InertializedRotations = new quaternion[jointCount];
         _inertializedAngularVelocities = new float3[jointCount];
         _offsetRotations = new quaternion[jointCount];
-        for (int i = 0; i < jointCount; i++) _offsetRotations[i] = quaternion.identity; // init to a valid quaternion
+        for (var i = 0; i < jointCount; i++) _offsetRotations[i] = quaternion.identity;
         _offsetAngularVelocities = new float3[jointCount];
     }
 
@@ -106,7 +86,7 @@ public class Inertialization : MoSynthStage
 
         var jointCount = _currentPose.Rotations.Length;
         _offsetRotations = new quaternion[jointCount];
-        for (int i = 0; i < jointCount; i++) _offsetRotations[i] = quaternion.identity;
+        for (var i = 0; i < jointCount; i++) _offsetRotations[i] = quaternion.identity;
         _offsetAngularVelocities = new float3[jointCount];
         _offsetRootPosition = float3.zero;
         _offsetRootVelocity = float3.zero;
@@ -139,7 +119,7 @@ public class Inertialization : MoSynthStage
         {
             var lastOutputRotations = _currentPose.Rotations;
             var lastOutputAngularVelocities = _currentPose.AngularVelocities;
-            for (int i = 1; i < rotations.Length; i++)
+            for (var i = 1; i < rotations.Length; i++)
             {
                 // _currentPose is last frame's output, so a jump during an ongoing blend
                 // folds the remaining offset into the new one.
@@ -159,8 +139,7 @@ public class Inertialization : MoSynthStage
             _offsetRootVelocity = lastOutputRoot.Velocity - targetRoot.Velocity;
         }
 
-        // Decay the offsets and apply them on top of the target pose
-        for (int i = 1; i < rotations.Length; i++)
+        for (var i = 1; i < rotations.Length; i++)
         {
             InertializeJointUpdate(rotations[i], angularVelocities[i],
                 halfLife, deltaTime,
@@ -244,11 +223,10 @@ public class Inertialization : MoSynthStage
         };
     }
 
-    #region OLD_IMPL
+    #region Explicit-transition API and shared maths
 
     /// <summary>
-    /// It takes as input the current state of the source pose and the target pose.
-    /// It sets up the inertialization, which can then by updated by calling Update(...).
+    /// Sets up a transition from one database pose to another; advance it with <see cref="Update"/>.
     /// </summary>
     public void PoseTransition(PoseSet poseSet, int sourcePoseIndex, int targetPoseIndex)
     {
@@ -260,8 +238,7 @@ public class Inertialization : MoSynthStage
         var sourceAngularVelocities = sourcePose.AngularVelocities;
         var targetAngularVelocities = targetPose.AngularVelocities;
 
-        // Set up the inertialization for joint local rotations
-        for (int i = 1; i < sourceRotations.Length; i++)
+        for (var i = 1; i < sourceRotations.Length; i++)
         {
             quaternion sourceJointRotation = sourceRotations[i];
             quaternion targetJointRotation = targetRotations[i];
@@ -272,7 +249,7 @@ public class Inertialization : MoSynthStage
                 ref _offsetRotations[i], ref _offsetAngularVelocities[i]);
         }
 
-        // Set up the inertialization for the root. World space, unlike Apply's frame-local blend.
+        // The root blends in world space here, unlike Apply's frame-local blend.
         var sourcePositions = sourcePose.Positions;
         var targetPositions = targetPose.Positions;
         var sourceVelocities = sourcePose.Velocities;
@@ -286,10 +263,7 @@ public class Inertialization : MoSynthStage
             ref _offsetRootPosition, ref _offsetRootVelocity);
     }
 
-    /// <summary>
-    /// It takes as input the current state of the source contact and the target contact.
-    /// It sets up the inertialization, which can then by updated by calling UpdateContact(...).
-    /// </summary>
+    /// <summary>Sets up a left-contact transition; advance it with <see cref="UpdateLeftContact"/>.</summary>
     public void LeftContactTransition(float3 sourceLeftContact, float3 sourceLeftContactVelocity,
         float3 targetLeftContact, float3 targetLeftContactVelocity)
     {
@@ -298,10 +272,7 @@ public class Inertialization : MoSynthStage
             ref _offsetLeftContact, ref _offsetLeftContactVelocity);
     }
 
-    /// <summary>
-    /// It takes as input the current state of the source contact and the target contact.
-    /// It sets up the inertialization, which can then by updated by calling UpdateContact(...).
-    /// </summary>
+    /// <summary>Sets up a right-contact transition; advance it with <see cref="UpdateRightContact"/>.</summary>
     public void RightContactTransition(float3 sourceRightContact, float3 sourceRightContactVelocity,
         float3 targetRightContact, float3 targetRightContactVelocity)
     {
@@ -329,16 +300,14 @@ public class Inertialization : MoSynthStage
     }
 
     /// <summary>
-    /// Updates the inertialization decaying the offset from the source pose (specified in PoseTransition(...))
-    /// to the target pose.
+    /// Decays the offset set up by <see cref="PoseTransition"/> and applies it to <paramref name="targetPose"/>.
     /// </summary>
     public void Update(PoseBuffer targetPose, float halfLife, float deltaTime)
     {
         var targetRotations = targetPose.Rotations;
         var targetAngularVelocities = targetPose.AngularVelocities;
 
-        // Update the inertialization for joint local rotations
-        for (int i = 1; i < targetRotations.Length; i++)
+        for (var i = 1; i < targetRotations.Length; i++)
         {
             quaternion targetJointRotation = targetRotations[i];
             float3 targetAngularVelocity = targetAngularVelocities[i];
@@ -348,7 +317,6 @@ public class Inertialization : MoSynthStage
                 out InertializedRotations[i], out _inertializedAngularVelocities[i]);
         }
 
-        // Update the inertialization for the root
         var targetPositions = targetPose.Positions;
         var targetVelocities = targetPose.Velocities;
         float3 targetRootPosition = targetPositions[0];
@@ -359,27 +327,8 @@ public class Inertialization : MoSynthStage
             out InertializedRootPosition, out InertializedRootVelocity);
     }
 
-    // /// <summary>
-    // /// Updates the inertialization decaying the offset from the source contact (specified in ContactTransition(...))
-    // /// to the target contact.
-    // /// </summary>
-    // public void UpdateContact(float3 leftTargetPos, float3 leftTargetVelocity, float3 rightTargetPos, float3 rightTargetVelocity, float halfLife, float deltaTime)
-    // {
-    //     // Update the inertialization for contacts
-    //     InertializeJointUpdate(leftTargetPos, leftTargetVelocity,
-    //                            halfLife, deltaTime,
-    //                            ref OffsetLeftContact, ref OffsetLeftContactVelocity,
-    //                            out InertializedLeftContact, out InertializedLeftContactVelocity);
-    //     InertializeJointUpdate(rightTargetPos, rightTargetVelocity,
-    //                            halfLife, deltaTime,
-    //                            ref OffsetRightContact, ref OffsetRightContactVelocity,
-    //                            out InertializedRightContact, out InertializedRightContactVelocity);
-    // }
-
-
     /// <summary>
-    /// Compute the offsets from the source pose to the target pose.
-    /// Offsets are in/out since we may start a inertialization in the middle of another inertialization.
+    /// Computes the offset from source to target. In/out, so a transition can start in the middle of another.
     /// </summary>
     public static void InertializeJointTransition(quaternion sourceRot, float3 sourceAngularVel,
         quaternion targetRot, float3 targetAngularVel,
@@ -391,8 +340,7 @@ public class Inertialization : MoSynthStage
     }
 
     /// <summary>
-    /// Compute the offsets from the source pose to the target pose.
-    /// Offsets are in/out since we may start a inertialization in the middle of another inertialization.
+    /// Computes the offset from source to target. In/out, so a transition can start in the middle of another.
     /// </summary>
     public static void InertializeJointTransition(float3 currentPos, float3 currentVel,
         float3 targetPos, float3 targetVel,
@@ -403,8 +351,7 @@ public class Inertialization : MoSynthStage
     }
 
     /// <summary>
-    /// Compute the offsets from the source pose to the target pose.
-    /// Offsets are in/out since we may start a inertialization in the middle of another inertialization.
+    /// Computes the offset from source to target. In/out, so a transition can start in the middle of another.
     /// </summary>
     public static void InertializeJointTransition(float source, float sourceVel,
         float target, float targetVel,
@@ -414,9 +361,7 @@ public class Inertialization : MoSynthStage
         offsetVel = (sourceVel + offsetVel) - targetVel;
     }
 
-    /// <summary>
-    /// Updates the inertialization decaying the offset and applying it to the target pose
-    /// </summary>
+    /// <summary>Decays the offset and applies it on top of the target.</summary>
     public static void InertializeJointUpdate(quaternion targetRot, float3 targetAngularVel,
         float halfLife, float deltaTime,
         ref quaternion offsetRot, ref float3 offsetAngularVel,
@@ -427,9 +372,7 @@ public class Inertialization : MoSynthStage
         newAngularVel = targetAngularVel + offsetAngularVel;
     }
 
-    /// <summary>
-    /// Updates the inertialization decaying the offset and applying it to the target pose
-    /// </summary>
+    /// <summary>Decays the offset and applies it on top of the target.</summary>
     public static void InertializeJointUpdate(float3 target, float3 targetVel,
         float halfLife, float deltaTime,
         ref float3 offset, ref float3 offsetVel,
@@ -440,9 +383,7 @@ public class Inertialization : MoSynthStage
         newVel = targetVel + offsetVel;
     }
 
-    /// <summary>
-    /// Updates the inertialization decaying the offset and applying it to the target pose
-    /// </summary>
+    /// <summary>Decays the offset and applies it on top of the target.</summary>
     public static void InertializeJointUpdate(float target, float targetVel,
         float halfLife, float deltaTime,
         ref float offset, ref float offsetVel,

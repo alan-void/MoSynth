@@ -8,9 +8,8 @@ namespace AnimationTools.Editor
     /// inside a rubber-band selection.
     /// </summary>
     /// <remarks>
-    /// Pure and separate from the track so it can be tested, because the interesting cases are the
-    /// awkward ones - two anchors landing on the same pixel when zoomed out, and a click just past
-    /// the tolerance that must select nothing rather than the nearest thing anywhere.
+    /// Pure so it can be tested: a click just past the tolerance must select nothing rather than the
+    /// nearest anchor anywhere.
     /// </remarks>
     public static class FootfallHitTester
     {

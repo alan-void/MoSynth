@@ -4,11 +4,9 @@ namespace Lmm
 /// Where each block of a decompressed pose vector starts, read off the checkpoint at load.
 /// </summary>
 /// <remarks>
-/// The layout is Python's — <c>lmm.dataset.pose_vector_layout</c> — and this is the C# side reading
-/// it back rather than declaring it a second time. That matters because blocks are appended over
-/// time and every earlier block of an older checkpoint still slices out correctly, so a width alone
-/// cannot tell a stale file from a current one. <see cref="TryBind"/> checks the names, in order,
-/// and refuses anything it does not recognise instead of reading a new block off an old offset.
+/// The layout is declared once, by <c>lmm.dataset.pose_vector_layout</c>, and read back here.
+/// <see cref="TryBind"/> checks block names in order, because a total width alone cannot tell a
+/// stale checkpoint from a current one.
 /// </remarks>
 public readonly struct PoseVectorLayout
 {
@@ -24,8 +22,8 @@ public readonly struct PoseVectorLayout
     public readonly int AngularVelocities;
 
     /// <summary>
-    /// The root bone's height above the ground plane, one float. Its other two coordinates are
-    /// what the character frame transform removed, so this is all of its position that is free.
+    /// The root bone's height above the ground plane, one float; its ground-plane coordinates are
+    /// zero in the character frame.
     /// </summary>
     public readonly int RootHeight;
 

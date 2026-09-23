@@ -10,10 +10,8 @@ namespace AnimationTools.Editor
     /// was read from as a strip, and the footfall anchors as things you can drag.
     /// </summary>
     /// <remarks>
-    /// The dense bands are a cached texture and the anchors are vector-drawn, which is the split
-    /// that matters: a band never needs hit-testing and would cost a primitive per frame if drawn
-    /// as one, while an anchor needs a pixel-accurate hit rect at any zoom and has to follow a drag
-    /// without the texture being rebuilt.
+    /// The dense bands are a cached texture; the anchors are vector-drawn so they hit-test at any
+    /// zoom and follow a drag without a texture rebuild.
     /// </remarks>
     [ClipComponentTrack(typeof(GaitPhaseComponent))]
     public sealed class GaitPhaseTrack : AnimationClipComponentTrack
@@ -213,10 +211,8 @@ namespace AnimationTools.Editor
                 return;
             }
 
-            // Key events go through the raw event type, never GetTypeForControl: that method
-            // returns Ignore for a key unless GUIUtility.keyboardControl is this control, and the
-            // lane's control is Passive so it never can be. Filtering clicks by it is still right -
-            // they must respect hotControl.
+            // Keys use the raw event type, never GetTypeForControl, which ignores a key unless this
+            // (Passive) control owns keyboardControl. Clicks still filter by it to respect hotControl.
             if (e.type == EventType.KeyDown && context.IsFocused &&
                 !EditorGUIUtility.editingTextField)
             {
@@ -384,9 +380,8 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>
-        /// The selection translated back to list indices, which is what <see cref="FootfallEdits"/>
-        /// still speaks - an anchor carries a foot, so its edits are not the tag lane's key
-        /// arithmetic. Re-derived per use because anchors are re-sorted on every write.
+        /// The selection as list indices, which <see cref="FootfallEdits"/> works in. Re-derived per
+        /// use because anchors are re-sorted on every write.
         /// </summary>
         private HashSet<int> SelectedIndices(GaitPhaseComponent phase)
         {
@@ -531,10 +526,9 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>
-        /// The one place that mutates the component directly rather than through a serialized
-        /// property, because <see cref="GaitPhaseComponent.TryDetect"/> rewrites the anchor list
-        /// itself. Anything pending is committed first, and the serialized copy re-read after, so
-        /// the two views never disagree.
+        /// The one place that mutates the component directly, because
+        /// <see cref="GaitPhaseComponent.TryDetect"/> rewrites the anchor list itself. Pending edits
+        /// are committed first and the serialized copy re-read after.
         /// </summary>
         private void Detect(ClipEditorContext editor, GaitPhaseComponent phase)
         {
@@ -603,8 +597,8 @@ namespace AnimationTools.Editor
         }
 
         /// <summary>
-        /// Counts, stride, and the two ways the phase is known to go wrong. This is the part of the
-        /// tool that tells you whether the detection worked, so it stays prominent.
+        /// Counts, stride, and the two ways the phase is known to go wrong: the check on whether
+        /// detection worked.
         /// </summary>
         private void DrawSummary(ClipEditorContext editor, GaitPhaseComponent phase)
         {
@@ -703,7 +697,7 @@ namespace AnimationTools.Editor
                 ? (Color)GaitPhaseSignalBuilder.LeftContact
                 : (Color)GaitPhaseSignalBuilder.RightContact;
 
-            var planted = IsPlantedOn(context.Editor, context.ClipFrame, left);
+            var planted = IsPlantedOn(context.ClipFrame, left);
             context.Draw.DrawWireSphere(context.BonePositions[boneIndex], planted ? 0.06f : 0.035f, colour);
 
             _trajectory.Clear();
@@ -721,7 +715,7 @@ namespace AnimationTools.Editor
             context.Draw.DrawPolyline(_trajectory, colour);
         }
 
-        private bool IsPlantedOn(ClipEditorContext editor, int clipFrame, bool left)
+        private bool IsPlantedOn(int clipFrame, bool left)
         {
             if (_contacts == null) return false;
 

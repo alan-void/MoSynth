@@ -37,7 +37,7 @@ def contacts_for(n_frames: int) -> np.ndarray:
 def phase_for(n_frames: int):
     """
     The steady cycle those footfalls imply -- half a turn per footfall -- as Unity would have
-    evaluated and written it. Authored here because this side no longer derives phase.
+    evaluated and written it. Authored here because this side does not derive phase.
     """
     slope = np.pi / CONTACT_PERIOD
     unwrapped = np.arange(n_frames, dtype=np.float64) * slope
@@ -72,8 +72,7 @@ class BoneSelectionTests(unittest.TestCase):
         np.testing.assert_array_equal(selected, [0, 2])
 
     def test_an_unknown_exclusion_is_an_error_not_a_no_op(self):
-        # Silently ignoring it would train a different model than the config describes, and the
-        # first symptom would be a checkpoint that no longer loads.
+        # Silently ignoring it would train a different model than the config describes.
         with self.assertRaises(ValueError) as raised:
             pfnn_dataset.select_bones(self.NAMES, self.PARENTS, ['sipne'])
         self.assertIn('sipne', str(raised.exception))
@@ -269,9 +268,7 @@ class CheckpointBlockTests(unittest.TestCase):
         pfnn_dataset.check_output_blocks(self.names, self.layout)
 
     def test_a_checkpoint_missing_the_newest_block_is_refused_by_name(self):
-        # Blocks are appended, so every block an older checkpoint does carry still slices out
-        # correctly and the new one comes back truncated rather than raising. A width alone cannot
-        # tell the two apart, which is why the names are stored.
+        # Blocks are appended, so a width alone cannot tell an older checkpoint from a current one.
         with self.assertRaises(ValueError) as raised:
             pfnn_dataset.check_output_blocks(self.names[:-1], self.layout)
         self.assertIn('future_directions', str(raised.exception))
@@ -306,17 +303,13 @@ class LossWeightTests(unittest.TestCase):
                                    msg=f'{name} took the wrong share of the loss')
 
     def test_the_two_future_blocks_share_one_blocks_worth_between_them(self):
-        # Positions and directions are one prediction written as two blocks. Left at one each they
-        # would take two blocks' worth of the gradient off the pose for a single thing to learn.
+        # Positions and directions are one prediction written as two blocks.
         self.assertAlmostEqual(self.share_of('future_positions')
                                + self.share_of('future_directions'),
                                self.share_of('joint_rotations_6d'), places=5)
 
     def test_a_narrow_block_outweighs_a_wide_one_in_exact_proportion(self):
-        # The point of the exercise: on the real skeleton the root delta is three floats beside a
-        # hundred and thirty-two of joint rotation, so unweighted it holds 1.5% of the gradient --
-        # which is how a model comes to creep forward while standing, creeping having cost it
-        # almost nothing. A float of a block half as wide is worth exactly twice as much.
+        # A float of a block half as wide is worth exactly twice as much.
         def per_float(name):
             offset, count = next((o, c) for n, o, c in self.layout if n == name)
             return float(self.weights[offset:offset + count].mean()), count

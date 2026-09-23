@@ -1,11 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Unity.Mathematics;
 
 namespace AnimationTools
 {
-    /* Thanks to: https://theorangeduck.com/page/spring-roll-call */
+    /// <summary>
+    /// Critically damped springs and dampers, from Daniel Holden's
+    /// <a href="https://theorangeduck.com/page/spring-roll-call">spring roll call</a>; local names
+    /// (y, j0, j1, eyedt) follow that article.
+    /// </summary>
     public static class Spring
     {
         /// <summary>
@@ -47,10 +48,10 @@ namespace AnimationTools
         public static void CharacterPositionUpdate(ref float2 pos, ref float2 velocity, ref float2 acceleration,
                                                    float2 velocityGoal, float halfLife, float deltaTime)
         {
-            float y = HalfLifeToDamping(halfLife) / 2.0f; // this could be precomputed
-            float2 j0 = velocity - velocityGoal;
-            float2 j1 = acceleration + j0 * y;
-            float eyedt = FastNegativeExponent(y * deltaTime); // this could be precomputed if several agents use it the same frame
+            var y = HalfLifeToDamping(halfLife) / 2.0f;
+            var j0 = velocity - velocityGoal;
+            var j1 = acceleration + j0 * y;
+            var eyedt = FastNegativeExponent(y * deltaTime);
 
             pos = eyedt * (((-j1) / (y * y)) + ((-j0 - j1 * deltaTime) / y)) +
                   (j1 / (y * y)) + j0 / y + velocityGoal * deltaTime + pos;
@@ -64,10 +65,10 @@ namespace AnimationTools
         public static void CharacterPositionUpdate(ref float3 pos, ref float3 velocity, ref float3 acceleration,
                                                    float3 velocityGoal, float halfLife, float deltaTime)
         {
-            float y = HalfLifeToDamping(halfLife) / 2.0f; // this could be precomputed
-            float3 j0 = velocity - velocityGoal;
-            float3 j1 = acceleration + j0 * y;
-            float eyedt = FastNegativeExponent(y * deltaTime); // this could be precomputed if several agents use it the same frame
+            var y = HalfLifeToDamping(halfLife) / 2.0f;
+            var j0 = velocity - velocityGoal;
+            var j1 = acceleration + j0 * y;
+            var eyedt = FastNegativeExponent(y * deltaTime);
 
             pos = eyedt * (((-j1) / (y * y)) + ((-j0 - j1 * deltaTime) / y)) +
                   (j1 / (y * y)) + j0 / y + velocityGoal * deltaTime + pos;
@@ -81,10 +82,10 @@ namespace AnimationTools
         /// </summary>
         public static void SimpleSpringDamperImplicit(ref quaternion rot, ref float3 angularVel, quaternion rotGoal, float halfLife, float deltaTime)
         {
-            float y = HalfLifeToDamping(halfLife) / 2.0f; // this could be precomputed
-            float3 j0 = MathExtensions.QuaternionToScaledAngleAxis(MathExtensions.Abs(math.mul(rot, math.inverse(rotGoal))));
-            float3 j1 = angularVel + j0 * y;
-            float eyedt = FastNegativeExponent(y * deltaTime); // this could be precomputed if several agents use it the same frame
+            var y = HalfLifeToDamping(halfLife) / 2.0f;
+            var j0 = MathExtensions.QuaternionToScaledAngleAxis(MathExtensions.Abs(math.mul(rot, math.inverse(rotGoal))));
+            var j1 = angularVel + j0 * y;
+            var eyedt = FastNegativeExponent(y * deltaTime);
 
             rot = math.mul(MathExtensions.QuaternionFromScaledAngleAxis(eyedt * (j0 + j1 * deltaTime)), rotGoal);
             angularVel = eyedt * (angularVel - j1 * y * deltaTime);
@@ -95,10 +96,10 @@ namespace AnimationTools
         /// </summary>
         public static void SimpleSpringDamperImplicit(ref float3 pos, ref float3 velocity, float3 posGoal, float halfLife, float deltaTime)
         {
-            float y = HalfLifeToDamping(halfLife) / 2.0f; // this could be precomputed
-            float3 j0 = pos - posGoal;
-            float3 j1 = velocity + j0 * y;
-            float eyedt = FastNegativeExponent(y * deltaTime); // this could be precomputed if several agents use it the same frame
+            var y = HalfLifeToDamping(halfLife) / 2.0f;
+            var j0 = pos - posGoal;
+            var j1 = velocity + j0 * y;
+            var eyedt = FastNegativeExponent(y * deltaTime);
 
             pos = eyedt * (j0 + j1 * deltaTime) + posGoal;
             velocity = eyedt * (velocity - j1 * y * deltaTime);
@@ -109,10 +110,10 @@ namespace AnimationTools
         /// </summary>
         public static void SimpleSpringDamperImplicit(ref float2 pos, ref float2 velocity, float2 posGoal, float halfLife, float deltaTime)
         {
-            float y = HalfLifeToDamping(halfLife) / 2.0f; // this could be precomputed
-            float2 j0 = pos - posGoal;
-            float2 j1 = velocity + j0 * y;
-            float eyedt = FastNegativeExponent(y * deltaTime); // this could be precomputed if several agents use it the same frame
+            var y = HalfLifeToDamping(halfLife) / 2.0f;
+            var j0 = pos - posGoal;
+            var j1 = velocity + j0 * y;
+            var eyedt = FastNegativeExponent(y * deltaTime);
 
             pos = eyedt * (j0 + j1 * deltaTime) + posGoal;
             velocity = eyedt * (velocity - j1 * y * deltaTime);
@@ -123,10 +124,10 @@ namespace AnimationTools
         /// </summary>
         public static void DecaySpringDamperImplicit(ref quaternion rot, ref float3 angularVel, float halfLife, float deltaTime)
         {
-            float y = HalfLifeToDamping(halfLife) / 2.0f; // this could be precomputed
-            float3 j0 = MathExtensions.QuaternionToScaledAngleAxis(rot);
-            float3 j1 = angularVel + j0 * y;
-            float eyedt = FastNegativeExponent(y * deltaTime); // this could be precomputed if several agents use it the same frame
+            var y = HalfLifeToDamping(halfLife) / 2.0f;
+            var j0 = MathExtensions.QuaternionToScaledAngleAxis(rot);
+            var j1 = angularVel + j0 * y;
+            var eyedt = FastNegativeExponent(y * deltaTime);
 
             rot = MathExtensions.QuaternionFromScaledAngleAxis(eyedt * (j0 + j1 * deltaTime));
             angularVel = eyedt * (angularVel - j1 * y * deltaTime);
@@ -136,9 +137,9 @@ namespace AnimationTools
         /// </summary>
         public static void DecaySpringDamperImplicit(ref float3 pos, ref float3 velocity, float halfLife, float deltaTime)
         {
-            float y = HalfLifeToDamping(halfLife) / 2.0f; // this could be precomputed
-            float3 j1 = velocity + pos * y;
-            float eyedt = FastNegativeExponent(y * deltaTime); // this could be precomputed if several agents use it the same frame
+            var y = HalfLifeToDamping(halfLife) / 2.0f;
+            var j1 = velocity + pos * y;
+            var eyedt = FastNegativeExponent(y * deltaTime);
 
             pos = eyedt * (pos + j1 * deltaTime);
             velocity = eyedt * (velocity - j1 * y * deltaTime);
@@ -148,14 +149,13 @@ namespace AnimationTools
         /// </summary>
         public static void DecaySpringDamperImplicit(ref float value, ref float velocity, float halfLife, float deltaTime)
         {
-            float y = HalfLifeToDamping(halfLife) / 2.0f; // this could be precomputed
-            float j1 = velocity + value * y;
-            float eyedt = FastNegativeExponent(y * deltaTime); // this could be precomputed if several agents use it the same frame
+            var y = HalfLifeToDamping(halfLife) / 2.0f;
+            var j1 = velocity + value * y;
+            var eyedt = FastNegativeExponent(y * deltaTime);
 
             value = eyedt * (value + j1 * deltaTime);
             velocity = eyedt * (velocity - j1 * y * deltaTime);
         }
-
 
         private static float HalfLifeToDamping(float halfLife, float eps = 1e-5f)
         {

@@ -13,6 +13,7 @@ from motion_field.io import ValueFunctionData, load_value_function
 # bone's position within that frame, row 2 the frame's rotation, row 3 the root
 # bone's rotation within it, rows 4+ the remaining joint quaternions.
 
+
 def wrap_angle(angle):
     """Wrap radians into [-pi, pi)."""
     return (np.asarray(angle) + np.pi) % (2.0 * np.pi) - np.pi
@@ -22,11 +23,9 @@ def root_yaw(packed_x: np.ndarray) -> np.ndarray:
     """
     Yaw carried by the character frame's quaternion of a packed pose, in radians.
 
-    Exact rather than approximate: `simulation_frame.derive_frames` builds every
-    frame rotation as [0, sin(psi/2), 0, cos(psi/2)], so it is a pure yaw by
-    construction and reduces to 2*atan2(q.y, q.w). Note the xyzw component order
-    -- the wxyz formula the reference implementation uses would read x and z here
-    and return nonsense.
+    Exact: `simulation_frame.derive_frames` builds every frame rotation as a
+    pure yaw [0, sin(psi/2), 0, cos(psi/2)], so this is 2*atan2(q.y, q.w) in
+    xyzw order.
     """
     root_quat_row = 2
     q = np.asarray(packed_x)[..., root_quat_row, :]
@@ -37,12 +36,9 @@ def state_locomotion_scores(poses_v: np.ndarray, speed_threshold: float) -> np.n
     """
     Per-state "is this state moving" score in [0, 1], from root speed.
 
-    The reference implementation scored states by locomotion-set membership
-    (walk vs jog); with a single set that generalises to moving vs idle, which
-    is the distinction that matters: it is what keeps an idle pose from being a
-    zero-cost place for the reward's heading term to hide in. Ramped rather
-    than thresholded so slow turn-around frames keep partial credit instead of
-    flickering across a cliff.
+    Moving vs idle is what keeps an idle pose from being a zero-cost place for
+    the reward's heading term to hide in. Ramped rather than thresholded so slow
+    turn-around frames keep partial credit.
     """
     speeds = np.linalg.norm(np.asarray(poses_v)[:, 0, :3], axis=-1)
     return np.clip(speeds / max(float(speed_threshold), 1e-6), 0.0, 1.0).astype(np.float32)
@@ -72,11 +68,8 @@ def pack_bone_weights(skeleton: Skeleton, bone_weights, log=print) -> np.ndarray
     """
     Normalize a per-bone weight table onto the feature row order.
 
-    Weights are keyed by joint name rather than by index. The feature rows follow
-    `list(skeleton)`, a depth-first walk, which happens to match the order joints
-    are serialized in but is not guaranteed to -- resolving by name means a
-    reordered skeleton moves the weights with it instead of silently applying
-    them to the wrong bones.
+    Weights are keyed by joint name rather than by index, so a reordered skeleton
+    moves the weights with it instead of silently applying them to the wrong bones.
 
     :param bone_weights: `None`, a `{joint name: weight}` mapping (weight being a
         scalar or a `(position, velocity)` pair), or an array already shaped
@@ -110,13 +103,10 @@ def pack_bone_weights(skeleton: Skeleton, bone_weights, log=print) -> np.ndarray
                              f'got {table.shape}')
         table = np.ascontiguousarray(table, dtype=np.float32)
 
-    # Row 0 is the character frame, which `fk_root_space` pins to the origin with
-    # identity rotation -- its position and velocity are structurally zero, so its
-    # weight cannot change the feature. Normalising it to 1 lets a table that
-    # differs only there collapse to `None` below instead of reading as a metric
-    # change. Row 1 is the rig's root bone, whose translation `build_motion_states`
-    # replaces with the rest-pose offset -- constant across states, so equally
-    # unable to move a distance.
+    # Rows 0 (the character frame, pinned by `fk_root_space`) and 1 (the root bone,
+    # held at its rest offset by `build_motion_states`) are constant across states,
+    # so their weights cannot change a distance; normalising them lets such a table
+    # collapse to `None`.
     table[0] = 1.0
     table[1] = 1.0
 
@@ -129,9 +119,8 @@ def load_bone_weights_file(path: str | None):
     """
     Read a `{"JointName": [pos, vel], ...}` JSON file for the CLIs.
 
-    Unity passes the same mapping straight across PythonNET into
-    `pack_bone_weights`, so this exists only to give the headless entry points
-    parity with the Editor buttons.
+    Unity passes the same mapping straight into `pack_bone_weights`; this gives
+    the headless entry points parity with the Editor buttons.
     """
     if not path:
         return None
@@ -158,11 +147,14 @@ class MotionField:
         """
         Initialize the MotionField.
 
-        :param poses_x: Pose in array format (root, hips, quats) for each state. Shape: (state_count, num_bones + 2, 4)
-        :param poses_v: Pose velocity in array format (root vel, hips vel, rotvecs) for each state, per second. Shape: (state_count, num_bones + 2, 4)
-        :param poses_y: Next pose velocity in array format (root vel, hips vel, rotvecs) for each state, per second. Shape: (state_count, num_bones + 2, 4)
+        :param poses_x: Packed pose (root, hips, quats) per state,
+            (state_count, num_bones + 2, 4).
+        :param poses_v: Packed per-second velocity (root vel, hips vel, rotvecs) per
+            state, (state_count, num_bones + 2, 4).
+        :param poses_y: Packed per-second velocity one frame later, same layout.
         :param skeleton: The Skeleton object used for forward kinematics of the poses.
-        :param frame_time: Seconds per frame of the source database. Velocities are per-second rates, so this is needed to turn them into a one-frame step.
+        :param frame_time: Seconds per frame of the source database; turns the
+            per-second velocities into a one-frame step.
         :param device: 'cuda', 'cpu' or None/'auto' to pick whatever is present.
         :param pos_weight: Weight on the position half of the similarity feature.
         :param vel_weight: Weight on the velocity half of the similarity feature.
@@ -172,11 +164,9 @@ class MotionField:
             chunk * state_count * feature_count * 3 * 4 bytes.
         :param bone_weights: Optional per-joint emphasis on top of
             `pos_weight`/`vel_weight`. See `pack_bone_weights`.
-        :param locomotion_factor: Reward bonus for landing in moving states --
-            the reference implementation's `state_score * factor` term. Without
-            it every reward is <= 0 and a database state that stands still while
-            facing the goal scores a perfect 0 forever, so the policy freezes
-            into any idle pose the data contains. 0 restores that behavior.
+        :param locomotion_factor: Reward bonus for landing in moving states. Without
+            it every reward is <= 0 and an idle state facing the goal scores a
+            perfect 0, so the policy freezes into it. 0 disables the bonus.
         :param locomotion_speed_threshold: Root speed, m/s, at which a state
             counts as fully moving. The score ramps linearly from 0 below it.
         :param value_function_path: Optional `.mffield.npz` enabling `optimal_action`.
@@ -243,9 +233,7 @@ class MotionField:
         indices = np.empty((queries.shape[0], k), dtype=np.int64)
         distances = np.empty((queries.shape[0], k), dtype=np.float32)
 
-        # Chunked because the difference tensor is
-        # chunk * state_count * feature_count * 3 floats -- a few hundred MB at
-        # chunk=64 on this database, and quadratic in the chunk size.
+        # Chunked to bound the chunk * state_count * feature_count * 3 difference tensor.
         for start in range(0, query_tensor.shape[0], chunk):
             q = query_tensor[start:start + chunk].unsqueeze(1)  # (c, 1, F, 3)
             diff = states - q  # (c, S, F, 3)
@@ -321,12 +309,10 @@ class MotionField:
         :return: (x, v), both (action_count, num_bones+2, 4)
         """
         tug_ratio = self.tug_ratio if tug_ratio is None else tug_ratio
-        # The tug is a contraction applied per CALL, so its strength has to
-        # follow the step size: at delta_time < frame_time a fixed ratio pulls
-        # onto a database pose faster than the dt-scaled advance can move away
-        # -- a literal freeze. Compounding it per database frame makes n small
-        # steps tug exactly as much as one full frame. Identity when
-        # delta_time == frame_time, which is what training uses.
+        # The tug is applied per call, so it is compounded per database frame: n
+        # small steps tug as much as one full frame, instead of freezing onto a
+        # database pose. Identity when delta_time == frame_time, as in training.
+        # See openwiki/python/motion-field-policies.md.
         tug_ratio = 1.0 - (1.0 - tug_ratio) ** (delta_time / self.frame_time)
         action_weights = np.ascontiguousarray(action_weights, dtype=np.float32)
         action_count = action_weights.shape[0]
@@ -342,20 +328,13 @@ class MotionField:
 
         current = Pose.from_array(x0)  # from_array copies, so this is writable
 
-        # The frame slot is a PER-FRAME INCREMENT, not a world pose. Database
-        # states are stored in their own character frame (framePos == 0, frame
-        # quat == identity, see motion_field.action_predictor.load_animations) and the tug
-        # below blends against one of them. So 'tug_ratio' would drag an
-        # accumulated world position toward the origin every frame -- a 0.9^n
-        # collapse that reaches the origin in about 30 frames. Unity owns the
-        # world placement anyway and integrates it from the returned velocities
-        # (MotionSynthesisComponent.ApplyPoseToSkeletonTransforms), so zeroing
-        # here also makes training and runtime structurally identical: the frame
-        # of the returned pose is exactly the increment this step produced.
+        # The frame slot is a PER-FRAME INCREMENT, not a world pose: database states
+        # sit in their own character frame, so the tug would otherwise drag an
+        # accumulated world position to the origin. Unity owns world placement and
+        # integrates it from the returned velocities. See openwiki/python/motion-field-policies.md.
         current.rootPos[...] = 0.0
         current.quats[..., 0, :] = (0.0, 0.0, 0.0, 1.0)
 
-        # Blend the neighbour velocities under each action's weights.
         indices = np.asarray(indices)
         gather = 'kbc,ak->abc' if indices.ndim == 1 else 'akbc,ak->abc'
         blended_v = np.einsum(gather, self.poses_v[indices, ...], action_weights)
@@ -384,17 +363,12 @@ class MotionField:
         calls this inside Py.GIL() where an exception surfaces as an opaque
         managed error.
 
-        Whether the file matches the config that will run it is decided in Unity
-        (`MotionFieldConfig.hasTrained`) before this is called, so nothing is
-        re-checked here. The caller does have to get it right, though:
-        every index in the value function is a row of the pose database, so a
-        file trained against a re-extracted `.mmpose` addresses the wrong poses
-        without any symptom this module could detect.
+        Unity (`MotionFieldConfig.hasTrained`) decides whether the file matches the
+        database; nothing here can, since its indices are pose-database rows.
 
-        :param path:
-        :param log: optional `callable(str)` for the outcome. Defaults to
-            `print`, which under PythonNET goes to a stdout Unity does not
-            display -- so Unity passes its own.
+        :param path: the `.mffield.npz` to load.
+        :param log: optional `callable(str)` for the outcome. Defaults to `print`,
+            whose output Unity does not display, so Unity passes its own.
         """
         log = log or print
         self.value_function = load_value_function(path, log=log)
@@ -411,9 +385,8 @@ class MotionField:
         V(s', theta') by bilinear interpolation.
 
         Linear across the two bracketing headings on the task grid, then
-        weighted by the motion-space similarity weights. Sampling the value
-        function at only the discrete database states is what makes it behave as
-        if it were continuous over the whole field.
+        weighted by the motion-space similarity weights, which makes the discrete
+        value function behave as if continuous over the whole field.
 
         :param indices: (n, k) neighbour state ids
         :param weights: (n, k) similarity weights
@@ -434,11 +407,8 @@ class MotionField:
         """
         Reward for landing in a state, using the trained value function.
 
-        This is the Bellman objective the training optimised:
-        `Q = R(s, a) + gamma * V(s')`. The immediate term keeps the runtime
-        consistent with the value iteration -- scoring on the discounted future
-        value alone would optimise something the value function was never fitted
-        to.
+        The Bellman objective the training optimised, `Q = R(s, a) + gamma * V(s')`,
+        immediate term included so the runtime matches the value iteration.
 
         :param theta: the character's current heading in the goal frame, radians
         :param next_x: packed pose after the action, (num_bones+2, 4) or (1, ...)
@@ -463,9 +433,8 @@ class MotionField:
         indices, weights = self.get_batched_knn(self.build_motion_states(next_x, next_v),
                                                 self.value_function.k_neighbors)
         future = self.interpolate_value(indices, weights, theta_prime)
-        # The locomotion bonus is paid on the arrival state, interpolated
-        # through the same neighbourhood as V -- the immediate reward must match
-        # what the value iteration optimised or the argmax drifts off-policy.
+        # The locomotion bonus is paid on the arrival state through the same
+        # neighbourhood as V, matching what the value iteration optimised.
         arrival = np.sum(self.state_scores[indices] * weights, axis=1)
         return (-np.abs(theta_prime) + self.locomotion_factor * arrival
                 + self.value_function.gamma * future)
@@ -480,11 +449,8 @@ class MotionField:
         """
         Step the field along the action with the highest long-term value.
 
-        Unlike `greedy_action`, which only asks which action points the
-        character closest to the goal on the very next frame, this scores each
-        candidate with `R + gamma * V(s')` and so will accept a worse immediate
-        heading when it sets up a better turn. That anticipation is the whole
-        reason for training a value function.
+        Unlike `greedy_action`, this scores each candidate with `R + gamma * V(s')`,
+        so it will accept a worse immediate heading when it sets up a better turn.
 
         :param theta: The character's current heading expressed in the goal
             frame, radians. Unity computes it as
@@ -521,10 +487,8 @@ class MotionField:
         xs, vs = self.compute_new_states(current_x, delta_time, indices, actions,
                                          tug_indices=indices)
 
-        # Heading, plus the locomotion bonus over each action's convex blend of
-        # the neighbourhood. Without the bonus an idle-targeting action wins
-        # every tie: standing produces exactly zero yaw, which beats the yaw
-        # wiggle of any actual walk cycle once the character is aligned.
+        # Heading, plus the locomotion bonus -- without which standing (zero yaw)
+        # beats the yaw wiggle of any walk cycle once the character is aligned.
         arrival = actions @ self.state_scores[indices]
         rewards = (-np.abs(wrap_angle(theta + root_yaw(xs)))
                    + self.locomotion_factor * arrival)
@@ -553,17 +517,13 @@ class MotionField:
         """
         Build motion states from packed pose and velocity. Used to construct the motion field.
 
-        Frame-invariant by construction: `fk_root_space` forces joint 0, the
-        character frame, to the origin with identity rotation, so where the
-        character is in the world never influences which states it matches.
+        Frame-invariant: `fk_root_space` pins joint 0, the character frame, to the
+        origin with identity rotation. Root-translation-invariant too: both FK
+        passes use the root bone's rest offset, since a live one would translate
+        every joint at once and drown the per-joint shape signal.
 
-        Root-translation-invariant too: both FK passes use the root bone's
-        rest-pose offset instead of the pose's own, following the reference
-        metric. A live root offset is a rigid translation of every joint, so
-        it would enter all rows at once and drown the per-joint shape signal
-        this metric exists to compare. Changing the metric here means retraining
-        every field by hand: Unity's staleness check watches config fields, and
-        an edit in this method moves none of them.
+        Changing this metric means retraining every field by hand: Unity's
+        staleness check watches config fields, not this method.
 
         :param x: Packed poses, shape (..., bone_count + 2, 4)
         :param v: Packed per-second velocities, shape (..., bone_count + 2, 4)
@@ -572,10 +532,8 @@ class MotionField:
 
         current_pose = Pose.from_array(x)  # from_array copies, so this is writable
 
-        # Joint 1 is the rig's root bone; joint 0 is the character frame, which
-        # carries no rest offset of its own. The exact offset is irrelevant --
-        # any constant cancels when two states are subtracted -- it only has to
-        # be the SAME for every state.
+        # Joint 1 is the rig's root bone. Any constant offset cancels between
+        # states; it only has to be the SAME for every state.
         rest_hips = list(self.skeleton)[1].default_local_position
         current_pose.hipPos[...] = rest_hips
 
@@ -613,10 +571,8 @@ class MotionField:
         """
         The last policy decision, as flat lists for PythonNET marshalling.
 
-        `chosen_slot` indexes into the returned neighbour list, so the pose the
-        tug pulled toward is `indices[chosen_slot]` -- that is exactly the value
-        handed to `compute_new_states(tug_indices=...)`, not a re-derivation of
-        it, so the Unity highlight cannot drift out of sync with the policy.
+        `chosen_slot` indexes into the returned neighbour list; `indices[chosen_slot]`
+        is exactly the tug target the policy used, not a re-derivation of it.
 
         :return: (neighbour_indices, similarity_weights, chosen_slot).
             ([], [], -1) before the first `optimal_action`/`greedy_action` call

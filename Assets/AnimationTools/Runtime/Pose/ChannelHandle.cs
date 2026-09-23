@@ -1,17 +1,14 @@
 namespace AnimationTools
 {
-// Index is an offset into StateBuffer.Data, not a section-local element index, so reading through
-// a handle costs no layout arithmetic. That also means a handle bound against one layout would
-// address arbitrary floats in a buffer built from another, so each handle carries the LayoutHash
-// it was bound against and every accessor asserts the match. LayoutHash is the right equivalence
-// class rather than an approximation: it covers every channel's content (and, for pose layouts,
-// the skeleton), so equal hashes mean identical offsets. It is also what StateBuffer.CopyFrom
-// asserts on, so handle validity and copy compatibility agree by construction.
-
 /// <summary>
 /// A handle to one channel of a <see cref="StateBuffer"/>, procured by presenting the channel's
 /// <see cref="ChannelDescriptor"/> to <see cref="StateBufferLayout.BindChannel"/>.
 /// </summary>
+/// <remarks>
+/// Index is an absolute offset into the buffer's data, so a handle is only valid against the layout
+/// it was bound to; it carries that LayoutHash and every accessor asserts the match. See
+/// openwiki/animation-tools/channel-layout-system.md.
+/// </remarks>
 public readonly struct ChannelHandle
 {
     internal readonly int Index;

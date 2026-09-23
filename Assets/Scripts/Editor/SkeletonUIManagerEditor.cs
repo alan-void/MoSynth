@@ -8,7 +8,7 @@ public class SkeletonUIManagerEditor : Editor
     {
         DrawDefaultInspector();
 
-        SkeletonUIManager manager = (SkeletonUIManager)target;
+        var manager = (SkeletonUIManager)target;
 
         GUILayout.Space(15);
         if (GUILayout.Button("Open Bone Selector Window", GUILayout.Height(30)))

@@ -13,10 +13,8 @@ namespace MotionMatching
 /// pipeline skeleton and draws it as a gizmo-free debug marker. Never mutates the pose.
 /// </summary>
 /// <remarks>
-/// Same test as <see cref="AnimationTools.PoseExtractor"/> uses when baking contacts — character
-/// velocity of the bone against a threshold, over the same skeleton. What it sees is not the same
-/// input, though: this is the pose the whole pipeline produced, after searching and blending, so it
-/// answers "is this foot planted right now" rather than "which frames will the next bake mark".
+/// Same velocity-threshold test <see cref="AnimationTools.PoseExtractor"/> bakes contacts with, but
+/// applied to the pipeline's output pose rather than to database frames.
 /// </remarks>
 [Serializable]
 public class ContactVisualizerStage : MoSynthStage
@@ -33,9 +31,8 @@ public class ContactVisualizerStage : MoSynthStage
     private MotionSynthesisComponent _component;
     private Skeleton _skeleton;
 
-    // A private copy of the pipeline pose, in a layout that adds one Bool channel per configured
-    // contact bone. The pipeline's own layout only carries the two built-in foot contacts, and a
-    // read-only stage must not change the layout everything else shares.
+    // A private copy of the pipeline pose with one extra Bool channel per contact bone, since a
+    // read-only stage must not change the layout every other stage shares.
     private PoseBuffer _buffer;
 
     private SkeletonData _skeletonData;

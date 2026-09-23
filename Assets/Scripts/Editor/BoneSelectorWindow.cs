@@ -8,7 +8,6 @@ using UnityEngine.UIElements;
 
 public class BoneSelectorWindow : EditorWindow
 {
-    private bool _isEditMode;
     private BoneNode _selectedNode;
 
     private VisualElement _canvas;
@@ -16,9 +15,10 @@ public class BoneSelectorWindow : EditorWindow
 
     private SkeletonUIManager _uiManager;
     private ObjectField _uiManagerField;
+
     public static void ShowWindow(SkeletonUIManager uiManager)
     {
-        BoneSelectorWindow wnd = CreateWindow<BoneSelectorWindow>();
+        var wnd = CreateWindow<BoneSelectorWindow>();
         wnd.titleContent = new GUIContent("Bone Selector");
         wnd._uiManager = uiManager;
         wnd._uiManagerField.SetValueWithoutNotify(uiManager);
@@ -30,7 +30,7 @@ public class BoneSelectorWindow : EditorWindow
 
     public void CreateGUI()
     {
-        VisualElement root = rootVisualElement;
+        var root = rootVisualElement;
         root.style.flexDirection = FlexDirection.Column;
 
         // Toolbar
@@ -129,8 +129,6 @@ public class BoneSelectorWindow : EditorWindow
 
             btn.style.backgroundColor = new Color(0.3f, 0.5f, 0.8f);
             btn.AddManipulator(new NodeDragManipulator(btn, node, this));
-            // btn.AddManipulator(new Clickable(() => SelectNodeForEdit(node)));
-            // btn.RemoveManipulator(btn.clickable);
             btn.clickable.clicked += () => SelectNodeForEdit(node);
 
             if (!string.IsNullOrEmpty(node.id))
@@ -275,8 +273,6 @@ public class NodeDragManipulator : PointerManipulator
         _startMousePosition = evt.position;
         _startElementPosition = new Vector2(_targetElement.layout.x, _targetElement.layout.y);
         target.CapturePointer(evt.pointerId);
-        // window.SelectNodeForEdit(nodeData);
-        // evt.StopPropagation();
     }
 
     private void OnPointerMove(PointerMoveEvent evt)
@@ -295,7 +291,6 @@ public class NodeDragManipulator : PointerManipulator
         _isDragging = false;
         target.ReleasePointer(evt.pointerId);
 
-        // Save new position
         _nodeData.rect.x = _targetElement.layout.x;
         _nodeData.rect.y = _targetElement.layout.y;
         _window.SaveProfile();

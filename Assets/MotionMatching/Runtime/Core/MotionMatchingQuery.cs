@@ -9,16 +9,9 @@ namespace MotionMatching
 /// like a database feature vector so the two compare directly.
 /// </summary>
 /// <remarks>
-/// Shared by <see cref="MotionMatchingStage"/> and the learned matcher, and that sharing is the
-/// point rather than a convenience. The two methods are meant to be compared against each other on
-/// one database, so a second implementation of "what is the character being asked to do" — even one
-/// that started as a faithful copy — would make the comparison measure the difference between two
-/// query builders as much as the difference between two matchers.
-/// <para>
-/// The pose half is <em>not</em> here, because that is the one place the two genuinely differ: the
-/// classic matcher reads it out of the frame it is playing, while a learned one carries it in the
-/// state its networks advance.
-/// </para>
+/// Shared by <see cref="MotionMatchingStage"/> and the learned matcher so both are asked exactly the
+/// same question; the pose half differs between them and so is not here.
+/// See openwiki/motion-matching/learned-motion-matching.md.
 /// </remarks>
 public static class MotionMatchingQuery
 {
@@ -41,7 +34,6 @@ public static class MotionMatchingQuery
         MotionMatchingControlInput controlInput, Transform character, Span<float> query,
         NativeArray<float> featureWeights, NativeArray<float> authoredFeatureWeights)
     {
-        // One slice per prediction horizon.
         for (var i = 0; i < mmData.trajectoryFeatures.Count; i++)
         {
             var featureDef = mmData.trajectoryFeatures[i];

@@ -1,14 +1,11 @@
 """
 The compressor, decompressor, stepper and projector networks.
 
-The test that earns its place here is the exportability guard. Learned motion matching is worth
-having over a database search because a few small networks can run anywhere, and that stops being
-true the moment something in the forward pass cannot be exported to ONNX. A ``torch.where`` added
-in good faith would cost nothing measurable in training and quietly close off the Unity-native
-inference path, so the constraint is asserted rather than left in the module docstring.
+The exportability guard matters most: anything in the forward pass that cannot be exported to
+ONNX would quietly close off the Unity-native inference path, so the constraint is asserted here.
 
-Torch is optional here, as it is in ``test_pfnn_model``: the suite's stated property is that it
-needs neither Unity nor venv extras, and learned motion matching must not be what takes that away.
+Torch is optional here, as it is in ``test_pfnn_model``: the suite needs neither Unity nor venv
+extras.
 """
 
 import os
@@ -115,8 +112,7 @@ class ShapeTests(unittest.TestCase):
         self.assertEqual(projector.output_size, stepper.input_size)
 
     def test_the_stepper_takes_the_same_vector_the_decompressor_takes(self):
-        # Not a coincidence worth preserving by luck: the stage carries one copy of (X, Z) and
-        # hands it to both, so a second normalisation could not be got right in only one of them.
+        # The stage carries one copy of (X, Z) and hands it to both.
         stepper = lmm_model.Stepper(FEATURE_SIZE, LATENT_SIZE)
         decompressor = lmm_model.Decompressor(FEATURE_SIZE, LATENT_SIZE, POSE_SIZE)
 

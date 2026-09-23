@@ -19,7 +19,7 @@ def read_skeleton(f) -> tuple[Skeleton, int, np.ndarray]:
     Unity writes this block because the Python side has no ScriptableObject to read the bone
     tree from: names key the per-bone weight table, parent indices drive FK, and the rest
     offsets give root-space positions. It lives in the same file as the poses so that the two
-    cannot drift apart -- which is what the separate .mmskeleton file used to allow.
+    cannot drift apart.
 
     The character frame the poses are matched in is structural rather than stored: it is read
     off joint 0, along the bone-local axis that points forward in the rest pose. Both fall out
@@ -50,12 +50,11 @@ def read_skeleton(f) -> tuple[Skeleton, int, np.ndarray]:
               Rotation.from_quat(datum['rest_rotation']))
         for datum in skeleton_data
     ]
-    for joint_idx, joint in enumerate(joints):
-        datum = skeleton_data[joint_idx]
+    for joint, datum in zip(joints, skeleton_data):
         parent_idx = int(datum['parent_index'])
-        if parent_idx == -1: continue
-        parent_joint = joints[parent_idx]
-        parent_joint.add_child(joint)
+        if parent_idx == -1:
+            continue
+        joints[parent_idx].add_child(joint)
 
     assert joints[0].parent() is None, "root bone should be the first bone"
 
@@ -84,25 +83,20 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
         raise FileNotFoundError(f"Could not find {file_name}.mmpose at {path}")
 
     with open(pose_path, 'rb') as f:
-        # 1. Deserialize Skeleton
         skeleton, sim_frame_bone_index, sim_frame_forward = read_skeleton(f)
 
-        # 2. Deserialize Pose Data
-        # Read Clips
         n_clips = struct.unpack('<I', f.read(4))[0]
         clips = []
         frame_time = 0.0
         for _ in range(n_clips):
             start = struct.unpack('<I', f.read(4))[0]
             end = struct.unpack('<I', f.read(4))[0]
-            f_time = struct.unpack('<f', f.read(4))[0]
+            # Every clip in a database shares one frame rate, so the last one read stands.
+            frame_time = struct.unpack('<f', f.read(4))[0]
             clips.append({'start': start, 'end': end})
-            frame_time = f_time  # Overwritten per clip, usually constant across a PoseSet
 
-        # Read Header Counts
         n_poses, n_joints, n_tags = struct.unpack('<I I I', f.read(12))
 
-        # Pre-allocate numpy arrays for fast assignment
         pos = np.zeros((n_poses, n_joints, 3), dtype=np.float32)
         quats = np.zeros((n_poses, n_joints, 4), dtype=np.float32)
         vel = np.zeros((n_poses, n_joints, 3), dtype=np.float32)
@@ -110,28 +104,18 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
 
         foot_contacts = np.zeros((n_poses, 2), dtype=bool)
 
-        # Read Poses
         for i in range(n_poses):
-            # JointLocalPositions (float3 = 12 bytes per joint)
             pos[i] = np.frombuffer(f.read(n_joints * 12), dtype=np.float32).reshape(n_joints, 3)
-
-            # JointLocalRotations (quaternion = 16 bytes per joint)
             quats[i] = np.frombuffer(f.read(n_joints * 16), dtype=np.float32).reshape(n_joints, 4)
-
-            # JointLocalVelocities
             vel[i] = np.frombuffer(f.read(n_joints * 12), dtype=np.float32).reshape(n_joints, 3)
-
-            # JointLocalAngularVelocities
             ang_vel[i] = np.frombuffer(f.read(n_joints * 12), dtype=np.float32).reshape(n_joints, 3)
 
-            # Foot Contacts (uint = 4 bytes each)
             left_contact = struct.unpack('<I', f.read(4))[0] == 1
             right_contact = struct.unpack('<I', f.read(4))[0] == 1
             foot_contacts[i] = [left_contact, right_contact]
 
-        # Gait phase and its rate, one pair per pose. Unity evaluates these from each clip's
-        # authored footfalls and writes them here so that nothing on this side reconstructs
-        # phase from the contacts -- which is how the two definitions used to drift apart.
+        # Gait phase and its rate, one pair per pose, evaluated by Unity from each clip's
+        # authored footfalls so that nothing on this side reconstructs phase from contacts.
         phase_block = f.read(n_poses * 8)
         if len(phase_block) < n_poses * 8:
             raise ValueError(
@@ -141,7 +125,6 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
         phase_pairs = np.frombuffer(phase_block, dtype=np.float32).reshape(n_poses, 2)
         phase, phase_rate = phase_pairs[:, 0].copy(), phase_pairs[:, 1].copy()
 
-        # Read Tags
         tags = []
         for _ in range(n_tags):
             tag_name = read_csharp_string(f)
@@ -158,7 +141,6 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
                 'ranges': ranges
             })
 
-    # 3. Instantiate the Python PoseSet
     pose_set = PoseSet(
         skeleton=skeleton,
         frame_time=frame_time,
@@ -172,12 +154,8 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
         phase_rate=phase_rate,
     )
 
-    # Optionally attach data not directly in the __init__ definition to the python object
     pose_set.tags = tags
     pose_set.sim_frame_bone_index = sim_frame_bone_index
     pose_set.sim_frame_forward = sim_frame_forward
 
     return pose_set
-
-# Example Usage:
-# my_pose_set = deserialize_pose_set("path/to/directory", "RunAnimation")

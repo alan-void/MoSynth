@@ -13,16 +13,9 @@ namespace AnimationTools.Editor
 /// path, one character alive at a time, writing a report when the queue empties.
 /// </summary>
 /// <remarks>
-/// The queue lives on the Editor side and is pumped from <see cref="EditorApplication.update"/>
-/// rather than from a MonoBehaviour, for two reasons. Loading path and character prefabs needs
-/// <see cref="AssetDatabase"/>, which has no business in the runtime assembly; and driving the
-/// sweep from outside the scene means no state has to survive between runs. The only runtime piece
-/// is <see cref="BenchmarkLapProbe"/>, which answers the one question the Editor cannot: has this
-/// character been round the path yet.
-/// <para>
-/// Runs never overlap. Two characters sharing a frame would contend for the same cores and the same
-/// Python GIL, and the cost metrics would then measure that contention rather than either method.
-/// </para>
+/// Pumped from <see cref="EditorApplication.update"/> because loading prefabs needs
+/// <see cref="AssetDatabase"/>; <see cref="BenchmarkLapProbe"/> is the only runtime piece. Runs
+/// never overlap, or the cost metrics would measure contention for cores and the Python GIL.
 /// </remarks>
 [InitializeOnLoad]
 public static class SynthesisBenchmarkDriver
@@ -41,8 +34,8 @@ public static class SynthesisBenchmarkDriver
     private const int CooldownTicks = 2;
 
     /// <summary>
-    /// Ticks to wait for play mode after arming. A sweep that never gets there — a compile error, a
-    /// scene that refuses to load — has to fail loudly rather than hang a headless run forever.
+    /// Ticks to wait for play mode after arming, so a sweep that never gets there fails instead of
+    /// hanging a headless run.
     /// </summary>
     private const int PlayModeTimeoutTicks = 600;
 
@@ -71,14 +64,13 @@ public static class SynthesisBenchmarkDriver
 
     static SynthesisBenchmarkDriver()
     {
-        // Re-arms on the far side of the play-mode domain reload. Harmless on every other reload:
-        // without a plan file there is nothing to do.
+        // Re-arms on the far side of the play-mode domain reload.
         if (File.Exists(SynthesisBenchmarkPlan.PlanPath)) Arm();
     }
 
     /// <summary>
     /// Starts watching for play mode so the sweep begins as soon as it starts. Idempotent, and safe
-    /// to call either side of a domain reload — whichever call survives is the one that runs.
+    /// to call either side of a domain reload.
     /// </summary>
     public static void Arm()
     {
@@ -111,9 +103,7 @@ public static class SynthesisBenchmarkDriver
 
     private static void Step()
     {
-        // Play mode ending under the sweep takes the scene with it. Every later run would then spawn
-        // into nothing and record a destroyed-object error, so stop at the first sign of it and keep
-        // the runs that did finish.
+        // Play mode ending takes the scene with it; stop and keep the runs that did finish.
         if (_phase != Phase.WaitingForPlayMode && _phase != Phase.Complete && !EditorApplication.isPlaying)
         {
             Debug.LogError($"[Benchmark] Play mode ended after {Results.Count} run(s); the sweep was cut short.");
@@ -167,8 +157,7 @@ public static class SynthesisBenchmarkDriver
     {
         _plan = JsonUtility.FromJson<SynthesisBenchmarkPlan>(File.ReadAllText(SynthesisBenchmarkPlan.PlanPath));
 
-        // Deleted as soon as it has been read: from here the sweep lives in memory, and a leftover
-        // file would restart it on the next domain reload.
+        // A leftover plan file would restart the sweep on the next domain reload.
         File.Delete(SynthesisBenchmarkPlan.PlanPath);
 
         _config = AssetDatabase.LoadAssetAtPath<SynthesisBenchmarkConfig>(_plan.configAssetPath);
@@ -185,19 +174,16 @@ public static class SynthesisBenchmarkDriver
         _recordingsDirectory = Path.Combine(_plan.outputDirectory, "recordings");
         Directory.CreateDirectory(_recordingsDirectory);
 
-        // An unfocused Editor otherwise throttles to a few ticks a second, which would stretch a
-        // headless sweep out to nothing useful.
+        // An unfocused Editor otherwise throttles to a few ticks a second.
         Application.runInBackground = true;
 
         if (_config.fixedTimestep && _config.synthesisFrameRate > 1e-5f)
         {
-            // Decouples the run from the wall clock: every rendered frame advances exactly one
-            // synthesis tick, so the sweep runs as fast as the CPU allows and produces the same
-            // tick count every time.
+            // Every rendered frame advances exactly one synthesis tick, decoupled from the wall
+            // clock, so the tick count is the same every time.
             Time.captureDeltaTime = 1f / _config.synthesisFrameRate;
 
-            // With frames no longer tied to real time, vsync is the only thing left that would
-            // still pace them — and it would silently undo the fast-forward in a windowed Editor.
+            // Vsync would otherwise still pace the frames in a windowed Editor.
             _restoreVSyncCount = QualitySettings.vSyncCount;
             QualitySettings.vSyncCount = 0;
         }
@@ -223,8 +209,8 @@ public static class SynthesisBenchmarkDriver
 
         if (_methodIndex >= _config.methods.Count)
         {
-            // This path is done. Advancing the index here, rather than inferring "new path" from a
-            // null instance, keeps a vanished instance from silently restarting the method list.
+            // This path is done. Advancing explicitly, rather than inferring a new path from a null
+            // instance, keeps a vanished instance from restarting the method list.
             if (_pathInstance != null) Object.DestroyImmediate(_pathInstance);
             _pathInstance = null;
             _spline = null;
@@ -252,10 +238,8 @@ public static class SynthesisBenchmarkDriver
 
         try
         {
-            // Instantiated under an inactive holder so Awake does not run until the character has
-            // been placed and its overrides applied. MotionSynthesisComponent seeds its pose from
-            // the transforms in Awake, so a character that wakes at the origin and is moved
-            // afterwards starts with a bogus root velocity.
+            // Under an inactive holder so Awake waits until the character is placed and overridden:
+            // MotionSynthesisComponent seeds its pose from the transforms in Awake.
             _character = Object.Instantiate(method.characterPrefab, _spawnHolder.transform);
             _character.name = method.name;
 
@@ -268,8 +252,7 @@ public static class SynthesisBenchmarkDriver
                 throw new InvalidOperationException(
                     $"\"{method.characterPrefab.name}\" has no component implementing IMotionSynthesisSplineControlInput.");
 
-            // The path is assigned before placing: the input cannot say which way to face on a path
-            // it has not been given yet.
+            // Assigned before placing: the input decides which way to face.
             input.SplineContainer = _spline;
 
             PlaceAtPathStart(_character.transform, synthesizer.transform, _spline, input);
@@ -285,8 +268,7 @@ public static class SynthesisBenchmarkDriver
             if (!HasOverride<SynthesisFrameRateOverride>(method))
                 synthesizer.synthesisFrameRate = _config.synthesisFrameRate;
 
-            // Reparenting to the scene root activates the character, which is what finally runs
-            // Awake — by now against the placed transform.
+            // Reparenting to the scene root activates the character and runs Awake.
             _character.transform.SetParent(null, worldPositionStays: true);
 
             if (!synthesizer.isActiveAndEnabled || synthesizer.PoseLayout == null)
@@ -365,8 +347,7 @@ public static class SynthesisBenchmarkDriver
 
         if (_recorder == null || _probe == null)
         {
-            // The run never really happened — recording an empty row would put a zero into the
-            // report as if it were a measurement.
+            // An empty row would read as a measured zero.
             Debug.LogError($"[Benchmark] {method.name} on {pathName} lost its recorder or probe; no row written.");
             DestroyCharacter();
             return;
@@ -376,25 +357,22 @@ public static class SynthesisBenchmarkDriver
         {
             method = method.name,
             path = pathName,
-            timedOut = _probe != null && _probe.TimedOut,
-            completedLaps = _probe != null ? _probe.CompletedLaps : 0f,
-            durationSeconds = _probe != null ? _probe.ElapsedSeconds : 0f
+            timedOut = _probe.TimedOut,
+            completedLaps = _probe.CompletedLaps,
+            durationSeconds = _probe.ElapsedSeconds
         };
 
         // Read before the character is destroyed: the target speed lives on its control input.
         var targetSpeed = FindTargetSpeed();
 
-        _probe?.End();
-        _recorder?.StopRecording();
+        _probe.End();
+        _recorder.StopRecording();
         _costChannel?.DisposeRecorder();
 
         try
         {
-            if (_recorder != null)
-            {
-                result.recordingFile = Path.GetFileName(_recorder.ManifestPath);
-                BenchmarkRunEvaluator.Evaluate(_recorder.ManifestPath, _config, targetSpeed, _spline, result);
-            }
+            result.recordingFile = Path.GetFileName(_recorder.ManifestPath);
+            BenchmarkRunEvaluator.Evaluate(_recorder.ManifestPath, _config, targetSpeed, _spline, result);
         }
         catch (Exception e)
         {
@@ -421,8 +399,7 @@ public static class SynthesisBenchmarkDriver
 
     private static void DestroyCharacter()
     {
-        // Immediate rather than deferred, so stage teardown — which for the motion field releases
-        // Python state — has finished before the next run's cost is measured.
+        // Immediate, so stage teardown (Python state included) finishes before the next run.
         if (_character != null) Object.DestroyImmediate(_character);
         _character = null;
         _recorder = null;
@@ -446,9 +423,7 @@ public static class SynthesisBenchmarkDriver
         _pathInstance = null;
         _spawnHolder = null;
 
-        // Written whenever there is anything to write, not only on success: a sweep that was cut
-        // short still produced real numbers for the runs that completed, and throwing those away
-        // helps nobody. Success governs the exit code alone.
+        // Written even on failure: completed runs are real numbers. Success governs the exit code.
         if (_config != null && _plan != null && Results.Count > 0)
         {
             try
@@ -494,21 +469,17 @@ public static class SynthesisBenchmarkDriver
     }
 
     /// <summary>
-    /// Puts the character on the first point of the path, facing along it. Starting anywhere else
-    /// spends the settle time walking to the path, which makes the first lap a measure of the
-    /// approach rather than of the following.
+    /// Puts the character on the first point of the path, facing along it, so the first lap measures
+    /// following rather than the approach.
     /// </summary>
     /// <param name="character">The spawned prefab root, which is what actually gets moved.</param>
     /// <param name="characterFrame">
-    /// The transform that has to end up on the path. This is the synthesis component's own
-    /// transform, not the prefab root — it is what root motion drives and what every measurement
-    /// reads, and in these character prefabs it sits about two metres off the root.
+    /// The synthesis component's own transform, which root motion drives and every measurement
+    /// reads. It need not coincide with the prefab root.
     /// </param>
     /// <param name="input">
     /// The control input about to drive the character, already given <paramref name="container"/>.
-    /// It decides the facing, so a path carrying its own facing spawns the character strafing or
-    /// backpedalling when that is what it was authored to do; the path's own start direction is only
-    /// the fallback.
+    /// It decides the facing; the path's own start direction is only the fallback.
     /// </param>
     public static void PlaceAtPathStart(Transform character, Transform characterFrame, SplineContainer container,
         IMotionSynthesisSplineControlInput input)
@@ -529,9 +500,8 @@ public static class SynthesisBenchmarkDriver
             ? Quaternion.LookRotation(forward.normalized, Vector3.up)
             : characterFrame.rotation;
 
-        // Move the root by whatever delta lands the character frame on the path, so the character's
-        // internal offsets survive. Rotation first: the translation is measured after it, against
-        // where the frame has ended up.
+        // Move the root by whatever delta lands the character frame on the path. Rotation first:
+        // the translation is measured against where the frame ends up.
         var deltaRotation = rotation * Quaternion.Inverse(characterFrame.rotation);
         character.rotation = deltaRotation * character.rotation;
         character.position += worldPosition - characterFrame.position;
@@ -561,8 +531,7 @@ public static class SynthesisBenchmarkDriver
 
     /// <summary>
     /// The path prefabs this sweep will run, in a stable order. The folder wins over the explicit
-    /// list when set, so adding a path is a matter of dropping a prefab in rather than editing the
-    /// config; candidates without a SplineContainer are reported and skipped.
+    /// list when set; candidates without a SplineContainer are reported and skipped.
     /// </summary>
     private static List<GameObject> ResolvePathPrefabs(SynthesisBenchmarkConfig config)
     {

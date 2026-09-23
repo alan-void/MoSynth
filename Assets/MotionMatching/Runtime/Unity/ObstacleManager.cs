@@ -20,8 +20,8 @@ namespace MotionMatching
 
         public event Action<List<Obstacle>> OnObstaclesUpdated;
 
-        private List<Obstacle> Obstacles = new();
-        private bool ObstaclesUpdated = false;
+        private readonly List<Obstacle> _obstacles = new();
+        private bool _obstaclesUpdated;
 
         private void Awake()
         {
@@ -31,39 +31,38 @@ namespace MotionMatching
             }
             else
             {
-                Debug.LogError("Multiple instances of CrowdObstacleManager detected.");
+                Debug.LogError($"Multiple instances of {nameof(ObstacleManager)} detected.");
             }
         }
 
         public List<Obstacle> GetObstacles()
         {
-            return Obstacles;
+            return _obstacles;
         }
 
         public void RegisterObstacle(Obstacle obstacle)
         {
-            if (!Obstacles.Contains(obstacle))
+            if (!_obstacles.Contains(obstacle))
             {
-                Obstacles.Add(obstacle);
-                ObstaclesUpdated = true;
+                _obstacles.Add(obstacle);
+                _obstaclesUpdated = true;
             }
         }
 
         public void UnregisterObstacle(Obstacle obstacle)
         {
-            if (Obstacles.Contains(obstacle))
+            if (_obstacles.Remove(obstacle))
             {
-                Obstacles.Remove(obstacle);
-                ObstaclesUpdated = true;
+                _obstaclesUpdated = true;
             }
         }
 
         private void LateUpdate()
         {
-            if (ObstaclesUpdated)
+            if (_obstaclesUpdated)
             {
-                OnObstaclesUpdated?.Invoke(Obstacles);
-                ObstaclesUpdated = false;
+                OnObstaclesUpdated?.Invoke(_obstacles);
+                _obstaclesUpdated = false;
             }
         }
     }

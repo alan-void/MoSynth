@@ -31,14 +31,14 @@ public struct PoseLayoutData
 }
 
 /// <summary>
-/// A <see cref="StateBufferLayout"/> tied to a skeleton: the six built-in channel kinds get named
-/// sections (<see cref="Data"/>) so pose consumers can address positions/rotations/etc. without
-/// handles. This layout IS the pose file's self-description: a serialized pose asset is expected
-/// to store enough of it to reconstruct a <see cref="PoseLayout"/> without external context.
-/// Structurally-equal skeletons from different sources (e.g. a <see cref="PoseSet"/>'s skeleton and
-/// a deserialized one with the same bones) share one cached layout instance, which is what lets
-/// <see cref="PoseBuffer.CopyFrom"/> work between frames built over either.
+/// A <see cref="StateBufferLayout"/> tied to a skeleton, whose six built-in channel kinds get named
+/// sections (<see cref="Data"/>) addressable without handles.
 /// </summary>
+/// <remarks>
+/// A serialized pose file stores enough of this to rebuild it without external context.
+/// Structurally equal skeletons share one cached instance, which is what lets
+/// <see cref="PoseBuffer.CopyFrom"/> work between frames built over either.
+/// </remarks>
 public sealed class PoseLayout : StateBufferLayout
 {
     public const int PoseFormatVersion = 1;

@@ -30,18 +30,18 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
     [FormerlySerializedAs("FeatureType")] public Type featureType;
 
     [FormerlySerializedAs("predictionFrame")] [FormerlySerializedAs("framesPrediction")] [FormerlySerializedAs("FramesPrediction")]
-    public int[] predictionFrames = Array.Empty<int>(); // Number of frames in the future for each point of the trajectory
+    public int[] predictionFrames = Array.Empty<int>(); // Frames ahead of the query frame per sample; negative samples the past
 
     [FormerlySerializedAs("SimulationBone")]
-    public bool
-        simulationBone; // Sample the derived simulation frame instead of a bone of the rig
+    public bool simulationBone; // Sample the derived simulation frame instead of a bone of the rig
 
     [FormerlySerializedAs("Bone")]
-    public SkeletonBone bone = new(); // Bone used to compute the trajectory in the feature set
+    public SkeletonBone bone = new();
 
-    [FormerlySerializedAs("ZeroX")] public bool zeroX; // Zero the X, Y and/or Z component of the trajectory feature
-    [FormerlySerializedAs("ZeroY")] public bool zeroY; // Zero the X, Y and/or Z component of the trajectory feature
-    [FormerlySerializedAs("ZeroZ")] public bool zeroZ; // Zero the X, Y and/or Z component of the trajectory feature
+    // Masked axes are not stored at all, which is what makes a prediction one to three floats wide.
+    [FormerlySerializedAs("ZeroX")] public bool zeroX;
+    [FormerlySerializedAs("ZeroY")] public bool zeroY;
+    [FormerlySerializedAs("ZeroZ")] public bool zeroZ;
 
     public string Name => name;
 
@@ -140,7 +140,6 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
         else
         {
             var worldRotation = skeleton.CharacterSpaceRotation(pose, boneIndex);
-            // Forward vector of the joint in its own local space, taken from the rig's rest pose.
             worldDirection = math.mul(worldRotation, mmData.GetLocalForward(boneIndex));
         }
 

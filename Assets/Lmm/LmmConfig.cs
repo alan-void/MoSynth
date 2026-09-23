@@ -11,17 +11,10 @@ namespace Lmm
 /// learns, which bones it predicts, the shape of the networks, and the training hyperparameters.
 /// </summary>
 /// <remarks>
-/// Unlike <c>PfnnConfig</c> and <c>MotionFieldConfig</c>, this owns no pose database. It points at
-/// a <see cref="MotionMatchingData"/> and reads both halves of that asset's generated output — the
-/// poses it learns to reconstruct and the <em>same</em> matching feature vectors the classic
-/// matcher searches. That is deliberate and it is the whole basis of the comparison: a learned
-/// matcher answering a differently shaped query would not be replacing the search, it would be
-/// doing a different job.
-/// <para>
-/// Its own artefact is one file, <c>&lt;name&gt;.lmm.npz</c>, under
-/// <c>StreamingAssets/Lmm/&lt;name&gt;/</c>. See the wiki's learned motion matching page for what
-/// the networks do with it.
-/// </para>
+/// Owns no pose database: it reads a <see cref="MotionMatchingData"/>'s poses and the <em>same</em>
+/// feature vectors the classic matcher searches, which is the basis of the comparison. Its own
+/// artefact is <c>StreamingAssets/Lmm/&lt;name&gt;/&lt;name&gt;.lmm.npz</c>. See
+/// openwiki/motion-matching/learned-motion-matching.md.
 /// </remarks>
 [CreateAssetMenu(fileName = "LmmConfig", menuName = "MoSynth/Learned Motion Matching Config")]
 public class LmmConfig : ScriptableObject
@@ -43,13 +36,9 @@ public class LmmConfig : ScriptableObject
     /// Bones the decompressor does not predict, by name.
     /// </summary>
     /// <remarks>
-    /// Hidden from the default inspector on purpose: as a raw list this is anonymous strings in
-    /// whatever order they were clicked. <c>LmmConfigEditor</c> draws it as the skeleton hierarchy
-    /// with a toggle per bone instead. Sparse and keyed by name, so a joint that moves in the
-    /// hierarchy takes its setting with it.
-    ///
-    /// Excluding a bone excludes its whole subtree — see
-    /// <see cref="PredictedBoneSelection"/> for why a rotation needs its parent's frame.
+    /// Sparse and keyed by name, so a joint that moves in the hierarchy keeps its setting;
+    /// <c>LmmConfigEditor</c> draws it as the skeleton hierarchy. Excluding a bone excludes its
+    /// whole subtree — see <see cref="PredictedBoneSelection"/>.
     /// </remarks>
     [HideInInspector] public List<string> excludedBones = new();
 
@@ -60,11 +49,9 @@ public class LmmConfig : ScriptableObject
     /// features first. Expanded into per-float weights by <see cref="ExpandFeatureWeights"/>.
     /// </summary>
     /// <remarks>
-    /// These live on the config rather than on the stage, which is the opposite of
-    /// <c>MotionMatchingStage</c>, because training has to see them: the projector learns
-    /// to approximate a nearest-neighbour lookup under a particular metric, and one fitted against
-    /// uniform weights would approximate a search nobody runs. They go into the checkpoint and the
-    /// stage refuses a checkpoint whose weights no longer match.
+    /// On the config rather than the stage (unlike <c>MotionMatchingStage</c>) because the projector
+    /// is trained under this metric. They go into the checkpoint, and the stage refuses a checkpoint
+    /// whose weights no longer match.
     /// </remarks>
     [Tooltip("One weight per feature definition, trajectory features first. Training sees these, " +
              "so changing one means retraining.")]
@@ -104,10 +91,8 @@ public class LmmConfig : ScriptableObject
     /// Database frames the stepper is unrolled over while training.
     /// </summary>
     /// <remarks>
-    /// It has to cover the search cadence, because that is how long the state runs uncorrected: a
-    /// <c>searchInterval</c> of 10/60 s is ten frames of a 60 Hz database, so the default is two
-    /// searches' worth. Raising it costs training time in proportion — the unrolling is sequential
-    /// — and buys nothing the stage will ever ask for unless <c>searchInterval</c> rises with it.
+    /// Must cover the stage's search interval, which is how long the state runs uncorrected; the
+    /// default is two searches' worth at 10/60 s on a 60 Hz database. Cost is linear in it.
     /// </remarks>
     [Tooltip("Frames the stepper is unrolled over. It has to cover the stage's search interval, " +
              "which is how long the state runs uncorrected.")]
@@ -122,11 +107,8 @@ public class LmmConfig : ScriptableObject
     /// Held-out scores without an improvement before the stepper fit stops. 0 never stops early.
     /// </summary>
     /// <remarks>
-    /// This, not <see cref="stepperIterations"/>, is the stopping rule. On Edinburgh the stepper's
-    /// held-out score bottoms out around iteration 2,000 and rises monotonically after it, so a
-    /// fixed count is nine parts waste — and the right count is a property of how much independent
-    /// motion the database holds rather than something to guess per run. The autoencoder has no
-    /// equivalent knob because its held-out curve is still falling when it hits its own limit.
+    /// This, not <see cref="stepperIterations"/>, is the stopping rule. See
+    /// openwiki/motion-matching/learned-motion-matching.md.
     /// </remarks>
     [Tooltip("Held-out scores without an improvement before the stepper fit stops. This is the " +
              "real stopping rule; 0 disables it and runs to Stepper Iterations.")]
@@ -141,9 +123,7 @@ public class LmmConfig : ScriptableObject
     /// Fit the projector, which replaces the search itself. Needs <see cref="trainStepper"/>.
     /// </summary>
     /// <remarks>
-    /// The <c>Full</c> mode runs both networks — the projector answers a search and the stepper
-    /// carries that answer to the next one — so a checkpoint is refused if it carries one without
-    /// the other. Turning the stepper off turns this off with it.
+    /// The <c>Full</c> mode runs both networks, so turning the stepper off turns this off with it.
     /// </remarks>
     [Header("Projector")]
     [Tooltip("Fit the projector, which answers a query with a state instead of looking one up. " +
@@ -163,10 +143,9 @@ public class LmmConfig : ScriptableObject
     /// How far a training query is displaced from the database frame it was drawn from.
     /// </summary>
     /// <remarks>
-    /// The projector exists to answer a query no frame matches, so it is trained on queries that
-    /// genuinely miss. Each sample is displaced by a fraction of this drawn uniformly, so one
-    /// batch spans a query a frame answers almost exactly and one nothing answers well. Raising it
-    /// buys behaviour further from the data at the cost of accuracy near it.
+    /// Each sample is displaced by a uniform fraction of this, so a batch spans queries from
+    /// near-exact to far from any frame. Raising it trades accuracy near the data for behaviour
+    /// further from it.
     /// </remarks>
     [Tooltip("How far training queries are displaced, in units of each feature's own spread plus " +
              "one. The projector only learns to answer a query that misses if it is shown one.")]
@@ -217,8 +196,7 @@ public class LmmConfig : ScriptableObject
 
     /// <summary>
     /// Whether the checkpoint on disk was trained on the config as it now stands. Cleared by any
-    /// inspector edit — the change check cannot tell which field moved, so it over-flags rather
-    /// than miss one that matters.
+    /// inspector edit, since the change check cannot tell which field moved.
     /// </summary>
     [HideInInspector] public bool hasTrained;
 
@@ -230,10 +208,7 @@ public class LmmConfig : ScriptableObject
     /// <summary>The trained networks and baked latents, shipped with the player.</summary>
     public string GetCheckpointPath() => Path.Combine(GetAssetPath(), name + ".lmm.npz");
 
-    /// <summary>
-    /// <see cref="device"/> as the literal the Python side expects, so the string lives in one
-    /// place rather than at every call site.
-    /// </summary>
+    /// <summary><see cref="device"/> as the literal the Python side expects.</summary>
     public string DeviceName => device switch
     {
         ComputeDevice.Cuda => "cuda",
@@ -276,9 +251,7 @@ public class LmmConfig : ScriptableObject
     /// bakes them into a checkpoint.
     /// </summary>
     /// <remarks>
-    /// Three implementations of one expansion would be two too many; this is the C# one, and the
-    /// stage compares its result against the checkpoint's, which is how a disagreement is caught
-    /// rather than quietly trained around.
+    /// The stage compares this result against the checkpoint's, so a disagreement is caught.
     /// </remarks>
     public void ExpandFeatureWeights(FeatureSet featureSet, float[] destination)
     {
@@ -310,8 +283,8 @@ public class LmmConfig : ScriptableObject
     /// Include or exclude one bone, keeping <see cref="excludedBones"/> sparse.
     /// </summary>
     /// <remarks>
-    /// Only ever call this with a whole subtree — see <see cref="excludedBones"/>. The editor's
-    /// toggle does that; nothing here can enforce it, because a config does not know the hierarchy.
+    /// Callers must apply it to a whole subtree (see <see cref="excludedBones"/>); the config does
+    /// not know the hierarchy, so it cannot enforce that.
     /// </remarks>
     public void SetPredicted(string boneName, bool predicted)
     {

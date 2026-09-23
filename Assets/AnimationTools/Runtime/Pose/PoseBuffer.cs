@@ -9,16 +9,9 @@ namespace AnimationTools
 /// (<see cref="PoseLayoutData"/>) that gives positions/rotations/etc. typed slice access.
 /// </summary>
 /// <remarks>
-/// <see cref="PoseBuffer"/> is a VIEW struct, exactly like <see cref="NativeArray{T}"/>
-/// itself: copying a PoseBuffer copies the view, not the data — every copy aliases the
-/// same underlying <see cref="Data"/> array. Ownership follows the usual Native* rule:
-/// whoever calls <see cref="Allocate"/> is responsible for calling <see cref="Dispose"/>.
-/// Component-lifetime buffers should use <see cref="Allocator.Persistent"/> and dispose in
-/// OnDestroy; short-lived scratch buffers should use <see cref="Allocator.Temp"/>.
-/// <para/>
-/// Generic channel access forwards to <see cref="State"/>; anything that only needs
-/// handle-addressed floats can take a <see cref="StateBuffer"/> and rely on the implicit
-/// conversion.
+/// A view struct with <see cref="StateBuffer"/>'s aliasing and ownership rules: copies share
+/// <see cref="Data"/>, and whoever calls <see cref="Allocate"/> calls <see cref="Dispose"/>.
+/// Converts implicitly to <see cref="StateBuffer"/> for handle-addressed access.
 /// </remarks>
 public struct PoseBuffer
 {

@@ -14,9 +14,8 @@ namespace AnimationTools
 /// <c>action</c> is answered by every clip annotated below it and the vocabulary can be refined
 /// without re-annotating what already exists.
 /// <para>
-/// This is the author the <c>.mmpose</c> tag block never had. It does not feed that block yet:
-/// nothing reads tags out of the pose database, so writing them there would only be dead weight
-/// with a database regeneration attached. See <c>openwiki/animation-tools/clip-tags.md</c>.
+/// Deliberately not written into the <c>.mmpose</c> tag block, since nothing reads tags from the
+/// pose database. See openwiki/animation-tools/clip-tags.md.
 /// </para>
 /// </remarks>
 [Serializable]
@@ -45,9 +44,8 @@ public sealed class AnimationTagComponent : AnimationClipComponent
 
     /// <summary>Normalises every channel and merges channels that name the same tag.</summary>
     /// <remarks>
-    /// Deliberately does not touch keys for lying outside the clip's current range. Trimming a clip
-    /// changes which frames are extracted, not what is true about the animation, so it must not
-    /// destroy annotation - and it used to, on every validate, permanently.
+    /// Never drops keys for lying outside the clip's current range: trimming changes which frames
+    /// are extracted, not what is true about the animation.
     /// </remarks>
     public override void OnValidate(AnnotatedAnimationClip clip)
     {
@@ -55,8 +53,7 @@ public sealed class AnimationTagComponent : AnimationClipComponent
 
         channels.RemoveAll(channel => channel == null);
 
-        // Two channels for one tag would each answer for it, and a query would see whichever came
-        // first. Folding them is the only reading that keeps a channel the single truth about a tag.
+        // A channel must be the single truth about its tag; with two, a query sees whichever is first.
         for (var i = 0; i < channels.Count; i++)
         {
             for (var j = channels.Count - 1; j > i; j--)

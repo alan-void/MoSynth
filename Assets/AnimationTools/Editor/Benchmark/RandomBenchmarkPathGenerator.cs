@@ -11,10 +11,8 @@ namespace AnimationTools.Editor
 /// Writes a seeded batch of random benchmark paths as <c>SplineContainer</c> prefabs.
 /// </summary>
 /// <remarks>
-/// The standard suite answers "what was this method asked to do" by construction — four shapes, each
-/// isolating one demand. A random batch keeps that answerable a different way: the seed and slot are
-/// in the prefab name, and geometry is a pure function of the two, so a report row identifies the
-/// exact curve it was measured on.
+/// The seed and slot are in the prefab name and geometry is a pure function of the two, so a report
+/// row identifies the exact curve it was measured on.
 /// </remarks>
 public static class RandomBenchmarkPathGenerator
 {
@@ -37,8 +35,7 @@ public static class RandomBenchmarkPathGenerator
         RandomPathSettings settings,
         bool clearExisting)
     {
-        // The generated objects have to live in some scene to be saved as prefabs. An empty
-        // untitled one keeps that side effect off whatever the user was working in.
+        // Prefabs are saved from scene objects; an empty scene keeps that off the user's own.
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         if (clearExisting) DeleteAll();
@@ -75,9 +72,8 @@ public static class RandomBenchmarkPathGenerator
     /// The shape figure worth seeing for the family, appended to the path's line in the report.
     /// </summary>
     /// <remarks>
-    /// Nothing constrains how tightly a smooth path turns any more, so the log is where that number
-    /// surfaces. On a linear-tangent path a corner is a curvature singularity, which would make the
-    /// same number meaningless noise, so the corner angle stands in for it.
+    /// Nothing constrains how tightly a smooth path turns, so the log is where that number surfaces.
+    /// A sharp path's corners are curvature singularities, so the corner angle stands in for it.
     /// </remarks>
     private static string Describe(RandomPathKind kind, Spline spline) =>
         RandomPathShapes.IsSmooth(kind)
@@ -85,8 +81,7 @@ public static class RandomBenchmarkPathGenerator
             : $"sharpest corner {RandomPathShapes.MaxTurnAngleDegrees(spline):0} deg";
 
     /// <summary>
-    /// Removes the whole random paths folder. Deleting through the AssetDatabase rather than the file
-    /// system is what keeps the .meta files from being orphaned.
+    /// Removes the whole random paths folder, through the AssetDatabase so no .meta is orphaned.
     /// </summary>
     public static bool DeleteAll()
     {

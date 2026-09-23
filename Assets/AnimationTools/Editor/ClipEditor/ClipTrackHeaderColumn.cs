@@ -9,9 +9,8 @@ namespace AnimationTools.Editor
     /// its two toggles, with an Add Component button under the last of them.
     /// </summary>
     /// <remarks>
-    /// Drawn inside the same scroll view as the lanes so the two can never scroll out of step, and
-    /// so the Add Component button sits under the list the way the Inspector's does. The column's
-    /// width lives on <see cref="ClipTimelineView"/>, which owns the drag that changes it.
+    /// Drawn inside the same scroll view as the lanes so the two never scroll out of step. The
+    /// column's width lives on <see cref="ClipTimelineView"/>, which owns the drag that changes it.
     /// </remarks>
     public static class ClipTrackHeaderColumn
     {
@@ -35,8 +34,7 @@ namespace AnimationTools.Editor
 
             if (Event.current.type == EventType.Repaint)
             {
-                // No right edge: ClipTimelineView draws one continuous line down the whole
-                // gutter, which a per-row edge would only double up on.
+                // No right edge: ClipTimelineView draws one continuous line down the gutter.
                 EditorGUI.DrawRect(rect, isFocused ? FocusedBackground : Background);
                 EditorGUI.DrawRect(new Rect(rect.x, rect.yMax - 1f, rect.width, 1f), Separator);
             }
@@ -133,10 +131,7 @@ namespace AnimationTools.Editor
             e.Use();
         }
 
-        /// <summary>
-        /// The Inspector's Add Component button, in the Inspector's place: under the component list
-        /// rather than off in the toolbar.
-        /// </summary>
+        /// <summary>The Add Component button, under the component list as in the Inspector.</summary>
         public static void DrawAddComponent(Rect rect, Action onClick)
         {
             if (onClick == null) return;

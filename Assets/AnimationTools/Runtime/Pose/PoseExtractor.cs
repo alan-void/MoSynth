@@ -4,14 +4,14 @@ using Unity.Collections;
 namespace AnimationTools
 {
 /// <summary>
-/// Extracts full pose for Motion Matching from BVHAnimation
+/// Extracts full poses, their rates, foot contacts and gait phase from an annotated clip into a
+/// <see cref="PoseSet"/>.
 /// </summary>
 public static class PoseExtractor
 {
     /// <summary>
-    /// Extract the poses from bvhAnimation and store it in poseSet
-    /// poseSet is not cleared, it will add bvhAnimation the the existing poses
-    /// Returns true if the bvhAnimation was added to the poseSet, false otherwise
+    /// Appends the clip's poses to <paramref name="poseSet"/> without clearing it. False when the
+    /// clip's skeleton does not match the pose set's and nothing was added.
     /// </summary>
     public static bool Extract(AnnotatedAnimationClip animationClip, PoseSet poseSet, IPoseSetSource source)
     {
@@ -32,17 +32,16 @@ public static class PoseExtractor
             return false;
         }
 
-        // Set Poses
-        var nFrames = animationClip.FrameCount;
+        var frameCount = animationClip.FrameCount;
 
-        var frames = poseSet.BeginClip(nFrames - 1, animationClip.FrameTime);
+        var frames = poseSet.BeginClip(frameCount - 1, animationClip.FrameTime);
 
-        for (var i = 0; i < nFrames - 1; i++)
+        for (var i = 0; i < frameCount - 1; i++)
         {
             ExtractPose(frames[i], animationClip, i);
         }
 
-        for (var i = 0; i < nFrames - 2; i++)
+        for (var i = 0; i < frameCount - 2; i++)
         {
             ExtractPoseVelocities(frames[i], frames[i + 1], animationClip);
         }
@@ -50,7 +49,7 @@ public static class PoseExtractor
         var lastPose = PoseBuffer.Allocate(poseSet.PoseLayout, Allocator.Temp);
         try
         {
-            ExtractPose(lastPose, animationClip, nFrames - 1);
+            ExtractPose(lastPose, animationClip, frameCount - 1);
             ExtractPoseVelocities(frames[frames.Count - 1], lastPose, animationClip);
         }
         finally
@@ -136,7 +135,7 @@ public static class PoseExtractor
         if (BoneNameConventions.TryFindContactBone(skeleton, left, out var heuristicIndex)) return heuristicIndex;
 
         Debug.LogError($"{(left ? "Left" : "Right")}Toes not found in BVHAnimation");
-        return 0; // legacy TryFind left a default joint (index 0) on failure
+        return 0;
     }
 
     /// <summary>

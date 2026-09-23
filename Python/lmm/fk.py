@@ -1,22 +1,18 @@
 """
 Forward kinematics over a bone selection, in the two forms the learned motion matching code needs.
 
-The loss of Holden et al. 2020 is written in *two spaces*: a pose is predicted joint-locally and
-then scored again after forward kinematics, "which ensure the output pose changes smoothly in
-time". So FK has to be differentiable and run inside the training step, which is what
-:func:`forward_kinematics` is for. :func:`forward_kinematics_reference` is the same map written in
-numpy and scipy, kept because a silent axis, order or handedness error in the torch version would
-not throw -- it would just train against a slightly wrong character space -- and two independent
-spellings agreeing is the only cheap way to catch that. ``test_lmm_fk`` holds them to each other
-and both to the database.
+The loss of Holden et al. 2020 scores a pose joint-locally and again after forward kinematics, so
+:func:`forward_kinematics` is differentiable and runs inside the training step.
+:func:`forward_kinematics_reference` is the same map in numpy and scipy: an axis, order or
+handedness error in the torch version would not throw, so ``test_lmm_fk`` holds the two to each
+other and both to the database.
 
-Conventions are inherited unchanged from :mod:`training.training_data`: quaternions xyzw, y-up left-handed
-with the character facing +z, every rate per second.
+Conventions are inherited unchanged from :mod:`training.training_data`: quaternions xyzw, y-up
+left-handed with the character facing +z, every rate per second.
 
-**The root's translation is not predicted.** Its ``x`` and ``z`` are what the character frame
-transform removed, so they are zero by construction; only its height above the ground is free, and
-that is the one float :func:`forward_kinematics` takes beside the rotations. Every other bone sits
-at its rest offset from its parent, which is why a reconstructed pose cannot violate a bone length.
+**The root's translation is not predicted.** Its ``x`` and ``z`` are zero in the character frame by
+construction, so only its height is free. Every other bone sits at its rest offset from its parent,
+so a reconstructed pose cannot violate a bone length.
 """
 
 from __future__ import annotations
@@ -43,10 +39,9 @@ def rest_offsets(positions: np.ndarray, rotations: np.ndarray, parents: np.ndarr
     """
     Each bone's offset from its parent, in the parent's own space.
 
-    Recovered from one character-space frame rather than read from the skeleton, because a
-    :class:`training.training_data.TrainingSet` carries no rest transforms. It is constant across frames --
-    that is what makes it recoverable at all -- and ``test_lmm_fk`` checks it by taking a different
-    frame and getting the same answer.
+    Recovered from one character-space frame, because a
+    :class:`training.training_data.TrainingSet` carries no rest transforms; the offset is the same
+    in every frame, which ``test_lmm_fk`` checks.
 
     :param positions: (n_bones, 3) joint positions of one frame, in the character frame.
     :param rotations: (n_bones, 4) joint rotations of that frame, xyzw, in the character frame.
@@ -68,8 +63,7 @@ def local_rotations(rotations: np.ndarray, parents: np.ndarray) -> np.ndarray:
     """
     Character-space joint rotations expressed against their parent instead.
 
-    The decompressor regresses these rather than character-space rotations, because that is what a
-    rig is posed with and what makes the character-space error of a deep chain a *consequence* of
+    The decompressor regresses these, so a deep chain's character-space error is a consequence of
     the prediction rather than a separate output that can disagree with it.
 
     :param rotations: (n, n_bones, 4) character-space rotations, xyzw.
@@ -103,8 +97,7 @@ def six_d_to_matrix(six: torch.Tensor) -> torch.Tensor:
     """
     The two-axis rotation representation as a rotation matrix, by Gram-Schmidt.
 
-    Differentiable, and the torch counterpart of :func:`training.training_data.rotations_from_6d` -- which
-    goes on to a quaternion, a step nothing here needs.
+    Differentiable; the torch counterpart of :func:`training.training_data.rotations_from_6d`.
 
     :param six: (..., 6) two concatenated columns.
     :return: (..., 3, 3) with the columns orthonormalised.
@@ -126,11 +119,9 @@ class Hierarchy:
     """
     A bone selection grouped by depth, with the index tensors forward kinematics gathers through.
 
-    Everything at one depth can be posed in a single batched product, because none of them is an
-    ancestor of another -- which turns FK from one small matrix multiply per bone into one per
-    *level*, about nine for a locomotion rig against twenty-seven bones. The indices are built once
-    and held on the device for the same reason: rebuilding them per call means a host-to-device
-    copy per level, which on a step this small costs more than the arithmetic it feeds.
+    Bones at one depth are never ancestors of each other, so FK takes one batched product per
+    *level* rather than per bone. The indices are built once and held on the device to avoid a
+    host-to-device copy per level per call.
 
     :param parents: (n_bones,) parent index within the selection, -1 for the root. Must be in
         depth-first order, so a bone's parent precedes it.

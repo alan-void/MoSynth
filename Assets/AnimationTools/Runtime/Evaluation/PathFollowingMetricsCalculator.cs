@@ -37,25 +37,13 @@ public class PathFollowingMetricsResult
 /// <summary>
 /// Pure metrics for how well a recorded run followed a spline path. Everything here is XZ-flattened
 /// (height is ignored) and the spline container transform is assumed unscaled, same as
-/// <see cref="MotionField.MotionFieldSplineControlInput"/> — scaling it would skew arc-length math.
+/// <c>MotionFieldSplineControlInput</c> — scaling it would skew arc-length math.
 /// </summary>
 public static class PathFollowingMetricsCalculator
 {
     /// <summary>
-    /// Evaluates path-following quality for one run against one spline.
-    ///
-    /// Three metrics are computed, all XZ-flattened:
-    /// - <b>Trajectory error</b>: per analysis frame, the XZ distance from the root to the nearest
-    ///   point on the spline — how far off the path the character is, regardless of pace.
-    /// - <b>Heading error</b>: the angle between the root's forward direction and the spline's
-    ///   tangent at the nearest point, per analysis frame.
-    /// - <b>Velocity error</b>: the (smoothed) actual XZ speed, finite-differenced from consecutive
-    ///   analysis-frame positions, compared against the constant target speed.
-    ///
-    /// Frames before <paramref name="settleTime"/> are dropped so start-up transients don't skew
-    /// the result. All inputs are world-space; the spline is evaluated in its own local space via
-    /// <paramref name="splineLocalToWorld"/>, matching <see cref="SplineUtility.GetNearestPoint"/>'s
-    /// contract.
+    /// Evaluates trajectory, heading and velocity error for one run against one spline, dropping
+    /// frames before <paramref name="settleTime"/>. See openwiki/animation-tools/path-following-metrics.md.
     /// </summary>
     /// <param name="spline">The path being followed, in its own local space.</param>
     /// <param name="splineLocalToWorld">The spline container's localToWorldMatrix. Must be unscaled;
@@ -67,11 +55,9 @@ public static class PathFollowingMetricsCalculator
     /// <see cref="float.NaN"/> when the control input has no speed model — velocity error is then NaN.</param>
     /// <param name="settleTime">Seconds at the start of the recording to exclude, giving the
     /// character time to reach the path from its spawn point.</param>
-    /// <param name="speedSmoothingWindowSeconds">Width in seconds of the moving-average window
-    /// applied to the finite-differenced speed before computing velocity error. Per-tick speed is
-    /// dominated by synthesis jitter (frame switches, inertialization, gait cycle sway), so the raw
-    /// signal would inflate |actual - target|; a window of ~0.2 s keeps gait-level speed changes
-    /// visible while suppressing that noise. 0 (or anything below one frame) disables smoothing.</param>
+    /// <param name="speedSmoothingWindowSeconds">Width in seconds of the moving average over the
+    /// finite-differenced speed, which suppresses per-tick synthesis jitter that would inflate
+    /// velocity error. ~0.2 s keeps gait-level changes; below one frame disables it.</param>
     public static PathFollowingMetricsResult Evaluate(
         Spline spline,
         float4x4 splineLocalToWorld,
@@ -108,9 +94,8 @@ public static class PathFollowingMetricsCalculator
 
         var worldToLocal = math.inverse(splineLocalToWorld);
 
-        // Walked forward across the analysis frames rather than re-derived per frame: on a path that
-        // crosses itself the globally nearest point flips branches at the crossing, which would score
-        // the character against the wrong tangent and manufacture a ~180 degree heading error.
+        // Projected with continuity: a global nearest point flips branches where the path crosses
+        // itself, which would manufacture a ~180 degree heading error.
         var projector = new SplineProjector();
 
         var errorSum = 0.0;
@@ -205,11 +190,8 @@ public static class PathFollowingMetricsCalculator
     }
 
     /// <summary>
-    /// Centered moving average: each sample becomes the mean of itself and up to window/2 neighbours
-    /// on each side. Centered (rather than trailing) so the smoothed speed stays time-aligned with
-    /// the frames it came from instead of lagging by half a window. Near the ends the window is
-    /// truncated to what exists, so edge samples are averaged over fewer neighbours rather than
-    /// padded or dropped.
+    /// Centered moving average over up to window/2 neighbours each side, truncated at the ends.
+    /// Centered so the result does not lag by half a window.
     /// </summary>
     private static float[] SmoothCentered(List<float> raw, int window)
     {

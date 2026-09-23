@@ -9,20 +9,15 @@ using UnityEngine;
 namespace Lmm
 {
 /// <summary>
-/// How much of Learned Motion Matching is actually running. The stages are cumulative, and every
-/// one of them is a permanent ablation rather than a step on the way to the last.
+/// How much of Learned Motion Matching is running. The modes are cumulative permanent ablations:
+/// each replaces one more piece of the classic matcher, so the cost of each can be measured.
 /// </summary>
-/// <remarks>
-/// The point of keeping them is measurement. Each mode replaces one more piece of the classic
-/// matcher with a network, on the same database and the same query, so the cost of each
-/// replacement can be attributed rather than guessed at from the finished article.
-/// </remarks>
+/// <remarks>See openwiki/motion-matching/learned-motion-matching.md.</remarks>
 public enum LmmMode
 {
     /// <summary>
-    /// The decompressor only. The database is still searched and still played frame by frame; what
-    /// changes is that the pose is reconstructed from a latent instead of read out of the
-    /// <c>.mmpose</c>. This isolates reconstruction quality from everything else.
+    /// The decompressor only: the database is still searched and played, but the pose is
+    /// reconstructed from a latent instead of read out of the <c>.mmpose</c>.
     /// </summary>
     DecompressorOnly,
 
@@ -33,9 +28,8 @@ public enum LmmMode
     Stepper,
 
     /// <summary>
-    /// Adds the projector, which replaces the search itself: the query is answered with a state
-    /// rather than looked up, so nothing walks the database and no acceleration structure is
-    /// built over it. This is the whole method.
+    /// Adds the projector, which replaces the search: the query is answered with a state rather
+    /// than looked up, so no acceleration structure is built. This is the whole method.
     /// </summary>
     Full,
 }
@@ -45,36 +39,17 @@ public enum LmmMode
 /// the networks in Python behind PythonNET.
 /// </summary>
 /// <remarks>
-/// Takes <see cref="MotionMatchingStage"/>'s slot in the pipeline and searches the same database
-/// with the same query, built by the same code — see <see cref="MotionMatchingQuery"/>. That is
-/// what makes the two comparable: the only difference in
-/// <see cref="LmmMode.DecompressorOnly"/> is where the pose comes from.
+/// Searches the same database with the same query as <see cref="MotionMatchingStage"/> (see
+/// <see cref="MotionMatchingQuery"/>), which is what makes the two comparable. The state is
+/// <c>(X, Z)</c>: the held feature vector and its latent. In <see cref="LmmMode.DecompressorOnly"/>
+/// the latent table stays in Python and the stage passes a frame index; later modes carry the
+/// state here.
 /// <para>
-/// The state is <c>(X, Z)</c>: the matching feature vector the character is holding, and the latent
-/// beside it. In <see cref="LmmMode.DecompressorOnly"/> both are a function of the frame being
-/// played, so the latent table stays in Python and the stage passes a frame index — a
-/// two-hundred-thousand-row table is not worth marshalling across the boundary for a lookup that is
-/// free on the other side. In <see cref="LmmMode.Stepper"/> the state is no longer any database
-/// row, so the stage carries it and hands it back each tick.
+/// <b>Never splice the controller's trajectory into <c>X</c> between searches</b>: the stepper and
+/// decompressor consume <c>X</c> whole, and a spliced trajectory pairs with a latent never seen in
+/// training. The controller enters through the query on search ticks only.
 /// </para>
-/// <para>
-/// <see cref="LmmMode.Full"/> carries the same state and reads the database for nothing but the
-/// query's own shape: the projector answers a search with a state instead of a frame, so the
-/// acceleration structure is never built. The asset is still referenced, because the control
-/// inputs read its trajectory horizons and <see cref="FeatureSet"/> loads the poses beside the
-/// features — the projector removes the search, not the dependency.
-/// </para>
-/// <para>
-/// <b>The controller's trajectory is never spliced into <c>X</c> between searches.</b> The stepper
-/// advances all thirty-three floats together and the decompressor consumes them whole, so
-/// overwriting the trajectory half every tick would hand it a trajectory paired with a latent it
-/// never saw in training. The controller enters through the query, on search ticks, and nowhere
-/// else.
-/// </para>
-/// <para>
-/// See the wiki's learned motion matching page for the vector layouts and the training-time
-/// definitions these have to agree with.
-/// </para>
+/// <para>See openwiki/motion-matching/learned-motion-matching.md.</para>
 /// </remarks>
 [Serializable]
 public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
@@ -94,9 +69,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     public bool reloadPythonModules = true;
 
     /// <summary>
-    /// How the database is searched. The same swappable strategy <see cref="MotionMatchingStage"/>
-    /// uses, so the two methods can be held to one search and differ only in what they do with the
-    /// answer.
+    /// How the database is searched; the same strategy type <see cref="MotionMatchingStage"/> uses,
+    /// so the two methods can be held to one search.
     /// </summary>
     [SerializeReference] [SubclassSelector]
     public MotionMatchingSearch mmSearch = new BvhMotionMatchingSearch();
@@ -109,11 +83,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// A candidate must beat the state already held by this factor to be taken.
     /// </summary>
     /// <remarks>
-    /// This is what <c>MotionMatchingStage.minFrameSwitchDistance</c> becomes here. That rule
-    /// suppresses a jump to a nearby <em>frame</em>, which is meaningless once the pose is
-    /// reconstructed rather than indexed — in later modes there is no frame to be near. A relative
-    /// bar says the same thing in the only terms all three modes share: take the candidate when it
-    /// is enough better, not merely different.
+    /// Stands in for <c>MotionMatchingStage.minFrameSwitchDistance</c>, since in later modes there is
+    /// no held frame for a candidate to be near.
     /// </remarks>
     [SerializeField] [Range(0.5f, 1f)]
     public float acceptanceRatio = 0.95f;
@@ -122,11 +93,9 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// Whether an accepted jump raises <see cref="MotionSynthesisComponent.PoseDiscontinuity"/>.
     /// </summary>
     /// <remarks>
-    /// A stage field rather than a config one so a <c>BenchmarkOverride</c> can turn it off without
-    /// dirtying a ScriptableObject. The risk it exists against is the flattering one: a learned
-    /// matcher has no frame jumps by construction, so it is tempting never to raise this — and then
-    /// it is silently smoother than the classic matcher on the same jumps, and the comparison is
-    /// corrupted in its favour. Leave it on unless the ablation is the measurement.
+    /// Leave it on unless the ablation is the measurement: without it the learned matcher reads as
+    /// smoother than the classic one on the same jumps. A stage field so a <c>BenchmarkOverride</c>
+    /// can flip it without dirtying a ScriptableObject.
     /// </remarks>
     [SerializeField]
     public bool raisePoseDiscontinuity = true;
@@ -181,9 +150,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     private NativeArray<bool> _hasLatent;
 
     /// <summary>
-    /// The last frame whose latent was used. Playback can step onto the one frame per clip that has
-    /// none, and holding the previous latent for that frame is cheaper than disturbing the search
-    /// cadence — it happens exactly where a clip crossing is already raising a discontinuity.
+    /// The last frame whose latent was used, held while playback sits on a clip's latent-less last
+    /// frame — where a clip crossing already raises a discontinuity.
     /// </summary>
     private int _latentFrame;
 
@@ -205,9 +173,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     private float[] _z;
 
     /// <summary>
-    /// The query, as a managed array, because <see cref="LmmMode.Full"/> hands it to Python and
-    /// PythonNET marshals a <c>float[]</c>. Kept rather than allocated per search: it is copied
-    /// from <see cref="_queryFeatureVector"/> a few times a second forever.
+    /// The query as a managed array, which is what PythonNET marshals for <see cref="LmmMode.Full"/>.
     /// </summary>
     private float[] _query;
 
@@ -239,9 +205,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
             AllocateBuffers();
             SeedFromFirstUsableFrame();
 
-            // LmmMode.Full never searches — the projector answers the query instead, which is the
-            // point of it. Building the acceleration structure anyway would cost exactly the
-            // startup time and the memory the mode exists to remove.
+            // LmmMode.Full never searches, and removing the structure's cost is the mode's point.
             if (mode != LmmMode.Full) mmSearch.Initialize(_featureSet, _tagMask, _featureWeights);
             _isInitialized = true;
         }
@@ -299,11 +263,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// against. Must be called with the GIL held.
     /// </summary>
     /// <remarks>
-    /// Every one of these catches something that does not throw on its own. A checkpoint whose
-    /// latents are indexed by a different frame count, a feature schema that has gained a channel,
-    /// a bone the rig no longer has, a weight the projector was never fitted under: each produces a
-    /// character that moves wrongly for no visible reason, which is the failure mode the whole
-    /// format is written against.
+    /// None of these mismatches throws on its own; each only makes the character move wrongly.
     /// </remarks>
     private bool TryBindCheckpoint()
     {
@@ -357,10 +317,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// The metric the checkpoint was fitted under must be the metric the stage searches with.
     /// </summary>
     /// <remarks>
-    /// It costs nothing in <see cref="LmmMode.DecompressorOnly"/> and everything in
-    /// <see cref="LmmMode.Full"/>, where the projector has learned to approximate a
-    /// nearest-neighbour lookup under exactly these weights. Checked from the first mode so the
-    /// answer is never "it worked until we turned the projector on".
+    /// The projector approximates a lookup under exactly these weights. Checked in every mode so a
+    /// mismatch surfaces before <see cref="LmmMode.Full"/> is switched on.
     /// </remarks>
     private bool TryBindFeatureWeights()
     {
@@ -414,10 +372,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// Start on the first frame the stage could actually hold, and put its state in hand.
     /// </summary>
     /// <remarks>
-    /// The state is seeded here rather than on the first tick because the first search reads it:
-    /// it scores what the character is already holding so that it only takes something better, and
-    /// it fills the pose half of the query from it. An unseeded <c>X</c> would make that first
-    /// search score a pose of zeros.
+    /// Seeded here because the first search scores the held state and fills the query's pose half
+    /// from it; an unseeded <c>X</c> would be a pose of zeros.
     /// </remarks>
     private void SeedFromFirstUsableFrame()
     {
@@ -468,8 +424,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
                 FillQueryVector(controlInput);
                 var heldDistance = HeldStateDistance();
 
-                // The one difference between the modes on a search tick: two of them look the
-                // answer up in the database and the third is told it. Both write the same state.
+                // Full is told the answer by the projector; the other modes look it up.
                 if (mode == LmmMode.Full) ProjectBetterState(heldDistance);
                 else accepted = SearchForBetterFrame(heldDistance);
 
@@ -501,9 +456,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// What the state the character is already holding scores against the query it has just built.
     /// </summary>
     /// <remarks>
-    /// The state being scored is <c>X</c> itself, not the feature vector of a database frame. In
-    /// <see cref="LmmMode.DecompressorOnly"/> those are the same floats; in the later modes only
-    /// the first exists, because the state has been carried somewhere the database does not hold.
+    /// Scores <c>X</c> itself, not a database frame's feature vector: in later modes the state is
+    /// not a database row.
     /// </remarks>
     private float HeldStateDistance()
     {
@@ -523,8 +477,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// <returns>The database frame that was accepted, or -1 when the held state stood.</returns>
     private int SearchForBetterFrame(float heldDistance)
     {
-        // The acceptance bar goes into the search rather than being applied to its answer: a
-        // candidate that does not clear it is not a candidate, and the search can abandon it early.
+        // Passed into the search as a bound so it can abandon candidates early.
         var bestFrame = mmSearch.FindBestFrame(_queryFeatureVector, heldDistance * acceptanceRatio);
 
         if (bestFrame == -1)
@@ -546,16 +499,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// <see cref="LmmMode.Full"/> search tick.
     /// </summary>
     /// <remarks>
-    /// The network answers with a state the database could have held; whether to take it is
-    /// decided here rather than in Python, under the same weights and the same squared distance
-    /// <see cref="SearchForBetterFrame"/> hands to the search. That is what keeps the accept rule
-    /// one rule: a projector that is close in <c>X</c> but systematically wrong about how close
-    /// would otherwise bend a comparison nothing else can see.
-    /// <para>
-    /// A second acquisition of the GIL on a search tick, and deliberately: it happens a few times
-    /// a second, the answer is only usable once the distance has been measured on this side, and
-    /// folding it into <see cref="StepState"/> would move that measurement across the boundary.
-    /// </para>
+    /// Acceptance is decided here, under the same weights and distance as
+    /// <see cref="SearchForBetterFrame"/>, so both modes share one accept rule.
     /// </remarks>
     private void ProjectBetterState(float heldDistance)
     {
@@ -597,18 +542,9 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// of both <see cref="LmmMode.Stepper"/> and <see cref="LmmMode.Full"/>.
     /// </summary>
     /// <remarks>
-    /// The two share it because they differ only in where a new state comes from on a search tick:
-    /// one is handed a database frame to restart from, the other has already had
-    /// <see cref="ProjectBetterState"/> write the state directly and passes -1.
-    /// <para>
-    /// The state is advanced <em>before</em> it is decompressed, which is what
-    /// <see cref="PlayFromDatabase"/> does with its playhead, so the two modes differ in where the
-    /// state comes from and in nothing else — including on a search tick, where both take the
-    /// accepted frame and then move on from it by <paramref name="deltaTime"/>.
-    /// <para>
-    /// One acquisition of the GIL covers seeding the latent and the tick itself, because the
-    /// search that produced <paramref name="acceptedFrame"/> is pure C# and ran before it.
-    /// </para>
+    /// <see cref="LmmMode.Full"/> passes -1, having had <see cref="ProjectBetterState"/> write the
+    /// state already. The state is advanced before it is decompressed, matching how
+    /// <see cref="PlayFromDatabase"/> advances its playhead first.
     /// </remarks>
     /// <param name="acceptedFrame">A database frame to restart the state from, or -1.</param>
     private float[] StepState(int acceptedFrame, float deltaTime)
@@ -633,12 +569,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// The query: the trajectory the control input wants, then the pose features of the state.
     /// </summary>
     /// <remarks>
-    /// The trajectory half is <see cref="MotionMatchingQuery.FillTrajectory"/>, shared with
-    /// <see cref="MotionMatchingStage"/> so the two methods are asked the same question. The pose
-    /// half is read from <c>X</c> — which in <see cref="LmmMode.DecompressorOnly"/> is the feature
-    /// vector of the frame being played, so they are the same floats, and in
-    /// <see cref="LmmMode.Stepper"/> is what the stepper carried forward, which is precisely the
-    /// "previous pose features" the paper's projector takes as state.
+    /// The trajectory half is shared with <see cref="MotionMatchingStage"/>; the pose half is read
+    /// from <c>X</c>, the "previous pose features" the paper's projector takes as state.
     /// </remarks>
     private void FillQueryVector(MotionMatchingControlInput controlInput)
     {
@@ -676,15 +608,10 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// Turns the decompressor's output into a full character-frame pose.
     /// </summary>
     /// <remarks>
-    /// One forward pass over the skeleton, composing the predicted <em>joint-local</em> rotations
-    /// down the hierarchy — the same map <c>lmm.fk.forward_kinematics</c> runs inside the training
-    /// loss, so the pose measured there is the pose written here. The root's height is the one
-    /// thing rotations cannot supply and the only translation the model predicts; its other two
-    /// coordinates are what the character frame transform removed, so they are zero.
-    /// <para>
-    /// A bone the model does not predict takes its rest local rotation, which is well defined
-    /// because the predicted set is closed under parent.
-    /// </para>
+    /// Composes the predicted joint-local rotations as <c>lmm.fk.forward_kinematics</c> does in the
+    /// training loss. The root's height is the only predicted translation; its ground-plane
+    /// coordinates are zero in the character frame. An unpredicted bone takes its rest local
+    /// rotation, well defined because the predicted set is closed under parent.
     /// </remarks>
     private void BuildCharacterSpacePose(float[] y)
     {
@@ -715,16 +642,9 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
 
     /// <summary>Writes the reconstructed pose and the character's own motion into the pipeline.</summary>
     /// <remarks>
-    /// The root's motion goes in as-is: it is stored as a per-second rate, which is what the pose
-    /// channels mean and what <see cref="MotionSynthesisComponent"/> integrates over its own
-    /// timestep. <c>PfnnStage</c> divides by the frame time at this point because its network
-    /// predicts a per-frame delta instead; doing the same here would make the character travel at
-    /// the database frame rate times the right speed.
-    /// <para>
-    /// The pose is written in a frame at the origin: the component re-anchors bone 0 against the
-    /// frame the pose implies and accumulates the travel onto its own Transform, so an absolute
-    /// frame here would be applied twice.
-    /// </para>
+    /// The root's motion is already a per-second rate, so unlike <c>PfnnStage</c> it is not divided
+    /// by the frame time. The pose is written in a frame at the origin: the component accumulates
+    /// the travel onto its own Transform, so an absolute frame would be applied twice.
     /// </remarks>
     private void WritePose(PoseBuffer pose, float[] y)
     {
@@ -760,8 +680,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
     /// A rotation from the two-axis form the network regresses, by Gram-Schmidt.
     /// </summary>
     /// <remarks>
-    /// The C# counterpart of <c>training.training_data.rotations_from_6d</c>. A regressed pair of columns is
-    /// not orthonormal, and this is the projection that makes it a rotation again (Zhou et al.).
+    /// The C# counterpart of <c>training.training_data.rotations_from_6d</c> (Zhou et al. 2019).
     /// </remarks>
     private static quaternion RotationFrom6D(float[] source, int offset)
     {

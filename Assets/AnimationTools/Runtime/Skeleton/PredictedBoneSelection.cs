@@ -8,17 +8,9 @@ namespace AnimationTools
 /// resolves the same selection against a live skeleton on the C# side.
 /// </summary>
 /// <remarks>
-/// One place, because a network trained over one bone set and run over another is exactly the
-/// silent disagreement the neural work here is organised against — and a checkpoint's own bone-name
-/// check can only catch it if both sides derive the set the same way. More than one synthesis
-/// method now needs that, which is why this lives beside the skeleton rather than beside any one
-/// of them.
-/// <para>
-/// A selection is authored as the bones held <em>back</em>, sparse and keyed by name, so a joint
-/// that moves in the hierarchy keeps its setting. Excluding a bone excludes its whole subtree,
-/// which is not a convenience: a model predicts rotations, and a rotation needs its parent's frame
-/// to be applied in. <see cref="Subtree"/> is the unit an exclusion is made in.
-/// </para>
+/// Shared by every synthesis method so training and runtime derive the bone set identically.
+/// A selection is authored as excluded bone names, and excluding a bone excludes its whole
+/// <see cref="Subtree"/>, because a predicted rotation needs its parent's frame.
 /// </remarks>
 public static class PredictedBoneSelection
 {
@@ -45,10 +37,8 @@ public static class PredictedBoneSelection
     /// Maps the bone names a checkpoint predicts onto indices into <paramref name="skeleton"/>.
     /// </summary>
     /// <remarks>
-    /// This is the load-time check a checkpoint format storing names rather than indices exists to
-    /// allow: a name the rig does not have, or an order that does not match, means the model is
-    /// being fed something other than what it was trained on. Both are reported rather than worked
-    /// around, because the alternative is a character that moves wrongly for no visible reason.
+    /// A missing name or a mismatched order means the model would be fed something other than what
+    /// it was trained on, so both fail loudly rather than being worked around.
     /// </remarks>
     /// <param name="checkpointBoneNames">Bone names in the order the checkpoint packs them.</param>
     /// <param name="skeleton">The rig the stage is driving.</param>

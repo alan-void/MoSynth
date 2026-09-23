@@ -16,7 +16,7 @@ namespace AnimationTools
 public class UserInput : MonoBehaviour
 {
     public static UserInput I { get; private set; }
-    InputActions _inputActions;
+    private InputActions _inputActions;
 
     /// <summary>The last movement direction the player asked for; zero before anything is pressed.</summary>
     public static Vector2 Move { get; private set; }

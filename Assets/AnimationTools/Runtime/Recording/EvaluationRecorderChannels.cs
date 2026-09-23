@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace AnimationTools
 {
-// Recorder channels that exist to be measured rather than replayed. Kept out of
-// BuiltInRecorderChannels.cs because these three only make sense while something is benchmarking:
-// two of them read state the synthesis component publishes solely for a harness.
+// Recorder channels that exist to be measured rather than replayed; they only make sense while
+// something is benchmarking.
 
 /// <summary>
 /// Per-stage and total wall-clock cost of one synthesis tick, plus managed bytes allocated during
@@ -172,11 +171,9 @@ public sealed class PoseDiscontinuityChannel : RecorderChannel
 /// the contact flags themselves.
 /// </summary>
 /// <remarks>
-/// Deliberately not a <see cref="BoneWorldPositionChannel"/> with a hand-picked bone: footskate is
-/// the distance this bone travels while its flag says planted, so the position and the flag have to
-/// name the same bone. Going through <see cref="BoneNameConventions"/>, exactly as
-/// <see cref="PoseLayoutBuilder.Build"/> does, is what guarantees that rather than leaving it to
-/// whoever fills in the inspector.
+/// Not a hand-picked <see cref="BoneWorldPositionChannel"/>: footskate needs the position and the
+/// contact flag to name the same bone, so this resolves it exactly as
+/// <see cref="PoseLayoutBuilder.Build"/> does.
 /// </remarks>
 [Serializable]
 public sealed class ContactBoneWorldPositionChannel : RecorderChannel

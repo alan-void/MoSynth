@@ -36,13 +36,11 @@ import numpy as np
 import torch
 
 from motion_field import io as mfio
-from motion_field.field import (MotionField, load_bone_weights_file, resolve_device,
-                         root_yaw, state_locomotion_scores)
+from motion_field.field import MotionField, load_bone_weights_file, resolve_device, root_yaw
 from motion_field.action_predictor import load_animations
 
-# States per precompute chunk. The dominant allocation is the neighbour gather,
-# states_per_chunk * K * K * (bones+2) * 4 floats -- about 46 MB at 512 states
-# with K=15. Gathering all 7838 states at once would need ~700 MB.
+# States per precompute chunk, bounding the neighbour gather of
+# states_per_chunk * K * K * (bones+2) * 4 floats.
 DEFAULT_STATE_CHUNK = 512
 
 
@@ -62,8 +60,7 @@ def build_tables(motion_field: MotionField, k_neighbors: int, tug_ratio: float,
         database states to wherever the action lands, and their similarity
         weights, so V(s') can be read off as a weighted sum.
 
-    Fully batched. Integrating one action at a time the way the reference
-    implementation does costs roughly 5 minutes here; this takes about 15 s.
+    Fully batched, rather than integrating one action at a time.
 
     :return: (delta_yaw (S,K) f32, value_indices (S,K,K) i32, value_weights (S,K,K) f32)
     """
@@ -114,9 +111,11 @@ def build_tables(motion_field: MotionField, k_neighbors: int, tug_ratio: float,
 
     return delta_yaw, value_indices, value_weights
 
+
 def theta_grid(theta_count: int) -> np.ndarray:
     """The task-parameter grid: `theta_count` headings spanning [-pi, pi)."""
     return np.linspace(-np.pi, np.pi, theta_count + 1, dtype=np.float32)[:theta_count]
+
 
 def train_value_function(delta_yaw, value_indices, value_weights,
                          state_scores=None, locomotion_factor=1.0,
@@ -131,15 +130,10 @@ def train_value_function(delta_yaw, value_indices, value_weights,
         Q[s,a,t]      = reward + gamma * sum_j w[s,a,j] * V(s'[s,a,j], theta[t] + delta_yaw[s,a])
         V[s,t]        = max over a of Q[s,a,t]
 
-    The heading term is how badly the character faces away from the goal after
-    the action. On its own it is never positive, which makes any idle state the
-    reward can reach a perfect score once aligned -- the bonus term (the
-    reference implementation's `state_score * factor`, keyed on root speed and
-    paid on the arrival state) is what makes continuing to move strictly better
-    than freezing. Because the action rotates the character, the goal moves in
-    its frame -- hence the successor value is read at `theta + delta_yaw`, not
-    at `theta`, and that shifted lookup is interpolated across the two
-    bracketing grid headings.
+    The heading term is never positive, so the bonus term (keyed on root speed,
+    paid on the arrival state) is what makes moving strictly better than freezing
+    once aligned. The action rotates the character, so the successor value is read
+    at `theta + delta_yaw`, interpolated across the two bracketing grid headings.
 
     :param delta_yaw: (states, actions) f32 -- yaw each action turns the
         character through, from `build_tables`.
@@ -244,10 +238,10 @@ def train(data_dir: str,
     :param data_dir: directory holding `<db_name>.mmpose`
     :param out_path: destination `.mffield.npz`, normally under StreamingAssets
     :param bone_weights: optional per-joint emphasis on the similarity metric,
-        see `MotionField.resolve_bone_weights`. Changing it invalidates any
+        see `motion_field.field.pack_bone_weights`. Changing it invalidates any
         previously trained value function.
     :param locomotion_factor: reward bonus for actions landing in moving
-        states; see `MotionField.state_locomotion_scores`.
+        states; see `motion_field.field.state_locomotion_scores`.
     :param locomotion_speed_threshold: root speed, m/s, at which a state
         counts as fully moving.
     :param progress: optional callable(stage_name, fraction_0_to_1)

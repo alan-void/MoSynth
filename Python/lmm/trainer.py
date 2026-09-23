@@ -8,29 +8,20 @@ whole pose. Then, against latents that pair has baked and that nothing may move 
 need not be played, and finally the **projector** -- see :func:`fit_projector` -- which answers a
 query with a state the database holds, and so replaces the search itself.
 
-**The loss is Algorithm 1 of the paper**, and its shape is the method:
+**The loss is Algorithm 1 of the paper**:
 
-* Every pose term is **L1 on denormalised quantities**. L1 rather than MSE because the mean of two
-  plausible poses is generally not a pose while their median is, and denormalised because the
-  weights below trade a metre of position error against a radian of angle -- a trade that only
-  means anything in real units.
-* Every pose is scored **twice, in two spaces**: joint-locally as the network predicted it, and
-  again in character space after forward kinematics. The paper is explicit that this is the point
-  -- a naive per-joint loss gives "jittery, low quality motion", because it cannot see that a small
-  error at the hip is a large one at the hand.
-* Both spaces are scored **again as velocities**, differenced across the frame pair. That is what
-  makes the output change smoothly in time rather than only sit in the right place per frame.
-* Three regularisers act on the latent: magnitude, energy, and rate of change. The last is what
-  leaves ``Z`` steppable at all by the stepper, and it applies to a **per-second** derivative -- a
-  factor of sixty against the per-frame delta it would be easy to write instead.
+* Every pose term is **L1 on denormalised quantities**: the median of two plausible poses is a
+  pose where their mean generally is not, and the weights trade metres against radians.
+* Every pose is scored **twice, in two spaces**: joint-locally as predicted, and in character
+  space after forward kinematics, so a small error at the hip counts as the large one at the hand.
+* Both spaces are scored **again as velocities**, differenced across the frame pair.
+* Three regularisers act on the latent: magnitude, energy, and **per-second** rate of change, the
+  last being what leaves ``Z`` steppable.
 
-The weights are in :mod:`lmm.dataset`; they are the author's released training code, since the
-paper states none.
+The weights are in :mod:`lmm.dataset`. See openwiki/motion-matching/learned-motion-matching.md.
 
-Validation holds out a **contiguous tail** rather than a random subset, for the reason
-``pfnn.trainer`` does: neighbouring frames of an animation are nearly the same pose, so a random
-split puts near-duplicates of the validation set into training and reports a number that measures
-nothing. The parameters that scored best on it are what gets written, not the last ones.
+Validation holds out a **contiguous tail** rather than a random subset, because neighbouring frames
+are near-duplicates. The parameters that scored best on it are what gets written, not the last ones.
 
 Runs from the Unity Editor through PythonNET, or standalone::
 
@@ -38,7 +29,7 @@ Runs from the Unity Editor through PythonNET, or standalone::
         MM_LafanCorrected_Edinburg --out model.lmm.npz --iterations 150000
 
 Either of the later networks alone, against a checkpoint whose autoencoder is already fitted --
-which is what to run when tuning them, since the autoencoder is the half-hour half::
+the cheap way to tune them::
 
     python -m lmm.trainer <database> <name> --out model.lmm.npz --stepper-only
     python -m lmm.trainer <database> <name> --out model.lmm.npz --projector-only
@@ -62,20 +53,17 @@ from training.training_data import load_database
 LOSS_COLUMNS = ('local', 'character', 'local_velocity', 'character_velocity',
                 'latent', 'total', 'validation')
 
-# The stepper's own curve, fitted in a second loop whose terms measure something else
-# entirely, so they are a separate table in the checkpoint rather than more columns on this one.
+# The stepper's own loss curve, a separate table in the checkpoint since its terms differ.
 STEPPER_LOSS_COLUMNS = ('features', 'latent', 'feature_rate', 'latent_rate', 'total', 'validation')
 
-# The projector's, likewise. `distance` is how far the projector thinks it moved against how far
-# the true nearest neighbour is -- see fit_projector.
+# The projector's, likewise. For `distance`, see fit_projector.
 PROJECTOR_LOSS_COLUMNS = ('features', 'latent', 'distance', 'total', 'validation')
 
-# Frames baked per forward pass. Large enough that the per-call overhead vanishes, small enough
-# that a 200k-frame database does not need the whole latent table resident on the GPU at once.
+# Frames baked per forward pass: amortises per-call overhead without holding the whole table on
+# the GPU.
 BAKE_BATCH = 4096
 
-# Pairs the held-out score is taken over. The tail of a large database is tens of thousands of
-# frames and scoring all of them every thousand iterations would cost more than the training step.
+# Pairs the held-out score is taken over, so scoring stays cheaper than training.
 VALIDATION_SAMPLE = 8192
 
 
@@ -117,8 +105,8 @@ def train(data_dir: str,
           device: str = 'auto',
           progress=None) -> dict:
     """
-    Build the training set, fit the autoencoder, bake the latents, fit the stepper, and write the
-    checkpoint.
+    Build the training set, fit the autoencoder, bake the latents, fit the stepper and projector,
+    and write the checkpoint.
 
     :param data_dir: the database folder under StreamingAssets.
     :param db_name: base file name, i.e. the Unity asset's name.
@@ -126,25 +114,21 @@ def train(data_dir: str,
     :param excluded_bones: bone names the decompressor does not predict.
     :param feature_weights: one authored search weight per feature definition, which travels into
         the checkpoint so the projector approximates the search that is actually run.
-    :param latent_velocity_weight: ``w_vreg``, the penalty on how fast the latent moves. The one
-        loss weight worth tuning -- see :mod:`lmm.dataset`. Too low and the stepper has
-        noise to advance; too high and the latent cannot carry enough to reconstruct from.
+    :param latent_velocity_weight: ``w_vreg``, the penalty on how fast the latent moves. Too low
+        and the stepper has noise to advance; too high and the latent cannot carry enough to
+        reconstruct from.
     :param compressor_hidden: hidden width; 0 takes the reference implementation's.
     :param decompressor_hidden: likewise.
-    :param iterations: optimiser steps. Counted in steps rather than epochs because the paper's
-        schedule is, and because an epoch means something different on every database size.
+    :param iterations: optimiser steps, not epochs, as in the paper's schedule.
     :param learning_rate_decay: multiplied into the learning rate every ``decay_interval`` steps.
     :param validation_interval: steps between held-out scores. The best-scoring parameters are
         what is written.
-    :param max_seconds: stop after this long regardless, 0 for no limit. A training run that has to
-        fit a budget should be cut by the clock rather than by guessing an iteration count.
-    :param stepper: also fit the stepper, against the latents this run just baked. Off
-        writes an autoencoder-only checkpoint, which is what the ``DecompressorOnly`` mode needs
-        and all it needs.
+    :param max_seconds: stop after this long regardless, 0 for no limit.
+    :param stepper: also fit the stepper, against the latents this run just baked. Off writes an
+        autoencoder-only checkpoint, which is all the ``DecompressorOnly`` mode needs.
     :param stepper_window: frames the stepper is unrolled over; see :func:`fit_stepper`.
     :param projector: also fit the projector, which replaces the search itself. Needs the
-        stepper, because the ``Full`` mode runs both -- the projector answers a search and the
-        stepper carries that answer to the next one.
+        stepper, because the ``Full`` mode runs both.
     :param projector_sigma: how far the projector's training queries are displaced; see
         :func:`fit_projector`.
     :param progress: ``(stage, fraction)`` callback, which the Editor drives a progress bar from.
@@ -171,8 +155,7 @@ def train(data_dir: str,
             'frame and its successor, so a database of one-frame clips, or one whose feature '
             'vectors are all invalid, contributes none.')
 
-    # By index, and the pairs are still in database order, so this is the tail of the animation
-    # rather than a scattering of frames from all over it.
+    # Pairs are still in database order, so splitting by index holds out a contiguous tail.
     split = max(1, int(round(pairs.size * (1.0 - validation_fraction))))
     train_pairs, validation_pairs = pairs[:split], pairs[split:]
 
@@ -212,8 +195,8 @@ def train(data_dir: str,
         spec.feature_size, spec.latent_size, spec.pose_size,
         **({'hidden_units': decompressor_hidden} if decompressor_hidden else {})).to(torch_device)
 
-    # amsgrad and this weight decay are the released training code's; the paper says RAdam, which
-    # differs mainly in the warmup that a decaying schedule already provides.
+    # amsgrad and this weight decay are the released training code's; the paper's RAdam differs
+    # mainly in a warmup the decaying schedule already provides.
     optimizer = torch.optim.AdamW(
         list(compressor.parameters()) + list(decompressor.parameters()),
         lr=learning_rate, weight_decay=weight_decay, amsgrad=True)
@@ -232,8 +215,8 @@ def train(data_dir: str,
 
     def evaluate(frames: torch.Tensor):
         """Algorithm 1 over a batch of pair start frames; the columns of ``LOSS_COLUMNS``."""
-        # Both frames of every pair go through as one batch. The step is dominated by the number of
-        # operations rather than their size, so two passes of n cost nearly twice one pass of 2n.
+        # Both frames of every pair go through as one batch: the step is launch-bound, not
+        # size-bound.
         both = torch.cat([frames, frames + 1])
         predicted, character, latent = decode(both)
         n = frames.shape[0]
@@ -261,16 +244,14 @@ def train(data_dir: str,
                                      min(VALIDATION_SAMPLE, validation_pairs.size)).astype(np.int64)]
         if validation_pairs.size else validation_pairs).to(torch_device)
 
-    # Accumulated on the device. Reading a loss back per step would synchronise the GPU six times
-    # an iteration, which on a step this small costs more than the arithmetic it reports on.
+    # Accumulated on the device, so reading losses back does not synchronise the GPU every step.
     losses = []
     running = torch.zeros(len(LOSS_COLUMNS) - 1, device=torch_device)
     running_count = 0
     best_validation, best_parameters, best_iteration = float('inf'), None, 0
     generator = torch.Generator(device='cpu').manual_seed(seed)
     ran = 0
-    # Shared out between the fits that will actually run, so the bar does not sit at 55% for half
-    # an hour when the autoencoder is the only thing being trained.
+    # Progress bar spans, shared out between the fits that will actually run.
     autoencoder_span = 0.85 if not stepper else (0.45 if projector else 0.55)
     stepper_span = 0.22 if projector else 0.30
 
@@ -309,8 +290,7 @@ def train(data_dir: str,
             if max_seconds and time.time() - started > max_seconds:
                 break
 
-    # The held-out curve of a small database turns back up well before the last step, so writing
-    # the final parameters would ship a model measurably worse than one this run already had.
+    # The held-out curve can turn back up before the last step, so the best parameters are kept.
     if best_parameters is not None:
         compressor.load_state_dict(best_parameters[0])
         decompressor.load_state_dict(best_parameters[1])
@@ -328,8 +308,7 @@ def train(data_dir: str,
     fitted_stepper = fitted_projector = None
     stepper_base = 0.05 + autoencoder_span + 0.02
     if stepper:
-        # Against the table that was just baked, not against a compressor that is still moving --
-        # see fit_stepper. The latents are an input to it from here on.
+        # Against the latents just baked, which are fixed from here on -- see fit_stepper.
         fitted_stepper, rate_mean, rate_std, stepper_losses, stepper_summary = fit_stepper(
             x, latents, latent_exists, spec.frame_time,
             hidden_units=stepper_hidden, window=stepper_window,
@@ -342,8 +321,7 @@ def train(data_dir: str,
         diagnostics.update(stepper_summary)
 
     if projector:
-        # Against the same fixed latents, and against the authored weights the stage will search
-        # with -- the projector is approximating that metric, not a uniform one.
+        # Against the same fixed latents, under the authored weights the stage searches with.
         projector_base = stepper_base + stepper_span
         fitted_projector, projector_losses, projector_summary = fit_projector(
             x, latents, latent_exists,
@@ -364,8 +342,7 @@ def train(data_dir: str,
         out_path,
         compressor_weights=compressor.weights(), compressor_biases=compressor.biases(),
         decompressor_weights=decompressor.weights(), decompressor_biases=decompressor.biases(),
-        # Unity's FeatureSet already standardised X the way the paper's section 3 does, so a second
-        # layer here would divide by a spread that has already been divided out.
+        # The .mmfeatures is already standardised, so X gets an identity here.
         x_mean=np.zeros(spec.feature_size, dtype=np.float32),
         x_std=np.ones(spec.feature_size, dtype=np.float32),
         y_mean=y_mean, y_std=y_std, q_mean=q_mean, q_std=q_std, z_mean=z_mean, z_std=z_std,
@@ -471,14 +448,10 @@ def refit_stepper(checkpoint_path: str, data_dir: str, db_name: str,
     """
     Fit only the stepper, against a checkpoint whose autoencoder is already trained.
 
-    The autoencoder is the expensive half and the stepper is fitted against latents it has already
-    produced, so re-running it to try a different window or a longer stepper schedule would be
-    paying half an hour for nothing.
+    Skips the expensive autoencoder, whose baked latents the stepper is fitted against.
 
-    It reads the ``.mmfeatures`` alone and not the ``.mmpose`` beside it. Everything else it needs
-    is in the checkpoint: ``latent_valid`` is exactly the frame mask the autoencoder derived from
-    the clip ranges, so there is no second definition of which frames carry a latent for the two to
-    disagree about -- and it saves reading three hundred megabytes of poses that nothing here looks at.
+    Reads the ``.mmfeatures`` alone, not the ``.mmpose``: everything else is in the checkpoint,
+    including ``latent_valid``, so there is one definition of which frames carry a latent.
 
     :param out_path: where to write; the checkpoint is overwritten in place when this is None.
     :param options: passed to :func:`fit_stepper`.
@@ -540,22 +513,16 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     """
     Fit the stepper against latents that are already fixed, and measure how far it drifts.
 
-    **The latents are an input, never a parameter.** The autoencoder's compressor is not merely
-    frozen here, it does not run at all: the stepper is fitted against the table baked into the
-    checkpoint. Letting the two train together would give the pair a much cheaper way to make the
-    latent steppable than learning to step it -- make it constant -- which is latent collapse
-    arriving through the back door.
+    **The latents are an input, never a parameter**: the compressor does not run here. Training
+    both together would let the pair make the latent steppable by making it constant.
 
-    Training is **unrolled**, never on single-frame pairs: the state the stepper is asked to
-    advance at frame *n* is the state it produced at frame *n-1*, errors and all. A stepper fitted
-    on true states only is a stepper that has never seen its own mistakes, and it compounds them.
-    No window crosses a clip boundary -- see :func:`dataset.stepper_windows`.
+    Training is **unrolled**, never on single-frame pairs, so the stepper learns from its own
+    mistakes rather than compounding them. No window crosses a clip boundary -- see
+    :func:`dataset.stepper_windows`.
 
-    The loss is scored on both halves of the state and on both halves of the rate, each divided by
-    **one scalar spread for the whole half**, so the weights in
-    :data:`dataset.STEPPER_WEIGHTS` trade a feature error against a latent error in comparable
-    terms. It is then divided by the window length, which keeps its magnitude -- and so the
-    effective learning rate -- independent of how far the unrolling goes.
+    Each half of the state and of the rate is divided by **one scalar spread for that half**, so
+    :data:`dataset.STEPPER_WEIGHTS` trades comparable terms; the sum is divided by the window length
+    so the effective learning rate does not depend on it.
 
     :param x: (n, feature_size) every database frame's matching feature vector.
     :param latents: (n, latent_size) the baked latents, indexed by the same frames.
@@ -564,11 +531,8 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     :param hidden_units: 0 takes the reference implementation's 512.
     :param window: frames to unroll over. See :data:`dataset.DEFAULT_STEPPER_WINDOW`.
     :param patience: stop after this many held-out scores without an improvement; 0 never stops
-        early. **This is the stopping rule, not ``iterations``**, which is a ceiling. Measured on
-        Edinburgh the held-out score bottoms out around iteration 2,000 of 30,000 and rises
-        monotonically after it, so a fixed count is nine parts waste and one part fit -- and the
-        right count is a property of the database, not something to guess per run. The autoencoder
-        has no equivalent because its held-out curve is still falling at its iteration limit.
+        early. **This is the stopping rule, not ``iterations``**, which is a ceiling: the right
+        count is a property of the database. See openwiki/motion-matching/learned-motion-matching.md.
     :return: ``(stepper, rate_mean, rate_std, losses, summary)``.
     """
     progress = progress or _noop_progress
@@ -587,8 +551,8 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
 
     state = torch.from_numpy(
         np.concatenate([x, latents], axis=1).astype(np.float32)).to(torch_device)
-    # The rate that carries each frame to the next. Rows spanning a clip boundary are meaningless
-    # and are never indexed: every window lies inside one clip, by construction.
+    # The rate that carries each frame to the next. Rows spanning a clip boundary are never
+    # indexed: every window lies inside one clip.
     rates = (state[1:] - state[:-1]) / frame_time
 
     usable = torch.from_numpy(np.ascontiguousarray(latent_exists, dtype=bool)).to(torch_device)
@@ -730,13 +694,8 @@ def _stepper_drift(stepper, state, rate_mean, rate_std, latent_exists: np.ndarra
     """
     How far a free-running stepper has wandered after each of :data:`DRIFT_HORIZONS` frames.
 
-    Reported in units of each half's own spread, so ``0.25`` means the state is a quarter of a
-    standard deviation from where the database says it should be. Free-running is the only honest
-    measurement: a stepper scored one frame at a time from true states never has to live with its
-    own error, and compounding error is the failure mode the stepper exists to bound.
-
-    Measured on runs starting at or after ``first_held_out``, which is the same contiguous tail the
-    fit validated on -- a run the stepper trained over would be reporting memorisation.
+    Reported in units of each half's own spread. Free-running is the only honest measurement of
+    compounding error. Runs start at or after ``first_held_out``, the tail the fit validated on.
     """
     horizons = tuple(sorted(dataset.DRIFT_HORIZONS))
     runs = dataset.latent_runs(latent_exists, horizons[-1])
@@ -791,12 +750,7 @@ def refit_projector(checkpoint_path: str, data_dir: str, db_name: str,
     """
     Fit only the projector, against a checkpoint whose autoencoder and stepper are already trained.
 
-    The same bargain :func:`refit_stepper` offers, and a better one: the projector is the network
-    with the most left to tune -- how far the training noise reaches, how long the fit runs -- and
-    none of that touches the latent space it is aiming at.
-
-    Reads the ``.mmfeatures`` alone, for the reason :func:`refit_stepper` does: everything else it
-    needs is in the checkpoint, including which frames carry a latent.
+    As :func:`refit_stepper`, this skips the autoencoder and reads the ``.mmfeatures`` alone.
 
     :param out_path: where to write; the checkpoint is overwritten in place when this is None.
     :param options: passed to :func:`fit_projector`.
@@ -866,22 +820,12 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
 
     Every iteration displaces a database frame's query vector by noise, finds **the true weighted
     nearest neighbour of the displaced vector**, and asks the projector to produce that neighbour's
-    state. The emphasis is the whole method: targeting the frame the noise was added to would fit a
-    denoiser, a network that undoes a perturbation. The classic matcher does not undo anything --
-    asked for a query no frame answers, it returns whichever frame answers it best, and that is
-    usually a different frame entirely. See :func:`dataset.nearest_neighbours`.
+    state -- see :func:`dataset.nearest_neighbours`. The metric is the **authored** search weights.
 
-    The metric is the **authored** search weights, carried in the checkpoint. A projector fitted
-    under a uniform metric approximates a search nobody runs, and the comparison against the
-    classic matcher is then quietly measuring two different things.
-
-    Three terms, weighted by :data:`dataset.PROJECTOR_WEIGHTS`. Two are the obvious ones -- the
-    state it answers with against the state it should have answered with, each divided by its own
-    half's spread so the weights trade comparable things. The third is the **distance**: how far
-    the projector's answer sits from the query, against how far the true nearest neighbour sits.
-    That scalar is what the stage's accept rule compares, so a projector that is close in ``X`` but
-    systematically wrong about how close would make every accept decision on the tick path wrong in
-    the same direction.
+    Three terms, weighted by :data:`dataset.PROJECTOR_WEIGHTS`: the answered ``X`` and ``Z``
+    against the target's, each divided by its half's spread, and the **distance** from the query
+    against the true neighbour's. The stage's accept rule compares that distance, so it must not be
+    systematically biased.
 
     The latents are an input and never a parameter, exactly as in :func:`fit_stepper`.
 
@@ -890,8 +834,7 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     :param latent_exists: (n,) bool; both the queries drawn from and the candidates searched.
     :param feature_weights: (feature_size,) the authored search weights, one per float.
     :param state_mean: (feature_size + latent_size,) what the answer is denormalised against --
-        the checkpoint's ``x_mean`` and ``z_mean`` concatenated. The projector regresses the state
-        itself, so there is nothing new to measure here and no second set of numbers to drift.
+        the checkpoint's ``x_mean`` and ``z_mean`` concatenated.
     :param state_std: likewise, ``x_std`` and ``z_std``.
     :param sigma: the upper end of the per-sample noise; see :data:`dataset.PROJECTOR_SIGMA`.
     :param patience: as :func:`fit_stepper`'s, and the stopping rule for the same reason.
@@ -912,8 +855,7 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     x_t = torch.from_numpy(np.ascontiguousarray(x, dtype=np.float32)).to(torch_device)
     z_t = torch.from_numpy(np.ascontiguousarray(latents, dtype=np.float32)).to(torch_device)
 
-    # The frames a search may return, gathered once. The projector is asked to approximate a lookup
-    # over exactly this set, which is what the stage masks its own search down to.
+    # The frames a search may return -- the set the stage masks its own search down to.
     candidate_frames = torch.from_numpy(frames).to(torch_device)
     candidates = x_t[candidate_frames].contiguous()
     candidate_latents = z_t[candidate_frames].contiguous()
@@ -966,8 +908,7 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
                              min(VALIDATION_SAMPLE, held_out.size)).astype(np.int64)]
         if held_out.size else held_out).to(torch_device)
 
-    # Drawn once and reused at every score. Re-rolling it would make the held-out curve wander for
-    # reasons that have nothing to do with the model, and patience would stop on the noise.
+    # Drawn once, so the held-out curve (and patience) does not wander with re-rolled noise.
     validation_generator = torch.Generator(device='cpu').manual_seed(seed + 1)
     validation_queries = _displace(
         x_t[validation_frames], noise_scale, sigma, validation_generator, torch_device)
@@ -1057,10 +998,8 @@ def _displace(frames: torch.Tensor, noise_scale: torch.Tensor, sigma: float,
     """
     Push a batch of query vectors off the database, by a different amount each.
 
-    The scale is drawn per sample over ``[0, sigma]`` rather than fixed, so one batch spans a query
-    a database frame answers almost exactly and one no frame answers well. A projector trained at a
-    single displacement is good at that displacement and guesses everywhere else, and the runtime
-    supplies every displacement: the controller can ask for anything at all.
+    The scale is drawn per sample over ``[0, sigma]`` rather than fixed, because the controller can
+    ask for a query at any displacement from the database.
     """
     if frames.numel() == 0:
         return frames
@@ -1076,9 +1015,8 @@ def _projector_recall(projector, answer, queries: torch.Tensor, candidates: torc
     """
     :func:`dataset.recall_against_search` over the held-out queries this fit validated on.
 
-    Reported straight out of the fit as well as by ``lmm.runtime`` afterwards, because it is the
-    number that says whether the projector is usable and a training loss cannot: a loss falling
-    steadily says nothing about whether the answers are the ones the search would have given.
+    Reported by the fit as well as by ``lmm.runtime``, since a falling loss says nothing about
+    whether the answers are the ones the search would have given.
     """
     if queries.numel() == 0:
         return {'projector_distance_ratio': float('nan'),
@@ -1105,12 +1043,8 @@ def _float_weights(block_layout, weights) -> np.ndarray:
     """
     Per-float weights whose *sum* is ``sum_b w_b * mean|.|_b`` over the named blocks.
 
-    Spelling the per-block means as one weighted sum is exactly equivalent -- a block's mean is the
-    sum over its floats divided by its width -- and it turns a dozen small reductions into one.
-    That matters more than it looks: the training step is bound by how many kernels it launches,
-    not by their size.
-
-    Blocks the term does not name get zero, which is what excludes them.
+    Exactly equivalent to per-block means, but one reduction instead of a dozen: the training step
+    is bound by kernel launches, not their size. Blocks the term does not name get zero.
     """
     total = sum(count for _, _, count in block_layout)
     per_float = np.zeros(total, dtype=np.float32)
@@ -1153,9 +1087,8 @@ def _bake_latents(compressor, y_t, q_t, y_mean_t, y_std_t, q_mean_t, q_std_t,
     """
     Every compressible frame's latent, indexed by database frame.
 
-    Frames with no successor in their clip keep a row of zeros and are marked invalid, rather than
-    being dropped: the runtime indexes this table by the frame the matcher picked, so a compacted
-    table would need a second index nothing else in the pipeline carries.
+    Frames with no latent keep a row of zeros rather than being dropped, because the runtime
+    indexes this table by database frame.
     """
     latents = np.zeros((y_t.shape[0], latent_size), dtype=np.float32)
     frames = np.flatnonzero(latent_exists).astype(np.int64)
@@ -1177,24 +1110,11 @@ def _latent_diagnostics(decompressor, x_t, y_t, y_mean, y_std, latents: np.ndarr
     """
     Whether the latent is carrying anything, and whether a stepper will be able to advance it.
 
-    The gate is not the ablation ratio. A decompressor handed ``X`` alone already places most of the
-    body, because ``X`` holds both feet, their velocities and the hips -- so that ratio mostly
-    measures how informative the query is, and a modest one is not evidence that ``Z`` is empty.
-
-    What the stepper needs is a latent a small network can *advance*, which is a question about how
-    **predictable** the latent's step is, not about how slow it is. ``latent_step_predictability``
-    asks it directly: the held-out R-squared of a ridge regression from ``(X, Z)`` to ``Z' - Z``,
-    which is the linear lower bound on what a stepper could learn. A negative or near-zero value
-    means there is no function there to fit and the stepper cannot work; a high one means it can.
-
-    Two cheaper numbers sit beside it and neither may be read on its own, because both reward a
-    latent that has simply gone quiet:
-
-    * ``latent_extrapolation_share`` -- a linear extrapolation of the last two latents against
-      holding the current one. Useful as a sanity check, but raising the velocity regulariser
-      improves it while leaving predictability flat, which is exactly the trap.
-    * the lag-1 autocorrelation, which an undertrained latent scores *higher* on, because it
-      carries less and therefore moves less.
+    The number that counts is ``latent_step_predictability`` (see :func:`_step_predictability`);
+    near zero or negative means the stepper cannot work. The ablation ratio mostly measures how
+    informative ``X`` is, and ``latent_extrapolation_share`` and the lag-1 autocorrelation both
+    reward a latent that has simply gone quiet, so none of those may be read on its own. See
+    openwiki/motion-matching/learned-motion-matching.md.
     """
     triples = np.flatnonzero(
         latent_exists[:-2] & latent_exists[1:-1] & latent_exists[2:]).astype(np.int64)
@@ -1213,7 +1133,9 @@ def _latent_diagnostics(decompressor, x_t, y_t, y_mean, y_std, latents: np.ndarr
         current, following = latents[pairs], latents[pairs + 1]
         centred, next_centred = current - current.mean(axis=0), following - following.mean(axis=0)
         spread = current.std(axis=0) * following.std(axis=0)
-        correlation = np.where(spread > 1e-9, (centred * next_centred).mean(axis=0) / np.maximum(spread, 1e-9), 0.0)
+        correlation = np.where(spread > 1e-9,
+                               (centred * next_centred).mean(axis=0) / np.maximum(spread, 1e-9),
+                               0.0)
     else:
         correlation = np.zeros(latents.shape[1])
 
@@ -1258,12 +1180,8 @@ def _step_predictability(x_t, latents: np.ndarray, latent_exists: np.ndarray) ->
     """
     Held-out R-squared of a ridge regression from ``(X, Z)`` to the latent's next step.
 
-    The linear lower bound on what the stepper could learn, and the only diagnostic here
-    that a latent cannot improve by going quiet -- R-squared is scored against that latent's own
-    variance, so shrinking the steps shrinks the target too.
-
-    The split is the same contiguous tail the trainer validates on, because adjacent frames are
-    near-duplicates and a random split would fit the test set through its neighbours.
+    The linear lower bound on what the stepper could learn, and the only diagnostic here that a
+    latent cannot improve by going quiet. Split on a contiguous tail, as the trainer validates.
     """
     pairs = np.flatnonzero(latent_exists[:-1] & latent_exists[1:]).astype(np.int64)
     if pairs.size < 64:

@@ -7,10 +7,8 @@ namespace AnimationTools
 /// itself is, independent of whether it went where it was asked to.
 /// </summary>
 /// <remarks>
-/// These are the artefacts that separate two methods which score the same on path following. A
-/// motion field that snaps between database neighbours and a motion matching search that jumps to a
-/// distant frame both hit their trajectory, and both look wrong — footskate and root jerk are what
-/// that wrongness measures.
+/// These separate methods that score the same on path following: a search that jumps frames can hit
+/// its trajectory and still look wrong.
 /// </remarks>
 [Serializable]
 public class MotionQualityMetricsResult

@@ -8,8 +8,7 @@ using SkeletonBone = AnimationTools.SkeletonBone;
 namespace MotionMatching
 {
 /// <summary>
-/// Defines all data used for Motion Matching in one avatar
-/// Contains animation clips, feature definitions, and other data
+/// A motion matching database definition: its clips, skeleton, contact settings and feature channels.
 /// </summary>
 [CreateAssetMenu(fileName = "MotionMatchingData", menuName = "MotionMatching/MotionMatchingData")]
 public class MotionMatchingData : ScriptableObject, IPoseSetSource
@@ -21,9 +20,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
              "skeleton. Index 0 is that root bone.")]
     [SerializeField] private Skeleton skeleton = new();
 
-    public float
-        contactVelocityThreshold =
-            0.15f; // Minimum velocity of the foot to be considered in movement and not in contact with the ground
+    public float contactVelocityThreshold = 0.15f; // Foot speed below which the foot counts as in ground contact
 
     [SerializeField]
     [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
@@ -45,9 +42,9 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
         private set => _featureSet = value;
     }
 
-    // Information extracted from the rig's rest pose
+    // Per-joint local forward axis, extracted from the rig's rest pose by ComputeJointsLocalForward.
     [SerializeField]
-    private float3[] jointsLocalForward; // Local forward vector of each joint
+    private float3[] jointsLocalForward;
 
     private FeatureSet _featureSet;
     public bool JointsLocalForwardError => jointsLocalForward == null;
@@ -55,9 +52,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     /// <summary>The pose skeleton: the rig's root bone, identical to each clip's skeleton.</summary>
     public Skeleton Skeleton => skeleton;
 
-    // IPoseSetSource --- the subset of this asset the pose-database pipeline actually reads.
-    // Exposed as properties so a consumer that only wants a pose database (MotionField's config)
-    // can supply one without also being a full Motion Matching asset.
+    // IPoseSetSource: the subset of this asset the pose-database pipeline reads.
     public List<AnnotatedAnimationClip> AnimationClips => animationClips;
     public float ContactVelocityThreshold => contactVelocityThreshold;
     public string LeftContactBoneName => leftContactBone?.Name;
@@ -80,11 +75,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     /// Frames of history the furthest-back trajectory sample needs, mirroring
     /// <see cref="MaximumFramesPrediction"/> at the start of a clip.
     /// </summary>
-    /// <remarks>
-    /// A negative prediction frame is how a feature reaches into the past. Both the classic
-    /// motion-matching past-trajectory term and a PFNN-style trajectory window (which spans roughly
-    /// a second either side of the query frame) are authored that way.
-    /// </remarks>
+    /// <remarks>A feature reaches into the past through a negative prediction frame.</remarks>
     public int MaximumFramesHistory => FramesPrediction(ahead: false);
 
     /// <summary>
@@ -146,15 +137,14 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
             if (!HasFeatureChannels) return null;
 
             PROFILE.BEGIN_SAMPLE_PROFILING("Feature Import");
-            FeatureSerializer serializer = new FeatureSerializer();
-            if (!serializer.Deserialize(GetAssetPath(), name, this, out FeatureSet featureSet))
+            var serializer = new FeatureSerializer();
+            if (!serializer.Deserialize(GetAssetPath(), name, this, out var featureSet))
             {
                 Debug.LogWarning("Failed to read feature set. Creating it in runtime instead.");
                 ImportFeatureSet();
 #if UNITY_EDITOR
                 PROFILE.BEGIN_SAMPLE_PROFILING("Feature Serialize");
-                FeatureSerializer featureSerializer = new FeatureSerializer();
-                featureSerializer.Serialize(FeatureSet, this, GetAssetPath(), this.name);
+                serializer.Serialize(FeatureSet, this, GetAssetPath(), name);
                 PROFILE.END_AND_PRINT_SAMPLE_PROFILING("Feature Serialize");
 #endif
             }
@@ -197,7 +187,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
         {
             var boneName = skeleton.GetBone(i).Name;
 
-            // Arms point sideways in a T-Pose, so their "forward" is the character's right axis
+            // Arms point sideways in a T-Pose, so their "forward" is the character's side axis.
             var worldForward = math.forward();
             if (BoneNameConventions.IsLeftArmBone(boneName))
             {

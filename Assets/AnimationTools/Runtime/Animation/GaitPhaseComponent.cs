@@ -8,17 +8,10 @@ namespace AnimationTools
 /// The footfalls a clip's gait phase is built from, and the settings used to find them.
 /// </summary>
 /// <remarks>
-/// Phase is stored as its <em>anchors</em> rather than as a baked curve. A few hundred markers say
-/// the same thing as a few thousand floats, they are the actual input to
-/// <see cref="GaitPhase.Evaluate"/>, and — the point — they are correctable. The defect that
-/// remains marker-level is contacts missed where the character moves fast; a standing intro with no
-/// anchors at all is answered by the standing rule instead, since no marker can describe it.
-/// <para>
-/// The detection settings live here, per clip, rather than on the database config. A single
-/// threshold cannot serve two clips at different speeds: <c>walk1_subject5</c> travels at 1.27 m/s
-/// against <c>walk1_subject1</c>'s 0.675 m/s, and at the shared 0.15 m/s threshold its feet are
-/// detected as planted only 22% of the time against the other's 51%.
-/// </para>
+/// Phase is stored as its anchors rather than a baked curve, because anchors are what an author can
+/// correct; a stretch with no anchors is answered by the standing rule. Detection settings are per
+/// clip because one contact threshold cannot serve clips at different speeds. See
+/// openwiki/animation-tools/animation-sources.md.
 /// </remarks>
 [Serializable]
 public sealed class GaitPhaseComponent : AnimationClipComponent
@@ -138,10 +131,8 @@ public sealed class GaitPhaseComponent : AnimationClipComponent
     /// </summary>
     /// <param name="clip">The clip to read. Only its <c>[startFrame, endFrame)</c> slice is used.</param>
     /// <param name="contacts">
-    /// Per frame of the <em>whole clip</em>, whether each foot was planted: index <c>frame * 2</c>
-    /// is left, <c>+ 1</c> right, false outside the slice. Smoothed, i.e. what the footfalls were
-    /// actually detected from. Clip-wide so that nothing downstream has to convert between two
-    /// frame spaces.
+    /// The smoothed flags the footfalls were detected from, per frame of the <em>whole clip</em>:
+    /// index <c>frame * 2</c> is left, <c>+ 1</c> right, false outside the slice.
     /// </param>
     /// <param name="error">Why detection could not run.</param>
     public bool TryDetect(AnnotatedAnimationClip clip, out bool[] contacts, out string error)
@@ -188,6 +179,5 @@ public sealed class GaitPhaseComponent : AnimationClipComponent
         error = $"No {(left ? "left" : "right")} contact bone found by name. Name one explicitly.";
         return false;
     }
-
 }
 }

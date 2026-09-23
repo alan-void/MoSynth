@@ -8,11 +8,8 @@ namespace AnimationTools.Tests
     /// Which channel row a point in the tag lane falls in.
     /// </summary>
     /// <remarks>
-    /// The distinction that matters is between "no row" and "ignore this click". Below the last row,
-    /// in the lane's padding, and on a component with no channels at all are all no-row - and all
-    /// three are exactly where a user reaches to start a box select. Treating -1 as a reason to
-    /// return early is what made box select unreachable, and let the click fall through to the
-    /// timeline and scrub the playhead instead.
+    /// Verifies that padding, the space below the last row, and a channel-less component all report
+    /// no row (-1) — the empty space where a box select starts.
     /// </remarks>
     public class AnimationTagTrackRowTests
     {

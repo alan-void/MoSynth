@@ -89,8 +89,7 @@ class PhaseFunctionedLayer(nn.Module):
         """
         The explicit per-sample weight matrix and bias, for one sample's phase.
 
-        Only the test needs this -- it is the slow formulation :meth:`forward` avoids -- but having
-        it named makes the equivalence checkable rather than merely asserted in a comment.
+        The slow formulation :meth:`forward` avoids, kept so the test can check the equivalence.
         """
         weight = torch.einsum('k,koi->oi', phase_weights, self.weights)
         bias = torch.einsum('k,ko->o', phase_weights, self.biases)

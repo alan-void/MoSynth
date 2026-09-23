@@ -10,12 +10,8 @@ namespace Pfnn
 /// character as its future trajectory.
 /// </summary>
 /// <remarks>
-/// Unlike <c>MotionFieldSplineControlInput</c>, which steers by pure pursuit toward a single
-/// lookahead point, a PFNN wants the whole future window — so this samples the path at each of the
-/// horizons the network asks for. It advances on its own clock rather than tracking where the
-/// character actually is, which is what makes drift show up as measurable path-following error
-/// instead of being steered out; that is the same choice <c>SplineControlInput</c> makes, and what
-/// makes both usable as measurement tools.
+/// Advances on its own clock rather than tracking the character, as <c>SplineControlInput</c> does,
+/// so drift shows up as measurable path-following error instead of being steered out.
 /// </remarks>
 public class PfnnSplineControlInput : PfnnControlInput, IMotionSynthesisSplineControlInput
 {
@@ -51,7 +47,7 @@ public class PfnnSplineControlInput : PfnnControlInput, IMotionSynthesisSplineCo
     private bool IsClosed => HasPath && splineContainer.Spline.Closed;
     private float PathLength => HasPath ? splineContainer.CalculateLength() : 0f;
 
-    /// <summary>Seconds of path a single synthesis frame covers, as a fraction of the whole.</summary>
+    /// <summary>Fraction of the whole path a single synthesis frame covers.</summary>
     private float _normalizedSpeedPerFrame;
 
     protected override void OnUpdate()

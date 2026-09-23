@@ -131,8 +131,8 @@ public class PoseSerializerTests
     }
 
     /// <summary>
-    /// The case a bone count alone would miss: same number of bones, different tree. This is what
-    /// stands in for the format version the file no longer carries.
+    /// The case a bone count alone would miss: same number of bones, different tree. The skeleton
+    /// check is what catches a stale file in an unversioned format.
     /// </summary>
     [Test]
     public void Deserialize_RejectsDatabaseWithSameCountButDifferentBones()

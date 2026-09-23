@@ -32,16 +32,16 @@ public static class TestResultDump
 
     private class Callbacks : ICallbacks
     {
-        private readonly StringBuilder failures = new();
+        private readonly StringBuilder _failures = new();
 
         public void RunStarted(ITestAdaptor testsToRun)
         {
-            failures.Clear();
+            _failures.Clear();
         }
 
         public void RunFinished(ITestResultAdaptor result)
         {
-            var summary = $"passed={result.PassCount} failed={result.FailCount} skipped={result.SkipCount}\n{failures}";
+            var summary = $"passed={result.PassCount} failed={result.FailCount} skipped={result.SkipCount}\n{_failures}";
             File.WriteAllText(Path.Combine(Application.dataPath, "../Temp/animtools_test_results.txt"), summary);
         }
 
@@ -52,7 +52,7 @@ public static class TestResultDump
         public void TestFinished(ITestResultAdaptor result)
         {
             if (result.TestStatus == TestStatus.Failed && !result.HasChildren)
-                failures.AppendLine($"FAIL {result.FullName}: {result.Message}");
+                _failures.AppendLine($"FAIL {result.FullName}: {result.Message}");
         }
     }
 }

@@ -10,12 +10,12 @@ namespace MotionField
 /// <summary>
 /// Everything a motion field needs: which animations form the database, and the hyperparameters
 /// used to train and run the value function over it.
-///
-/// This implements <see cref="IPoseSetSource"/> so it can produce its own .mmpose database
-/// without being a <see cref="MotionMatchingData"/>. It deliberately carries none of the
-/// trajectory/pose feature machinery -- a motion field searches on full-body pose and velocity, so
-/// the feature set a Motion Matching query needs has no meaning here.
 /// </summary>
+/// <remarks>
+/// Produces its own .mmpose through <see cref="IPoseSetSource"/> and carries no matching features:
+/// a motion field searches on full-body pose and velocity. See
+/// openwiki/motion-field/config-and-training.md.
+/// </remarks>
 [CreateAssetMenu(fileName = "MotionFieldConfig", menuName = "MotionField/MotionFieldConfig")]
 public class MotionFieldConfig : ScriptableObject, IPoseSetSource
 {
@@ -72,10 +72,8 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// Per-joint emphasis in the similarity metric, keyed by skeleton joint name.
     /// </summary>
     /// <remarks>
-    /// Hidden from the default inspector on purpose: as a raw list this is 23 nameless elements
-    /// with no indication of which bone each one is. <c>MotionFieldConfigEditor</c> draws it as the
-    /// skeleton hierarchy instead. Only entries that differ from 1 need to be stored, and joints
-    /// absent from the list are simply left at 1.
+    /// Sparse: joints absent from the list weigh 1. <c>MotionFieldConfigEditor</c> draws it as the
+    /// skeleton hierarchy.
     /// </remarks>
     [HideInInspector] public List<BoneWeight> boneWeights = new();
 
@@ -83,10 +81,8 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// How much one joint counts toward the k-NN distance.
     /// </summary>
     /// <remarks>
-    /// Keyed by <see cref="name"/> rather than by index because the metric sums over joints in
-    /// depth-first order, which is not guaranteed to survive a skeleton being re-extracted with a
-    /// different hierarchy. Resolving by name on the Python side means a moved joint takes its
-    /// weight with it instead of silently applying it to whatever now sits at that index.
+    /// Keyed by <see cref="name"/> rather than index, so a joint that moves in the hierarchy keeps
+    /// its weight; Python resolves it by name.
     /// </remarks>
     [Serializable]
     public struct BoneWeight
@@ -113,7 +109,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// <summary>This joint's weight, or a neutral one when the list does not mention it.</summary>
     public BoneWeight GetBoneWeight(string jointName)
     {
-        for (int i = 0; i < boneWeights.Count; i++)
+        for (var i = 0; i < boneWeights.Count; i++)
         {
             if (boneWeights[i].name == jointName) return boneWeights[i];
         }
@@ -127,7 +123,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// </summary>
     public void SetBoneWeight(BoneWeight weight)
     {
-        int existing = boneWeights.FindIndex(w => w.name == weight.name);
+        var existing = boneWeights.FindIndex(w => w.name == weight.name);
 
         if (weight.IsNeutral)
         {
@@ -144,7 +140,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     {
         get
         {
-            for (int i = 0; i < boneWeights.Count; i++)
+            for (var i = 0; i < boneWeights.Count; i++)
             {
                 if (!boneWeights[i].IsNeutral) return true;
             }
@@ -244,14 +240,9 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// Whether the pose database on disk was extracted from the config as it now stands.
     /// </summary>
     /// <remarks>
-    /// Set by the Generate Pose Database button and cleared by <c>MotionFieldConfigEditor</c> when a
-    /// field is edited. The editor's change check cannot tell which field moved, so any edit clears
-    /// this -- over-flagging rather than missing a change that matters.
-    ///
-    /// Initialised true so a config saved before this field existed -- which was, by definition,
-    /// current when it was last generated -- does not demand a pointless rebuild the first time it
-    /// is opened. A config that has never been generated has no <c>.mmpose</c>, and every reader
-    /// takes the file's absence, not the flag, as the answer.
+    /// Set by Generate Pose Database and cleared by any inspector edit, since the change check cannot
+    /// tell which field moved. Defaults true so an asset without the field does not demand a
+    /// rebuild; a never-generated config is detected by the missing <c>.mmpose</c>, not this flag.
     /// </remarks>
     [HideInInspector] public bool hasPoseDatabase = true;
 
@@ -263,8 +254,8 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     [HideInInspector] public bool hasTrained = true;
 
     /// <summary>
-    /// <see cref="umapFeatures"/> as the literal `motion_field.embedding.compute_embedding`
-    /// expects, so the Python string lives in one place rather than at every call site.
+    /// <see cref="umapFeatures"/> as the literal <c>motion_field.embedding.compute_embedding</c>
+    /// expects.
     /// </summary>
     public string UmapFeatureModeName =>
         umapFeatures == UmapFeatures.PositionOnly ? "position" : "full";
@@ -298,10 +289,8 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     }
 
     /// <summary>
-    /// This config's own pose skeleton -- the skeleton the similarity metric is actually computed
-    /// over, which is why the bone weight editor reads it here rather than from the source
-    /// animation clips: a clip can be authored against a differently shaped rig, so its joint list
-    /// would not line up. False when no skeleton has been assigned.
+    /// This config's own pose skeleton, which the similarity metric is computed over. False when
+    /// no skeleton has been assigned.
     /// </summary>
     public bool TryGetDatabaseSkeleton(out Skeleton result)
     {

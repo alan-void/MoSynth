@@ -11,24 +11,17 @@ namespace AnimationTools
     /// Converts a selected <c>.bvh</c> file into an <see cref="AnimationClip"/> asset, from the
     /// Assets context menu.
     /// </summary>
-    /// <remarks>
-    /// Editor-only, and in an Editor folder for that reason: it reaches for <c>AssetDatabase</c>
-    /// and <c>Selection</c>, which do not exist in a player.
-    /// </remarks>
     public static class BioVisionHierarchyToAnimClip
     {
-        // --- CONFIGURATION ---
-        // Set this to 0.01f to convert Centimeters (BVH standard) to Meters (Unity standard).
-        // If your BVH is already in meters, set this to 1.0f.
-        private const float UnitScale = 0.01f; 
-        // ---------------------
+        /// <summary>BVH is conventionally in centimetres; Unity is in metres. Use 1 for a BVH in metres.</summary>
+        private const float UnitScale = 0.01f;
 
         [MenuItem("Assets/Convert BVH to AnimationClip")]
         public static void ConvertSelectedBvh()
         {
-            foreach (Object selectedObject in Selection.objects)
+            foreach (var selectedObject in Selection.objects)
             {
-                string path = AssetDatabase.GetAssetPath(selectedObject);
+                var path = AssetDatabase.GetAssetPath(selectedObject);
 
                 if (string.IsNullOrEmpty(path) || (!path.EndsWith(".bvh") && !path.EndsWith(".txt")))
                 {
@@ -36,20 +29,20 @@ namespace AnimationTools
                     continue;
                 }
 
-                BVHParser parser = new BVHParser();
+                var parser = new BVHParser();
                 try
                 {
                     Debug.Log($"Parsing BVH: {path} with Scale {UnitScale}...");
-                    string fileContent = File.ReadAllText(path);
-                    BVHData data = parser.Parse(fileContent, UnitScale);
+                    var fileContent = File.ReadAllText(path);
+                    var data = parser.Parse(fileContent, UnitScale);
 
-                    string clipName = Path.GetFileNameWithoutExtension(path);
-                    AnimationClip clip = CreateAnimationClip(data, clipName);
-                    
-                    string newPath = Path.Combine(Path.GetDirectoryName(path), clipName + ".anim");
+                    var clipName = Path.GetFileNameWithoutExtension(path);
+                    var clip = CreateAnimationClip(data, clipName);
+
+                    var newPath = Path.Combine(Path.GetDirectoryName(path), clipName + ".anim");
                     AssetDatabase.CreateAsset(clip, newPath);
                     AssetDatabase.SaveAssets();
-                    
+
                     Debug.Log($"<color=green>Success:</color> AnimationClip created at {newPath}");
                 }
                 catch (System.Exception e)
@@ -61,40 +54,38 @@ namespace AnimationTools
 
         private static AnimationClip CreateAnimationClip(BVHData data, string clipName)
         {
-            AnimationClip clip = new AnimationClip();
-            clip.name = clipName;
-            clip.frameRate = 1f / data.FrameTime;
-            clip.legacy = false; // Valid for Animator Controller
-
-            int numFrames = data.NumFrames;
+            var clip = new AnimationClip
+            {
+                name = clipName,
+                frameRate = 1f / data.FrameTime,
+                legacy = false
+            };
 
             foreach (var joint in data.AllJoints)
             {
-                AnimationCurve curvePosX = new AnimationCurve();
-                AnimationCurve curvePosY = new AnimationCurve();
-                AnimationCurve curvePosZ = new AnimationCurve();
+                var curvePosX = new AnimationCurve();
+                var curvePosY = new AnimationCurve();
+                var curvePosZ = new AnimationCurve();
 
-                AnimationCurve curveRotX = new AnimationCurve();
-                AnimationCurve curveRotY = new AnimationCurve();
-                AnimationCurve curveRotZ = new AnimationCurve();
-                AnimationCurve curveRotW = new AnimationCurve();
+                var curveRotX = new AnimationCurve();
+                var curveRotY = new AnimationCurve();
+                var curveRotZ = new AnimationCurve();
+                var curveRotW = new AnimationCurve();
 
-                string relativePath = GetRelativePath(joint);
+                var relativePath = GetRelativePath(joint);
 
-                for (int frame = 0; frame < numFrames; frame++)
+                for (var frame = 0; frame < data.NumFrames; frame++)
                 {
-                    float time = frame * data.FrameTime;
-                    
-                    Vector3 pos = joint.GetPosition(frame);
-                    Quaternion rot = joint.GetRotation(frame);
+                    var time = frame * data.FrameTime;
 
-                    // Coordinate Conversion (Right-Handed BVH -> Left-Handed Unity)
-                    // 1. Position: Flip X. (Note: Scaling is already applied in Parser)
-                    Vector3 unityPos = new Vector3(-pos.x, pos.y, pos.z);
+                    var pos = joint.GetPosition(frame);
+                    var rot = joint.GetRotation(frame);
 
-                    // 2. Rotation: Flip X and W to mirror orientation
-                    Quaternion unityRot = new Quaternion(-rot.x, rot.y, rot.z, -rot.w);
-                    
+                    // Right-handed BVH to left-handed Unity: mirror across X. Positions are already
+                    // scaled by the parser.
+                    var unityPos = new Vector3(-pos.x, pos.y, pos.z);
+                    var unityRot = new Quaternion(-rot.x, rot.y, rot.z, -rot.w);
+
                     if (joint.HasPos)
                     {
                         curvePosX.AddKey(time, unityPos.x);
@@ -120,14 +111,14 @@ namespace AnimationTools
                 clip.SetCurve(relativePath, typeof(Transform), "localRotation.z", curveRotZ);
                 clip.SetCurve(relativePath, typeof(Transform), "localRotation.w", curveRotW);
             }
-            
+
             clip.EnsureQuaternionContinuity();
             return clip;
         }
 
         private static string GetRelativePath(BVHJoint joint)
         {
-            string path = joint.Name;
+            var path = joint.Name;
             var current = joint.Parent;
             while (current != null)
             {
@@ -137,10 +128,6 @@ namespace AnimationTools
             return path;
         }
     }
-
-    // ==========================================
-    // DATA STRUCTURES
-    // ==========================================
 
     public class BVHData
     {
@@ -154,9 +141,9 @@ namespace AnimationTools
     {
         public string Name;
         public BVHJoint Parent;
-        public Vector3 Offset; 
+        public Vector3 Offset;
         public List<string> Channels = new List<string>();
-        public int ChannelOffsetIndex; 
+        public int ChannelOffsetIndex;
         public bool HasPos => Channels.Any(c => c.Contains("position"));
 
         public List<Vector3> PosData = new List<Vector3>();
@@ -166,54 +153,45 @@ namespace AnimationTools
         public Quaternion GetRotation(int frame) => RotData.Count > frame ? RotData[frame] : Quaternion.identity;
     }
 
-    // ==========================================
-    // PARSER
-    // ==========================================
-
     public class BVHParser
     {
-        private int _channelIndexCounter = 0;
-        private List<float[]> _motionData = new List<float[]>();
+        private int _channelIndexCounter;
+        private readonly List<float[]> _motionData = new List<float[]>();
 
         public BVHData Parse(string bvhText, float scaleFactor)
         {
-            BVHData data = new BVHData();
-            using (StringReader reader = new StringReader(bvhText))
+            var data = new BVHData();
+            using (var reader = new StringReader(bvhText))
             {
-                string line = reader.ReadLine();
+                var line = reader.ReadLine();
                 BVHJoint currentJoint = null;
-                
-                // --- HIERARCHY ---
+
+                // HIERARCHY section.
                 while (line != null)
                 {
-                    string cleanLine = line.Trim();
-                    string[] parts = cleanLine.Split(new char[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    var cleanLine = line.Trim();
+                    var parts = cleanLine.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
 
                     if (parts.Length == 0) { line = reader.ReadLine(); continue; }
 
                     if (parts[0] == "HIERARCHY") { }
                     else if (parts[0] == "ROOT" || parts[0] == "JOINT")
                     {
-                        BVHJoint joint = new BVHJoint();
-                        joint.Name = parts[1];
-                        joint.Parent = currentJoint;
+                        var joint = new BVHJoint { Name = parts[1], Parent = currentJoint };
                         data.AllJoints.Add(joint);
 
                         if (currentJoint == null) data.Root = joint;
                         currentJoint = joint;
                     }
-                    else if (parts[0] == "End") 
+                    else if (parts[0] == "End")
                     {
-                        BVHJoint endSite = new BVHJoint();
-                        endSite.Name = "End Site"; 
-                        endSite.Parent = currentJoint;
-                        currentJoint = endSite;
+                        // Not added to AllJoints: an end site only carries the offset of a leaf tip.
+                        currentJoint = new BVHJoint { Name = "End Site", Parent = currentJoint };
                     }
                     else if (parts[0] == "OFFSET")
                     {
                         if (currentJoint != null)
                         {
-                            // Apply Scale to Offset immediately
                             currentJoint.Offset = new Vector3(
                                 float.Parse(parts[1], CultureInfo.InvariantCulture) * scaleFactor,
                                 float.Parse(parts[2], CultureInfo.InvariantCulture) * scaleFactor,
@@ -226,8 +204,8 @@ namespace AnimationTools
                         if (currentJoint != null)
                         {
                             currentJoint.ChannelOffsetIndex = _channelIndexCounter;
-                            int count = int.Parse(parts[1]);
-                            for (int i = 0; i < count; i++)
+                            var count = int.Parse(parts[1]);
+                            for (var i = 0; i < count; i++)
                             {
                                 currentJoint.Channels.Add(parts[2 + i]);
                             }
@@ -241,16 +219,16 @@ namespace AnimationTools
                     }
                     else if (parts[0] == "MOTION")
                     {
-                        break; 
+                        break;
                     }
 
                     line = reader.ReadLine();
                 }
 
-                // --- MOTION ---
+                // MOTION section.
                 while (line != null)
                 {
-                    string cleanLine = line.Trim();
+                    var cleanLine = line.Trim();
                     if (cleanLine.StartsWith("Frames:"))
                     {
                         data.NumFrames = int.Parse(cleanLine.Split(':')[1].Trim());
@@ -261,9 +239,9 @@ namespace AnimationTools
                     }
                     else if (!string.IsNullOrEmpty(cleanLine) && (char.IsDigit(cleanLine[0]) || cleanLine.StartsWith("-")))
                     {
-                        string[] values = cleanLine.Split(new char[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
-                        float[] floats = new float[values.Length];
-                        for(int i=0; i<values.Length; i++)
+                        var values = cleanLine.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+                        var floats = new float[values.Length];
+                        for (var i = 0; i < values.Length; i++)
                         {
                             floats[i] = float.Parse(values[i], CultureInfo.InvariantCulture);
                         }
@@ -279,32 +257,28 @@ namespace AnimationTools
 
         private void ProcessMotionData(BVHData data, float scale)
         {
-            for (int f = 0; f < _motionData.Count; f++)
+            foreach (var frameValues in _motionData)
             {
-                float[] frameValues = _motionData[f];
-
                 foreach (var joint in data.AllJoints)
                 {
                     if (joint.Name == "End Site") continue;
 
-                    Vector3 pos = joint.Offset; 
-                    Quaternion finalRot = Quaternion.identity;
-                    
-                    int dataIndex = joint.ChannelOffsetIndex;
-                    
-                    float pX=0, pY=0, pZ=0;
-                    float rX=0, rY=0, rZ=0;
-                    string rotOrder = ""; 
+                    var pos = joint.Offset;
+                    var dataIndex = joint.ChannelOffsetIndex;
 
-                    for (int i = 0; i < joint.Channels.Count; i++)
+                    float pX = 0, pY = 0, pZ = 0;
+                    float rX = 0, rY = 0, rZ = 0;
+                    var rotOrder = "";
+
+                    for (var i = 0; i < joint.Channels.Count; i++)
                     {
-                        string type = joint.Channels[i];
-                        float val = frameValues[dataIndex + i];
+                        var type = joint.Channels[i];
+                        var val = frameValues[dataIndex + i];
 
                         if (type == "Xposition") pX = val;
                         if (type == "Yposition") pY = val;
                         if (type == "Zposition") pZ = val;
-                        
+
                         if (type == "Xrotation") { rX = val; rotOrder += "X"; }
                         if (type == "Yrotation") { rY = val; rotOrder += "Y"; }
                         if (type == "Zrotation") { rZ = val; rotOrder += "Z"; }
@@ -312,20 +286,20 @@ namespace AnimationTools
 
                     if (joint.HasPos)
                     {
-                        // Apply Scale to Motion Positions
                         pos = new Vector3(pX * scale, pY * scale, pZ * scale);
                     }
 
-                    Quaternion qx = Quaternion.AngleAxis(rX, Vector3.right);
-                    Quaternion qy = Quaternion.AngleAxis(rY, Vector3.up);
-                    Quaternion qz = Quaternion.AngleAxis(rZ, Vector3.forward);
-                    
-                    finalRot = Quaternion.identity;
-                    foreach(char axis in rotOrder)
+                    var qx = Quaternion.AngleAxis(rX, Vector3.right);
+                    var qy = Quaternion.AngleAxis(rY, Vector3.up);
+                    var qz = Quaternion.AngleAxis(rZ, Vector3.forward);
+
+                    // Compose in the order the channels are listed.
+                    var finalRot = Quaternion.identity;
+                    foreach (var axis in rotOrder)
                     {
-                        if(axis == 'Z') finalRot = finalRot * qz; 
-                        if(axis == 'Y') finalRot = finalRot * qy;
-                        if(axis == 'X') finalRot = finalRot * qx;
+                        if (axis == 'Z') finalRot = finalRot * qz;
+                        if (axis == 'Y') finalRot = finalRot * qy;
+                        if (axis == 'X') finalRot = finalRot * qx;
                     }
 
                     joint.PosData.Add(pos);

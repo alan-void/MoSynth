@@ -29,9 +29,7 @@ public sealed class SplineSpeedOverride : BenchmarkOverride
 }
 
 /// <summary>
-/// Changes how often the database is searched. The main quality/cost dial for motion matching:
-/// searching every tick tracks better and costs more, which is exactly what the sweep exists to
-/// quantify.
+/// Changes how often the database is searched: the main quality/cost dial for motion matching.
 /// </summary>
 [Serializable]
 public sealed class SearchIntervalOverride : BenchmarkOverride

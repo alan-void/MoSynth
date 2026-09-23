@@ -161,15 +161,13 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     /// </summary>
     public event Action<PoseBuffer, float> OnPoseApplied;
 
-    /// <summary>
-    /// Time.DeltaTime if frame rate is not restricted. 1/animationFrameRate if restricted.
-    /// </summary>
+    /// <summary>The synthesis timestep: Time.deltaTime when uncapped, else 1/synthesisFrameRate.</summary>
     private float _animationDeltaTime;
 
     /// <summary>Countdown to the next synthesis tick while the frame rate is capped.</summary>
     private float _timeTillNextAnimationUpdate;
 
-    bool IsFrameRateRestricted => synthesisFrameRate > 1e-5;
+    private bool IsFrameRateRestricted => synthesisFrameRate > 1e-5;
 
     private void Awake()
     {
@@ -271,7 +269,7 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     }
 
     /// <summary>Builds the pose layout, allocates the buffers, and seeds them from the rig.</summary>
-    void InitCurrentPose()
+    private void InitCurrentPose()
     {
         PoseLayout = PoseLayoutBuilder.Build(skeleton, out var contacts);
         LeftFootContactHandle = contacts.Left;
@@ -293,7 +291,7 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     /// component's Transform, the frame derived from the pose built here is that Transform — which
     /// holds only while everything between bone 0's Transform and this one is identity.
     /// </remarks>
-    void ConstructCurrentPoseFromSkeletonTransforms()
+    private void ConstructCurrentPoseFromSkeletonTransforms()
     {
         RigPoseReader.Read(CurrentPose, SkeletonTransforms, _animationDeltaTime);
     }
@@ -329,10 +327,9 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
             transform.SetPositionAndRotation(appliedPosition, appliedRotation);
         }
 
-        // TODO: inertialized hips blending across a rootPositionsMask change, and toes-floor
-        // penetration correction, both used to happen here. They were dropped when the pipeline
-        // moved to stages; the intended home for each is a MoSynthStage running after the pose is
-        // produced, rather than another special case inside the orchestrator.
+        // TODO: inertialized hips blending across a rootPositionsMask change and toes-floor
+        // penetration correction are missing; each belongs in a MoSynthStage after the pose is
+        // produced. See openwiki/animation-tools/root-following.md.
     }
 
     /// <summary>
@@ -406,17 +403,9 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
 
     // --- Unimplemented: pose adjustment and feature read-back ---------------------------------
     //
-    // These throw, but the crowd and collision control inputs (and Obstacle) still call them and
-    // will throw the moment those paths run. Kept explicit because it is the contract they were
-    // written against:
-    //
-    //  * Set*Adjustment        -- nudge the root off what the database produced, for collision
-    //                             response and crowd steering, blended in rather than jumped.
-    //  * Get*Feature           -- read back the trajectory being predicted, to steer against it.
-    //
-    // The adjustment half now has an implementation those callers predate: RootFollowStage pulls
-    // the root onto a target through bone 0's velocity channels, which is where a correction has to
-    // go for the component to integrate it.
+    // The crowd and collision control inputs (and Obstacle) still call these, and throw if those
+    // paths run. Set*Adjustment would nudge the root off the synthesized pose; Get*Feature would
+    // read back the predicted trajectory. RootFollowStage is the working route for root correction.
 
     public void SetRotAdjustment(quaternion adjustmentRotation)
     {

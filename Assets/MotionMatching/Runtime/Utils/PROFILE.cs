@@ -1,7 +1,6 @@
 // Uncomment this line to enable profiling for Motion Matching
 //#define PROFILE_MOTION_MATCHING
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 #if PROFILE_MOTION_MATCHING
@@ -12,9 +11,8 @@ using Debug = UnityEngine.Debug;
 namespace MotionMatching
 {
     /// <summary>
-    /// Hand-rolled timing for the motion matching hot path, kept separate from Unity's profiler
-    /// because it accumulates min/max/rolling-average across frames rather than showing one frame at
-    /// a time — which is what matters for a search whose cost swings with the query.
+    /// Hand-rolled timing for the motion matching hot path that accumulates min/max/rolling-average
+    /// across frames, which matters for a search whose cost swings with the query.
     /// </summary>
     /// <remarks>
     /// Compiled out entirely unless PROFILE_MOTION_MATCHING is defined at the top of this file, so
@@ -24,20 +22,18 @@ namespace MotionMatching
     public static class PROFILE
     {
 #if PROFILE_MOTION_MATCHING
-        private static Dictionary<string, Stopwatch> Stopwatches = new Dictionary<string, Stopwatch>();
-        // We need a separated ProfileSamples (instead of using Stopwatches) because we don't know when the ms/ticks will be queried
-        // it may happen just after a stopwatch has been reseted
-        private static Dictionary<string, DATA> ProfileDatas = new Dictionary<string, DATA>();
+        private static readonly Dictionary<string, Stopwatch> _stopwatches = new Dictionary<string, Stopwatch>();
+        // Kept apart from the stopwatches because results may be queried just after a stopwatch was reset.
+        private static readonly Dictionary<string, DATA> _profileData = new Dictionary<string, DATA>();
 #endif
-        // Functions must have empty body if PROFILE_MOTION_MATCHING is not defined
-        // Compiler will remove them from the build
+        // Bodies are empty when PROFILE_MOTION_MATCHING is undefined, so the calls compile away.
         public static void BEGIN_SAMPLE_PROFILING(string tag)
         {
 #if PROFILE_MOTION_MATCHING
-            if (!Stopwatches.TryGetValue(tag, out Stopwatch stopwatch))
+            if (!_stopwatches.TryGetValue(tag, out var stopwatch))
             {
                 stopwatch = new Stopwatch();
-                Stopwatches.Add(tag, stopwatch);
+                _stopwatches.Add(tag, stopwatch);
             }
             stopwatch.Reset();
             stopwatch.Start();
@@ -46,12 +42,12 @@ namespace MotionMatching
         public static void END_SAMPLE_PROFILING(string tag)
         {
 #if PROFILE_MOTION_MATCHING
-            Stopwatch stopwatch = Stopwatches[tag];
+            var stopwatch = _stopwatches[tag];
             stopwatch.Stop();
-            if (!ProfileDatas.TryGetValue(tag, out DATA data))
+            if (!_profileData.TryGetValue(tag, out var data))
             {
                 data = new DATA();
-                ProfileDatas.Add(tag, data);
+                _profileData.Add(tag, data);
             }
             data.AddSample((float)stopwatch.Elapsed.TotalMilliseconds, stopwatch.ElapsedTicks);
 #endif
@@ -60,23 +56,23 @@ namespace MotionMatching
         {
 #if PROFILE_MOTION_MATCHING
             END_SAMPLE_PROFILING(tag);
-            Stopwatch stopwatch = Stopwatches[tag];
+            var stopwatch = _stopwatches[tag];
             Debug.Log("[PROFILER]" + tag + ": " + stopwatch.ElapsedMilliseconds + "ms" + "(" + stopwatch.ElapsedTicks + " ticks)");
 #endif
         }
         public static DATA GET_DATA(string tag)
         {
 #if PROFILE_MOTION_MATCHING
-            if (ProfileDatas.ContainsKey(tag))
+            if (_profileData.TryGetValue(tag, out var data))
             {
-                return ProfileDatas[tag];
+                return data;
             }
 #endif
             return null;
         }
 
         /// <summary>
-        /// Use it only for Editor functions, otherwise is better to use a compiler directive such as #define
+        /// For Editor code only; elsewhere, guard with the PROFILE_MOTION_MATCHING define instead.
         /// </summary>
         public static bool IS_PROFILING_ENABLED()
         {
@@ -89,16 +85,16 @@ namespace MotionMatching
 
         public class DATA
         {
-            private static readonly int NumberSamplesToAverage = 60;
+            private const int NumberSamplesToAverage = 60;
 
             public float MinTicks, MinMs;
             public float MaxTicks, MaxMs;
-            private float AverageTicks, AverageMs;
+            private float _averageTicks, _averageMs;
 
-            private float[] SamplesToAverageMs;
-            private float[] SamplesToAverageTicks;
-            private int CurrentSample;
-            private int AbsoluteCurrentSample;
+            private readonly float[] _samplesToAverageMs;
+            private readonly float[] _samplesToAverageTicks;
+            private int _currentSample;
+            private int _absoluteCurrentSample;
 
             public DATA()
             {
@@ -106,11 +102,8 @@ namespace MotionMatching
                 MinMs = float.MaxValue;
                 MaxTicks = float.MinValue;
                 MaxMs = float.MinValue;
-                AverageTicks = 0;
-                AverageMs = 0;
-                SamplesToAverageTicks = new float[NumberSamplesToAverage];
-                SamplesToAverageMs = new float[NumberSamplesToAverage];
-                CurrentSample = 0;
+                _samplesToAverageTicks = new float[NumberSamplesToAverage];
+                _samplesToAverageMs = new float[NumberSamplesToAverage];
             }
 
             public void AddSample(float sampleMs, float sampleTicks)
@@ -120,30 +113,30 @@ namespace MotionMatching
                 MaxTicks = Mathf.Max(MaxTicks, sampleTicks);
                 MaxMs = Mathf.Max(MaxMs, sampleMs);
 
-                SamplesToAverageTicks[CurrentSample] = sampleTicks;
-                SamplesToAverageMs[CurrentSample] = sampleMs;
-                AbsoluteCurrentSample += 1;
-                CurrentSample = AbsoluteCurrentSample % NumberSamplesToAverage;
+                _samplesToAverageTicks[_currentSample] = sampleTicks;
+                _samplesToAverageMs[_currentSample] = sampleMs;
+                _absoluteCurrentSample += 1;
+                _currentSample = _absoluteCurrentSample % NumberSamplesToAverage;
 
-                AverageTicks = 0;
-                AverageMs = 0;
-                int count = Mathf.Min(AbsoluteCurrentSample, NumberSamplesToAverage);
-                for (int i = 0; i < count; i++)
+                _averageTicks = 0;
+                _averageMs = 0;
+                var count = Mathf.Min(_absoluteCurrentSample, NumberSamplesToAverage);
+                for (var i = 0; i < count; i++)
                 {
-                    AverageTicks += SamplesToAverageTicks[i];
-                    AverageMs += SamplesToAverageMs[i];
+                    _averageTicks += _samplesToAverageTicks[i];
+                    _averageMs += _samplesToAverageMs[i];
                 }
-                AverageTicks /= count;
-                AverageMs /= count;
+                _averageTicks /= count;
+                _averageMs /= count;
             }
 
             public float GetAverageTicks()
             {
-                return AverageTicks;
+                return _averageTicks;
             }
             public float GetAverageMs()
             {
-                return AverageMs;
+                return _averageMs;
             }
         }
     }

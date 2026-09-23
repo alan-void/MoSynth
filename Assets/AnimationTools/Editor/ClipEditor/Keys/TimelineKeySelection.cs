@@ -8,12 +8,8 @@ namespace AnimationTools.Editor
     /// sit on.
     /// </summary>
     /// <remarks>
-    /// Keyed by frame rather than by list index, and that is the whole point. Every edit here
-    /// re-sorts its list, so an index means something different afterwards - which is why the older
-    /// hand-rolled selection had to be cleared after every move. A frame is unique within a row, so
-    /// it is a key's identity: after a move the selected frames are simply the old ones plus the
-    /// delta, and a key that collided with another and cancelled falls out of the selection on its
-    /// own.
+    /// Keyed by frame, never list index: every edit re-sorts its list, but a frame is unique within a
+    /// row, so after a move the selection is the old frames plus the delta.
     /// </remarks>
     public sealed class TimelineKeySelection : IEnumerable<TimelineKey>
     {

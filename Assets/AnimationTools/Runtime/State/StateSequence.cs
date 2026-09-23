@@ -8,18 +8,10 @@ namespace AnimationTools
 /// stored back to back in a single flat float array.
 /// </summary>
 /// <remarks>
-/// <see cref="GetFrame"/> hands out a <see cref="StateBuffer"/> that is a view into
-/// <see cref="Data"/> (a <see cref="NativeArray{T}.GetSubArray"/> slice) — it aliases this
-/// sequence's storage rather than copying it. The caller must NEVER call
-/// <see cref="StateBuffer.Dispose"/> on that view; disposing a sub-array throws.
-/// <para/>
-/// Ownership of <see cref="Data"/> follows the usual Native* rule: whoever allocated it is
-/// responsible for disposing it. <see cref="Allocate"/> and <see cref="FromArray"/> allocate
-/// fresh storage that the caller owns and must eventually pass to <see cref="Dispose"/>. A
-/// sequence built over someone else's <see cref="NativeArray{T}"/> (e.g. one backed by
-/// <see cref="Allocator.Domain"/>) must never be disposed here — disposal is the original
-/// allocator's responsibility, and calling <see cref="Dispose"/> on a Domain-backed sequence
-/// will throw.
+/// <see cref="GetFrame"/> returns a view aliasing <see cref="Data"/>; never Dispose it. Whoever
+/// allocated <see cref="Data"/> disposes it: call <see cref="Dispose"/> only on sequences made by
+/// <see cref="Allocate"/> or <see cref="FromArray"/>, never on one wrapping an external array.
+/// See openwiki/animation-tools/channel-layout-system.md.
 /// </remarks>
 public class StateSequence
 {
@@ -96,10 +88,8 @@ public class StateSequence
     }
 
     /// <summary>
-    /// Disposes <see cref="Data"/>. Only call this for sequences built by <see cref="Allocate"/>
-    /// or <see cref="FromArray"/>; never call it on a sequence wrapping a Domain-backed (or
-    /// otherwise externally owned) array — that storage outlives this sequence and disposing it
-    /// here would throw.
+    /// Disposes <see cref="Data"/>. Only for sequences built by <see cref="Allocate"/> or
+    /// <see cref="FromArray"/>; an externally owned (e.g. Domain-backed) array throws here.
     /// </summary>
     public void Dispose()
     {

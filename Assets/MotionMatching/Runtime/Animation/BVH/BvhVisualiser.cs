@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 namespace MotionMatching
 {
 /// <summary>
-/// Import a BVH and visualize it using Gizmos.
+/// Plays a <see cref="SkeletonAnimation"/> on a bone hierarchy under this GameObject and draws it with Gizmos.
 /// </summary>
 public class BvhVisualiser : MonoBehaviour
 {
@@ -85,11 +85,8 @@ public class BvhVisualiser : MonoBehaviour
         }
 
         var boneCount = skeleton.BoneCount;
-
-        // Cache for transforms to avoid redundant lookups and handle unsorted lists
         var boneTransforms = new Transform[boneCount];
 
-        // Iterate through all bones to guarantee every bone is processed
         for (var i = 0; i < boneCount; i++)
         {
             GetOrCreateBone(i);
@@ -97,16 +94,14 @@ public class BvhVisualiser : MonoBehaviour
 
         return boneTransforms;
 
-        // Local helper function to recursively resolve/create a bone and its parents
+        // Resolves parents first, so a bone's parent always exists before the bone is looked up.
         Transform GetOrCreateBone(int boneIndex)
         {
-            // Invalid index or root returns the component's base transform
             if (boneIndex < 0 || boneIndex >= boneCount)
             {
                 return this.transform;
             }
 
-            // Return immediately if this bone has already been resolved
             if (boneTransforms[boneIndex])
             {
                 return boneTransforms[boneIndex];
@@ -115,27 +110,21 @@ public class BvhVisualiser : MonoBehaviour
             var bone = skeleton.GetBone(boneIndex);
             var parentIndex = skeleton.GetParentIndex(boneIndex);
 
-            // Resolve the parent transform first (recursion ensures parents exist before children)
             var parentTransform = this.transform;
             if (parentIndex >= 0)
             {
                 parentTransform = GetOrCreateBone(parentIndex);
             }
 
-            // Check if the bone already exists as a direct child of the resolved parent
             var existingBone = parentTransform.Find(bone.Name);
 
             if (existingBone != null)
             {
-                // Bone exists, link it to the cache without modifying it
                 boneTransforms[boneIndex] = existingBone;
             }
             else
             {
-                // Bone is missing, create it
                 var newBone = new GameObject(bone.Name);
-
-                // SetParent with worldPositionStays = false to preserve local transform identity
                 newBone.transform.SetParent(parentTransform, false);
 
                 boneTransforms[boneIndex] = newBone.transform;

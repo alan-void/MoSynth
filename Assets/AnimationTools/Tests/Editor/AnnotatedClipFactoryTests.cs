@@ -8,10 +8,8 @@ namespace AnimationTools.Tests
 /// asset lands.
 /// </summary>
 /// <remarks>
-/// The path rule is the one worth pinning. A batch is expected to be re-run over a folder it already
-/// filled, and it may only do that safely if a clip maps to the same path every time — a config
-/// references its clips by GUID, and a path that drifted would mint new assets and silently empty
-/// the config's list.
+/// Verifies a clip maps to the same path every time, so a batch re-run updates assets in place
+/// rather than minting new ones that orphan the configs' GUID references.
 /// </remarks>
 public class AnnotatedClipFactoryTests
 {

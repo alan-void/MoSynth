@@ -7,19 +7,10 @@ namespace AnimationTools.Editor
     /// inspector, and optionally geometry drawn into the animation preview.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// Declare a subclass, tag it with <see cref="ClipComponentTrackAttribute"/>, and the window
-    /// finds it - the same registration-free seam the components themselves use. A component with
-    /// no track still gets a lane and a fully editable inspector from
-    /// <see cref="DefaultComponentTrack"/>, so writing one of these is an upgrade rather than a
-    /// prerequisite.
-    /// </para>
-    /// <para>
-    /// Drawing and input share one method per surface because that is how IMGUI works and lanes
-    /// never overlap. Persist edits through <see cref="ComponentProperty"/> and
-    /// <see cref="ClipEditorContext.Commit"/>, once per interaction - see
-    /// <c>openwiki/animation-tools/clip-editor.md</c> for why a commit per mouse-move is expensive.
-    /// </para>
+    /// Tag a subclass with <see cref="ClipComponentTrackAttribute"/> and the window finds it; a
+    /// component with no track gets <see cref="DefaultComponentTrack"/>. Persist edits through
+    /// <see cref="ComponentProperty"/> and <see cref="ClipEditorContext.Commit"/>, once per
+    /// interaction. See <c>openwiki/agents/animation-tools/clip-editor-tracks.md</c>.
     /// </remarks>
     public abstract class AnimationClipComponentTrack
     {
@@ -45,10 +36,8 @@ namespace AnimationTools.Editor
         /// repaint until the user resizes the lane by hand, after which their height wins.
         /// </summary>
         /// <remarks>
-        /// <see cref="DefaultLaneHeight"/> is read once, when the row is built, and rows are only
-        /// rebuilt when the clip's components list changes shape. A track whose content count is
-        /// authored - a lane per tag channel, say - would otherwise gain rows it has no room to
-        /// draw.
+        /// <see cref="DefaultLaneHeight"/> is read only when the row is built, so a track whose
+        /// content count is authored (a lane per tag channel) needs this to grow.
         /// </remarks>
         public virtual float RequestedLaneHeight => 0f;
 
@@ -63,8 +52,8 @@ namespace AnimationTools.Editor
         /// False when the track has no selection concept, or nothing is selected.
         /// </summary>
         /// <remarks>
-        /// The timeline asks rather than the track acting, because <see cref="TrackDrawContext"/>
-        /// hands out a copy of the axis - a track cannot zoom or scroll the view itself.
+        /// The timeline asks because <see cref="TrackDrawContext"/> hands out a copy of the axis, so
+        /// a track cannot zoom or scroll the view itself.
         /// </remarks>
         public virtual bool TryGetSelectionRange(out int firstClipFrame, out int lastClipFrame)
         {
@@ -78,8 +67,7 @@ namespace AnimationTools.Editor
         /// False when the track holds nothing to frame.
         /// </summary>
         /// <remarks>
-        /// The sibling of <see cref="TryGetSelectionRange"/>, and asked of every visible lane rather
-        /// than only the focused one: Home frames the window's content, not one component's.
+        /// Asked of every visible lane, not only the focused one: Home frames the window's content.
         /// </remarks>
         public virtual bool TryGetContentRange(out int firstClipFrame, out int lastClipFrame)
         {

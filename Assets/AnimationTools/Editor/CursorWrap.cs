@@ -9,12 +9,8 @@ namespace AnimationTools.Editor
     /// rather than letting it wander off across the display.
     /// </summary>
     /// <remarks>
-    /// Blender wraps within the region being panned, and that containment is most of what makes the
-    /// gesture feel like it belongs to the panel. Unity's <c>SetWantsMouseJumping</c> wraps at the
-    /// edge of the screen instead and there is no region-scoped variant in the Editor API, so the
-    /// wrap is done here. Callers leave <c>SetWantsMouseJumping</c> on underneath as the fallback for
-    /// platforms <see cref="Move"/> cannot serve; on Windows it never fires, because a cursor kept
-    /// inside a panel never reaches the edge of the screen.
+    /// Unity's <c>SetWantsMouseJumping</c> only wraps at the screen edge. Callers leave it on as the
+    /// fallback for platforms where <see cref="Move"/> fails.
     /// </remarks>
     public struct CursorWrap
     {
@@ -27,8 +23,7 @@ namespace AnimationTools.Editor
         /// </summary>
         /// <remarks>
         /// Unity measures delta against the position it last saw, so the event after a wrap reports
-        /// the jump as motion. Taking it back out is what <c>SetWantsMouseJumping</c> does for itself
-        /// internally, and doing both halves here is what stops a caller getting the order wrong.
+        /// the jump as motion; this subtracts it back out.
         /// </remarks>
         public Vector2 DeltaWithin(Rect rect, Event e)
         {
@@ -63,11 +58,8 @@ namespace AnimationTools.Editor
         /// be done, which leaves the drag unwrapped rather than misplaced.
         /// </summary>
         /// <remarks>
-        /// Relative rather than absolute on purpose: <c>GUIUtility.GUIToScreenPoint</c> answers in
-        /// editor points and the OS wants physical pixels, and those disagree under display scaling
-        /// and again between monitors scaled differently. Moving <em>by</em> a panel width needs no
-        /// origin at all and one scale factor. <c>user32.dll</c> is part of Windows, so this costs a
-        /// fresh clone of the project nothing.
+        /// Relative rather than absolute: editor points and physical pixels disagree under display
+        /// scaling and between differently-scaled monitors, and a relative move needs no origin.
         /// </remarks>
         public static bool Move(Vector2 offsetInPoints)
         {

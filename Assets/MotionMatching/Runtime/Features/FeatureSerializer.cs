@@ -14,21 +14,9 @@ using static AnimationTools.BinarySerializerExtensions;
 /// says what each float means.
 /// </summary>
 /// <remarks>
-/// Separate from the <c>.mmpose</c> database on purpose: features are one way of indexing poses
-/// for search, and changing them should not mean re-extracting the poses.
-/// <para>
-/// Unversioned, like the other binary formats here — staleness is caught by validating content
-/// rather than by a version byte. <see cref="Deserialize"/> checks the schema in the file against
-/// the asset's feature configuration and refuses a file that disagrees, which
-/// <c>MotionMatchingData.GetOrImportFeatureSet</c> answers by re-extracting and rewriting. So a
-/// stale file costs one extraction rather than a database of plausible numbers read off the
-/// wrong offsets.
-/// </para>
-/// <para>
-/// The schema is written so the file describes itself. The Python side has no ScriptableObject
-/// to read the feature configuration from, and anything training on this database needs to know
-/// which floats are trajectory and which are pose.
-/// </para>
+/// Unversioned: staleness is caught by <see cref="Deserialize"/> checking the stored schema against
+/// the asset's feature configuration. The schema also lets Python, which has no asset to read, tell
+/// trajectory floats from pose floats. See openwiki/animation-tools/on-disk-formats.md.
 /// </remarks>
 public class FeatureSerializer
 {
@@ -60,7 +48,7 @@ public class FeatureSerializer
     /// </summary>
     public void Serialize(FeatureSet featureSet, MotionMatchingData mmData, string path, string fileName)
     {
-        Directory.CreateDirectory(path); // create directory and parent directories if they don't exist
+        Directory.CreateDirectory(path);
 
         using var stream = File.Open(Path.Combine(path, fileName + ".mmfeatures"), FileMode.Create);
         using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8);
@@ -160,8 +148,7 @@ public class FeatureSerializer
         var trajectoryCount = (int)reader.ReadUInt32();
         var poseCount = (int)reader.ReadUInt32();
 
-        // Before anything is allocated off the numbers just read, and before a FeatureSet is
-        // built: a file written for another configuration gets its counts from the wrong offsets.
+        // Validate before allocating from the counts just read: a stale file's counts are garbage.
         if (!CheckSchema(reader, fileName, mmData, featureSize, trajectoryCount, poseCount))
         {
             return false;
@@ -196,9 +183,7 @@ public class FeatureSerializer
     }
 
     /// <summary>
-    /// Reads the schema block and checks it describes the feature configuration the asset holds
-    /// now. This is what catches a database generated before a feature was added, renamed or
-    /// re-horizoned.
+    /// Reads the schema block and checks it describes the asset's current feature configuration.
     /// </summary>
     private static bool CheckSchema(BinaryReader reader, string fileName, MotionMatchingData mmData,
         int featureSize, int trajectoryCount, int poseCount)
@@ -257,9 +242,8 @@ public class FeatureSerializer
     }
 
     /// <summary>
-    /// Feature-vector width the asset's configuration implies. Computed from the definitions
-    /// rather than from a <see cref="FeatureSet"/>, so a file can be rejected before anything is
-    /// built over a pose database it may not even match.
+    /// Feature-vector width the asset's configuration implies, computed from the definitions so a
+    /// file can be rejected before any <see cref="FeatureSet"/> is built.
     /// </summary>
     private static int ExpectedFeatureSize(MotionMatchingData mmData)
     {

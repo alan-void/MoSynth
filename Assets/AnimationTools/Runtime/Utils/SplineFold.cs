@@ -6,11 +6,8 @@ namespace AnimationTools
 /// How a position along a path behaves past either end: a closed path wraps, an open one stops.
 /// </summary>
 /// <remarks>
-/// Shared because every control input that reads a trajectory off a spline has to answer this, and
-/// answering it differently in two of them is not a difference anyone would author on purpose.
-/// Wrapping an open path teleports the predicted trajectory back to the start once the reference
-/// nears the end, which reads as an instruction to turn around and walk back — so the character
-/// never reaches the far end and a benchmark run can only end by timing out.
+/// Wrapping an open path would teleport the predicted trajectory back to the start near the end,
+/// which the character reads as an instruction to turn around. See openwiki/animation-tools/benchmarking.md.
 /// </remarks>
 public static class SplineFold
 {
@@ -22,9 +19,8 @@ public static class SplineFold
     /// Folds a distance along the path, in the same units as <paramref name="length"/>.
     /// </summary>
     /// <remarks>
-    /// The distance form exists alongside <see cref="Normalized"/> because a lookahead is
-    /// naturally measured in metres, and converting it to a parameter first would make the fold
-    /// depend on the spline's arc-length parameterisation rather than on its real length.
+    /// Folding a lookahead in metres, rather than as a parameter, keeps the fold independent of the
+    /// spline's parameterisation.
     /// </remarks>
     public static float Distance(float distance, float length, bool closed) =>
         closed ? distance % length : math.min(distance, length);

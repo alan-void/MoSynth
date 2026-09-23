@@ -12,11 +12,10 @@ namespace MotionMatching
 /// with a steering force that pushes it around other moving characters before they are walked into.
 /// </summary>
 /// <remarks>
-/// Two separate mechanisms, easily confused. <b>Steering</b> (<see cref="ComputeSteering"/>) deflects
-/// the simulation object, so the character walks around neighbours. <b>Obstacle features</b>
-/// (<see cref="GetNearbyObstacles"/>) put nearby obstacles into the query vector, so the search can
-/// prefer animations recorded while avoiding something. Either works alone; together the character
-/// both moves around a neighbour and looks like it meant to.
+/// Two separate mechanisms: <b>steering</b> (<see cref="ComputeSteering"/>) deflects the simulation
+/// object around neighbours, while <b>obstacle features</b> (<see cref="GetNearbyObstacles"/>) put
+/// nearby obstacles into the query so the search can prefer animations recorded while avoiding
+/// something. Either works alone.
 /// </remarks>
 public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareCharacterControler
 {
@@ -38,12 +37,10 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     [Tooltip("Cap on an obstacle ellipse's semi-axis when packed into the query features, in metres.")]
     public float MaximumEllipseLength = 0.9f;
 
-    // Features ----------------------------------------------------------
     [Header("Features")] public string TrajectoryPositionFeatureName = "FuturePosition";
 
     public string TrajectoryDirectionFeatureName = "FutureDirection";
 
-    // General ----------------------------------------------------------
     [Header("General")] public float MaxSpeed = 1.0f;
     [Range(0.0f, 1.0f)] public float ResponsivenessPositions = 0.75f;
     [Range(0.0f, 1.0f)] public float ResponsivenessDirections = 0.75f;
@@ -54,136 +51,108 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     [Range(-1.0f, 1.0f)]
     public float InputBigChangeThreshold = 0.5f;
 
-    // Adjustment & Clamping --------------------------------------------
-    [Header("Adjustment")] // Move Simulation Bone towards the Simulation Object (motion matching towards character controller)
+    // Adjustment pulls the synthesized character toward this simulation object.
+    [Header("Adjustment")]
     public bool DoAdjustment = true;
 
-    [Range(0.0f, 2.0f)]
-    public float
-        PositionAdjustmentHalflife =
-            0.1f; // Time needed to move half of the distance between MotionMatching and the CharacterController
+    [Range(0.0f, 2.0f)] public float PositionAdjustmentHalflife = 0.1f; // Seconds to close half the gap
 
     [Range(0.0f, 2.0f)] public float RotationAdjustmentHalflife = 0.1f;
 
-    [Range(0.0f, 2.0f)]
-    public float
-        PosMaximumAdjustmentRatio =
-            0.1f; // Ratio between the adjustment and the character's velocity to clamp the adjustment
+    // Caps each correction to this fraction of the character's own velocity.
+    [Range(0.0f, 2.0f)] public float PosMaximumAdjustmentRatio = 0.1f;
 
-    [Range(0.0f, 2.0f)]
-    public float
-        RotMaximumAdjustmentRatio =
-            0.1f; // Ratio between the adjustment and the character's velocity to clamp the adjustment
+    [Range(0.0f, 2.0f)] public float RotMaximumAdjustmentRatio = 0.1f;
 
     public bool DoClamping = true;
 
-    [Range(0.0f, 2.0f)]
-    public float
-        MaxDistanceMMAndCharacterController = 0.1f; // Max distance between MotionMatching and the CharacterController
+    [Range(0.0f, 2.0f)] public float MaxDistanceMMAndCharacterController = 0.1f; // Metres
 
     [Header("DEBUG")] public bool DebugCurrent = true;
     public bool DebugPrediction = true;
     public bool DebugClamping = true;
     public bool DebugSteering = false;
-    // --------------------------------------------------------------------------
 
-    // PRIVATE ------------------------------------------------------------------
-    // Input --------------------------------------------------------------------
-    private float2 InputMovement;
+    private float2 _inputMovement;
 
-    private bool OrientationFixed;
+    private bool _orientationFixed;
 
-    // Rotation and Predicted Rotation ------------------------------------------
-    private quaternion DesiredRotation; // Desired Rotation/Direction
-    private quaternion[] PredictedRotations;
-    private float3 AngularVelocity;
+    private quaternion _desiredRotation;
+    private quaternion[] _predictedRotations;
+    private float3 _angularVelocity;
 
-    private float3[] PredictedAngularVelocities;
+    private float3[] _predictedAngularVelocities;
 
-    // Position and Predicted Position ------------------------------------------
-    private float2[] PredictedPosition;
-    private float2 Velocity;
-    private float2[] PredictedVelocity;
-    private float2 Acceleration;
+    private float2[] _predictedPosition;
+    private float2 _velocity;
+    private float2[] _predictedVelocity;
+    private float2 _acceleration;
 
-    private float2[] PredictedAcceleration;
+    private float2[] _predictedAcceleration;
 
-    // Features -----------------------------------------------------------------
-    private int TrajectoryPosFeatureIndex;
-    private int TrajectoryRotFeatureIndex;
-    private int[] TrajectoryPosPredictionFrames;
-    private int[] TrajectoryRotPredictionFrames;
+    private int _trajectoryPosFeatureIndex;
+    private int _trajectoryRotFeatureIndex;
+    private int[] _trajectoryPosPredictionFrames;
+    private int[] _trajectoryRotPredictionFrames;
 
-    private int NumberPredictionPos
-    {
-        get { return TrajectoryPosPredictionFrames.Length; }
-    }
+    private int NumberPredictionPos => _trajectoryPosPredictionFrames.Length;
 
-    private int NumberPredictionRot
-    {
-        get { return TrajectoryRotPredictionFrames.Length; }
-    }
+    private int NumberPredictionRot => _trajectoryRotPredictionFrames.Length;
 
-    // Crowds ------------------------------------------------------------------
-    private Obstacle[] Obstacles;
-    private NativeArray<(float2, float, float2)> ObstaclesCirclesArray;
-    private NativeArray<int> ObstaclesCirclesArrayCount;
-    private List<List<(Obstacle, bool)>> CandidateCirclesObstacles;
-    private NativeArray<(float2, float2, float2)> ObstaclesEllipsesArray;
-    private NativeArray<int> ObstaclesEllipsesArrayCount;
-    private List<List<(Obstacle, bool)>> CandidateEllipseObstacles;
+    private Obstacle[] _obstacles;
+    private NativeArray<(float2, float, float2)> _obstaclesCirclesArray;
+    private NativeArray<int> _obstaclesCirclesArrayCount;
+    private List<List<(Obstacle, bool)>> _candidateCirclesObstacles;
+    private NativeArray<(float2, float2, float2)> _obstaclesEllipsesArray;
+    private NativeArray<int> _obstaclesEllipsesArrayCount;
+    private List<List<(Obstacle, bool)>> _candidateEllipseObstacles;
     public float2 Steering { get; private set; }
-    // --------------------------------------------------------------------------
 
-    // FUNCTIONS ---------------------------------------------------------------
     private void Start()
     {
-        // Get the feature indices
-        TrajectoryPosFeatureIndex = -1;
-        TrajectoryRotFeatureIndex = -1;
+        _trajectoryPosFeatureIndex = -1;
+        _trajectoryRotFeatureIndex = -1;
         for (var i = 0; i < synthesizer.GetMmData().trajectoryFeatures.Count; ++i)
         {
             if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryPositionFeatureName)
-                TrajectoryPosFeatureIndex = i;
+                _trajectoryPosFeatureIndex = i;
             if (synthesizer.GetMmData().trajectoryFeatures[i].name == TrajectoryDirectionFeatureName)
-                TrajectoryRotFeatureIndex = i;
+                _trajectoryRotFeatureIndex = i;
         }
 
-        Debug.Assert(TrajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
-        Debug.Assert(TrajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
+        Debug.Assert(_trajectoryPosFeatureIndex != -1, "Trajectory Position Feature not found");
+        Debug.Assert(_trajectoryRotFeatureIndex != -1, "Trajectory Direction Feature not found");
 
-        TrajectoryPosPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryPosFeatureIndex]
+        _trajectoryPosPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[_trajectoryPosFeatureIndex]
             .predictionFrames;
-        TrajectoryRotPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[TrajectoryRotFeatureIndex]
+        _trajectoryRotPredictionFrames = synthesizer.GetMmData().trajectoryFeatures[_trajectoryRotFeatureIndex]
             .predictionFrames;
-        // TODO: generalize this... allow different number of prediction frames for different features
-        Debug.Assert(TrajectoryPosPredictionFrames.Length == TrajectoryRotPredictionFrames.Length,
+        Debug.Assert(_trajectoryPosPredictionFrames.Length == _trajectoryRotPredictionFrames.Length,
             "Trajectory Position and Trajectory Direction Prediction Frames must be the same for SpringCharacterController");
-        for (var i = 0; i < TrajectoryPosPredictionFrames.Length; ++i)
+        for (var i = 0; i < _trajectoryPosPredictionFrames.Length; ++i)
         {
-            Debug.Assert(TrajectoryPosPredictionFrames[i] == TrajectoryRotPredictionFrames[i],
+            Debug.Assert(_trajectoryPosPredictionFrames[i] == _trajectoryRotPredictionFrames[i],
                 "Trajectory Position and Trajectory Direction Prediction Frames must be the same for SpringCharacterController");
         }
 
-        PredictedPosition = new float2[NumberPredictionPos];
-        PredictedVelocity = new float2[NumberPredictionPos];
-        PredictedAcceleration = new float2[NumberPredictionPos];
-        DesiredRotation = quaternion.LookRotation(transform.forward, transform.up);
-        PredictedRotations = new quaternion[NumberPredictionRot];
-        PredictedAngularVelocities = new float3[NumberPredictionRot];
-        CandidateCirclesObstacles = new List<List<(Obstacle, bool)>>();
+        _predictedPosition = new float2[NumberPredictionPos];
+        _predictedVelocity = new float2[NumberPredictionPos];
+        _predictedAcceleration = new float2[NumberPredictionPos];
+        _desiredRotation = quaternion.LookRotation(transform.forward, transform.up);
+        _predictedRotations = new quaternion[NumberPredictionRot];
+        _predictedAngularVelocities = new float3[NumberPredictionRot];
+        _candidateCirclesObstacles = new List<List<(Obstacle, bool)>>();
         for (var i = 0; i < NumberPredictionPos; ++i)
         {
-            CandidateCirclesObstacles.Add(new List<(Obstacle, bool)>());
+            _candidateCirclesObstacles.Add(new List<(Obstacle, bool)>());
         }
 
-        CandidateEllipseObstacles = new List<List<(Obstacle, bool)>>();
+        _candidateEllipseObstacles = new List<List<(Obstacle, bool)>>();
         for (var i = 0; i < NumberPredictionPos; ++i)
         {
-            CandidateEllipseObstacles.Add(new List<(Obstacle, bool)>());
+            _candidateEllipseObstacles.Add(new List<(Obstacle, bool)>());
         }
 
-        // Crowds
         OnObstaclesUpdated(ObstacleManager.Instance.GetObstacles());
     }
 
@@ -201,21 +170,19 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         ObstacleManager.Instance.OnObstaclesUpdated -= OnObstaclesUpdated;
     }
 
-    // Input a change in the movement direction
+    /// <summary>Feeds in a new movement direction; a sharp enough change forces an immediate search.</summary>
     public void SetMovementDirection(Vector2 movementDirection)
     {
-        var prevInputMovement = InputMovement;
-        InputMovement = movementDirection;
-        // Desired Rotation
-        if (!OrientationFixed && math.length(movementDirection) > 0.0001f)
+        var prevInputMovement = _inputMovement;
+        _inputMovement = movementDirection;
+        if (!_orientationFixed && math.length(movementDirection) > 0.0001f)
         {
             var desiredDirection = math.normalize(movementDirection);
-            DesiredRotation =
+            _desiredRotation =
                 quaternion.LookRotation(new float3(desiredDirection.x, 0.0f, desiredDirection.y), transform.up);
         }
 
-        // Input Changed Quickly
-        if (math.dot(prevInputMovement, InputMovement) < InputBigChangeThreshold)
+        if (math.dot(prevInputMovement, _inputMovement) < InputBigChangeThreshold)
         {
             NotifyInputChangedQuickly();
         }
@@ -223,44 +190,32 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
 
     public void SwapFixOrientation()
     {
-        OrientationFixed = !OrientationFixed;
+        _orientationFixed = !_orientationFixed;
     }
 
     protected override void OnUpdate()
     {
-        // Rotations
         quaternion currentRotation = transform.rotation;
         PredictRotations(currentRotation, DatabaseDeltaTime);
-        // Update Current Rotation
         var newRot = ComputeNewRot(currentRotation);
         transform.rotation = newRot;
 
-        // Positions
         float2 currentPos = new(synthesizer.RootPosition.x, synthesizer.RootPosition.z);
-        var desiredSpeed = InputMovement * MaxSpeed;
+        var desiredSpeed = _inputMovement * MaxSpeed;
         if (DoSteering)
         {
-            var targetSteering = ComputeSteering(currentPos, transform.forward, Obstacles, SteeringLookAhead,
+            var targetSteering = ComputeSteering(currentPos, transform.forward, _obstacles, SteeringLookAhead,
                 SteeringForce, debug: DebugSteering);
             Steering = math.lerp(Steering, targetSteering, Time.deltaTime * SteeringChangeFactor);
             desiredSpeed += Steering;
         }
 
-        // Predict
         PredictPositions(currentPos, desiredSpeed, DatabaseDeltaTime);
-        // Update Current Position
-        var newPos = ComputeNewPos(currentPos, desiredSpeed); // do not remove, important to update the velocity
+        // Called only to advance the velocity spring; the position follows the synthesized root.
+        ComputeNewPos(currentPos, desiredSpeed);
 
-        // Update Character Controller
-        //if (math.lengthsq(Velocity) > MinimumVelocityClamp * MinimumVelocityClamp)
-        //{
-        //    // Update Transform
-        //    transform.position = new float3(newPos.x, transform.position.y, newPos.y);
-        //    transform.rotation = newRot;
-        //}
         transform.position = new float3(currentPos.x, transform.position.y, currentPos.y);
 
-        // Adjust MotionMatching to pull the Character towards the Character Controller
         if (DoAdjustment) AdjustMotionMatching();
         if (DoClamping) ClampMotionMatching();
     }
@@ -269,16 +224,17 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     {
         for (var i = 0; i < NumberPredictionRot; i++)
         {
-            // Init Predicted values
-            PredictedRotations[i] = currentRotation;
-            PredictedAngularVelocities[i] = AngularVelocity;
-            // Predict
-            Spring.SimpleSpringDamperImplicit(ref PredictedRotations[i], ref PredictedAngularVelocities[i],
-                DesiredRotation, 1.0f - ResponsivenessDirections, TrajectoryRotPredictionFrames[i] * averagedDeltaTime);
+            _predictedRotations[i] = currentRotation;
+            _predictedAngularVelocities[i] = _angularVelocity;
+            Spring.SimpleSpringDamperImplicit(ref _predictedRotations[i], ref _predictedAngularVelocities[i],
+                _desiredRotation, 1.0f - ResponsivenessDirections, _trajectoryRotPredictionFrames[i] * averagedDeltaTime);
         }
     }
 
-    /* https://theorangeduck.com/page/spring-roll-call#controllers */
+    /// <summary>
+    /// Chains the position spring from horizon to horizon.
+    /// <see href="https://theorangeduck.com/page/spring-roll-call#controllers">Spring roll call</see>.
+    /// </summary>
     private void PredictPositions(float2 currentPos, float2 desiredSpeed, float averagedDeltaTime)
     {
         var lastPredictionFrames = 0;
@@ -286,21 +242,21 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         {
             if (i == 0)
             {
-                PredictedPosition[i] = currentPos;
-                PredictedVelocity[i] = Velocity;
-                PredictedAcceleration[i] = Acceleration;
+                _predictedPosition[i] = currentPos;
+                _predictedVelocity[i] = _velocity;
+                _predictedAcceleration[i] = _acceleration;
             }
             else
             {
-                PredictedPosition[i] = PredictedPosition[i - 1];
-                PredictedVelocity[i] = PredictedVelocity[i - 1];
-                PredictedAcceleration[i] = PredictedAcceleration[i - 1];
+                _predictedPosition[i] = _predictedPosition[i - 1];
+                _predictedVelocity[i] = _predictedVelocity[i - 1];
+                _predictedAcceleration[i] = _predictedAcceleration[i - 1];
             }
 
-            var diffPredictionFrames = TrajectoryPosPredictionFrames[i] - lastPredictionFrames;
-            lastPredictionFrames = TrajectoryPosPredictionFrames[i];
-            Spring.CharacterPositionUpdate(ref PredictedPosition[i], ref PredictedVelocity[i],
-                ref PredictedAcceleration[i],
+            var diffPredictionFrames = _trajectoryPosPredictionFrames[i] - lastPredictionFrames;
+            lastPredictionFrames = _trajectoryPosPredictionFrames[i];
+            Spring.CharacterPositionUpdate(ref _predictedPosition[i], ref _predictedVelocity[i],
+                ref _predictedAcceleration[i],
                 desiredSpeed, 1.0f - ResponsivenessPositions, diffPredictionFrames * averagedDeltaTime);
         }
     }
@@ -308,7 +264,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     private quaternion ComputeNewRot(quaternion currentRotation)
     {
         var newRotation = currentRotation;
-        Spring.SimpleSpringDamperImplicit(ref newRotation, ref AngularVelocity, DesiredRotation,
+        Spring.SimpleSpringDamperImplicit(ref newRotation, ref _angularVelocity, _desiredRotation,
             1.0f - ResponsivenessDirections, Time.deltaTime);
         return newRotation;
     }
@@ -316,7 +272,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     private float2 ComputeNewPos(float2 currentPos, float2 desiredSpeed)
     {
         var newPos = currentPos;
-        Spring.CharacterPositionUpdate(ref newPos, ref Velocity, ref Acceleration, desiredSpeed,
+        Spring.CharacterPositionUpdate(ref newPos, ref _velocity, ref _acceleration, desiredSpeed,
             1.0f - ResponsivenessPositions, Time.deltaTime);
         return newPos;
     }
@@ -329,7 +285,6 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
 
     private void ClampMotionMatching()
     {
-        // Clamp Position
         float3 characterController = transform.position;
         var mmPos = synthesizer.RootPosition;
         if (math.distance(characterController, mmPos) > MaxDistanceMMAndCharacterController)
@@ -345,18 +300,14 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         float3 characterController = transform.position;
         float3 mmPos = synthesizer.RootPosition;
         var differencePosition = characterController - mmPos;
-        // Damp the difference using the adjustment halflife and dt
         var adjustmentPosition =
             Spring.DampAdjustmentImplicit(differencePosition, PositionAdjustmentHalflife, Time.deltaTime);
-        // Clamp adjustment if the length is greater than the character velocity
-        // multiplied by the ratio
         var maxLength = PosMaximumAdjustmentRatio * math.length(synthesizer.RootVelocity) * Time.deltaTime;
         if (math.length(adjustmentPosition) > maxLength)
         {
             adjustmentPosition = maxLength * math.normalize(adjustmentPosition);
         }
 
-        // Move the simulation bone towards the simulation object
         synthesizer.SetPosAdjustment(adjustmentPosition);
     }
 
@@ -364,26 +315,17 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     {
         quaternion characterController = transform.rotation;
         quaternion mmRot = synthesizer.RootRotation;
-        // Find the difference in rotation (from character to simulation object)
-        // Note: if numerically unstable, try quaternion.Normalize(quaternion.Inverse(characterController) * motionMatching)
         var differenceRotation = math.mul(math.inverse(mmRot), characterController);
-        // Damp the difference using the adjustment halflife and dt
         var adjustmentRotation =
             Spring.DampAdjustmentImplicit(differenceRotation, RotationAdjustmentHalflife, Time.deltaTime);
-        // Clamp adjustment if the length is greater than the character angular velocity
-        // multiplied by the ratio
         var maxLength = RotMaximumAdjustmentRatio * math.length(synthesizer.RootAngularVelocity) *
                         Time.deltaTime;
         if (math.length(MathExtensions.QuaternionToScaledAngleAxis(adjustmentRotation)) > maxLength)
         {
-            adjustmentRotation = MathExtensions.QuaternionFromScaledAngleAxis(maxLength *
-                                                                              math.normalize(
-                                                                                  MathExtensions
-                                                                                      .QuaternionToScaledAngleAxis(
-                                                                                          adjustmentRotation)));
+            adjustmentRotation = MathExtensions.QuaternionFromScaledAngleAxis(
+                maxLength * math.normalize(MathExtensions.QuaternionToScaledAngleAxis(adjustmentRotation)));
         }
 
-        // Rotate the simulation bone towards the simulation object
         synthesizer.SetRotAdjustment(adjustmentRotation);
     }
 
@@ -393,15 +335,10 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
     /// static and parameterized rather than reading fields.
     /// </summary>
     /// <remarks>
-    /// Casts a fan of rays ahead of the character. Only the <em>closest</em> hit steers — avoiding
-    /// several at once averages into steering nowhere. The force is perpendicular to forward, so it
-    /// sidesteps rather than brakes, and the log10 falloff makes distant obstacles barely matter
-    /// while close ones dominate.
-    /// <para>
-    /// Which side to pass on is a coordination problem: if both dodge the same way they still
-    /// collide. So when the obstacle is itself steering, this takes the opposite side. Static
-    /// obstacles are skipped — walls do not negotiate.
-    /// </para>
+    /// Casts a fan of rays ahead. Only the closest hit steers, since averaging several steers nowhere;
+    /// the force is perpendicular to forward (a sidestep, not a brake) with a log10 falloff. When the
+    /// obstacle is itself steering, this takes the opposite side so the two do not dodge into each
+    /// other. Static obstacles are skipped.
     /// </remarks>
     /// <param name="lookAhead">How far ahead to look, in metres, and the range beyond which an
     /// obstacle exerts no force.</param>
@@ -432,13 +369,12 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
 
             for (var j = 0; j < obstacles.Length; j++)
             {
-                if (obstacles[j].IsStatic) continue; // steering is only computed for dynamic obstacles
+                if (obstacles[j].IsStatic) continue;
 
                 if (obstacles[j].Intersect(currentPos, rayDirection, out var hitPoint1, out var hitDistance1,
                         out var hitPoint2, out var hitDistance2))
                 {
                     var hitDistance = math.min(hitDistance1, hitDistance2);
-                    //float2 hitPoint = (hitDistance1 < hitDistance2) ? hitPoint1 : hitPoint2;
 
                     if (hitDistance < resHitDistance && hitDistance < lookAhead)
                     {
@@ -453,7 +389,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
                 float2 forwardProj = new(currentForward.x, currentForward.z);
                 var localSteering = math.normalize(forwardProj) * force *
                                     math.max(0.0f, math.log10(1.0f - (resHitDistance / lookAhead)) + 1.0f);
-                localSteering = new float2(-localSteering.y, localSteering.x); // Perpendicular
+                localSteering = new float2(-localSteering.y, localSteering.x);
 
                 if (resObstacle != null && resObstacle.GetCurrentSteering(out var obsSteering))
                 {
@@ -466,7 +402,6 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
                     }
                 }
 
-                // Prioritize the closest obstacle's steering
                 if (resHitDistance < closestObstacleDistance)
                 {
                     closestObstacleDistance = resHitDistance;
@@ -480,13 +415,13 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
 
     private void OnObstaclesUpdated(List<Obstacle> obstacles)
     {
-        Obstacles = new Obstacle[obstacles.Count - (IgnoreObstacle == null ? 0 : 1)];
+        _obstacles = new Obstacle[obstacles.Count - (IgnoreObstacle == null ? 0 : 1)];
         var it = 0;
         for (var i = 0; i < obstacles.Count; i++)
         {
             if (obstacles[i] != IgnoreObstacle)
             {
-                Obstacles[it] = obstacles[i];
+                _obstacles[it] = obstacles[i];
                 it += 1;
             }
         }
@@ -504,7 +439,7 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         switch (feature.featureType)
         {
             case TrajectoryFeatureChannel.Type.Position:
-                var world = PredictedPosition[index];
+                var world = _predictedPosition[index];
                 float3 local = character.InverseTransformPoint(new float3(world.x, 0.0f, world.y));
                 span[0] = local.x;
                 span[1] = local.z;
@@ -529,38 +464,38 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         NativeArray<int>
         ) GetNearbyObstacles(Transform character, float obstacleDistanceThreshold)
     {
-        for (var p = 0; p < CandidateCirclesObstacles.Count; p++)
+        for (var p = 0; p < _candidateCirclesObstacles.Count; p++)
         {
-            CandidateCirclesObstacles[p].Clear();
+            _candidateCirclesObstacles[p].Clear();
         }
 
-        for (var p = 0; p < CandidateEllipseObstacles.Count; p++)
+        for (var p = 0; p < _candidateEllipseObstacles.Count; p++)
         {
-            CandidateEllipseObstacles[p].Clear();
+            _candidateEllipseObstacles[p].Clear();
         }
 
         var candidateObstaclesCirclesCount = 0;
         var candidateObstaclesEllipsesCount = 0;
         var candidateThreshold = MaximumEllipseLength + obstacleDistanceThreshold;
-        for (var p = 0; p < PredictedPosition.Length; p++)
+        for (var p = 0; p < _predictedPosition.Length; p++)
         {
             float3 predPos = synthesizer.GetMainPositionFeature(p);
-            for (var i = 0; i < Obstacles.Length; i++)
+            for (var i = 0; i < _obstacles.Length; i++)
             {
-                var obs = Obstacles[i];
+                var obs = _obstacles[i];
                 (var obsPos, var isEllipse, _) = obs.GetProjWorldPosition(p);
                 if (isEllipse)
                 {
                     if (math.distance(predPos, obsPos) < candidateThreshold + MaximumEllipseLength)
                     {
-                        CandidateEllipseObstacles[p].Add((obs, false));
+                        _candidateEllipseObstacles[p].Add((obs, false));
                         candidateObstaclesEllipsesCount += 1;
                     }
 
                     if (math.distance(predPos, obs.GetProjWorldPosition(p, forceCurrent: true).Item1) <
                         candidateThreshold + obs.Radius)
                     {
-                        CandidateCirclesObstacles[p].Add((obs, true));
+                        _candidateCirclesObstacles[p].Add((obs, true));
                         candidateObstaclesCirclesCount += 1;
                     }
                 }
@@ -568,65 +503,65 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
                 {
                     if (math.distance(predPos, obsPos) < candidateThreshold + obs.Radius)
                     {
-                        CandidateCirclesObstacles[p].Add((obs, false));
+                        _candidateCirclesObstacles[p].Add((obs, false));
                         candidateObstaclesCirclesCount += 1;
                     }
                 }
             }
         }
 
-        if (ObstaclesCirclesArray.IsCreated || ObstaclesCirclesArrayCount.IsCreated ||
-            ObstaclesEllipsesArray.IsCreated || ObstaclesEllipsesArrayCount.IsCreated)
+        if (_obstaclesCirclesArray.IsCreated || _obstaclesCirclesArrayCount.IsCreated ||
+            _obstaclesEllipsesArray.IsCreated || _obstaclesEllipsesArrayCount.IsCreated)
         {
-            ObstaclesCirclesArray.Dispose();
-            ObstaclesCirclesArrayCount.Dispose();
-            ObstaclesEllipsesArray.Dispose();
-            ObstaclesEllipsesArrayCount.Dispose();
+            _obstaclesCirclesArray.Dispose();
+            _obstaclesCirclesArrayCount.Dispose();
+            _obstaclesEllipsesArray.Dispose();
+            _obstaclesEllipsesArrayCount.Dispose();
         }
 
-        ObstaclesCirclesArrayCount = new NativeArray<int>(CandidateCirclesObstacles.Count, Allocator.TempJob);
-        ObstaclesCirclesArray =
+        _obstaclesCirclesArrayCount = new NativeArray<int>(_candidateCirclesObstacles.Count, Allocator.TempJob);
+        _obstaclesCirclesArray =
             new NativeArray<(float2, float, float2)>(candidateObstaclesCirclesCount, Allocator.TempJob);
-        ObstaclesEllipsesArrayCount = new NativeArray<int>(CandidateEllipseObstacles.Count, Allocator.TempJob);
-        ObstaclesEllipsesArray =
+        _obstaclesEllipsesArrayCount = new NativeArray<int>(_candidateEllipseObstacles.Count, Allocator.TempJob);
+        _obstaclesEllipsesArray =
             new NativeArray<(float2, float2, float2)>(candidateObstaclesEllipsesCount, Allocator.TempJob);
         var itCircle = 0;
         var itEllipse = 0;
-        for (var p = 0; p < PredictedPosition.Length; p++)
+        for (var p = 0; p < _predictedPosition.Length; p++)
         {
-            ObstaclesCirclesArrayCount[p] = CandidateCirclesObstacles[p].Count;
-            for (var i = 0; i < CandidateCirclesObstacles[p].Count; i++)
+            _obstaclesCirclesArrayCount[p] = _candidateCirclesObstacles[p].Count;
+            for (var i = 0; i < _candidateCirclesObstacles[p].Count; i++)
             {
-                (var obstacle, var forceCurrent) = CandidateCirclesObstacles[p][i];
+                (var obstacle, var forceCurrent) = _candidateCirclesObstacles[p][i];
                 (var world, _, _) = obstacle.GetProjWorldPosition(p, forceCurrent: forceCurrent);
                 float3 localPos = character.InverseTransformPoint(world);
-                ObstaclesCirclesArray[itCircle++] = (new float2(localPos.x, localPos.z),
+                _obstaclesCirclesArray[itCircle++] = (new float2(localPos.x, localPos.z),
                     obstacle.Radius,
                     new float2(obstacle.GetMinHeightWorld(), obstacle.GetMaxHeightWorld()));
             }
 
-            ObstaclesEllipsesArrayCount[p] = CandidateEllipseObstacles[p].Count;
-            for (var i = 0; i < CandidateEllipseObstacles[p].Count; i++)
+            _obstaclesEllipsesArrayCount[p] = _candidateEllipseObstacles[p].Count;
+            for (var i = 0; i < _candidateEllipseObstacles[p].Count; i++)
             {
-                (var obstacle, var forceCurrent) = CandidateEllipseObstacles[p][i];
+                (var obstacle, var forceCurrent) = _candidateEllipseObstacles[p][i];
                 (var world, _, var ellipse) = obstacle.GetProjWorldPosition(p, forceCurrent: forceCurrent);
                 float3 localPos = character.InverseTransformPoint(world);
                 float3 primaryAxis = new(ellipse.x, 0.0f, ellipse.y);
                 float3 secondaryAxis = new(ellipse.z, 0.0f, ellipse.w);
                 primaryAxis = character.InverseTransformDirection(primaryAxis);
                 secondaryAxis = character.InverseTransformDirection(secondaryAxis);
-                ObstaclesEllipsesArray[itEllipse++] = (new float2(localPos.x, localPos.z),
+                _obstaclesEllipsesArray[itEllipse++] = (new float2(localPos.x, localPos.z),
                     new float2(primaryAxis.x, primaryAxis.z),
                     new float2(secondaryAxis.x, secondaryAxis.z));
             }
         }
 
-        return (ObstaclesCirclesArray, ObstaclesCirclesArrayCount, ObstaclesEllipsesArray, ObstaclesEllipsesArrayCount);
+        return (_obstaclesCirclesArray, _obstaclesCirclesArrayCount, _obstaclesEllipsesArray, _obstaclesEllipsesArrayCount);
     }
 
     private float2 GetWorldSpaceDirectionPrediction(int index)
     {
-        var dir = math.mul(PredictedRotations[index], new float3(0, 0, 1));
+        var dir = math.mul(_predictedRotations[index], new float3(0, 0, 1));
         return math.normalize(new float2(dir.x, dir.z));
     }
 
@@ -647,20 +582,20 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
 
     public override float GetTargetSpeed()
     {
-        return math.length(PredictedVelocity[^1]);
+        return math.length(_predictedVelocity[^1]);
     }
 
     public float2 GetPredictedPosition(int index)
     {
-        return PredictedPosition[index];
+        return _predictedPosition[index];
     }
 
     private void OnDestroy()
     {
-        if (ObstaclesCirclesArray.IsCreated) ObstaclesCirclesArray.Dispose();
-        if (ObstaclesCirclesArrayCount.IsCreated) ObstaclesCirclesArrayCount.Dispose();
-        if (ObstaclesEllipsesArray.IsCreated) ObstaclesEllipsesArray.Dispose();
-        if (ObstaclesEllipsesArrayCount.IsCreated) ObstaclesEllipsesArrayCount.Dispose();
+        if (_obstaclesCirclesArray.IsCreated) _obstaclesCirclesArray.Dispose();
+        if (_obstaclesCirclesArrayCount.IsCreated) _obstaclesCirclesArrayCount.Dispose();
+        if (_obstaclesEllipsesArray.IsCreated) _obstaclesEllipsesArray.Dispose();
+        if (_obstaclesEllipsesArrayCount.IsCreated) _obstaclesEllipsesArrayCount.Dispose();
     }
 
 #if UNITY_EDITOR
@@ -672,7 +607,6 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
         var transformPos = (Vector3)GetPosition() + Vector3.up * verticalOffset;
         if (DebugCurrent)
         {
-            // Draw Current Position & Velocity
             Gizmos.color = new Color(1.0f, 0.3f, 0.1f, 1.0f);
             Gizmos.DrawSphere(transformPos, radius);
             GizmosExtensions.DrawArrow(transformPos,
@@ -680,15 +614,14 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
                 thickness: 2);
         }
 
-        if (PredictedPosition == null || PredictedRotations == null) return;
+        if (_predictedPosition == null || _predictedRotations == null) return;
 
         if (DebugPrediction)
         {
-            // Draw Predicted Position & Velocity
             Gizmos.color = new Color(0.6f, 0.3f, 0.8f, 1.0f);
-            for (var i = 0; i < PredictedPosition.Length; ++i)
+            for (var i = 0; i < _predictedPosition.Length; ++i)
             {
-                float3 predictedPos = new(PredictedPosition[i].x, verticalOffset, PredictedPosition[i].y);
+                float3 predictedPos = new(_predictedPosition[i].x, verticalOffset, _predictedPosition[i].y);
                 var predictedDir = GetWorldSpaceDirectionPrediction(i);
                 float3 predictedDir3D = new(predictedDir.x, 0.0f, predictedDir.y);
                 Gizmos.DrawSphere(predictedPos, radius);
@@ -696,7 +629,6 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
                     thickness: 2);
             }
 
-            // Draw Steering
             if (DoSteering && math.lengthsq(Steering) > 0.0001f)
             {
                 Gizmos.color = new Color(0.1f, 0.8f, 0.1f, 1.0f);
@@ -707,7 +639,6 @@ public class CrowdControlInput : MotionMatchingControlInput, IObstacleAwareChara
 
         if (DebugClamping)
         {
-            // Draw Clamp Circle
             if (DoClamping)
             {
                 Gizmos.color = new Color(0.1f, 1.0f, 0.1f, 1.0f);

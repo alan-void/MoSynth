@@ -8,14 +8,10 @@ namespace AnimationTools.Editor
     /// can be tested against the cases that lose data.
     /// </summary>
     /// <remarks>
-    /// Every method returns a new, normalised list rather than mutating in place, because
-    /// <see cref="AnimationTagging.Normalise"/> can cancel keys against each other and the caller
-    /// has to be able to compare what it asked for against what it got.
-    /// <para>
-    /// An edit clamps only the frames it produces. Keys already outside the clip - left there by a
-    /// trim - are none of an unrelated edit's business, and deleting them is what this whole frame
-    /// space was changed to stop.
-    /// </para>
+    /// Every method returns a new, normalised list, because <see cref="AnimationTagging.Normalise"/>
+    /// can cancel keys and the caller must compare what it asked for against what it got. An edit
+    /// clamps only the frames it produces: never delete annotation outside the slice, so a trim stays
+    /// reversible.
     /// </remarks>
     public static class AnimationTagEdits
     {
@@ -71,10 +67,9 @@ namespace AnimationTools.Editor
         /// Moves the selected keys by <paramref name="delta"/>, leaving the rest where they are.
         /// </summary>
         /// <remarks>
-        /// A moved key landing on a stationary one is not an error: the two cancel in
-        /// <see cref="AnimationTagging.Normalise"/>, which is the same flip-and-flip-back the signal
-        /// already meant. Callers re-derive their selection from the returned list rather than
-        /// assuming every moved key survived.
+        /// A moved key landing on a stationary one cancels with it in
+        /// <see cref="AnimationTagging.Normalise"/>, so callers re-derive their selection from the
+        /// returned list.
         /// </remarks>
         public static List<int> Move(IReadOnlyList<int> toggles, IReadOnlyList<int> frames, int delta,
             int clipFrameCount)
@@ -82,9 +77,7 @@ namespace AnimationTools.Editor
             var moved = new HashSet<int>(frames);
             var result = new List<int>(toggles.Count);
 
-            // Only a key this edit actually moves is clamped. A key already outside the clip - left
-            // there by a trim - passes through untouched, because an unrelated edit must not tidy it
-            // away.
+            // Only a key this edit moves is clamped; one already outside the clip passes through.
             foreach (var toggle in toggles)
             {
                 result.Add(moved.Contains(toggle) ? InRange(toggle + delta, clipFrameCount) : toggle);
@@ -125,7 +118,7 @@ namespace AnimationTools.Editor
 
         /// <summary>
         /// The largest part of <paramref name="delta"/> that keeps every selected key inside the
-        /// clip, so a group drag stops at the edge instead of quietly deleting the keys that ran off.
+        /// clip, so a group drag stops at the edge.
         /// </summary>
         public static int ClampDelta(IReadOnlyList<int> frames, int delta, int clipFrameCount)
         {

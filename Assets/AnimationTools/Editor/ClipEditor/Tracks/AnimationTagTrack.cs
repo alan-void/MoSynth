@@ -11,13 +11,8 @@ namespace AnimationTools.Editor
     /// channel, with the keys that switch it on and off as draggable handles.
     /// </summary>
     /// <remarks>
-    /// The keymap is Blender's, via <see cref="TimelineKeymap"/> - box select, <c>G</c> to move,
-    /// <c>S</c> to scale, numbers to type an exact value. None of it is discoverable, which is why
-    /// the inspector carries the list.
-    /// <para>
-    /// A running mode only ever previews. Nothing reaches the asset until it is confirmed, so an
-    /// abandoned drag costs neither an undo entry nor the clip re-bake that a commit triggers.
-    /// </para>
+    /// Keys follow <see cref="TimelineKeymap"/>. A running mode only previews; nothing reaches the
+    /// asset until it is confirmed. See <c>openwiki/animation-tools/clip-tags.md</c>.
     /// </remarks>
     [ClipComponentTrack(typeof(AnimationTagComponent))]
     public sealed class AnimationTagTrack : AnimationClipComponentTrack
@@ -91,8 +86,7 @@ namespace AnimationTools.Editor
             var channels = Channels;
             if (channels == null || context.Editor.ClipFrameCount <= 0) return;
 
-            // Allocated unconditionally: an id handed out only when a key is pressed would shift
-            // every id after it between Layout and Repaint.
+            // Allocated unconditionally so ids do not shift between Layout and Repaint.
             _controlId = GUIUtility.GetControlID(FocusType.Passive);
 
             var modal = context.Editor.HasModal(this) ? context.Editor.Modal : null;
@@ -137,19 +131,18 @@ namespace AnimationTools.Editor
 
             DrawChannelLabel(rowRect, channel, toggles);
 
-            // Selection is keyed by a key's stored frame, so while a mode previews the keys
-            // somewhere else the highlight has to be looked up by where they are being drawn.
+            // Selection is keyed by stored frame, so during a preview the highlight is looked up by
+            // where the keys are drawn.
             PreviewSelected(context, row, modal);
 
             foreach (var frame in toggles)
             {
-                var clipFrame = frame;
-                if (clipFrame < context.FirstVisibleClipFrame || clipFrame > context.LastVisibleClipFrame)
+                if (frame < context.FirstVisibleClipFrame || frame > context.LastVisibleClipFrame)
                 {
                     continue;
                 }
 
-                DrawDiamond(new Vector2(context.Axis.FrameToX(clipFrame), rowRect.center.y),
+                DrawDiamond(new Vector2(context.Axis.FrameToX(frame), rowRect.center.y),
                     _previewSelected.Contains(frame), colour);
             }
         }
@@ -209,8 +202,7 @@ namespace AnimationTools.Editor
                 clipping = TextClipping.Clip
             };
 
-            // Pinned to the left edge rather than to the first span, so a channel whose keys are all
-            // scrolled off screen still says which tag the empty row belongs to.
+            // Pinned to the left edge so a row whose keys are all off screen still names its tag.
             var text = new Rect(rowRect.x + 4f, rowRect.y, 220f, rowRect.height);
             GUI.Label(text, toggles.Count == 0 ? $"{label} — double-click to add a key" : label, style);
         }
@@ -317,10 +309,8 @@ namespace AnimationTools.Editor
 
             var laneRect = context.LaneRect;
 
-            // Key events go through the raw event type, never GetTypeForControl: that method
-            // returns Ignore for a key unless GUIUtility.keyboardControl is this control, and the
-            // lane's control is Passive so it never can be. Filtering clicks by it is still right -
-            // they must respect hotControl.
+            // Keys use the raw event type, never GetTypeForControl, which ignores a key unless this
+            // (Passive) control owns keyboardControl. Clicks still filter by it to respect hotControl.
             if (e.type == EventType.KeyDown && context.IsFocused &&
                 !EditorGUIUtility.editingTextField)
             {
@@ -356,9 +346,7 @@ namespace AnimationTools.Editor
 
             if (picked < 0)
             {
-                // Double-click makes a key, as it does on a gait lane. Without it the only way to
-                // create one is the I binding, and a lane with no keys is a lane where selecting,
-                // moving and deleting all silently do nothing.
+                // Double-click makes a key, as it does on a gait lane.
                 if (e.clickCount == 2 && row >= 0)
                 {
                     InsertKeyAt(context, row,
@@ -368,9 +356,7 @@ namespace AnimationTools.Editor
                     return;
                 }
 
-                // Blender's tweak-select: a drag from empty space is a box. Started from anywhere in
-                // the lane, not only from a channel row - below the last row and a component with no
-                // channels at all are exactly where you reach for a box.
+                // Blender's tweak-select: a drag from empty space, anywhere in the lane, is a box.
                 BeginModal(context, TimelineModalKind.BoxSelect, e, extend: e.shift);
                 return;
             }
@@ -445,8 +431,7 @@ namespace AnimationTools.Editor
                     JumpToKey(context, channels, action == TimelineKeyAction.NextKey);
                     break;
 
-                // Home and "." belong to the timeline, which owns the axis a track only sees a copy
-                // of. Left unclaimed on purpose.
+                // Home and "." belong to the timeline, which owns the axis.
                 default:
                     return;
             }
@@ -568,7 +553,7 @@ namespace AnimationTools.Editor
             var editor = context.Editor;
             if (clipFrame < 0 || clipFrame >= editor.ClipFrameCount) return;
 
-            WriteChannel(editor, row,
+            WriteChannel(row,
                 AnimationTagEdits.Insert(channels[row].toggles, clipFrame, editor.ClipFrameCount));
 
             Undo.SetCurrentGroupName("Insert tag key");
@@ -621,9 +606,8 @@ namespace AnimationTools.Editor
         /// Applies one edit to every row holding a selection, writes them all, and commits once.
         /// </summary>
         /// <remarks>
-        /// The selection is re-derived from what the edit actually produced, never from what it was
-        /// asked for: keys that cancelled against each other are gone, and keeping them selected
-        /// would leave the next edit addressing frames that no longer hold a key.
+        /// The selection is re-derived from what the edit produced, not what it was asked for, since
+        /// keys can cancel against each other.
         /// </remarks>
         private void ApplyToSelectedRows(in TrackDrawContext context,
             List<AnimationTagging.TagChannel> channels, string undoName, ChannelEdit edit,
@@ -640,7 +624,7 @@ namespace AnimationTools.Editor
                 _selection.FramesIn(row, _rowFrames);
                 var edited = edit(channels[row].toggles, _rowFrames, frameCount);
 
-                WriteChannel(editor, row, edited);
+                WriteChannel(row, edited);
                 changed = true;
 
                 if (moveSelection == null)
@@ -661,7 +645,7 @@ namespace AnimationTools.Editor
             editor.Commit();
         }
 
-        private void WriteChannel(ClipEditorContext editor, int row, IReadOnlyList<int> toggles)
+        private void WriteChannel(int row, IReadOnlyList<int> toggles)
         {
             var channels = ComponentProperty?.FindPropertyRelative("channels");
             if (channels == null || row >= channels.arraySize) return;
@@ -692,8 +676,7 @@ namespace AnimationTools.Editor
         private void ShowContextMenu(in TrackDrawContext context,
             List<AnimationTagging.TagChannel> channels, Vector2 mouse)
         {
-            // Copied out of the "in" parameter because a menu item is a closure, and a readonly
-            // ref cannot be captured by one.
+            // Copied out of the "in" parameter: a closure cannot capture a readonly ref.
             var drawContext = context;
             var editor = context.Editor;
             var row = RowAt(context.LaneRect, mouse.y, channels.Count);
@@ -707,7 +690,7 @@ namespace AnimationTools.Editor
                 var target = row;
                 menu.AddItem(new GUIContent("Insert Key Here"), false, () =>
                 {
-                    WriteChannel(editor, target,
+                    WriteChannel(target,
                         AnimationTagEdits.Insert(channels[target].toggles, frame,
                             editor.ClipFrameCount));
 
@@ -869,7 +852,7 @@ namespace AnimationTools.Editor
 
         /// <summary>
         /// What the annotation currently says, and the two ways it goes wrong quietly: a channel
-        /// with no tag answers no query, and a clip re-trimmed under its keys loses them.
+        /// with no tag answers no query, and a channel with no keys is never on.
         /// </summary>
         private void DrawSummary(in TrackInspectorContext context, AnimationTagComponent tags)
         {

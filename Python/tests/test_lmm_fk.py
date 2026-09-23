@@ -1,11 +1,9 @@
 """
 Forward kinematics, which sits on both sides of the learned motion matching loss.
 
-Nothing here would throw if it were wrong. A transposed rotation, a parent composed on the wrong
-side, or a level visited out of order all produce a perfectly finite character space -- just not
-the one the database is measured in -- and the only symptom would be a model that trains to a
-plausible loss and poses badly. So this is checked three ways, each of which would catch a
-different class of mistake:
+Nothing here would throw if it were wrong: a transposed rotation, a parent composed on the wrong
+side, or a level visited out of order all produce a finite but wrong character space. So this is
+checked three ways, each catching a different class of mistake:
 
 * against the **database**, whose character-space positions and rotations are derived by a wholly
   separate route in :mod:`training.training_data`;
@@ -14,8 +12,7 @@ different class of mistake:
 * as a **gradient**, since a version that is correct but not differentiable is useless to the
   trainer and the failure appears only under ``backward``.
 
-Torch is optional, as it is in ``test_lmm_model``: the suite's stated property is that it needs
-neither Unity nor venv extras.
+Torch is optional, as it is in ``test_lmm_model``: the suite needs neither Unity nor venv extras.
 """
 
 import os
@@ -179,7 +176,6 @@ class RotationConversionTests(unittest.TestCase):
         from scipy.spatial.transform import Rotation
         from training.training_data import rotations_to_6d
 
-        rng = np.random.default_rng(5)
         rotations = Rotation.random(20, random_state=5).as_quat().astype(np.float32)
         six = rotations_to_6d(rotations)
 
@@ -188,7 +184,6 @@ class RotationConversionTests(unittest.TestCase):
                                    rtol=0, atol=1e-5)
         np.testing.assert_allclose(
             lmm_fk.matrix_to_six_d(torch.from_numpy(matrices)).numpy(), six, rtol=0, atol=1e-5)
-        del rng
 
 
 if __name__ == '__main__':

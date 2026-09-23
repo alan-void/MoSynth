@@ -7,9 +7,7 @@ namespace MotionField
 /// the skeleton.
 /// </summary>
 /// <remarks>
-/// Shared by the runtime stage and the two Editor buttons, because a value function trained under
-/// one weight table and run under another is exactly what the staleness gate exists to catch --
-/// and it can only catch it if both sides send the same thing.
+/// Shared by the runtime stage and the Editor's training buttons so both always send the same table.
 /// </remarks>
 public static class MotionFieldBoneWeights
 {
@@ -18,16 +16,14 @@ public static class MotionFieldBoneWeights
     /// <c>MotionField.resolve_bone_weights</c>. Must be called with the GIL held.
     /// </summary>
     /// <remarks>
-    /// Always returns a dict, even an empty one. Python normalises an all-neutral table back to
-    /// "uniform", so there is no need to decide here whether the weights are worth sending, and no
-    /// second code path that could disagree about it.
+    /// Always returns a dict, possibly empty; Python normalises an all-neutral table to uniform.
     /// </remarks>
     public static PyDict ToPython(MotionFieldConfig config)
     {
         var dict = new PyDict();
         if (config == null) return dict;
 
-        foreach (MotionFieldConfig.BoneWeight weight in config.boneWeights)
+        foreach (var weight in config.boneWeights)
         {
             if (string.IsNullOrEmpty(weight.name) || weight.IsNeutral) continue;
 

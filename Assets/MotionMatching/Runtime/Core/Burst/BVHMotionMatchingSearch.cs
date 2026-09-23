@@ -39,12 +39,11 @@ namespace MotionMatching
 
         public void Execute()
         {
-            int LargeBoxSize = BVHConsts.LargeBVHSize;
-            int SmallBoxSize = BVHConsts.SmallBVHSize;
+            var largeBoxSize = BVHConsts.LargeBVHSize;
+            var smallBoxSize = BVHConsts.SmallBVHSize;
 
-            int numberFrames = (int)(Features.Length / FeatureSize);
+            var numberFrames = Features.Length / FeatureSize;
 
-            // Initialize
             for (int i = 0; i < LargeBoundingBoxMin.Length; i++) LargeBoundingBoxMin[i] = float.MaxValue;
             for (int i = 0; i < LargeBoundingBoxMax.Length; i++) LargeBoundingBoxMax[i] = float.MinValue;
             for (int i = 0; i < SmallBoundingBoxMin.Length; i++) SmallBoundingBoxMin[i] = float.MaxValue;
@@ -52,9 +51,9 @@ namespace MotionMatching
 
             for (int i = 0; i < numberFrames; ++i)
             {
-                int iSmall = i / SmallBoxSize;
+                int iSmall = i / smallBoxSize;
                 int iSmallIndex = iSmall * FeatureSize;
-                int iLarge = i / LargeBoxSize;
+                int iLarge = i / largeBoxSize;
                 int iLargeIndex = iLarge * FeatureSize;
 
                 for (int j = 0; j < FeatureSize; ++j)
@@ -74,14 +73,10 @@ namespace MotionMatching
     /// frames wholesale.
     /// </summary>
     /// <remarks>
-    /// Three nested loops, one per level: large box, small box, then frames. Each level applies the
-    /// same test — the distance to the box's nearest point is a lower bound on the distance to
-    /// anything inside it, so once that reaches the best distance so far, the whole box is skipped.
-    /// The dimension loops break early for the same reason: the running sum only grows.
-    /// <para>
-    /// <see cref="CurrentDistance"/> seeds the best, so a query nothing beats leaves
-    /// <see cref="BestIndex"/> at -1: keep playing what is playing.
-    /// </para>
+    /// The distance to a box's nearest point is a lower bound for every frame inside it, so a box that
+    /// already reaches the best distance is skipped whole; dimension loops break early for the same
+    /// reason. <see cref="CurrentDistance"/> seeds the best, so a query nothing beats leaves
+    /// <see cref="BestIndex"/> at -1.
     /// </remarks>
     [BurstCompile]
     public struct BVHMotionMatchingSearchBurst : IJob
@@ -93,7 +88,6 @@ namespace MotionMatching
         [ReadOnly] public NativeArray<float> FeatureWeights; // Size = FeatureSize
         [ReadOnly] public int FeatureSize;
         [ReadOnly] public float CurrentDistance;
-        // BVH
         [ReadOnly] public NativeArray<float> LargeBoundingBoxMin; // Size = NumberBoundingBoxLarge x FeatureSize
         [ReadOnly] public NativeArray<float> LargeBoundingBoxMax; // Size = NumberBoundingBoxLarge x FeatureSize
         [ReadOnly] public NativeArray<float> SmallBoundingBoxMin; // Size = NumberBoundingBoxSmall x FeatureSize
@@ -103,8 +97,8 @@ namespace MotionMatching
 
         public void Execute()
         {
-            int LargeBoxSize = BVHConsts.LargeBVHSize;
-            int SmallBoxSize = BVHConsts.SmallBVHSize;
+            var largeBoxSize = BVHConsts.LargeBVHSize;
+            var smallBoxSize = BVHConsts.SmallBVHSize;
 
             float min = CurrentDistance;
             int bestIndex = -1;
@@ -113,12 +107,10 @@ namespace MotionMatching
             int i = startIndex;
             while (i < endIndex)
             {
-                // Current and next large box
-                int iLarge = i / LargeBoxSize;
+                int iLarge = i / largeBoxSize;
                 int iLargeIndex = iLarge * FeatureSize;
-                int iLargeNext = (iLarge + 1) * LargeBoxSize;
+                int iLargeNext = (iLarge + 1) * largeBoxSize;
 
-                // Find distance to box
                 float currentCost = 0.0f;
                 for (int j = 0; j < FeatureSize; ++j)
                 {
@@ -131,22 +123,18 @@ namespace MotionMatching
                     }
                 }
 
-                // If distance is already greater... next box
                 if (currentCost >= min)
                 {
                     i = iLargeNext;
                     continue;
                 }
 
-                // Search small box
                 while (i < iLargeNext && i < endIndex)
                 {
-                    // Current and next small box
-                    int iSmall = i / SmallBoxSize;
+                    int iSmall = i / smallBoxSize;
                     int iSmallIndex = iSmall * FeatureSize;
-                    int iSmallNext = (iSmall + 1) * SmallBoxSize;
+                    int iSmallNext = (iSmall + 1) * smallBoxSize;
 
-                    // Find distance to box
                     currentCost = 0.0f;
                     for (int j = 0; j < FeatureSize; ++j)
                     {
@@ -159,24 +147,20 @@ namespace MotionMatching
                         }
                     }
 
-                    // If distance is already greater... next box
                     if (currentCost >= min)
                     {
                         i = iSmallNext;
                         continue;
                     }
 
-                    // Search inside small box
                     while (i < iSmallNext && i < endIndex)
                     {
-                        // Skip non-valid or not correct tag
                         if (!Valid[i] || !TagMask[i]) // TODO: build tag mask for large boxes as well
                         {
                             i += 1;
                             continue;
                         }
 
-                        // Test all frames
                         currentCost = 0.0f;
                         for (int j = 0; j < FeatureSize; ++j)
                         {
@@ -189,7 +173,6 @@ namespace MotionMatching
                             }
                         }
 
-                        // If cost is lower than best... update
                         if (currentCost < min)
                         {
                             bestIndex = i;

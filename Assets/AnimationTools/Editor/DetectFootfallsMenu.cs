@@ -9,10 +9,8 @@ namespace AnimationTools.Editor
 /// selection, so a whole retargeted dataset can be re-detected without opening each clip.
 /// </summary>
 /// <remarks>
-/// Anchors are correctable by hand — that is why <see cref="GaitPhaseComponent"/> stores markers
-/// rather than a baked curve — and nothing records that a clip was corrected. So a clip that already
-/// has footfalls is skipped unless the prompt is answered otherwise; that prompt is the only thing
-/// standing between a bulk run and losing that work.
+/// Nothing records that a clip's anchors were corrected by hand, so a clip that already has
+/// footfalls is skipped unless the prompt says otherwise; that prompt is the only guard.
 /// </remarks>
 public static class DetectFootfallsMenu
 {
@@ -158,10 +156,8 @@ public static class DetectFootfallsMenu
 
     private static void Detect(AnnotatedAnimationClip clip, Report report)
     {
-        // TryDetect assigns the anchor list as a plain field, and this may also add an element to
-        // the managed-reference component list — neither is something RecordObject's diffing
-        // tracks reliably, so the whole object is snapshotted. Snapshotting does not dirty the
-        // asset; SetDirty below is separate.
+        // A plain-field assignment and a managed-reference list add are not tracked reliably by
+        // RecordObject's diffing, so the whole object is snapshotted. That does not dirty the asset.
         Undo.RegisterCompleteObjectUndo(clip, "Detect footfalls");
 
         var seeded = !clip.TryGetComponent<GaitPhaseComponent>(out var phase);
@@ -182,8 +178,7 @@ public static class DetectFootfallsMenu
             report.Failed++;
             Debug.LogError($"[GaitPhase] {clip.name}: {error}", clip);
 
-            // A component added for a detection that then failed would leave the clip carrying an
-            // empty lane it did not have before.
+            // Do not leave the clip with an empty component it did not have before.
             if (seeded) clip.components.Remove(phase);
         }
     }

@@ -11,17 +11,11 @@ namespace MotionMatching
 /// prediction is measured from.
 /// </summary>
 /// <remarks>
-/// <see cref="DirectionControlInput"/> integrates a position and asks the search to chase it, so
-/// any difference between the two accumulates and the character is permanently catching up. Here
-/// the origin is re-read off the character every frame and only the velocity springs carry state,
-/// so the query says "from where you are, go like this" and there is no position that can drift.
-/// The trade is that this input cannot be used to *place* the character — see
-/// <see cref="RootFollowStage"/> for that, and do not use both on one character.
-/// <para>
-/// The construction is <c>PfnnDirectionControlInput</c>'s, over motion matching's authored horizons.
+/// The origin is re-read off the character every frame and only the velocity springs carry state,
+/// so there is no position to drift. It therefore cannot place the character; do not combine it with
+/// <see cref="RootFollowStage"/>. See openwiki/animation-tools/root-following.md.
 /// Maths from <a href="https://theorangeduck.com/page/spring-roll-call#controllers">spring roll
 /// call</a>.
-/// </para>
 /// </remarks>
 public class AnchoredDirectionControlInput : MotionMatchingControlInput, IMotionSynthesisDirectionControlInput
 {
@@ -57,8 +51,6 @@ public class AnchoredDirectionControlInput : MotionMatchingControlInput, IMotion
     [Header("DEBUG")] public bool debugCurrent = true;
     public bool debugPrediction = true;
 
-    // --- Input ----------------------------------------------------------------------------------
-
     /// <summary>Latest stick/WASD vector, in the XZ plane. Length scales speed up to <see cref="maxSpeed"/>.</summary>
     private float2 _inputMovement;
 
@@ -68,7 +60,7 @@ public class AnchoredDirectionControlInput : MotionMatchingControlInput, IMotion
     /// <summary>The facing held while strafing, so the request does not turn the character.</summary>
     private float2 _fixedFacing;
 
-    // --- Spring state. There is deliberately no position here ------------------------------------
+    // Spring state. There is deliberately no position here.
 
     /// <summary>The requested velocity, rate-limited so a stepped stick cannot step the trajectory.</summary>
     private float2 _goalVelocity;
@@ -76,7 +68,7 @@ public class AnchoredDirectionControlInput : MotionMatchingControlInput, IMotion
     private float2 _velocity;
     private float2 _acceleration;
 
-    // --- Predictions, in world space, refreshed once per frame ------------------------------------
+    // Predictions in world space, refreshed once per frame.
 
     private float2[] _predictedPositions;
     private float2[] _predictedDirections;
@@ -143,14 +135,12 @@ public class AnchoredDirectionControlInput : MotionMatchingControlInput, IMotion
     {
         var deltaTime = Time.deltaTime;
 
-        // The request is rate-limited before the body sees it, because a keyboard delivers it as a
-        // step: a horizon a second out has converged onto the goal, so it would inherit that step
-        // whole while the samples beside the character did not move at all.
+        // Rate-limit the request: a keyboard delivers a step, which far horizons would inherit whole
+        // while near ones barely moved.
         _goalVelocity = TrajectorySteering.DampToward(_goalVelocity, _inputMovement * maxSpeed,
             steeringHalfLife, deltaTime);
 
-        // A velocity goal, which is what a stick gives. The travel is discarded: where the
-        // character is comes from the character, not from integrating this.
+        // The integrated travel is discarded: position comes from the character itself.
         var travelled = float2.zero;
         Spring.CharacterPositionUpdate(ref travelled, ref _velocity, ref _acceleration, _goalVelocity,
             velocityHalfLife, deltaTime);
@@ -165,8 +155,7 @@ public class AnchoredDirectionControlInput : MotionMatchingControlInput, IMotion
             var horizon = _features.PredictionFrames[i];
             if (horizon < 0)
             {
-                // Answered from the history in GetTrajectoryFeature; hold the current state so a
-                // gizmo reading these has something honest to draw.
+                // Answered from the history in GetTrajectoryFeature; hold the current state for the gizmos.
                 _predictedPositions[i] = origin;
                 _predictedDirections[i] = facing;
                 continue;
@@ -185,9 +174,8 @@ public class AnchoredDirectionControlInput : MotionMatchingControlInput, IMotion
     }
 
     /// <summary>
-    /// Where the character was <paramref name="framesBack"/> database frames ago, falling back to
-    /// where it is now for the first second or so of a run, before the history reaches that far
-    /// back — which is what a character that had been standing still would have recorded anyway.
+    /// Where the character was <paramref name="framesBack"/> database frames ago, or where it is now
+    /// while the history does not yet reach that far back (as if it had been standing still).
     /// </summary>
     private void GetPastState(int framesBack, out float2 position, out float2 forward)
     {

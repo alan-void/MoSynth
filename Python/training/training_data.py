@@ -1,8 +1,8 @@
 """
 Turns a Unity pose database into the per-frame arrays a neural motion model trains on.
 
-Both of the models this repository is heading towards want the same handful of quantities
-per frame, expressed in the character frame rather than the world:
+Both neural models here want the same handful of quantities per frame, expressed in the
+character frame rather than the world:
 
 * **PFNN** takes a trajectory window, the previous frame's joint positions and velocities,
   and a gait phase; it predicts the next pose, the root delta and a phase increment.
@@ -38,13 +38,9 @@ them.
 Conventions are the package's own: quaternions xyzw, y-up left-handed with the character
 facing +z, velocities as per-second rates.
 
-The C# counterpart of the frame-local conversion is ``CharacterSpacePose``, which is what a stage
-running a trained model feeds it at inference. Keeping the two in agreement is the point of having
-one named definition on each side: a mismatch in frame, units or rate convention does not throw, it
-just makes the network wrong. The one place the two are not identical by construction is the rates --
-here they are differences of consecutive frame-local poses, there the instantaneous rate implied by a
-pose's own velocity channels -- and since those channels are themselves finite differences over the
-same timestep, the two agree to first order and exactly for motion that is rigid within the frame.
+The C# counterpart of the frame-local conversion is ``CharacterSpacePose``, which feeds a trained
+model at inference. A mismatch between the two does not throw, it just makes the network wrong; see
+openwiki/animation-tools/neural-synthesis.md for where they are and are not identical.
 
 Run it as a script to write an ``.npz`` beside a database::
 
@@ -65,8 +61,8 @@ from core.pose_set import PoseSet
 from formats.feature_set_importer import FeatureSet, read_feature_set
 from formats.pose_set_importer import deserialize_pose_set
 from core.simulation_frame import (canonical_quaternions, clip_ranges, derive_frames,
-                              extend_by_one_frame, forward_kinematics, frame_rates,
-                              parent_indices)
+                                   extend_by_one_frame, forward_kinematics, frame_rates,
+                                   parent_indices)
 
 
 def rotations_to_6d(rotations: np.ndarray) -> np.ndarray:
@@ -250,16 +246,12 @@ class TrainingSet:
         """
         Where the character was and will be, around every frame, in that frame's own space.
 
-        This is the input a phase-functioned network is organised around, and the one thing
-        a model needs that cannot be recovered from the frame-local arrays: they have had
-        exactly this information removed. Motion matching's trajectory features are the same
-        idea, but only for the horizons a ``MotionMatchingData`` happens to author, whereas a
-        PFNN-style window is a dense sweep of roughly a second either side.
+        This cannot be recovered from the frame-local arrays, which have had exactly this
+        information removed.
 
         Offsets are clamped to the containing clip rather than wrapped or dropped, so a
-        window near a clip edge repeats its last real sample. That is the same thing a
-        character standing still would produce, and it keeps every frame usable instead of
-        discarding the ends of every clip.
+        window near a clip edge repeats its last real sample -- what a character standing
+        still would produce -- and every frame stays usable.
 
         :param offsets: frame offsets relative to the query frame, negative for the past.
         :return: ``(positions, directions)``, both (n_frames, len(offsets), 2) float32 in the
@@ -282,9 +274,8 @@ class TrainingSet:
         origin = np.asarray(self.frame_position, dtype=np.float64)[:, [0, 2]]
         yaw = np.asarray(self.frame_yaw, dtype=np.float64)
 
-        # Rotating a world offset into the query frame is the inverse yaw. Unity is y-up and
-        # left-handed with the character facing +z, so a heading of theta is the direction
-        # (sin theta, cos theta) in (x, z) and the inverse rotation is its transpose.
+        # The inverse yaw: a heading theta is the direction (sin theta, cos theta) in (x, z),
+        # and the inverse rotation is its transpose.
         cos, sin = np.cos(yaw)[:, np.newaxis], np.sin(yaw)[:, np.newaxis]
 
         offset_world = origin[sampled] - origin[:, np.newaxis, :]
@@ -396,8 +387,7 @@ def build_training_set(pose_set: PoseSet, feature_set: FeatureSet | None = None)
 
     ranges = clip_ranges(pose_set.clips, n_frames)
     for start, end in ranges:
-        # One frame past the clip, reconstructed from the stored velocities, so the last
-        # real frame has a successor to difference against that is not the next animation.
+        # One extra frame so the clip's last frame has a successor that is not the next clip.
         clip_positions, clip_rotations = extend_by_one_frame(
             positions[start:end], rotations[start:end],
             velocities[start:end], angular_velocities[start:end], frame_time)
@@ -423,9 +413,7 @@ def build_training_set(pose_set: PoseSet, feature_set: FeatureSet | None = None)
 
     contacts = np.asarray(pose_set.foot_contacts).astype(np.float32)
 
-    # Gait phase is read off the database rather than reconstructed here: Unity evaluates it
-    # from each clip's authored footfalls, so the phase a model trains on is the phase the
-    # clip editor drew.
+    # Read, not reconstructed, so a model trains on the phase the clip editor drew.
     phase = np.asarray(pose_set.phase, dtype=np.float32)
     phase_rate = np.asarray(pose_set.phase_rate, dtype=np.float32)
 

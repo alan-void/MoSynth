@@ -7,16 +7,13 @@ of the model rather than of the database. This module is that step for a phase-f
 of it, the joints as they stand, and a gait phase; it predicts the pose one frame later, the root
 delta that carries the character there, and how far the phase advanced.
 
-Two deliberate departures from the paper, both forced by what this repository already is:
+Two deliberate departures from the paper (see openwiki/pfnn/training-and-checkpoints.md):
 
-* **Rotations, not positions.** The paper predicts joint positions and reconciles them with IK.
-  ``PoseBuffer`` is rotation-based and there is no IK solver here, so the output carries 6D
-  rotations (Zhou et al.) and the positions the next input needs come back from forward kinematics.
-  That also means a predicted pose cannot violate a bone length, which a position-space prediction
-  can and does.
-* **Foot contacts in place of a gait label.** The paper feeds a one-hot gait vector authored per
-  clip. Nothing here is labelled that way, but the contacts the phase was reconstructed from are
-  stored, and they carry the part of that signal a locomotion model can use.
+* **Rotations, not positions.** ``PoseBuffer`` is rotation-based and there is no IK solver here, so
+  the output carries 6D rotations (Zhou et al.) and the positions the next input needs come back
+  from forward kinematics. A predicted pose therefore cannot violate a bone length.
+* **Foot contacts in place of a gait label.** Clips carry no one-hot gait label, but foot contacts
+  are stored and carry the part of that signal a locomotion model can use.
 
 Because rotations are what is predicted, a bone is only meaningful to predict when its parent is
 predicted too -- otherwise there is no frame to apply the rotation in. :func:`select_bones` enforces
@@ -102,9 +99,8 @@ class PfnnSpec:
     """
     Everything about the packing that a trained model has to be fed back exactly.
 
-    Stored in the checkpoint and checked against the live skeleton at load, for the reason
-    ``neural-synthesis.md`` is written around: a training/inference disagreement about which bones
-    or which horizons these numbers describe does not throw, it just makes the network wrong.
+    Stored in the checkpoint and checked against the live skeleton at load, because a
+    training/inference disagreement here does not throw, it just makes the network wrong.
 
     :param window_offsets: (T,) frame offsets of the trajectory window, negative for the past.
     :param bone_indices: (B,) database bone indices this model predicts, ascending.
@@ -183,11 +179,9 @@ def check_output_blocks(stored_names, layout) -> None:
     """
     Refuse a checkpoint packed with a different set of output blocks than this code reads.
 
-    The failure this catches is silent rather than loud. Blocks are appended, so every block an
-    older checkpoint does carry still slices out correctly, and the new one comes back as a
-    truncated view instead of raising -- a character that moves badly for no visible reason. The
-    checkpoint stores the names it was written with for the same reason ``.mmpose`` carries a
-    skeleton block instead of a version number: the content is the check.
+    Without this the mismatch is silent: blocks are appended, so a block missing from an older
+    checkpoint comes back as a truncated view instead of raising. The stored names are the check,
+    in place of a version number.
 
     :param stored_names: the block names the checkpoint was written with, in order.
     :param layout: ``(name, offset, count)`` per block, from :meth:`PfnnSpec.output_layout`.
@@ -226,10 +220,8 @@ def usable_queries(training_set: TrainingSet) -> np.ndarray:
     """
     (n,) bool: frames that can serve as a query, i.e. that have a successor to predict.
 
-    Three conditions, and the second is the one a caller is likely to forget:
-    :meth:`TrainingSet.usable` checks only the matching feature vector, while a phase-functioned
-    network is meaningless on a clip with no measurable gait cycle -- which is exactly what
-    ``phase_rate == 0`` marks. The third keeps a sample from differencing across a jump cut.
+    Beyond :meth:`TrainingSet.usable`, which checks only the matching feature vector, a frame
+    needs a measurable gait cycle (``phase_rate != 0``) and a usable successor in its own clip.
     """
     usable = training_set.usable()
     has_cycle = training_set.phase_rate != 0.0
@@ -263,9 +255,8 @@ def build_vectors(training_set: TrainingSet, spec: PfnnSpec):
 
     positions, directions = training_set.trajectory_window(spec.window_offsets)
 
-    # The step from frame i to frame i+1, expressed in frame i's own space. Read straight out of the
-    # sampler rather than re-derived from root_velocity, so there is one definition of "where the
-    # character goes next" and it is the one two independent checks were run against.
+    # The step from frame i to frame i+1 in frame i's space, read from the sampler rather than
+    # re-derived from root_velocity so there is one definition of where the character goes next.
     step_positions, step_directions = training_set.trajectory_window([1])
     root_delta = np.concatenate([
         step_positions[queries, 0, :],
@@ -291,8 +282,7 @@ def build_vectors(training_set: TrainingSet, spec: PfnnSpec):
         root_delta,
         (training_set.phase_rate[queries] * training_set.frame_time)[:, np.newaxis],
         training_set.contacts[nxt],
-        # The future half of the window as frame i+1 will see it -- which is to say, the input the
-        # runtime would otherwise have to invent from the request alone.
+        # The future half of the window as frame i+1 will see it.
         positions[nxt][:, spec.future_mask].reshape(m, -1),
         directions[nxt][:, spec.future_mask].reshape(m, -1),
     ], axis=1).astype(np.float32)
@@ -305,10 +295,8 @@ def build_vectors(training_set: TrainingSet, spec: PfnnSpec):
     return x, y, training_set.phase[queries].astype(np.float32), queries
 
 
-# How much each output block is worth relative to the others, for the training loss. Equal by
-# default: a block is one thing the network has to get right, and how many floats it happens to be
-# written as says nothing about how much it matters. Raise an entry to buy accuracy in that block at
-# the cost of the rest.
+# How much each output block is worth in the training loss, independent of its width. Raise an
+# entry to buy accuracy in that block at the cost of the rest.
 DEFAULT_BLOCK_IMPORTANCE = {
     'joint_rotations_6d': 1.0,
     'joint_velocities': 1.0,
@@ -316,8 +304,7 @@ DEFAULT_BLOCK_IMPORTANCE = {
     'root_delta': 1.0,
     'phase_delta': 1.0,
     'contacts': 1.0,
-    # One prediction written as two blocks, so they halve a single block's share between them
-    # rather than taking two blocks' worth of the gradient off the pose.
+    # One prediction written as two blocks, so they share a single block's worth.
     'future_positions': 0.5,
     'future_directions': 0.5,
 }
@@ -327,11 +314,9 @@ def block_weights(layout, importance=None) -> np.ndarray:
     """
     Per-float weights that make each output block count for what it is worth, not for how wide it is.
 
-    Normalising the targets equalises the *floats*, which is not the same thing and is the trap this
-    exists to avoid: the root delta is three floats beside a hundred and thirty-two of joint
-    rotation, so an unweighted mean square error spends 1.5% of its gradient on the only block that
-    decides whether the character travels, stands still, or turns. A model fitted that way stands
-    and creeps forward, because creeping costs it almost nothing.
+    Normalising the targets equalises the *floats*, not the blocks: unweighted, the three-float root
+    delta beside a hundred-odd floats of joint rotation gets under 2% of the gradient. See
+    openwiki/pfnn/training-and-checkpoints.md.
 
     Weights are scaled so they average one, which keeps the loss the same order of magnitude as the
     unweighted mean and lets an existing learning rate carry over.

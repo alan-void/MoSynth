@@ -66,9 +66,8 @@ namespace AnimationTools.Editor
             var entry = Find(row);
             if (entry == null) return;
 
-            // Only a height the user actually dragged is restored, and only that marks the row as
-            // user-set. Inferring it from "a height was stored" made every row user-set after the
-            // first save, which silently disabled RequestedLaneHeight for good.
+            // Only a height the user actually dragged marks the row as user-set; a merely stored
+            // height must not, or RequestedLaneHeight would stop applying after the first save.
             row.HeightIsUserSet = entry.heightIsUserSet;
             if (entry.heightIsUserSet && entry.laneHeight > 0f) row.LaneHeight = entry.laneHeight;
 

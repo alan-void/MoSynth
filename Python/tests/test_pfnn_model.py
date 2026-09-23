@@ -1,10 +1,8 @@
 """
 The phase function, the network that hangs off it, and the checkpoint they are written to.
 
-The checkpoint tests need only numpy and run everywhere. The network tests need torch, which the
-other suites in this folder deliberately do not, so they skip rather than fail when it is absent --
-the stated property of this directory is that it needs no venv extras, and a PFNN should not be
-what takes that away.
+The checkpoint tests need only numpy and run everywhere. The network tests need torch, so they skip
+rather than fail when it is absent: this directory must not need venv extras.
 """
 
 import math

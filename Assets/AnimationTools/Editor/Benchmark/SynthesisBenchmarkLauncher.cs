@@ -65,14 +65,11 @@ public static class SynthesisBenchmarkLauncher
         Directory.CreateDirectory(Path.GetDirectoryName(SynthesisBenchmarkPlan.PlanPath) ?? "Temp");
         File.WriteAllText(SynthesisBenchmarkPlan.PlanPath, JsonUtility.ToJson(plan, true));
 
-        // A scene of its own, built fresh rather than loaded from an asset: the sweep instantiates
-        // everything it needs, so anything else in the open scene would only be another character
-        // competing for the frame the cost metrics are measuring.
+        // A fresh scene: anything else open would compete for the frame the cost metrics measure.
         EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
-        // Armed on both sides of the play-mode domain reload. Whichever call survives is the one
-        // that drives the sweep; with domain reload disabled it is this one, otherwise it is the
-        // driver's static constructor picking the plan file back up.
+        // Armed on both sides of the play-mode domain reload: this call drives the sweep when domain
+        // reload is disabled, otherwise the driver's static constructor picks the plan file back up.
         SynthesisBenchmarkDriver.Arm();
         EditorApplication.EnterPlaymode();
         return true;

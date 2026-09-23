@@ -1,6 +1,5 @@
 using System;
 using Unity.Collections;
-using UnityEngine;
 using Unity.Jobs;
 
 namespace MotionMatching

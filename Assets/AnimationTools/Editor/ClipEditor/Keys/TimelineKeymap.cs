@@ -28,17 +28,10 @@ namespace AnimationTools.Editor
     /// bindings can be read without opening two switch statements.
     /// </summary>
     /// <remarks>
-    /// Modelled on Blender's dope sheet, because that is the timeline these lanes are trying to be.
-    /// The one departure worth knowing: <c>A</c> is select-all here as it is in Blender, which is
-    /// why the timeline's own view framing sits on <c>Home</c> and <c>.</c> - also Blender's keys -
-    /// rather than on <c>A</c>. <c>Home</c> frames the keys, as Blender's View All does; the whole
-    /// clip is <c>Shift+Home</c>.
-    /// <para>
-    /// <c>F</c> is left to <see cref="ClipTimelineView"/> for framing the clip's slice. It has no
-    /// Blender counterpart and predates this keymap. <c>Space</c> is not resolved here either: it
-    /// plays and pauses the whole window, so it is a shortcut-manager binding on
-    /// <see cref="AnnotatedClipEditorWindow"/> and works whichever pane has focus.
-    /// </para>
+    /// Modelled on Blender's dope sheet: <c>A</c> is select-all, so view framing sits on <c>Home</c>
+    /// and <c>.</c>. <c>F</c> (frame the slice) belongs to <see cref="ClipTimelineView"/>, and
+    /// <c>Space</c> is a shortcut-manager binding on <see cref="AnnotatedClipEditorWindow"/> so it
+    /// works whichever pane has focus.
     /// </remarks>
     public static class TimelineKeymap
     {

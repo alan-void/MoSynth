@@ -1,17 +1,12 @@
 """
 Runs a trained PFNN one frame at a time, for the Unity stage and for offline inspection.
 
-The policy here is **stateless**. It takes a whole input and returns a whole output; the phase, the
-previous pose and the trajectory history live on the C# side. That is the opposite of
-``motion_field.field``, and deliberately: a motion field's state is an index into a database, which is
-cheap to keep in Python, whereas a PFNN's state is a pose that Unity has to write into a
-``PoseBuffer`` anyway. Keeping it in C# means a benchmark run can restart the character without
-reaching across the boundary, and the state is visible to the inspector and the profiler.
+The policy here is **stateless**: the phase, the previous pose and the trajectory history live on
+the C# side, because a PFNN's state is a pose Unity has to write into a ``PoseBuffer`` anyway. See
+openwiki/pfnn/pfnn-stage.md.
 
-Forward kinematics is likewise the caller's job. The network predicts rotations; turning those into
-joint positions needs the skeleton's rest offsets, and the authority on those is the rig -- so the
-stage does it with ``SkeletonData``, and :func:`rollout` below does it with the pose set, rather
-than a third copy living in here.
+Forward kinematics is likewise the caller's job, since the rig is the authority on rest offsets: the
+stage does it with ``SkeletonData``, and :func:`rollout` below does it from the training set.
 
 Everything crossing the PythonNET boundary is a flat Python list of floats, which pythonnet
 marshals straight into a C# ``float[]``; see the same note in ``motion_field.action_predictor.get_pose_arrays``.
@@ -42,9 +37,8 @@ class PfnnPolicy:
 
     :param checkpoint_path: the ``.pfnn.npz`` to load.
     :param log: where to report a load failure. Unity passes its own callable.
-    :param device: ``auto``, ``cpu`` or ``cuda``. A single-sample forward pass is small enough that
-        CPU is usually the faster choice once the per-call transfer is counted, so ``auto`` is not
-        obviously right for inference -- but it keeps one story for both directions.
+    :param device: ``auto``, ``cpu`` or ``cuda``. Defaults to CPU: a single-sample forward pass is
+        usually faster there once the per-call transfer is counted.
     """
 
     def __init__(self, checkpoint_path: str, log=print, device: str = 'cpu'):
@@ -171,18 +165,17 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
     """
     Run the model autoregressively against its own predictions, driven by the database's own path.
 
-    This is the cheapest honest test of a checkpoint: a model that has learned nothing still scores
-    a plausible per-frame loss, because the pose barely changes in a thirtieth of a second, but it
-    cannot survive being fed its own output for ten seconds. Feeding the *true* future trajectory
-    isolates the question -- if the character still falls apart, the controller is not the problem.
+    A model that has learned nothing still scores a plausible per-frame loss, but it cannot survive
+    being fed its own output for long. Feeding the *true* future trajectory rules out the controller
+    as the cause if the character still falls apart.
 
     :return: a summary dict with the distance travelled, the mean speed to compare against the
         database's own, the largest joint excursion seen, and how far the predicted future
         trajectory fell from the one the character really walked.
     """
     spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
-                                   window_radius=int(abs(policy.checkpoint.window_offsets).max()),
-                                   window_stride=int(_stride_of(policy.checkpoint.window_offsets)))
+                              window_radius=int(abs(policy.checkpoint.window_offsets).max()),
+                              window_stride=int(_stride_of(policy.checkpoint.window_offsets)))
     bones = spec.bone_indices
     parents_in_subset = _parents_within(training_set.parents, bones)
     rest_offsets = _rest_offsets(training_set, bones, parents_in_subset)
@@ -196,8 +189,8 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
 
     travelled, speeds, extents = 0.0, [], []
 
-    # The predicted future is scored against the window frame i+1 really carries, which is the
-    # quantity it was trained on -- so only where that frame exists in the same clip.
+    # The predicted future is scored against the window frame i+1 really carries, so only where
+    # that frame exists in the same clip.
     future_mask = spec.future_mask
     scorable = dataset.usable_queries(training_set)
     position_errors, heading_errors = [], []
@@ -279,9 +272,8 @@ def _rest_offsets(training_set, bones: np.ndarray, parents_in_subset: np.ndarray
     """
     Each selected bone's offset from its parent, in the parent's own space.
 
-    Recovered from the first frame's character-space pose rather than read from the skeleton,
-    because a ``TrainingSet`` does not carry rest transforms -- and it is constant, which the
-    caller can check by taking a different frame and getting the same answer.
+    Recovered from the first frame's character-space pose, because a ``TrainingSet`` does not
+    carry rest transforms; the offset is the same in every frame.
     """
     positions = training_set.positions[0][bones].astype(np.float64)
     rotations = training_set.rotations[0][bones].astype(np.float64)
@@ -300,8 +292,7 @@ def _forward_kinematics(rotations: np.ndarray, rest_offsets: np.ndarray,
     """
     Joint positions in the character frame, from character-frame rotations and rest offsets.
 
-    The root sits on the frame's own vertical axis by construction -- its x and z are what the frame
-    transform removed -- so only its height is predicted.
+    The root sits on the frame's own vertical axis by construction, so only its height is predicted.
     """
     positions = np.zeros((rotations.shape[0], 3), dtype=np.float64)
     positions[0] = (0.0, root_height, 0.0)

@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
 
 namespace MotionMatching
 {

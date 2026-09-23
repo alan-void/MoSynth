@@ -13,14 +13,8 @@ namespace AnimationTools.Editor
 /// method prefabs a sweep runs on, plus a config pointing at them.
 /// </summary>
 /// <remarks>
-/// The alternative is dragging half a dozen objects out of <c>ExampleSplines 1.unity</c> by hand and
-/// getting the folder layout right, which is exactly the kind of setup that is wrong the first time
-/// and silently wrong the second. Run it once; after that, paths are added by dropping a prefab in
-/// the folder.
-/// <para>
-/// Character prefabs lose their scene spline reference on save, which is intended — the driver
+/// Character prefabs lose their scene spline reference on save, which is intended: the driver
 /// assigns each run's path. Unity logs that as a warning.
-/// </para>
 /// </remarks>
 public static class BenchmarkStarterAssets
 {
@@ -59,9 +53,8 @@ public static class BenchmarkStarterAssets
     }
 
     /// <summary>
-    /// Does the extraction, with no dialogs and no save prompt — the caller owns both, which is what
-    /// lets this run unattended as well as from the menu. Replaces whatever scene is open with
-    /// <see cref="SourceScene"/>. Returns the config, or null if the source scene is missing.
+    /// Does the extraction with no dialogs or save prompt, so it can run unattended. Replaces the
+    /// open scene with <see cref="SourceScene"/>. Returns the config, or null if that scene is missing.
     /// </summary>
     public static SynthesisBenchmarkConfig Create()
     {
@@ -142,8 +135,7 @@ public static class BenchmarkStarterAssets
 
         config.pathPrefabFolder = PathsFolder;
 
-        // Regenerating must not silently drop the overrides that turn one prefab into several
-        // methods, so an entry already pointing at this prefab keeps its own.
+        // Regenerating keeps the overrides of an entry already pointing at this prefab.
         var existing = config.methods ?? new List<BenchmarkMethod>();
         config.methods = new List<BenchmarkMethod>();
         foreach (var prefab in methodPrefabs)
@@ -166,9 +158,8 @@ public static class BenchmarkStarterAssets
     }
 
     /// <summary>
-    /// Writes the prefab at a name-derived path, overwriting any prefab already there rather than
-    /// making a numbered sibling. Overwriting in place keeps the asset's GUID, so a config already
-    /// pointing at it survives a regeneration.
+    /// Writes the prefab at a name-derived path, overwriting in place so its GUID (and any config
+    /// pointing at it) survives a regeneration.
     /// </summary>
     private static GameObject SavePrefab(GameObject sceneObject, string folder)
     {

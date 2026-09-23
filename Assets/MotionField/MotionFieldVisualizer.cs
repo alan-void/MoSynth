@@ -3,45 +3,20 @@ using System.Linq;
 using AnimationTools;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Serialization;
 
 namespace MotionField
 {
 /// <summary>
-/// Draws the motion field as a 3D point cloud so a misbehaving policy can be watched rather than
-/// inferred.
-///
-/// Every database state is a point, projected to 3D by <c>motion_field/embedding.py</c>. Under that
-/// module's default the projection covers the *joint positions* only, so the cloud is a pose
-/// manifold: one pose held at two different speeds lands in one place rather than two, and how far
-/// apart two points sit means how differently the body is posed and nothing else.
-///
-/// Velocity is therefore not a displacement here, it is an edge. A state's one-frame lookahead is
-/// exactly the next frame of its clip, so the frame-adjacency edges <see cref="BuildEdgeMesh"/>
-/// draws are the field's velocity: each line leaves a pose and points at where that pose is going.
-/// Read together, the cloud is the set of poses and the edges are the flow over them.
-///
-/// On top of that static picture, this overlays what the policy is doing right now: where the live
-/// pose sits, which neighbours it is choosing between, and which one the tug is pulling it toward.
-/// A policy that stalls shows up immediately -- the trail stops sweeping the cloud and collapses to
-/// a knot.
-///
-/// Overlay legend: yellow is the live pose, with a yellow edge ahead to where its neighbourhood
-/// flows over the next <c>velocityLookahead</c> frames (the live pose is not a database state, so
-/// it has no adjacency edge of its own) and a yellow trail behind it. Cyan is its nearest state,
-/// magenta the tug target, green the rest of the neighbourhood with size and brightness following
-/// the similarity weight.
-///
-/// Three things to keep in mind when reading the picture. The tug is the neighbour the *chosen
-/// action* emphasises, and actions are chosen on value, so it is routinely not the nearest state.
-/// The live pose's edge is built from the plain similarity weights, so it shows where the
-/// neighbourhood flows rather than which action was picked -- the magenta marker carries that. And
-/// UMAP preserves neighbourhood structure, not distance: two states adjacent in the real metric can
-/// land far apart on screen, so judge closeness by the markers, not by the gap.
-///
-/// Add it to the same GameObject as the <see cref="MotionSynthesisComponent"/> whose stage list
-/// contains a <see cref="MotionFieldStage"/>, and enable <c>collectDebugData</c> on that stage.
+/// Draws the motion field as a 3D UMAP point cloud with the live policy overlaid, so a misbehaving
+/// policy can be watched rather than inferred.
 /// </summary>
+/// <remarks>
+/// Under a position-only projection the cloud is a pose manifold and the frame-adjacency edges are
+/// velocity. Overlay: yellow is the live pose, cyan its nearest state, magenta the tug target, green
+/// the rest of the neighbourhood. Add it beside a <see cref="MotionSynthesisComponent"/> running a
+/// <see cref="MotionFieldStage"/> with <c>collectDebugData</c> on. See
+/// openwiki/motion-field/pose-manifold-embedding.md.
+/// </remarks>
 [AddComponentMenu("MotionField/Motion Field Visualizer")]
 public class MotionFieldVisualizer : MonoBehaviour
 {
@@ -154,8 +129,6 @@ public class MotionFieldVisualizer : MonoBehaviour
 
         if (!_stage.collectDebugData)
         {
-            // Without this the visualizer is a silent no-op, which reads as "the tool is broken"
-            // rather than "the switch that feeds it is off".
             Debug.LogWarning("[MotionField] MotionFieldStage.collectDebugData is off, so the " +
                              "visualizer has no data to draw. Enable it on the stage.", this);
             enabled = false;
@@ -178,7 +151,7 @@ public class MotionFieldVisualizer : MonoBehaviour
 #if UNITY_EDITOR
     private void EditorUpdate()
     {
-        // Force LateUpdate to run even when the game is paused in the editor
+        // Keeps the overlay drawing while play mode is paused.
         if (UnityEditor.EditorApplication.isPaused)
         {
             LateUpdate();
@@ -233,15 +206,13 @@ public class MotionFieldVisualizer : MonoBehaviour
         BuildOverlay();
         if (_overlayTriangles.vertexCount > 0) Graphics.RenderMesh(parameters, _overlayTriangles, 0, toWorld);
 
-        // Not gated on showLinks: the trail and the live pose's velocity edge share this buffer,
-        // and both are the point of the tool. showLinks decides only whether the per-neighbour
-        // lines go into it, back in BuildOverlay.
+        // Not gated on showLinks: the trail and velocity edge share this buffer; showLinks only
+        // decides whether BuildOverlay adds the per-neighbour lines.
         if (_overlayLines.vertexCount > 0) Graphics.RenderMesh(parameters, _overlayLines, 0, toWorld);
     }
 
     private void OnValidate()
     {
-        // Triggers when you change a value in the inspector
         if (Application.isPlaying)
         {
             ClearResources();
@@ -281,14 +252,12 @@ public class MotionFieldVisualizer : MonoBehaviour
         _overlayTriangles ??= NewMesh("MotionField Overlay Tris");
         _overlayLines ??= NewMesh("MotionField Overlay Lines");
 
-        // Debug.Log($"[MotionField] Visualizer ready: {_points.Length} states, " +
-        // $"{_edgeMesh.vertexCount / 2} transitions, cloud {_cloudMesh.vertexCount} verts.", this);
         return true;
     }
 
     /// <summary>
-    /// Centre the raw UMAP coordinates and scale them into a box of the requested size. UMAP output
-    /// has no meaningful units or origin, so it has to be normalised before it can be placed.
+    /// Centre the raw UMAP coordinates, which have no meaningful units or origin, and scale them
+    /// into a box of the requested size.
     /// </summary>
     private static Vector3[] FitToBox(IReadOnlyList<Vector3> raw, float size)
     {
@@ -347,9 +316,8 @@ public class MotionFieldVisualizer : MonoBehaviour
     }
 
     /// <summary>
-    /// One line per consecutive-frame transition, darkened at the tail and brightened at the head.
-    /// A gradient rather than an arrowhead: it costs two vertices instead of a cone, and unlike a
-    /// flat arrow it never disappears when viewed edge-on.
+    /// One line per consecutive-frame transition, darkened at the tail and brightened at the head;
+    /// unlike a flat arrow, a gradient never disappears edge-on.
     /// </summary>
     private Mesh BuildEdgeMesh()
     {
@@ -387,10 +355,8 @@ public class MotionFieldVisualizer : MonoBehaviour
 
         if (haveNeighbors)
         {
-            // The live pose has no exact projection -- UMAP cannot transform new points once it has
-            // been fitted from a precomputed k-NN graph. Its neighbours' weighted average is the
-            // same interpolation the field itself uses to read values, so the marker lands where the
-            // field thinks the pose is.
+            // UMAP fitted from a precomputed k-NN graph cannot project new points, so the live pose
+            // is placed at its neighbours' weighted average — the field's own interpolation.
             var current = Vector3.zero;
             var total = 0f;
             for (var i = 0; i < neighbors.Length; i++)
@@ -413,11 +379,9 @@ public class MotionFieldVisualizer : MonoBehaviour
                     var point = _points[neighbors[i]];
                     var relative = heaviest > 1e-6f ? weights[i] / heaviest : 0f;
 
-                    // Slot 0 is the closest state in the field's own metric -- get_knn returns the
-                    // neighbourhood sorted nearest first. The tug is whichever slot the policy
-                    // picked, which is a value judgement, not a distance one, so the two are
-                    // usually different states and need to be told apart on sight. When they do
-                    // coincide the tug colour wins, at the nearest marker's larger size.
+                    // Slot 0 is the nearest state (get_knn sorts nearest first); the tug is chosen
+                    // on value, so usually differs. When they coincide the tug colour wins, at the
+                    // nearest marker's larger size.
                     var isTug = i == chosen;
                     var isNearest = i == 0;
 
@@ -447,23 +411,9 @@ public class MotionFieldVisualizer : MonoBehaviour
     /// The live pose's velocity, as an edge to where it is going.
     /// </summary>
     /// <remarks>
-    /// Every point in the cloud shows its velocity as the edge to the next frame of its clip. The
-    /// live pose cannot: it is not a database state, so it has no successor to link to. Its
-    /// neighbours do have one each, and averaging where they go next -- under the same weights that
-    /// placed the live marker itself -- puts the head of the edge where the field's blended step
-    /// lands. Point to point, on the same terms as every other edge here.
-    ///
-    /// One frame by default, matching every other edge in the picture.
-    /// <see cref="velocityLookahead"/> exists because that is short: one frame is around 1.8% of
-    /// the cloud's extent, which at a large <see cref="pointScale"/> is no longer than the marker
-    /// the edge leaves. Walking the successor chain keeps every head on a real projected state, and
-    /// the same count applies to every pose -- so a longer edge still never means a faster one.
-    ///
-    /// These are the plain similarity weights, so this is the flow of the neighbourhood, not the
-    /// action the policy actually chose; the magenta tug marker carries that.
-    ///
-    /// Renormalising by the weight that survived, rather than by the full sum, matches how
-    /// <c>current</c> itself is computed when some neighbours drop out.
+    /// The live pose has no successor of its own, so the head is its neighbours' successors averaged
+    /// under the weights that placed it, renormalised by the surviving weight as <c>current</c> is.
+    /// See openwiki/motion-field/pose-manifold-embedding.md.
     /// </remarks>
     private void BuildVelocityEdge(IReadOnlyList<int> neighbors, IReadOnlyList<float> weights,
                                    Vector3 current, float unit)
@@ -487,8 +437,7 @@ public class MotionFieldVisualizer : MonoBehaviour
         ahead /= total;
         _overlayLineBuffer.AddLine(current, ahead, CurrentColor * 0.15f, CurrentColor);
 
-        // A head marker as well as the gradient: seen end-on, a line has no visible direction at
-        // all, and this is the one edge whose direction is the whole point.
+        // A head marker as well, since a line seen end-on shows no direction.
         _overlayTriangleBuffer.AddCube(ahead, unit * 1.2f, CurrentColor);
     }
 

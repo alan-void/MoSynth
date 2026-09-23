@@ -243,7 +243,7 @@ public class PoseBufferTests
         var handle = layout.BindChannel(new BoolChannel(headBoneId, ChannelUsage.Default));
         var copy = buffer;
 
-        // Regression pin: PoseBuffer copies must alias, not clone, so a by-value contact-write
+        // PoseBuffer copies must alias, not clone, so a by-value contact-write
         // (e.g. a helper taking PoseBuffer by value) is visible through the original reference.
         copy.SetBool(handle, true);
 

@@ -7,11 +7,8 @@ namespace Pfnn
 /// can be filled with history rather than with intent.
 /// </summary>
 /// <remarks>
-/// During training both halves of the window are the same thing — the path the character really
-/// took, sampled either side of the query frame. At runtime only the future is a wish, so only the
-/// future comes from the control input. Filling the past from the control input too would tell the
-/// network the character had already been following the requested path, which is exactly the case
-/// the training data never contains.
+/// Training windows are the real path on both sides of the query frame, so filling the past from
+/// the control input would show the network a case it never trained on.
 /// </remarks>
 public class PfnnTrajectory
 {
@@ -31,10 +28,6 @@ public class PfnnTrajectory
     public int Capacity => _positions.Length;
 
     /// <summary>Fill the whole history with one pose, for a character that has just spawned.</summary>
-    /// <remarks>
-    /// A standing start is the honest seed: it is what the window looks like for a character that
-    /// has not moved, which is also what the network sees for the stationary frames it trained on.
-    /// </remarks>
     public void Seed(float2 position, float yaw)
     {
         for (var i = 0; i < _positions.Length; i++)
@@ -65,9 +58,8 @@ public class PfnnTrajectory
     /// Where the character was <paramref name="framesAgo"/> synthesis frames ago, in world space.
     /// </summary>
     /// <remarks>
-    /// Clamped to the oldest sample held rather than extrapolated, which matches how
-    /// <c>TrainingSet.trajectory_window</c> answers an offset that would leave the clip: it repeats
-    /// the last real sample, which reads as a character that was standing still.
+    /// Clamped to the oldest sample held, matching how <c>TrainingSet.trajectory_window</c> repeats
+    /// the last real sample for an offset past the clip's edge.
     /// </remarks>
     public void Sample(int framesAgo, out float2 position, out float yaw)
     {
@@ -82,8 +74,8 @@ public class PfnnTrajectory
     /// <summary>The heading a world-space forward direction represents.</summary>
     /// <remarks>
     /// Unity is y-up and left-handed with the character facing +z, so a heading of theta is the
-    /// direction (sin theta, cos theta) in (x, z). The same convention as
-    /// <c>simulation_frame.frame_yaw</c>, which is what the training data was measured with.
+    /// direction (sin theta, cos theta) in (x, z) — the convention of
+    /// <c>core.simulation_frame.frame_yaw</c>, which the training data was measured with.
     /// </remarks>
     public static float YawOf(float2 direction) => math.atan2(direction.x, direction.y);
 

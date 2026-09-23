@@ -35,7 +35,7 @@ class PoseSet:
 
     Phase is evaluated in Unity from each clip's authored footfalls and read off the file
     rather than reconstructed here, so that what the clip editor draws is what a model
-    trains on. Two implementations of one rule is how the two halves drift apart.
+    trains on.
 
     The character frame these poses are matched in is not stored. Its definition is
     structural -- joint 0, faced along the forward axis of its rest rotation -- and

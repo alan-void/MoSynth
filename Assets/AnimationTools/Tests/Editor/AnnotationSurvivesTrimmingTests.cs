@@ -9,16 +9,9 @@ namespace AnimationTools.Tests
     /// Trimming a clip must not touch its annotation.
     /// </summary>
     /// <remarks>
-    /// This is the regression these two components were rewritten for. `OnValidate` used to delete
-    /// every anchor and key outside the current `[startFrame, endFrame)`, so dragging the slice
-    /// handle in and back out destroyed the annotation between — permanently, silently, and on a
-    /// clip whose range ended up exactly where it started. It cost a real clip 44 hand-corrected
-    /// footfalls.
-    /// <para>
-    /// The frames are clip-local now, so a trim changes which frames are extracted and nothing else.
-    /// These tests drive `OnValidate` directly rather than through the editor, because that is the
-    /// method that did the deleting.
-    /// </para>
+    /// Verifies that <c>OnValidate</c> keeps anchors and keys outside <c>[startFrame, endFrame)</c>:
+    /// frames are clip-local, so trimming changes only which frames are extracted and stays
+    /// reversible. Drives <c>OnValidate</c> directly, since that is where annotation is validated.
     /// </remarks>
     public class AnnotationSurvivesTrimmingTests
     {
@@ -135,7 +128,7 @@ namespace AnimationTools.Tests
         [Test]
         public void ValidatingStillFoldsChannelsThatNameOneTag()
         {
-            // The integrity rules stay; only the range clamp went.
+            // Integrity rules still apply; only the range is not clamped.
             var clip = Clip(0, 100);
             var tag = Tag("action");
             var tags = new AnimationTagComponent();
@@ -151,7 +144,7 @@ namespace AnimationTools.Tests
         [Test]
         public void PhaseIgnoresAnchorsOutsideTheClipWithoutThrowing()
         {
-            // What made the deletion unnecessary in the first place: Evaluate filters these itself.
+            // Evaluate filters out-of-range anchors itself, which is why they can be kept.
             var phase = new float[50];
             var rate = new float[50];
 

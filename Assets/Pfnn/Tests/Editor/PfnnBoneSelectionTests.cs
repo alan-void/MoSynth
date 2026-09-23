@@ -11,10 +11,8 @@ namespace Pfnn.Tests
 /// Choosing which bones the network predicts, on the config and against a checkpoint.
 /// </summary>
 /// <remarks>
-/// The selection is the one thing that has to mean the same on both sides of the PythonNET
-/// boundary. Python refuses a selection it cannot make sense of; these are the C# half — that the
-/// asset never records a selection Python would refuse, and that a checkpoint trained against a
-/// different rig is caught at load rather than run.
+/// Verifies the C# half: the asset never records a selection Python would refuse, and a checkpoint
+/// trained against a different rig is refused at load.
 /// </remarks>
 public class PfnnBoneSelectionTests
 {

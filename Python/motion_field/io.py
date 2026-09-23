@@ -5,13 +5,9 @@ Training produces one artefact: `<name>.mffield.npz`, the value function itself,
 written into StreamingAssets so it ships with the player. The transition tables
 it is fitted on are intermediate and rebuilt on every train.
 
-Deciding whether a value function still matches the config that will run it is
-Unity's job, not this module's: `MotionFieldConfig.hasTrained` is set by the
-Train button and cleared the moment a field is edited, so the answer is known in
-the inspector rather than at load time with the character already in play mode.
-The loader here therefore takes whatever file it is handed, and the file carries
-only what the loader reads back -- nothing describing the run that produced it,
-since nothing would consult it.
+Whether a value function still matches its config is Unity's job
+(`MotionFieldConfig.hasTrained`), so the loader takes whatever file it is handed
+and the file carries only what the loader reads back.
 """
 
 from __future__ import annotations
@@ -41,17 +37,13 @@ class ValueFunctionData:
         return float(self.scores[-1, 2]) if self.scores.size else float('nan')
 
 
-
-
 def save_value_function(out_path: str, values: np.ndarray, scores: np.ndarray,
                         theta_count: int, gamma: float, k_neighbors: int) -> None:
     """
     Write `<name>.mffield.npz`.
 
-    Alongside the arrays go the three scalars the runtime cannot recover on its
-    own: the heading grid the values are sampled on, and the `gamma` and
-    `k_neighbors` the fit assumed -- which the policy has to reuse for its
-    one-step lookahead to score actions the way training scored them.
+    Alongside the arrays go the heading grid size and the `gamma` and
+    `k_neighbors` the fit assumed, which the policy's lookahead must reuse.
     """
     os.makedirs(os.path.dirname(out_path) or '.', exist_ok=True)
     np.savez(
@@ -68,12 +60,9 @@ def load_value_function(path: str, log=print) -> ValueFunctionData | None:
     """
     Load a `.mffield.npz`.
 
-    Whether this file belongs with the config about to use it is settled in
-    Unity before the call; here a missing or unreadable file is the only reason
-    to decline. Returns None rather than raising either way -- callers run inside
-    `Py.GIL()` from Unity, where an exception surfaces as an opaque managed
-    error, and an unusable value function should degrade to greedy control
-    rather than take the player down.
+    Returns None for a missing or unreadable file rather than raising: callers
+    run inside `Py.GIL()` from Unity, where an exception surfaces as an opaque
+    managed error, and the policy degrades to greedy control instead.
     """
     if not path or not os.path.isfile(path):
         return None
@@ -88,8 +77,7 @@ def load_value_function(path: str, log=print) -> ValueFunctionData | None:
                 k_neighbors=int(f['k_neighbors']),
             )
     except (OSError, ValueError, KeyError) as exc:
-        # KeyError is how a file written by an older layout shows up: nothing
-        # records a format version, so the first missing key is the symptom.
+        # KeyError: a file written by an older layout, which has no version to say so.
         log(f'[MotionField] could not read value function {path}: {exc}. '
             f'Press Train on the config to rebuild it.')
         return None

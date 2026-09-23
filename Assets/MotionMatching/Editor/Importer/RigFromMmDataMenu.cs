@@ -6,7 +6,7 @@ using SkeletonBone = AnimationTools.SkeletonBone;
 namespace MotionMatching.Editor
 {
 /// <summary>
-/// Migration tool: builds a scene rig matching a <see cref="MotionMatchingData"/>'s skeleton,
+/// Builds a scene rig matching a <see cref="MotionMatchingData"/>'s skeleton,
 /// bone for bone. Use it to get a rig to assign to feature/contact <see cref="SkeletonBone"/>
 /// fields when no imported rig asset already provides one.
 /// </summary>

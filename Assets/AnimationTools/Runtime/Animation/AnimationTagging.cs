@@ -9,16 +9,9 @@ namespace AnimationTools
 /// Tag channels as boolean keyframes, and the query that turns them into segments.
 /// </summary>
 /// <remarks>
-/// A channel stores the frames its tag <em>flips</em> on, not the intervals it covers. That makes
-/// every keyframe a handle with its own identity, which is what the clip editor's Blender-style
-/// keymap grabs and moves, and it makes the data unfalsifiable: any sorted list of distinct frames
-/// is a valid boolean signal, so there is no overlapping-or-inverted state to guard against the way
-/// stored intervals would need.
-/// <para>
-/// Frames are clip-local, the same choice <see cref="GaitPhase.Footfall"/> documents: numbered
-/// against the whole baked clip, so trimming can never change which moment of the animation a key
-/// names, and nothing has to be deleted when the range moves.
-/// </para>
+/// A channel stores the frames its tag <em>flips</em> on, not intervals: every key is an editable
+/// handle, and any sorted list of distinct frames is a valid signal. Frames are numbered against the
+/// whole clip, so trimming never changes what a key names. See openwiki/animation-tools/clip-tags.md.
 /// </remarks>
 public static class AnimationTagging
 {
@@ -51,18 +44,10 @@ public static class AnimationTagging
 
     /// <summary>Sorts the keys and cancels ones sharing a frame.</summary>
     /// <remarks>
-    /// Two keys on one frame describe a flip and an immediate flip back, which is the same signal
-    /// as neither — and it is exactly what a drag that lands one key on another produces, so
-    /// cancelling is the whole collision rule. An odd run leaves one key behind.
-    /// <para>
-    /// Nothing is dropped for lying outside the clip's current range. Deleting a key because the
-    /// range moved destroys annotation that trimming was never meant to touch, and a reader ignores
-    /// what it was not asked about anyway.
-    /// </para>
-    /// <para>
-    /// A negative frame is corruption rather than out-of-range data, so it does go: a key below zero
-    /// is counted by <see cref="IsOn"/> for every frame from 0 up, inverting the whole channel.
-    /// </para>
+    /// Two keys on one frame are a flip and a flip back, the same signal as neither, so they cancel;
+    /// an odd run leaves one. Keys outside the clip's current range are kept, since trimming must
+    /// not destroy annotation. Negative frames are dropped: <see cref="IsOn"/> would count them at
+    /// every frame, inverting the channel.
     /// </remarks>
     public static void Normalise(List<int> toggles)
     {
@@ -122,14 +107,9 @@ public static class AnimationTagging
     /// <paramref name="query"/>, merged where they touch.
     /// </summary>
     /// <remarks>
-    /// Sweeps the keys rather than the frames: the active tag set only changes where a channel
-    /// flips, so the query is evaluated once per interval between keys instead of once per frame.
-    /// <para>
-    /// The window is a parameter rather than a frame count because keys are allowed to lie outside
-    /// it. One that does is not a boundary the sweep visits, but it is still counted by
-    /// <see cref="IsOn"/> - so a channel switched on before <paramref name="firstFrame"/> is
-    /// correctly already on at it.
-    /// </para>
+    /// Evaluates the query once per interval between keys, not per frame. Keys before
+    /// <paramref name="firstFrame"/> are not boundaries but still count, so a channel switched on
+    /// earlier is already on at the window's start.
     /// </remarks>
     public static void FindSegments(AnnotatedAnimationClip clip, IReadOnlyList<TagChannel> channels,
         GameplayTagQuery query, int firstFrame, int endFrame, List<AnimationClipSegment> results)

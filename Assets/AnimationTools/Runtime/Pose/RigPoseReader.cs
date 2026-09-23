@@ -8,9 +8,7 @@ namespace AnimationTools
 /// synthesized pose back onto them.
 /// </summary>
 /// <remarks>
-/// Separate from <see cref="MotionSynthesisComponent"/>, which is its only caller today, because
-/// the rates it derives are the one part of building a pose that has a right and a wrong answer,
-/// and a MonoBehaviour method reached only from LateUpdate cannot be tested.
+/// Kept out of <see cref="MotionSynthesisComponent"/> so the rate derivation can be unit-tested.
 /// </remarks>
 public static class RigPoseReader
 {
@@ -28,18 +26,10 @@ public static class RigPoseReader
     /// dividing by it, which is what a paused editor and the first tick both hand over.
     /// </param>
     /// <remarks>
-    /// Bone 0 is read in world space and every other bone rotation-only, matching how a pose is
-    /// stored: the bones below the root keep the rest offsets already in the buffer, which is what
-    /// holds bone lengths fixed.
-    /// <para>
-    /// Rates are per second, and angular rates are rotation vectors in radians taken the short way
-    /// round — the same quantities a database frame carries, so a stage that reads the incoming
-    /// pose sees one kind of pose rather than two.
-    /// </para>
-    /// <para>
-    /// Foot contacts are not recoverable from Transforms, so they are left untouched for whichever
-    /// stage owns them.
-    /// </para>
+    /// Bone 0 is read in world space and every other bone rotation-only; the rest offsets already in
+    /// the buffer are kept, which holds bone lengths fixed. Rates match what a database frame
+    /// carries: per second, angular ones as short-way rotation vectors. Foot contacts are left
+    /// untouched, since Transforms cannot supply them.
     /// </remarks>
     public static void Read(PoseBuffer pose, Transform[] transforms, float deltaTime)
     {

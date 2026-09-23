@@ -9,24 +9,11 @@ namespace AnimationTools
 /// a pose, as opposed to how one is stored.
 /// </summary>
 /// <remarks>
-/// A pose is stored in its clip's own space: bone 0 carries a world position and rotation, and the
-/// bones below it carry rest offsets and parent-local rotations. A model must not see any of that.
-/// Where the character stands and which way it faces are exactly what a locomotion model has to be
-/// invariant to, so both are removed by measuring the pose inside its own ground-projected,
-/// yaw-only frame — see <see cref="SimulationFrame"/>.
-/// <para>
-/// This is the C# counterpart of what <c>Python/training/training_data.py</c> produces, and it exists so
-/// that a stage running a trained model feeds it the same quantities the model was trained on.
-/// That agreement is the failure this class is here to prevent: a mismatch in frame, units or
-/// rate convention does not throw, it just makes the network wrong.
-/// </para>
-/// <para>
-/// The rates are the one place the two sides are not identical by construction. Python differences
-/// consecutive frame-local poses of a stored database; this composes the instantaneous rate implied
-/// by the pose's own velocity channels. Since those channels are themselves finite differences over
-/// the same timestep, the two agree to first order, and exactly for motion that is rigid within the
-/// frame.
-/// </para>
+/// Measuring in the pose's own ground-projected, yaw-only frame removes where the character stands
+/// and faces, which a locomotion model must be invariant to. This is the C# counterpart of
+/// <c>Python/training/training_data.py</c>; a mismatch in frame, units or rate convention does not
+/// throw, it just makes the network wrong. Rates agree with Python's to first order only; see
+/// openwiki/animation-tools/neural-synthesis.md.
 /// </remarks>
 public static class CharacterSpacePose
 {
@@ -106,21 +93,10 @@ public static class CharacterSpacePose
     /// <see cref="Extract"/>.
     /// </summary>
     /// <remarks>
-    /// This is how a stage running a learned model returns its prediction. The model works in the
-    /// character frame and knows nothing about the storage convention, so the conversion has to
-    /// live in one named place rather than being open-coded per stage: two stages writing a pose
-    /// slightly differently is the same silent-disagreement failure <see cref="Extract"/> exists to
-    /// prevent, only on the way out.
-    /// <para>
-    /// Bones below the root keep their rest offsets, because only their rotations are written. A
-    /// predicted pose therefore cannot stretch a bone, which a prediction made directly in
-    /// positions can and does.
-    /// </para>
-    /// <para>
-    /// The frame is a parameter rather than something read back off the pose: the caller is
-    /// deciding where the character has moved to, and the frame's own velocity written into bone 0
-    /// is what <see cref="MotionSynthesisComponent"/> reads to advance the transform.
-    /// </para>
+    /// The one place a learned model's prediction is converted to the storage convention. Only
+    /// rotations are written below the root, so a prediction cannot stretch a bone. The frame is a
+    /// parameter because the caller decides where the character moved; its velocity, written into
+    /// bone 0, is what <see cref="MotionSynthesisComponent"/> advances the transform by.
     /// </remarks>
     /// <param name="pose">Destination. Must use the full pose layout over <paramref name="skeleton"/>.</param>
     /// <param name="skeleton">The bone hierarchy, in the pose's own depth-first order.</param>

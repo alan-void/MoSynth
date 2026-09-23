@@ -3,26 +3,21 @@ On-disk format for a trained Learned Motion Matching model: ``<name>.lmm.npz``.
 
 One artefact per config, written into StreamingAssets so it ships with the player. It holds every
 network's parameters, the normalisation the vectors were packed with, the baked latents, and a full
-description of the packing -- the bones, the feature schema, the authored feature weights. All of
-the description is there for the same reason ``pfnn.io`` stores bone names: a model fed a
-differently shaped input does not throw, it just produces bad motion.
+description of the packing -- the bones, the feature schema, the authored feature weights -- because
+a model fed a differently shaped input does not throw, it just produces bad motion.
 
-**The contents are the same at every training phase; what changes is which arrays are populated.**
+**Every training stage writes the same contents; what changes is which arrays are populated.**
 ``stages_trained`` records how far training got, and a runtime refuses a checkpoint that lacks what
-its mode needs, naming the missing stage rather than failing at the first odd-looking frame.
+its mode needs, naming the missing stage.
 
-``numpy.savez`` cannot append, so :func:`save_checkpoint` rewrites the file whole -- and retraining
-the autoencoder therefore *drops* the stepper and the projector. That is the correct behaviour
-rather than a limitation: both are functions of a latent space that has just been replaced, so
-keeping them would leave a file whose parts describe different models. It is enforced here, in the
-writer, rather than being left to every caller to remember.
+:func:`save_checkpoint` rewrites the file whole, so retraining the autoencoder *drops* the stepper
+and the projector. That is intended: both are functions of the latent space that was just replaced.
 
-Unversioned, per the project's standing decision: everything is regenerated when a format moves, so
-a version byte would guard nothing that the content checks do not already guard better.
+Unversioned: everything is regenerated when a format moves, and the content checks guard better
+than a version byte would.
 
-Numpy only -- no torch, and no ``allow_pickle``. A caller that just wants to know what a checkpoint
-contains should neither have to load a deep learning framework to find out nor execute what is
-inside the file.
+Numpy only -- no torch, and no ``allow_pickle``, so inspecting a checkpoint neither loads a deep
+learning framework nor executes what is inside the file.
 """
 
 from __future__ import annotations
@@ -55,9 +50,8 @@ class LmmCheckpoint:
     decompressor_weights: list
     decompressor_biases: list
 
-    # (feature_size,) standardisation of X. Unity's FeatureSet already applies the paper's own
-    # recipe when it bakes the .mmfeatures, so the trainer writes an identity here rather than
-    # standardising twice; the field stays because the runtime applies whatever it is given.
+    # (feature_size,) standardisation of X. The .mmfeatures is already normalised, so the trainer
+    # writes an identity; the runtime applies whatever it is given.
     x_mean: np.ndarray
     x_std: np.ndarray
     y_mean: np.ndarray      # (pose_size,) standardisation of Y
@@ -96,14 +90,12 @@ class LmmCheckpoint:
     # (feature_size + latent_size,) standardisation of the per-second rate the stepper regresses.
     xz_rate_mean: np.ndarray | None = None
     xz_rate_std: np.ndarray | None = None
-    # (iterations, len(stepper_loss_columns)) float32. Its own curve rather than more columns on
-    # `losses`, because the stepper is fitted in a second loop whose terms mean something else.
+    # (iterations, len(stepper_loss_columns)) float32; its own curve, since its terms differ.
     stepper_losses: np.ndarray | None = None
     stepper_loss_columns: list = field(default_factory=list)
     projector_weights: list = field(default_factory=list)
     projector_biases: list = field(default_factory=list)
-    # (iterations, len(projector_loss_columns)) float32, as `stepper_losses` is and for the same
-    # reason: a third fit whose terms measure something the other two do not.
+    # (iterations, len(projector_loss_columns)) float32, as `stepper_losses`.
     projector_losses: np.ndarray | None = None
     projector_loss_columns: list = field(default_factory=list)
 
@@ -136,11 +128,8 @@ def checkpoint_arguments(checkpoint: LmmCheckpoint) -> dict:
     """
     Every :func:`save_checkpoint` argument, read back off a loaded checkpoint.
 
-    What a later training phase rewrites the file with. ``numpy.savez`` cannot append, so fitting
-    the stepper means writing the whole file again -- and a caller assembling those thirty-odd
-    arguments by hand would eventually forget one, which is a field silently lost rather than an
-    error. The dict is meant to be updated with whatever that phase fitted and splatted straight
-    into :func:`save_checkpoint`.
+    A later training stage updates this dict with whatever it fitted and splats it into
+    :func:`save_checkpoint`, so no field is silently lost when the file is rewritten whole.
     """
     return {
         'compressor_weights': checkpoint.compressor_weights,
@@ -186,17 +175,14 @@ def _add_loss_table(arrays: dict, prefix: str, rows, columns) -> None:
     """
     One fit's loss curve, under its own columns, or nothing at all when it did not run.
 
-    Written only when there are columns to write it under, so a checkpoint whose stepper or
-    projector was never fitted simply has no such key -- which is what lets a file from before
-    either existed still load.
+    A checkpoint whose stepper or projector was never fitted simply has no such key.
     """
     if not columns:
         return
 
     columns = list(columns)
-    # Not `rows or []`: a curve read back off a loaded checkpoint arrives as an ndarray, whose
-    # truth value raises. Refitting the projector passes the stepper's curve straight through, so
-    # it does.
+    # Not `rows or []`: a curve passed through from a loaded checkpoint is an ndarray, whose truth
+    # value raises.
     rows = [] if rows is None else list(rows)
     arrays[f'{prefix}_losses'] = (
         np.ascontiguousarray(rows, dtype=np.float32).reshape(len(rows), -1) if len(rows)
@@ -239,10 +225,9 @@ def save_checkpoint(out_path: str, *,
     """
     Write ``<name>.lmm.npz``.
 
-    Every argument up to ``loss_columns`` describes the autoencoder and is required, because a
-    checkpoint without one is not a checkpoint. The stepper and projector arguments are what a
-    later phase adds; **leaving them out removes them from the file**, which is the whole point --
-    see this module's docstring.
+    Every argument up to ``loss_columns`` describes the autoencoder and is required. The stepper
+    and projector arguments are what later stages add; **leaving them out removes them from the
+    file** -- see this module's docstring.
 
     ``stages_trained`` is derived from which of them arrived rather than passed in, so it cannot
     claim a stage the file does not carry.
@@ -309,9 +294,8 @@ def load_checkpoint(path: str, log=print):
     """
     Load a ``.lmm.npz``, or return ``None``.
 
-    Returns ``None`` rather than raising for the reason ``pfnn.io`` does: callers run inside
-    ``Py.GIL()`` from Unity, where an exception arrives as an opaque managed error, and an unusable
-    checkpoint should be a legible message plus a stage that declines to run.
+    Returns ``None`` rather than raising: callers run inside ``Py.GIL()`` from Unity, where an
+    exception arrives as an opaque managed error.
     """
     if not path or not os.path.isfile(path):
         return None
@@ -361,9 +345,7 @@ def load_checkpoint(path: str, log=print):
                               if 'xz_rate_mean' in f else None),
                 xz_rate_std=(np.ascontiguousarray(f['xz_rate_std'], dtype=np.float32)
                              if 'xz_rate_std' in f else None),
-                # Read conditionally rather than as a required key, so a decompressor-only
-                # checkpoint written before the stepper existed still loads -- it simply has no
-                # stepper, which `stages_trained` already says.
+                # Absent from a checkpoint with no stepper fitted, as `stages_trained` says.
                 stepper_losses=(np.ascontiguousarray(f['stepper_losses'], dtype=np.float32)
                                 if 'stepper_losses' in f else None),
                 stepper_loss_columns=([str(name) for name in f['stepper_loss_columns']]
@@ -375,7 +357,6 @@ def load_checkpoint(path: str, log=print):
                 projector_loss_columns=([str(name) for name in f['projector_loss_columns']]
                                         if 'projector_loss_columns' in f else []))
     except (OSError, ValueError, KeyError) as exc:
-        # KeyError is how a file written by an older layout shows up: nothing records a format
-        # version, so the first missing key is the symptom.
+        # KeyError: a file written by an older layout, which has no version to say so.
         log(f'[LMM] could not read checkpoint {path}: {exc}. Press Train on the config to rebuild it.')
         return None

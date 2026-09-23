@@ -69,10 +69,8 @@ public sealed class PoseFeatureChannel : ChannelDescriptor, IMatchingFeature
     }
 
     /// <summary>
-    /// The pose one frame later within the same clip. Clips are stored back to back, so the frame
-    /// after a clip's last is an unrelated animation; differencing against it would report a
-    /// jump-cut as joint velocity. On a clip's last frame the pose stands in for its own successor
-    /// and the velocity comes out zero.
+    /// The pose one frame later within the same clip, or the pose itself on a clip's last frame
+    /// (zero velocity): clips are stored back to back, so the next stored frame is an unrelated clip.
     /// </summary>
     private static int NextPoseIndex(PoseSet poseSet, int poseIndex)
     {

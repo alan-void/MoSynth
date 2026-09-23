@@ -5,10 +5,8 @@ The fixtures are the same rigid three-bone rig ``test_training_data`` uses, plus
 matching feature set, so every width and every offset is known exactly and a packing mistake shows
 up as a number here rather than as bad motion much later.
 
-The property worth stating: ``Y`` is joint-*local* and ``Q`` is character-space, and the two are
-related by forward kinematics rather than being two independent predictions. Several tests below
-check that relation directly, because it is what the paper's loss is built on and it is invisible
-from either vector alone.
+``Y`` is joint-*local* and ``Q`` is character-space, related by forward kinematics rather than
+being two independent predictions; several tests below check that relation directly.
 """
 
 import os
@@ -321,15 +319,12 @@ class GroupNormalizationTests(unittest.TestCase):
         np.testing.assert_array_equal(std, 1.0)
 
 
-
 class ProjectorTargetTests(unittest.TestCase):
     """
     The lookup the projector is fitted to approximate.
 
-    Worth testing directly rather than through a fit, because every way of getting it wrong
-    produces a network that trains perfectly well and does the wrong job: a target taken from the
-    frame the noise was added to fits a denoiser, and a target found under a uniform metric fits a
-    search nobody runs.
+    Tested directly rather than through a fit, because a wrong target still trains perfectly well:
+    it just fits a denoiser, or a search nobody runs.
     """
 
     def setUp(self):
@@ -442,10 +437,8 @@ class RecallTests(unittest.TestCase):
         self.assertLess(measured['top_percent_recall'], 1.0)
 
     def test_an_answer_that_is_no_database_state_at_all_reads_nearer_than_the_search(self):
-        # The caveat the ratio carries: a network regressing towards the middle of several frames
-        # can land nearer the query than any real frame does, and scores below 1.0 for it. Below 1
-        # is not a better search, it is an answer off the manifold -- which is why the latent error
-        # is reported beside it rather than the ratio being read alone.
+        # An answer between several frames can land nearer the query than any real frame, so a
+        # ratio below 1 means off the manifold, not a better search.
         measured = self.recall(self.queries, torch.zeros(16, 3))
 
         self.assertLess(measured['distance_ratio'], 1.0)

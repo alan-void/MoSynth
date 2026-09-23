@@ -31,9 +31,8 @@ namespace AnimationTools.Editor
         }
 
         /// <remarks>
-        /// Virtual because a subclass that declares its own <c>OnDisable</c> would otherwise hide
-        /// this one rather than extend it, and Unity dispatches only to the most-derived version -
-        /// leaving the preview and its native buffers to leak for every inspector opened.
+        /// Virtual so a subclass extends rather than hides it; Unity calls only the most-derived
+        /// <c>OnDisable</c>, and a hidden one leaks the preview's native buffers.
         /// </remarks>
         protected virtual void OnDisable()
         {

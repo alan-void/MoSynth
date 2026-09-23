@@ -11,9 +11,8 @@ namespace Pfnn
 /// predicts, the shape of the network, and the training hyperparameters.
 /// </summary>
 /// <remarks>
-/// It owns its own pose database rather than borrowing a <c>MotionMatchingData</c>, for the reason
-/// <c>MotionFieldConfig</c> does: a method should not have to be a Motion Matching asset to have
-/// poses. See the wiki's PFNN section for what the network does with them.
+/// Owns its pose database rather than borrowing a <c>MotionMatchingData</c>, so the method does not
+/// depend on Motion Matching assets. See openwiki/pfnn/training-and-checkpoints.md.
 /// </remarks>
 [CreateAssetMenu(fileName = "PfnnConfig", menuName = "MoSynth/PFNN Config")]
 public class PfnnConfig : ScriptableObject, IPoseSetSource
@@ -66,16 +65,10 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
     /// Bones the network does not predict, by name.
     /// </summary>
     /// <remarks>
-    /// Hidden from the default inspector on purpose: as a raw list this is sixty anonymous strings
-    /// in whatever order they were clicked. <c>PfnnConfigEditor</c> draws it as the skeleton
-    /// hierarchy with a toggle per bone instead. Sparse, and keyed by name rather than index, so a
-    /// joint that moves in the hierarchy takes its setting with it — the same choice
-    /// <c>MotionFieldConfig.boneWeights</c> makes, for the same reason.
-    ///
-    /// Excluding a bone excludes its whole subtree, which is not a convenience: the network
-    /// predicts rotations, and a rotation needs its parent's frame to be applied in. Keeping that
-    /// true here is what lets the Python side simply refuse a selection that is not closed under
-    /// parent, instead of guessing.
+    /// Sparse and keyed by name, so a joint that moves in the hierarchy keeps its setting;
+    /// <c>PfnnConfigEditor</c> draws it as the skeleton hierarchy. Must stay closed under subtree:
+    /// a predicted rotation needs its parent's frame, and the Python side refuses a selection that
+    /// is not.
     /// </remarks>
     [HideInInspector] public List<string> excludedBones = new();
 
@@ -124,9 +117,8 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
 
     /// <summary>
     /// Whether the pose database on disk was extracted from the config as it now stands. Set by the
-    /// Generate button and cleared by any inspector edit — the change check cannot tell which field
-    /// moved, so it over-flags rather than miss one that matters. Starts true so a config that
-    /// predates the flag does not demand a pointless rebuild.
+    /// Generate button and cleared by any inspector edit, since the change check cannot tell which
+    /// field moved. Defaults true so an asset without the field does not demand a rebuild.
     /// </summary>
     [HideInInspector] public bool hasPoseDatabase = true;
 
@@ -136,10 +128,7 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
     /// </summary>
     [HideInInspector] public bool hasTrained = true;
 
-    /// <summary>
-    /// <see cref="device"/> as the literal the Python side expects, so the string lives in one
-    /// place rather than at every call site.
-    /// </summary>
+    /// <summary><see cref="device"/> as the literal the Python side expects.</summary>
     public string DeviceName => device switch
     {
         ComputeDevice.Cuda => "cuda",
@@ -156,8 +145,8 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
     /// Include or exclude one bone, keeping <see cref="excludedBones"/> sparse.
     /// </summary>
     /// <remarks>
-    /// Only ever call this with a whole subtree — see <see cref="excludedBones"/>. The editor's
-    /// toggle does that; nothing here can enforce it, because a config does not know the hierarchy.
+    /// Callers must apply it to a whole subtree (see <see cref="excludedBones"/>); the config does
+    /// not know the hierarchy, so it cannot enforce that.
     /// </remarks>
     public void SetPredicted(string boneName, bool predicted)
     {

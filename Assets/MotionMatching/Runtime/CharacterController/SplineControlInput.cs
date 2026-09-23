@@ -9,19 +9,13 @@ namespace MotionMatching
 {
 /// <summary>
 /// Follows a spline at constant speed, looping a closed path and stopping at the end of an open one.
-/// The trajectory is read straight off the spline
-/// rather than simulated, which makes this what <see cref="AnimationTools.PathFollowingMetric"/>
-/// drives.
+/// The trajectory is read straight off the spline rather than simulated, which makes this what
+/// <see cref="AnimationTools.PathFollowingMetric"/> drives.
 /// </summary>
 /// <remarks>
-/// Nothing here reacts to where the character actually is — the point on the spline advances on its
-/// own clock, so drift shows up as measurable path-following error instead of being steered out.
-/// That is what makes it a measurement tool. <see cref="CrowdSplineControlInput"/> steers.
-/// <para>
-/// A negative prediction frame — a trajectory feature sampling the past — needs no special case
-/// here: the path behind the current point <em>is</em> where this input has been, so the same
-/// spline evaluation answers it.
-/// </para>
+/// Open loop: the point on the spline advances on its own clock and never reacts to the character,
+/// so drift shows up as measurable path-following error. Negative prediction frames need no special
+/// case, since the path behind the current point is where this input has been.
 /// </remarks>
 public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSplineControlInput, IFrameTarget
 {
@@ -37,22 +31,20 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     public float TargetSpeed => speed;
 
     /// <summary>
-    /// Whether there is a usable path to follow. Guards the evaluation seams below: a container whose
-    /// spline list has been emptied throws from <c>EvaluatePosition</c> and <c>CalculateLength</c>
-    /// rather than answering null, so the check has to happen before the call, not inside it.
+    /// Whether there is a usable path to follow. Check before the evaluation seams below: a container
+    /// with an emptied spline list throws from <c>EvaluatePosition</c> and <c>CalculateLength</c>.
     /// </summary>
     protected virtual bool HasPath => splineContainer != null && splineContainer.Spline != null;
 
-    /// <summary>World position on the path at a normalized parameter. The seam a subclass overrides
-    /// to follow a path that does not live in a <see cref="SplineContainer"/>.</summary>
+    /// <summary>World position on the path at a normalized parameter. Overridden to follow a path that
+    /// does not live in a <see cref="SplineContainer"/>.</summary>
     protected virtual float3 SamplePosition(float t) => splineContainer.EvaluatePosition(t);
 
     /// <summary>The path's world length, or 0 when there is no usable path. Callers must treat 0 as
     /// "do not divide".</summary>
     protected virtual float PathLength => HasPath ? splineContainer.CalculateLength() : 0f;
 
-    /// <summary>Whether the path loops. A seam like <see cref="HasPath"/>: a subclass may follow a
-    /// path that does not live in a <see cref="SplineContainer"/>.</summary>
+    /// <summary>Whether the path loops.</summary>
     protected virtual bool IsClosed => HasPath && splineContainer.Spline.Closed;
 
     /// <summary>
@@ -77,11 +69,9 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     private float2[] _predictedPositions;
     private float2[] _predictedDirections;
 
-    // Features -----------------------------------------------------------------
     private TrajectoryFeaturePair _features;
 
     private int PredictionCount => _features.PredictionCount;
-    // --------------------------------------------------------------------------
 
     protected virtual void Start()
     {
@@ -92,14 +82,11 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     }
 
     /// <summary>
-    /// Samples the spline now and at each prediction horizon. Every direction comes from
-    /// <see cref="SampleDirection"/>, so the query, the gizmos and <see cref="GetCurrentRotation"/>
-    /// can never end up reporting different things.
+    /// Samples the spline now and at each prediction horizon.
     /// </summary>
     protected override void OnUpdate()
     {
-        // A path with no length would make the next line infinite, math.frac of that is NaN, and the
-        // NaN sticks in _splineT and leaves as a non-finite character position. Hold where we are.
+        // A zero-length path would divide to infinity and leave NaN stuck in _splineT; hold instead.
         var pathLength = PathLength;
         if (pathLength <= 1e-5f) return;
 
@@ -107,14 +94,14 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         var normalizedSpeed = speed / pathLength;
         _directionSampleStep = normalizedSpeed * DatabaseDeltaTime * 0.1f;
 
-        float3 pos = SamplePosition(_splineT);
+        var pos = SamplePosition(_splineT);
         _currentPosition = pos.xz;
         _currentDirection = SampleDirection(_splineT, pos);
 
-        for (int i = 0; i < PredictionCount; i++)
+        for (var i = 0; i < PredictionCount; i++)
         {
             var t = Fold(_splineT + _features.PredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
-            float3 predPos = SamplePosition(t);
+            var predPos = SamplePosition(t);
             _predictedPositions[i] = predPos.xz;
             _predictedDirections[i] = SampleDirection(t, predPos);
         }
@@ -124,15 +111,13 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     }
 
     /// <summary>
-    /// The direction a character following this path should face at a point on it. This is the only
-    /// place a direction enters the input, so an override reaches the trajectory query, the debug
-    /// gizmos and <see cref="GetCurrentRotation"/> together.
+    /// The direction a character following this path should face at a point on it. The only place a
+    /// direction enters the input, so the query, the gizmos and <see cref="GetCurrentRotation"/> agree.
     /// </summary>
     /// <remarks>
-    /// A bare path carries no facing of its own, so the direction of travel is the best answer
-    /// available here — measured as a short step further along rather than as the analytic tangent,
-    /// which keeps it consistent with the predicted positions. A path that does carry facing
-    /// overrides this; see <see cref="SplinePoseKeypointControlInput"/>.
+    /// A bare path has no facing, so this is the direction of travel, measured as a short step along
+    /// the path to stay consistent with the predicted positions. See
+    /// <see cref="SplinePoseKeypointControlInput"/> for a path that carries facing.
     /// </remarks>
     /// <param name="t">Normalized spline parameter to sample at.</param>
     /// <param name="positionAtT">The spline position there, already evaluated by the caller.</param>
@@ -155,8 +140,7 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
 
     /// <summary>
     /// Normalized spline parameter this input predicts for a horizon of <paramref name="frames"/>
-    /// database frames ahead of the current position. Public because it is the only readable account
-    /// of where on its path this input thinks it is, which tools and diagnostics need.
+    /// database frames ahead of the current position.
     /// </summary>
     public float GetPredictedSplineT(int frames)
     {
@@ -169,8 +153,7 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
 
     public quaternion GetCurrentRotation()
     {
-        Quaternion rot = Quaternion.LookRotation(new Vector3(_currentDirection.x, 0, _currentDirection.y));
-        return rot;
+        return Quaternion.LookRotation(new Vector3(_currentDirection.x, 0, _currentDirection.y));
     }
 
     public override void GetTrajectoryFeature(TrajectoryFeatureChannel feature, int index, Transform character,
@@ -212,9 +195,8 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     }
 
     /// <summary>
-    /// The direction the path sets off in. A pure path follower has no notion of facing beyond its
-    /// path, so this is the honest answer; the Transform's own forward is arbitrary for a character
-    /// that gets spawned onto a path it was never authored against.
+    /// The direction the path sets off in, falling back to the Transform's forward only when the path
+    /// has none: the Transform is arbitrary for a character spawned onto a path.
     /// </summary>
     public override float3 GetWorldInitDirection()
     {
@@ -233,9 +215,8 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     /// Where on the path this input has got to, for a stage pulling the character onto it.
     /// </summary>
     /// <remarks>
-    /// The point travels along the spline while this component's Transform stays where it was
-    /// dropped, so a follower has to ask rather than read that Transform. Answers false until the
-    /// first update has sampled a usable path.
+    /// The point travels along the spline while this Transform stays put, so a follower must ask
+    /// rather than read the Transform. False until the first update has sampled a usable path.
     /// </remarks>
     public bool TryGetFrame(out float2 positionXZ, out float yaw)
     {
@@ -251,17 +232,15 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
 
         const float heightOffset = 0.01f;
 
-        // Draw Current Position And Direction
         if (!Application.isPlaying) return;
         Gizmos.color = new Color(1.0f, 0.3f, 0.1f, 1.0f);
         Vector3 currentPos = (Vector3)GetPosition() + Vector3.up * heightOffset * 2;
         Gizmos.DrawSphere(currentPos, 0.1f);
         GizmosExtensions.DrawLine(currentPos, currentPos + (Quaternion)GetCurrentRotation() * Vector3.forward, 12);
-        // Draw Prediction
         if (_predictedPositions == null || _predictedPositions.Length != PredictionCount ||
             _predictedDirections == null || _predictedDirections.Length != PredictionCount) return;
         Gizmos.color = new Color(0.6f, 0.3f, 0.8f, 1.0f);
-        for (int i = 0; i < PredictionCount; i++)
+        for (var i = 0; i < PredictionCount; i++)
         {
             float2 predictedPosf2 = GetWorldPredictedPos(i);
             Vector3 predictedPos = new Vector3(predictedPosf2.x, heightOffset * 2, predictedPosf2.y);

@@ -59,8 +59,8 @@ public class TrajectorySteeringTests
     }
 
     /// <summary>
-    /// Without the damper the request steps, and one second of trajectory steps with it. This is
-    /// the behaviour being fixed; it is asserted so that the bound below cannot pass vacuously.
+    /// Without the damper the request steps, and one second of trajectory steps with it. Asserted so
+    /// that the bound below cannot pass vacuously.
     /// </summary>
     [Test]
     public void AnUndampedRequest_TeleportsTheFarHorizon()
@@ -87,9 +87,8 @@ public class TrajectorySteeringTests
     }
 
     /// <summary>
-    /// A one-second horizon of a one metre per second request is one metre of travel. The spring
-    /// this replaced was a position spring handed a velocity as its goal, so it settled at 3.26 m/s
-    /// for the same request, and on a value that moved with the frame rate.
+    /// A one-second horizon of a one metre per second request is one metre of travel, at any frame
+    /// rate.
     /// </summary>
     [TestCase(30f)]
     [TestCase(60f)]
@@ -111,8 +110,8 @@ public class TrajectorySteeringTests
     }
 
     /// <summary>
-    /// The facing used to be assigned outright from the velocity, so a reversal — where the velocity
-    /// passes through the stopped deadzone — flipped it in a single frame.
+    /// A reversal, where the velocity passes through the stopped deadzone, must turn the facing
+    /// over several frames rather than flip it in one.
     /// </summary>
     [Test]
     public void TheFacing_TurnsThroughAReversalRatherThanFlipping()
@@ -189,8 +188,8 @@ public class TrajectorySteeringTests
     [Test]
     public void AReversalIsClampedRatherThanPassedThroughWholesale()
     {
-        // The measured failure this exists for: past about 90 degrees off its facing the network
-        // stops tracking the request and inverts its own turn.
+        // Past about 90 degrees off its facing the network stops tracking the request and inverts
+        // its own turn.
         var clamped = TrajectorySteering.ClampToCone(-Forward, Forward, math.radians(90f));
 
         Assert.That(AngleBetween(Forward, clamped), Is.EqualTo(90f).Within(0.01f));

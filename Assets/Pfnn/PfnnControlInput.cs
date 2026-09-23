@@ -10,16 +10,9 @@ namespace Pfnn
 /// going over the next second.
 /// </summary>
 /// <remarks>
-/// A PFNN wants a trajectory, not a heading, which is why this is not shaped like
-/// <c>MotionFieldControlInput</c>. It is also not a <c>MotionMatchingControlInput</c>: every one of
-/// those resolves its horizons out of a <c>MotionMatchingData</c> in <c>Start</c>, so none of them
-/// works on a character that has no motion matching stage.
-/// <para>
-/// Only the <em>future</em> half of the window comes from here. The past half is where the
-/// character actually went, which the stage keeps itself — feeding the desired path backwards would
-/// tell the network the character had already been following it, which during training was only
-/// ever true.
-/// </para>
+/// Not a <c>MotionMatchingControlInput</c>, which resolves its horizons from a
+/// <c>MotionMatchingData</c> and so needs a motion matching stage. Only the future half of the
+/// window comes from here; the stage keeps the past half from where the character actually went.
 /// </remarks>
 public abstract class PfnnControlInput : MotionSynthesisControlInput
 {
@@ -66,10 +59,8 @@ public abstract class PfnnControlInput : MotionSynthesisControlInput
     /// now.
     /// </summary>
     /// <remarks>
-    /// Both are in world space on the ground plane; the stage puts them into the character frame,
-    /// so an implementation never has to know which frame the network is being queried in.
-    /// Returning false leaves the sample at the character's current position and facing, which is
-    /// what a controller with nothing to say should produce — a character standing still.
+    /// World space on the ground plane; the stage converts to the character frame. Returning false
+    /// leaves the sample at the character's current position and facing, i.e. standing still.
     /// </remarks>
     /// <param name="frameOffset">Synthesis frames ahead. Always positive.</param>
     public abstract bool TryGetFutureSample(int frameOffset, out float2 position, out float2 direction);
@@ -83,9 +74,7 @@ public abstract class PfnnControlInput : MotionSynthesisControlInput
     /// where it is being asked to go ahead of it.
     /// </summary>
     /// <remarks>
-    /// Shared by every input rather than written per subclass, because what is worth looking at is
-    /// the window the network was queried with, which is the stage's to answer for. An input with a
-    /// path of its own to show overrides this and calls back into it.
+    /// An input with a path of its own to show overrides this and calls back into it.
     /// </remarks>
     protected virtual void OnDrawGizmos()
     {

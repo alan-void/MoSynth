@@ -43,13 +43,9 @@ namespace AnimationTools.Editor
     /// lines over a ground grid, with an orbit camera and a hook for overlay geometry.
     /// </summary>
     /// <remarks>
-    /// Holds no playback state: the host decides which frame is showing and this draws it, so an
-    /// inspector's preview settings and a window's transport bar can drive the same code.
-    /// <para>
-    /// One instance per host, never shared. Two hosts sharing a <see cref="PreviewRenderUtility"/>
-    /// would interleave their Begin/End pairs, and an unbalanced pair reports
-    /// "Previous BeginPreview() was not closed" on every later repaint instead of the real problem.
-    /// </para>
+    /// Holds no playback state; the host decides which frame is showing. One instance per host,
+    /// never shared: two hosts would interleave their <see cref="PreviewRenderUtility"/> Begin/End
+    /// pairs.
     /// </remarks>
     public sealed class SkeletonPreview : IDisposable
     {
@@ -114,9 +110,8 @@ namespace AnimationTools.Editor
             _previewRenderUtility.BeginPreview(rect, background);
 
             Texture rendered;
-            // Anything thrown between Begin and End leaves the preview unbalanced, and every later
-            // repaint then reports "Previous BeginPreview() was not closed" instead of the actual
-            // problem - one real error turning into an unreadable stream of two.
+            // An unbalanced Begin/End makes every later repaint report "Previous BeginPreview() was
+            // not closed" instead of the actual error.
             try
             {
                 if (_gridMaterial != null && _gridMesh != null)
@@ -146,8 +141,8 @@ namespace AnimationTools.Editor
 
         private void EnsureResources()
         {
-            // Built on the first repaint rather than in the constructor: a PreviewRenderUtility
-            // creates a scene and a camera, which is not something to do while deserializing.
+            // Not in the constructor: a PreviewRenderUtility creates a scene and a camera, which must
+            // not happen while deserializing.
             if (_previewRenderUtility == null)
             {
                 _previewRenderUtility = new PreviewRenderUtility();
@@ -221,10 +216,8 @@ namespace AnimationTools.Editor
         /// changes (including to or from null). Cheap no-op otherwise.
         /// </summary>
         /// <remarks>
-        /// Keyed on the bone tree's content as well as the root's identity. Root identity alone
-        /// misses a rig whose bones changed underneath it, which used to leave this cache and the
-        /// asset's own baked pose sequence describing two different skeletons - and the FK pass
-        /// indexing one by the other's bone count.
+        /// Keyed on the bone tree's content as well as the root's identity, since root identity
+        /// alone misses a rig whose bones changed underneath it.
         /// </remarks>
         private void RefreshSkeletonCache()
         {
@@ -260,8 +253,8 @@ namespace AnimationTools.Editor
             // First access triggers the one-time clip bake.
             var pose = Source.GetFrame(frame);
 
-            // The bake and this cache are invalidated by different things, so draw nothing rather
-            // than let FK throw on a repaint if they ever disagree again.
+            // The bake and this cache are invalidated by different things; if they disagree, draw
+            // nothing rather than let FK throw.
             if (pose.Layout.RotationCount != _skeletonData.BoneCount) return false;
 
             _skeletonData.LocalSpaceToCharacterSpace(pose, _fkPositions, _fkRotations);
@@ -338,9 +331,7 @@ namespace AnimationTools.Editor
         /// <summary>Orbit on left-drag, pan on middle-drag, dolly on the wheel.</summary>
         /// <remarks>
         /// The drags take <c>hotControl</c> so they survive the cursor leaving the pane, and
-        /// <see cref="CursorWrap"/> brings it back in at the opposite edge. This preview is often
-        /// 260px tall: without both, an orbit cannot get round a character without letting go and
-        /// starting again.
+        /// <see cref="CursorWrap"/> brings it back in at the opposite edge.
         /// </remarks>
         private void HandleCameraControls(Rect rect)
         {

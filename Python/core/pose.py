@@ -34,7 +34,7 @@ class Pose:
 
     @staticmethod
     def from_array(pose: np.ndarray) -> Pose:
-        """Unpacks a flat pose tensor into a PoseData instance."""
+        """Unpacks a flat pose tensor into a Pose instance."""
         root = pose[..., 0, :3].copy()
         hips = pose[..., 1, :3].copy()
         quats = pose[..., 2:, :].copy()
@@ -46,8 +46,7 @@ class Pose:
         return Pose(root, hips, quats)
 
     def pack(self) -> np.ndarray:
-        """Packs the PoseData back into a single flat array representation."""
-        # Get raw quaternion array to determine shape
+        """Packs the Pose back into a single flat array representation."""
         num_bones = self.quats.shape[-2]
         batch_shape = self.quats.shape[:-2]
 
@@ -72,12 +71,9 @@ class Pose:
         r_root: Rotation = Rotation.from_quat(self.quats[..., 0, :])
 
         new_root = self.rootPos + r_root.apply(delta.rootVel)
-
-        # Hips vector addition
         new_hips = self.hipPos + delta.hipVel
 
-        # Joint rotations composition. The delta is left-multiplied, matching
-        # MathExtensions.AngularVelocity: next = delta * current.
+        # Left-multiplied, matching MathExtensions.AngularVelocity: next = delta * current.
         new_quats = np.asarray(Rotation.as_quat(
             Rotation.from_rotvec(delta.rotvecs) *
             Rotation.from_quat(self.quats)
@@ -88,25 +84,22 @@ class Pose:
     def __sub__(self, other: Pose) -> Pose:
         """
         Subtracts a base pose 'other' from 'self' to get the delta pose.
+
+        The root offset is expressed in the local space of `other`'s root rotation.
         """
-        # Inverse root rotation of 'other' (b)
+        r_other_root_inv: Rotation = Rotation.from_quat(other.quats[..., 0, :]).inv()
 
-        r_b0_inv: Rotation = Rotation.from_quat(other.quats[..., 0, :]).inv()
-
-        # Relative root position & rotation
         diff_root = np.array(
-            r_b0_inv.apply(self.rootPos - other.rootPos)
+            r_other_root_inv.apply(self.rootPos - other.rootPos)
         )
-
-        # Hips vector difference
         diff_hips = self.hipPos - other.hipPos
 
-        # Relative joint rotations: inverse(b) * a
+        # inverse(other) * self
         diff_quats = np.array(Rotation.as_quat(
             Rotation.from_quat(other.quats).inv() *
             Rotation.from_quat(self.quats)
         ))
-        # Because we use [x, y, z, w], the scalar part 'w' is now at index -1
+        # Canonicalise to w >= 0; w is the last component in xyzw order.
         flip = diff_quats[..., -1] < 0
         diff_quats[flip] = -diff_quats[flip]
 
@@ -118,21 +111,11 @@ class Pose:
         root = (1.0 - t) * a.rootPos + t * b.rootPos
         hips = (1.0 - t) * a.hipPos + t * b.hipPos
 
-        # SciPy Slerp interpolation across time points [0, 1]
-        # Note: Slerp expects a Rotation object representing a sequence of rotations.
-        # Since 'a.quats' and 'b.quats' might be batches, we handle this by creating
-        # a sequence of the two states.
-
-        # We need to construct a Rotation object that represents the start and end
-        # stack arrays to fit R.from_quat
-        q_stacked = np.stack([a.quats, b.quats])
-        r_stacked = Rotation.from_quat(q_stacked)
-
+        # Slerp interpolates along a sequence of rotations, so the two poses are
+        # stacked as its key times 0 and 1.
+        r_stacked = Rotation.from_quat(np.stack([a.quats, b.quats]))
         slerper = Slerp([0.0, 1.0], r_stacked)
         interpolated_rotations = slerper([t])
-
-        # Slerp returns an array of rotations. We take the one corresponding to 't'
-        # Using indexing [0] to extract the Rotation object for time 't'
         quats = np.array(interpolated_rotations[:1].as_quat())
 
         return Pose(root, hips, quats)
@@ -143,22 +126,19 @@ class Pose:
         Weighted blend across axis 0.
 
         `poses` is a single Pose whose leading axis is the blend axis, so pair
-        this with `Pose.concatenate`. Any remaining batch axes are preserved:
-        blending (N_blend, B, ...) leaves a batch of B. `weights` is 1-D of
-        length N_blend and is reshaped for broadcast the same way
-        `blend_quaternions` does it -- indexing it with `[..., np.newaxis]`
-        would align it against the *trailing* axes and fail on batched input.
+        this with `Pose.concatenate` (or `Pose.stack` for batched operands).
+        Any remaining batch axes are preserved: blending (N_blend, B, ...)
+        leaves a batch of B. `weights` is 1-D of length N_blend.
         """
         weights = np.asarray(weights, dtype=np.float32)
 
-        # poses.rootPos (N, ..., 3), poses.hipPos (N, ..., 3), poses.quats (N, ..., num_bones, 4)
+        # Broadcast against the leading (blend) axis, not the trailing ones.
         w = weights.reshape((-1,) + (1,) * (poses.rootPos.ndim - 1))
         roots = np.sum(poses.rootPos * w, axis=0)
         hips = np.sum(poses.hipPos * w, axis=0)
         quats = blend_quaternions(poses.quats, weights, axis=0)
 
-        # Collapsing the blend axis of an unbatched input leaves (3,) / (B, 4);
-        # Pose requires an explicit batch axis. Batched input already has one.
+        # An unbatched input loses its only batch axis here; Pose requires one.
         if roots.ndim == 1:
             roots = np.expand_dims(roots, axis=0)
             hips = np.expand_dims(hips, axis=0)
@@ -179,9 +159,8 @@ class Pose:
         """
         Stacks poses on a NEW leading axis, preserving each one's batch shape.
 
-        This is the input `blend` wants when the operands are themselves
-        batched: `concatenate` would fold the batch into the blend axis, so
-        blending two batches of A poses would produce one pose rather than A.
+        Use this rather than `concatenate` to `blend` batched operands, which
+        would otherwise fold the batch into the blend axis.
         """
         roots = np.stack([p.rootPos for p in poses], axis=0)
         hips = np.stack([p.hipPos for p in poses], axis=0)
@@ -195,14 +174,10 @@ class PoseDelta:
     angular rates.
 
     Angular rates are stored as rotation *vectors* (angle * axis, rad/s), never
-    as quaternions. A unit quaternion can only carry a rotation in [0, 2*pi) and
-    scipy canonicalises it back to [0, pi], so round-tripping a rad/s rate
-    through a quaternion silently aliases every joint turning faster than
-    pi rad/s (~2.6% of this dataset, of which the majority come back pointing
-    the opposite way). Keeping rotation vectors makes `scaled` exact.
+    as quaternions: a quaternion round-trip aliases any rate above pi rad/s.
+    Rotation vectors also make `scaled` exact.
 
-    The packed layout matches Pose so the (..., num_bones + 2, 4) arrays coming
-    from / going to C# are unchanged:
+    The packed layout matches Pose's (..., num_bones + 2, 4):
         slot 0  [:3] -> root translational rate (root-local space)
         slot 1  [:3] -> hip translational rate
         slots 2+[:3] -> per-joint angular rate as a rotation vector
@@ -272,9 +247,8 @@ class PoseDelta:
         w_vel = weights.reshape((-1,) + (1,) * (deltas.rootVel.ndim - 1))
         root_vel = np.sum(deltas.rootVel * w_vel, axis=0)
         hip_vel = np.sum(deltas.hipVel * w_vel, axis=0)
-        # Rotation vectors blend linearly - that is the correct operation for
-        # angular rates, and needs no nlerp/renormalisation.
-        w = weights.reshape((-1,) + (1,) * (deltas.rotvecs.ndim - 1))
+        # Angular rates as rotation vectors blend linearly; no renormalisation.
+        w =weights.reshape((-1,) + (1,) * (deltas.rotvecs.ndim - 1))
         rotvecs = np.sum(deltas.rotvecs * w, axis=0)
 
         if root_vel.ndim == 1:

@@ -10,18 +10,11 @@ namespace AnimationTools.Editor
     /// commit an edit.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// Two frame spaces exist and confusing them is the easiest mistake to make here. A
-    /// <em>clip</em> frame indexes the whole baked animation and is what the preview poses; a
-    /// <em>slice</em> frame is relative to <c>startFrame</c> and is what
-    /// <see cref="GaitPhase.Footfall"/> stores. Convert only through
-    /// <see cref="SliceToClipFrame"/> and <see cref="ClipToSliceFrame"/>.
-    /// </para>
-    /// <para>
+    /// Two frame spaces: a <em>clip</em> frame indexes the whole baked animation, and is what the
+    /// preview poses and annotation stores; a <em>slice</em> frame is relative to <c>startFrame</c>.
+    /// Convert only through <see cref="SliceToClipFrame"/> and <see cref="ClipToSliceFrame"/>.
     /// <see cref="AnnotatedAnimationClip"/> shadows <c>FrameCount</c> with a slice-local version, so
-    /// this exposes <see cref="ClipFrameCount"/> and <see cref="SliceFrameCount"/> under names that
-    /// say which is which, and nothing downstream reads <c>FrameCount</c> at all.
-    /// </para>
+    /// read <see cref="ClipFrameCount"/> or <see cref="SliceFrameCount"/> instead.
     /// </remarks>
     public sealed class ClipEditorContext
     {
@@ -91,10 +84,8 @@ namespace AnimationTools.Editor
         /// The one modal operator the window allows at a time, shared by every lane.
         /// </summary>
         /// <remarks>
-        /// Shared rather than one per track because Blender allows exactly one mode at a time, and
-        /// because two IMGUI operators holding <c>hotControl</c> at once would deadlock the window.
-        /// Claiming it ends whichever lane was mid-grab. Its owner is tracked only so a track can
-        /// tell whether the running mode is its own.
+        /// Shared because two IMGUI operators holding <c>hotControl</c> at once would deadlock the
+        /// window. Claiming it ends whichever lane was mid-grab.
         /// </remarks>
         public TimelineModalOperator Modal { get; } = new();
 

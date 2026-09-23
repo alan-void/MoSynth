@@ -1,1 +1,1 @@
-"""Development-only helpers; nothing here is imported by a build."""
+"""Development-only helpers."""

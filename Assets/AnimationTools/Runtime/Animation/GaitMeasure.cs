@@ -11,10 +11,8 @@ namespace AnimationTools
 /// by the clip editor and by the pose-database bake, so what an author corrects a clip against is
 /// what the database records.
 /// <para>
-/// Differencing rather than composing the per-bone velocity channels is not only a convenience — a
-/// clip's baked poses carry positions and rotations only — it is also the measurement to trust. The
-/// composed form the bake once used disagreed badly, reporting a toe planted 0.22/0.17 of the time
-/// on <c>walk1_subject5</c> where differencing reports 0.40/0.36.
+/// Differencing positions is the measurement to trust over composing velocity channels; see
+/// openwiki/animation-tools/animation-sources.md.
 /// </para>
 /// </remarks>
 public static class GaitMeasure

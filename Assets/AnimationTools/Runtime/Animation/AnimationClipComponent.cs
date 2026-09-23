@@ -11,17 +11,11 @@ namespace AnimationTools
 /// must be <c>[Serializable]</c>, have a parameterless constructor, and expose its data as public
 /// mutable fields. It must not be a <see cref="UnityEngine.Object"/>.
 /// <para>
-/// A component's serialized identity is its <em>(class, namespace, assembly)</em> triple. Renaming
-/// the type, moving its namespace, or moving its file into a different assembly orphans every
-/// instance already authored on an asset, and the data is dropped the next time that asset is
-/// saved. <c>[FormerlySerializedAs]</c> does not help — it renames fields, not managed references.
-/// Name a component once, deliberately.
+/// Serialized identity is the (class, namespace, assembly) triple: renaming the type or moving it to
+/// another namespace or assembly orphans every authored instance. <c>[FormerlySerializedAs]</c> does
+/// not help; <c>[MovedFrom]</c> does. See openwiki/animation-tools/animation-sources.md.
 /// </para>
-/// <para>
-/// Subclasses may live in any assembly that references this one; the type dropdown finds them
-/// without registration. See the wiki's synthesis-pipeline page for the same seam used by
-/// <see cref="MoSynthStage"/> and <c>BenchmarkOverride</c>.
-/// </para>
+/// <para>Subclasses in any assembly referencing this one are offered without registration.</para>
 /// </remarks>
 [Serializable]
 public abstract class AnimationClipComponent

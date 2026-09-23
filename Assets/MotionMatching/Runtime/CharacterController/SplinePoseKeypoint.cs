@@ -9,34 +9,24 @@ using UnityEngine.Splines;
 namespace MotionMatching
 {
 /// <summary>
-/// Builds a spline from a <see cref="SkeletonAnimation"/>'s root trajectory and remembers which pose
-/// the clip held at a configurable frame interval along it. Each keypoint stores its clip frame, its
-/// normalized spline parameter, and the character's facing there; a bone's constraint target is that
-/// frame's bone position expressed relative to the keypoint's own simulation frame, re-anchored onto
-/// the spline's frame at the keypoint's parameter.
+/// Builds a spline from a <see cref="SkeletonAnimation"/>'s root trajectory and stores a pose keypoint
+/// every <see cref="keypointIntervalFrames"/> along it. A bone's constraint target is that frame's
+/// bone position relative to its own simulation frame, re-anchored onto the spline's frame there.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Facing is stored explicitly rather than derived from the path tangent, because the two are not the
-/// same thing: the bone offsets are expressed in the clip's simulation frame, which is facing-aligned,
-/// so re-anchoring a strafing or backpedalling pose against the direction of travel would place the
-/// feet rotated about the character. It is stored as a signed yaw <em>offset</em> from the tangent, so
-/// a keypoint reads as "30° off the heading here" rather than as a bare world direction.
+/// Facing is stored as a signed yaw offset from the path tangent rather than derived from it, because
+/// the bone offsets are facing-aligned and a strafing pose's facing differs from its travel.
+/// See openwiki/motion-matching/spline-pose-keypoints.md.
 /// </para>
 /// <para>
-/// Knot density is independent of keypoint spacing: knots are fitted to
-/// <see cref="simplificationToleranceMeters"/>, so they cluster through turns and thin out on
-/// straights. The GameObject's transform places the path in the world and must be unscaled and
-/// upright — the spline convention across the project, and what makes the stored yaw offset valid
-/// against the world tangent.
+/// The transform places the path in the world and must be unscaled and upright, which is what keeps
+/// the stored yaw offsets valid against the world tangent.
 /// </para>
 /// <para>
-/// Both the path and the keypoints are generated here and held un-serialized, rather than the path
-/// living in a <c>SplineContainer</c> and the keypoints in the scene. They are built together from the
-/// clip in one pass, so they cannot describe different curves, and there is no editable copy for
-/// anyone to drag out of agreement — an emptied container used to send <c>speed / length</c> to
-/// infinity and a NaN parameter into every evaluation downstream. The path is therefore exactly the
-/// clip's root trajectory; to place it differently, move or rotate the GameObject.
+/// The path and the keypoints are generated together from the clip and never serialized, so there is
+/// no editable copy that could disagree with them. To place the path differently, move or rotate the
+/// GameObject.
 /// </para>
 /// </remarks>
 public class SplinePoseKeypoint : MonoBehaviour
@@ -54,8 +44,7 @@ public class SplinePoseKeypoint : MonoBehaviour
              "editable curve that tracks the original path more loosely.")]
     public float simplificationToleranceMeters = 0.1f;
 
-    [Tooltip("Close the spline into a loop. Leave off for non-looping clips; note the control input " +
-             "wraps its parameter, so an open spline snaps back to the start when it ends.")]
+    [Tooltip("Close the spline into a loop. Leave off for non-looping clips.")]
     public bool closed;
 
     [Tooltip("Index of the keypoint whose pose is drawn as a skeleton in the Scene view; -1 draws none. " +
@@ -137,11 +126,7 @@ public class SplinePoseKeypoint : MonoBehaviour
     }
 
     /// <summary>Position on the path at a normalized parameter, in world space.</summary>
-    /// <remarks>
-    /// The spline is fitted in this GameObject's local space, so the transform maps it to the world —
-    /// the same evaluate-then-transform that <c>SplineContainer</c> does for an unscaled transform,
-    /// which this class already requires.
-    /// </remarks>
+    /// <remarks>The spline is fitted in this GameObject's local space.</remarks>
     public float3 EvaluateWorldPosition(float t)
     {
         var path = Path;
@@ -171,9 +156,8 @@ public class SplinePoseKeypoint : MonoBehaviour
             : skeletonAnimation.GetFrame(frameIndex);
 
     /// <summary>
-    /// Regenerates the path and the keypoints now, and says so when it cannot. Nothing here is
-    /// serialized, so this exists for the report: the lazy path builds silently on demand and would
-    /// otherwise leave a misconfigured clip looking merely empty.
+    /// Regenerates the path and the keypoints now and logs the outcome, which the silent lazy build
+    /// does not: a misconfigured clip would otherwise just look empty.
     /// </summary>
     [ContextMenu("Rebuild Spline And Keypoints")]
     public void Rebuild()
@@ -200,9 +184,8 @@ public class SplinePoseKeypoint : MonoBehaviour
     }
 
     /// <summary>
-    /// Builds the keypoints, and the spline they are measured against, from the clip alone. That
-    /// spline is fitted here rather than read from <see cref="splineContainer"/> on purpose — see the
-    /// class remarks. Reports failure instead of logging it, so the lazy path can call it on a repaint.
+    /// Builds the keypoints, and the spline they are measured against, from the clip alone. Reports
+    /// failure instead of logging it, so the lazy build can call it on a repaint.
     /// </summary>
     private bool TryBuildFromClip(out Spline fittedSpline, out List<Keypoint> keypoints, out string error)
     {
@@ -244,10 +227,8 @@ public class SplinePoseKeypoint : MonoBehaviour
         spline.Closed = closed;
         spline.Warmup(); // curve-length and up-vector LUTs, before the projector hits them
 
-        // Keypoints keep their own cadence, and are placed by arc length rather than by projecting
-        // them onto the curve: nearest-point projection is ambiguous wherever a path crosses itself,
-        // and the correspondence is already known — the curve passes exactly through the knots, so a
-        // keypoint interpolates between its bracketing knots' distances. Monotonic by construction.
+        // Keypoints are placed by arc length between their bracketing knots, not by projection onto
+        // the curve, which is ambiguous wherever the path crosses itself.
         var cumulative = CumulativeLengths(pathPositions);
         var knotDistances = KnotDistances(spline, knotFrames.Count);
         var totalLength = spline.GetLength();
@@ -652,9 +633,8 @@ public class SplinePoseKeypoint : MonoBehaviour
     }
 
     /// <summary>
-    /// The curve itself, sampled into a polyline. Drawn here because nothing else does any more:
-    /// the free Scene-view rendering came from the <c>SplineContainer</c> component this class no
-    /// longer keeps.
+    /// The curve itself, sampled into a polyline. Drawn here because there is no
+    /// <c>SplineContainer</c> to render it.
     /// </summary>
     private void DrawPath()
     {

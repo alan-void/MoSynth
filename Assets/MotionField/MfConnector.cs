@@ -15,9 +15,8 @@ namespace MotionField
 /// a ZeroMQ request/reply socket with JSON poses on the wire.
 /// </summary>
 /// <remarks>
-/// The alternative to <see cref="MotionFieldStage"/>, which embeds CPython via PythonNET. The socket
-/// costs latency and a serialization round trip, and buys a Python side that can be restarted and
-/// debugged without taking Unity down — useful while that side is still being written.
+/// The alternative to <see cref="MotionFieldStage"/>'s embedded CPython: it costs a serialization
+/// round trip and buys a Python side that can be restarted and debugged without taking Unity down.
 /// <para>
 /// The socket lives entirely on <see cref="ClientWorker"/>'s thread, since NetMQ sockets are not
 /// thread-safe. The two threads meet only at the concurrent queues and the volatile flags.
@@ -51,9 +50,8 @@ public class MfConnector : MoSynthStage, IDisposable
 
     private MotionSynthesisComponent _owner;
 
-    // Thread-safe queues for communication between main thread and ZMQ thread
-    private ConcurrentQueue<float> _deltaTimeRequests = new();
-    private ConcurrentQueue<PoseVectorDto> _receivedPoses = new();
+    private readonly ConcurrentQueue<float> _deltaTimeRequests = new();
+    private readonly ConcurrentQueue<PoseVectorDto> _receivedPoses = new();
 
     [Tooltip("TCP port of the Python motion field server on localhost.")]
     [SerializeField] private int port = 5555;
@@ -103,17 +101,15 @@ public class MfConnector : MoSynthStage, IDisposable
             _workerError = null;
         }
 
-        // Keep at most one request queued while another request is waiting for a reply.
-        // Otherwise, this queue grows every frame whenever the server is unavailable.
+        // At most one request queued, or the queue grows every frame while the server is down.
         if (_isRunning && _deltaTimeRequests.IsEmpty)
         {
             _deltaTimeRequests.Enqueue(deltaTime);
             Debug.Log($"Requested Frame: {Time.frameCount}");
         }
 
-        // Process received poses on Unity's main thread
-        float dequeueStartTime = Time.realtimeSinceStartup;
-        while (_receivedPoses.TryDequeue(out PoseVectorDto newPose))
+        var dequeueStartTime = Time.realtimeSinceStartup;
+        while (_receivedPoses.TryDequeue(out var newPose))
         {
             if ((Time.realtimeSinceStartup - dequeueStartTime) * 1000f >= dequeueTimeoutMs)
             {
@@ -128,9 +124,9 @@ public class MfConnector : MoSynthStage, IDisposable
             var velocities = pose.Velocities;
             var angularVelocities = pose.AngularVelocities;
 
-            int numJoints = positions.Length;
+            var numJoints = positions.Length;
 
-            for (int i = 0; i < numJoints; i++)
+            for (var i = 0; i < numJoints; i++)
             {
                 positions[i] = newPose.jointLocalPositions[i];
                 rotations[i] = newPose.jointLocalRotations[i];
@@ -158,7 +154,7 @@ public class MfConnector : MoSynthStage, IDisposable
 
             while (_isRunning)
             {
-                if (!_deltaTimeRequests.TryDequeue(out float deltaTime))
+                if (!_deltaTimeRequests.TryDequeue(out var deltaTime))
                 {
                     Thread.Sleep(1);
                     continue;
@@ -176,12 +172,12 @@ public class MfConnector : MoSynthStage, IDisposable
                 {
                     if (!client.TryReceiveFrameString(
                             TimeSpan.FromMilliseconds(Math.Max(1, receivePollIntervalMs)),
-                            out string message))
+                            out var message))
                     {
                         continue;
                     }
 
-                    PoseVectorDto pose = JsonConvert.DeserializeObject<PoseVectorDto>(message);
+                    var pose = JsonConvert.DeserializeObject<PoseVectorDto>(message);
                     _receivedPoses.Enqueue(pose);
                     break;
                 }
