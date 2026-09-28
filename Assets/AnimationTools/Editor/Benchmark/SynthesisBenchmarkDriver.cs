@@ -61,6 +61,7 @@ public static class SynthesisBenchmarkDriver
     private static BenchmarkLapProbe _probe;
     private static StageCostChannel _costChannel;
     private static string _recordingsDirectory;
+    private static BenchmarkVideoRecorder _videoRecorder;
 
     static SynthesisBenchmarkDriver()
     {
@@ -174,6 +175,13 @@ public static class SynthesisBenchmarkDriver
         _recordingsDirectory = Path.Combine(_plan.outputDirectory, "recordings");
         Directory.CreateDirectory(_recordingsDirectory);
 
+        if (_config.recordVideo)
+        {
+            var videosDirectory = Path.Combine(_plan.outputDirectory, "videos");
+            _videoRecorder = new BenchmarkVideoRecorder(videosDirectory, _config.videoWidth, _config.videoHeight,
+                _config.synthesisFrameRate);
+        }
+
         // An unfocused Editor otherwise throttles to a few ticks a second.
         Application.runInBackground = true;
 
@@ -277,6 +285,7 @@ public static class SynthesisBenchmarkDriver
 
             AttachRecorder(synthesizer, method, pathName);
             AttachProbe(synthesizer);
+            _videoRecorder?.Attach(synthesizer, method.name, pathName, _spline, input.TargetSpeed, _probe);
 
             Debug.Log($"[Benchmark] Run {Results.Count + 1}/{totalRuns}: {method.DescribeFull()} on {pathName}.");
             _phase = Phase.Running;
@@ -399,6 +408,8 @@ public static class SynthesisBenchmarkDriver
 
     private static void DestroyCharacter()
     {
+        _videoRecorder?.Detach();
+
         // Immediate, so stage teardown (Python state included) finishes before the next run.
         if (_character != null) Object.DestroyImmediate(_character);
         _character = null;
@@ -422,6 +433,9 @@ public static class SynthesisBenchmarkDriver
         if (_spawnHolder != null) Object.DestroyImmediate(_spawnHolder);
         _pathInstance = null;
         _spawnHolder = null;
+
+        _videoRecorder?.Dispose();
+        _videoRecorder = null;
 
         // Written even on failure: completed runs are real numbers. Success governs the exit code.
         if (_config != null && _plan != null && Results.Count > 0)

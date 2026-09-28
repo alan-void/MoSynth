@@ -88,6 +88,18 @@ public class SynthesisBenchmarkConfig : ScriptableObject
              "roughly a kilobyte per tick and exists for offline analysis.")]
     public bool recordFullPose;
 
+    [Header("Video")]
+    [Tooltip("Also render every run to an MP4 per method, with the path and live speed/lap/error " +
+             "metrics drawn in. One encoder per method stays open across every path it runs, since " +
+             "paths are the outer loop. Costs meaningfully more time per sweep.")]
+    public bool recordVideo;
+
+    [Tooltip("Video resolution in pixels. Rounded down to even numbers, which H.264 requires.")]
+    public int videoWidth = 960;
+
+    [Tooltip("Video resolution in pixels. Rounded down to even numbers, which H.264 requires.")]
+    public int videoHeight = 540;
+
     [Header("Output")]
     [Tooltip("Where reports and raw recordings are written. Relative paths resolve against the " +
              "project root, next to Assets. Each sweep gets a timestamped subfolder.")]
