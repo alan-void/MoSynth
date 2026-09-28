@@ -13,9 +13,6 @@ sources:
   - id: openwiki-source-44aeec7103fbb90f34a34626
     resource: repo://Python/tests/test_training_data.py
 generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-21T19:17:12.006Z
 ---
 
 # Running the Python side

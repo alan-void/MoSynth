@@ -13,9 +13,6 @@ sources:
   - id: openwiki-source-d19fee973919a137b3ac0360
     resource: repo://Python/motion_field/action_predictor.py
 generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-21T19:17:12.006Z
 ---
 
 # The Unity call surface

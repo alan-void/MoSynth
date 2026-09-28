@@ -1,6 +1,7 @@
 # Files
 
 - [Animation sources and clip baking](animation-sources.md) - How clips and BVH files become poses, why a clip is accepted on one animated bone, and what baking does and does not capture.
+- [Auto-tagging clips with a video model](auto-tagging.md) - How clips are rendered, shown to Gemini with plain-language tag descriptions, and turned back into tag channels, and how far to trust the result.
 - [Benchmarking synthesis methods](benchmarking.md) - The Editor-driven sweep that runs every method against every path, what it measures, and what those numbers may and may not be compared against.
 - [The channel and layout system](channel-layout-system.md) - The typed float-buffer substrate every pose, feature vector and recording is built on, and the rules that keep buffers from being read with the wrong offsets.
 - [The annotated clip editor](clip-editor.md)

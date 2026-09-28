@@ -17,9 +17,6 @@ sources:
   - id: openwiki-source-dd6e345dbf04a74d30240514
     resource: repo://Assets/AnimationTools/Runtime/Utils/Spring.cs
 generated: {by: "claude-code", at: "2026-09-06T12:33:15.598Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-09-06T12:33:15.598Z
 ---
 
 # Root following

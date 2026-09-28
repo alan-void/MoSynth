@@ -23,9 +23,6 @@ sources:
   - id: openwiki-source-8a561b6b9ce01438599024a5
     resource: repo://Assets/AnimationTools/Tests/Editor/PoseLayoutTests.cs
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # Pose buffers and layouts

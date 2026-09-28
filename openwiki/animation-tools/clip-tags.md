@@ -2,7 +2,7 @@
 type: "Reference"
 title: "Tagging clips"
 openwiki_generated: true
-generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
+generated: {by: "claude-code", at: "2026-09-23T09:33:13.142Z"}
 ---
 
 # Tagging clips
@@ -96,6 +96,9 @@ hands it the keyboard. It is written up in [the clip editor](clip-editor.md); th
 Channels are added with **Add Channel**, which opens the same searchable tag dropdown a serialized
 tag field uses, with a *New Tag…* entry — so building the vocabulary does not mean leaving the
 window for the Tags Browser.
+
+For a first pass over many clips, [auto-tagging](auto-tagging.md) has a video model propose
+channels from a plain-language description of each tag, for you to correct here.
 
 Annotation outside the slice is drawn and edited exactly like annotation inside it — the timeline
 already dims those regions, which says all that needs saying. Nothing is ever removed for being out

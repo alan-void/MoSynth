@@ -149,7 +149,7 @@ Integrates a neural motion field into the pipeline via PythonNET:
 ### Python module layout
 
 `Python/` is one package per subsystem — `core`, `formats`, `training`, `pfnn`, `lmm`,
-`motion_field`, `debugging` — and `Python/` itself is the import root, because that is the single
+`motion_field`, `autotag`, `debugging` — and `Python/` itself is the import root, because that is the single
 folder `PythonRuntime` puts on `sys.path`. Three consequences follow, and all three are easy to
 break:
 
@@ -209,6 +209,7 @@ Assets/
 │   ├── Runtime/Evaluation/          [PathFollowingMetric(sCalculator): in-scene A/B tool + pure metrics]
 │   ├── Runtime/Recording/           [MotionRecorder, channels, manifest, reader]
 │   ├── Editor/Benchmark/            [sweep driver, CLI entry point, menu, report writer]
+│   ├── Editor/AutoTag/              [render clips to video, run the Gemini annotator, apply tag results]
 │   ├── Editor/Preview/              [SkeletonPreview: the off-screen posed-skeleton render + overlay seam]
 │   ├── Editor/ClipEditor/           [the clip editor window: axis, timeline, track seam, registry]
 │   │   └── Tracks/GaitPhaseTrack.cs [the worked example track]
@@ -279,6 +280,7 @@ Python/                              [one package per subsystem; see "Python mod
 │   ├── trainer.py                   [fitted value iteration]
 │   ├── embedding.py                 [UMAP projection for the debug visualizer]
 │   └── action_predictor.py          [animation loading & conversion]
+├── autotag/                         [Gemini video annotation of clip tags; CLI run by Unity's Auto Tag window]
 ├── tests/                           [stdlib unittest suites; no Unity or venv extras needed]
 └── debugging/                       [debug scripts, not in builds]
 
@@ -310,6 +312,7 @@ python -m venv .anim_env
 
 # Install dependencies
 pip install numpy scipy torch
+pip install google-genai   # only for auto-tagging; the key comes from the GEMINI_API_KEY env var
 
 # Smoke-test the Python side (from the Python/ folder)
 python -m unittest discover -s tests -t tests
@@ -456,6 +459,13 @@ When adding a new `MoSynthStage`:
   intervals. `AnimationTagging.FindSegments` answers a `GameplayTagQuery` with
   `AnimationClipSegment`s. A query runs downhill only — `action.walk` answers a query for `action`,
   never the reverse. Full detail: `openwiki/animation-tools/clip-tags.md`
+- **Auto-tagging** (`MoSynth/Animation/Auto Tag...`, `Editor/AutoTag/` + `Python/autotag/`) has
+  Gemini propose tag channels from a video of each clip and the tag's `GameplayTagSO.description`.
+  Unity renders a capsule figure with the clip-local frame burned in, runs
+  `python -m autotag.annotate` as a child process, then applies `results.json` like Detect
+  Footfalls (existing keyed channels skipped unless Overwrite). The two halves share only a JSON
+  contract in `Library/AutoTag/<run>/` — change both together. Detail:
+  `openwiki/agents/animation-tools/auto-tagging.md`
 - **How a component is drawn is its own decision too.** `AnnotatedClipEditorWindow`
   (`MoSynth/Animation/Clip Editor...`) gives each component a timeline lane, an inspector and an
   optional 3D preview overlay. Declare an `AnimationClipComponentTrack` tagged
@@ -551,20 +561,11 @@ Implementer agents need a spec that names the files, the intended design, and th
 
 ## OpenWiki
 
-`openwiki/` serves two audiences, and the split decides who owns what.
+This repository has a generated `openwiki/` evidence index. It is optional just-in-time context, not required startup reading.
 
-- **`openwiki/agents/` is yours.** It exists for the detailed, operational material you need to work here efficiently: exact invariants, hazards and "do NOT fix this" notes, editing and verification workflows, per-subsystem internals. Organise it as one subfolder per subsystem. Write to it freely — you do not need permission. It currently holds `agents/tooling/`, `agents/animation-tools/`, `agents/motion-matching/` and `agents/python/`; add a subfolder the first time you have something operational worth keeping about a subsystem that has none.
-- **Everything else is for human readers.** Concept-first, plain language, explaining what a system is for and how it behaves before naming files and symbols. No exhaustive inventories — link to the matching `agents/` page for that depth.
-
-Working rules:
-
-- **Update the wiki as part of finishing a task, and commit the wiki change with the code.** A behaviour change that leaves its page stale is not finished. There is no "only when asked" restriction.
-- Use the OpenWiki MCP lifecycle rather than editing blind: `openwiki_begin` at the repo root, `openwiki_inspect_claims` before materially editing an existing factual page, `openwiki_resolve_claims` for new or changed propositions, `openwiki_finish` at the end. Do not hand-edit Claims sidecars, indexes, logs, provenance, run metadata, or the scheduled workflow.
-- **`openwiki_finish` rewrites the block between the `OPENWIKI:START`/`END` markers in this file with its own default text, discarding this policy.** Check `git diff AGENTS.md` after every finish and restore the section if it was replaced.
-- Treat source code as authoritative. A page's unknowns and review items are verification gaps, not automatic requirements.
+- Treat source code and tests as authoritative. A brief's unknowns and review items are verification gaps, not automatic requirements.
 - Prefer the narrowest quiet validation that proves the changed behavior. Preserve complete failure output.
-- These rules bind any agent asked to organise, refresh, or restructure the wiki, not just agents changing code.
 
-It is still optional just-in-time context, not required startup reading. Full brief: [`openwiki/INSTRUCTIONS.md`](openwiki/INSTRUCTIONS.md).
+The scheduled OpenWiki GitHub Actions workflow refreshes the repository wiki. Do not hand-edit generated OpenWiki pages unless explicitly asked; prefer updating source code/docs and letting OpenWiki regenerate.
 
 <!-- OPENWIKI:END -->

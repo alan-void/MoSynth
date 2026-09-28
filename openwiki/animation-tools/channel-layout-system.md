@@ -27,9 +27,6 @@ sources:
   - id: openwiki-source-201928bc2575c57e0c52ed1a
     resource: repo://Assets/AnimationTools/Tests/Editor/StateBufferLayoutTests.cs
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # The channel and layout system

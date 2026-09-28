@@ -21,9 +21,6 @@ sources:
   - id: openwiki-source-f84c8bceda0edfaac6926af8
     resource: repo://Assets/MotionMatching/Runtime/Core/MotionMatchingStage.cs
 generated: {by: "claude-code", at: "2026-08-29T23:30:04.693Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-29T23:30:04.693Z
 ---
 
 # Search backends

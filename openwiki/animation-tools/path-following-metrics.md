@@ -19,9 +19,6 @@ sources:
   - id: openwiki-source-1fb0416756719f48922c424e
     resource: repo://Assets/MotionField/MotionFieldSplineControlInput.cs
 generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
-verified:
-  - by: openwiki/0.3.3
-    at: 2026-08-24T17:01:26.052Z
 ---
 
 # Path following and its metrics

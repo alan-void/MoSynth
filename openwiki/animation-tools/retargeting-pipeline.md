@@ -16,13 +16,20 @@ sources:
     resource: repo://Assets/AnimationTools/Runtime/Skeleton/SkeletonBoneOverrides.cs
   - id: openwiki-source-3c35eadfeff4e039a271f8ae
     resource: repo://Tools/Retargeting/batch_retarget.py
+  - id: openwiki-source-fcf754e07006369ec53cd1d9
+    resource: repo://Tools/Retargeting/direct_retarget.py
   - id: openwiki-source-31ba5a7a051e33f0aaa4981b
     resource: repo://Tools/Retargeting/make_lafan_corrected_setup.py
+  - id: openwiki-source-f89c6509c816ca17e0a66bdd
+    resource: repo://Tools/Retargeting/make_mixamo_setup.py
   - id: openwiki-source-c6bd9da2c59d3b0501214cc4
     resource: repo://Tools/Retargeting/README.md
   - id: openwiki-source-0077e64b8f7c29bf1001e97a
     resource: repo://Tools/Retargeting/run_batch_all.py
-generated: {by: "claude-code", at: "2026-09-07T21:17:41.812Z"}
+generated: {by: "claude-code", at: "2026-09-23T08:14:50.036Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-23T08:14:50.036Z
 ---
 
 # Retargeting BVH onto the shared target rig
@@ -423,6 +430,58 @@ lowest toe averaged +0.2 mm with the offset set, but individual clips ranged fro
 +4.7 cm. That spread is in the capture, and closing it is a footlock problem rather than a rest-pose
 one.
 
+## Retargeting onto a Mixamo character
+
+The three setups above all end on the corrected rig. `make_mixamo_setup.py` takes any one of them
+and swaps that rig for a Mixamo character, producing a live setup: open the blend and press play,
+and the character follows whichever source clip is unmuted. It keeps the source, the cleaned
+skeleton and its constraints unchanged, so the hand-authored part of each setup is reused rather
+than redone. `direct_retarget.py` batches from the same blend, so the preview and the output cannot
+disagree. The Y Bot setups live in `Assets/LFS/Retargeting/ybot/`, one per dataset.
+
+**The calibration is carried across, not re-authored.** Each cleaned rest was judged against the
+corrected rig's rest, so the character is posed to look like that rig when the cleaned skeleton
+stands at rest. Only the limbs are matched: arms, forearms, thighs, shins and feet are swung by the
+smallest rotation onto the corrected rig's joint directions, which leaves each limb's twist alone.
+For Y Bot the swings are 1.5° on the arms, 4.0° on the forearms, 0.9 to 1.8° on the legs and 6.2°
+on the feet. The torso, clavicles, head and hands keep the character's own rest. Aligning those
+too was rejected: where a rig puts its spine and neck joints inside the body is a design choice.
+Y Bot's and the corrected rig's rests disagree by up to 15° there (the neck) and are both upright,
+so matching them would bend Y Bot's torso to imitate another rig's joint layout.
+
+**The actor is scaled to the character's legs.** The character's root copies the actor's root
+position. Without a scale, a longer-legged character would cover the actor's stride on its own legs
+and slide its feet. The source and cleaned skeletons are scaled together, uniformly about the
+origin, by the character's hip height above the toe divided by the actor's. This changes size and
+nothing else, so rotations, constraints and LAFAN's IK behave exactly as before. The factors for
+Y Bot are 1.040 for LAFAN, 1.081 for Bandai-Namco and 0.972 for Edinburgh.
+
+**The height comes from motion, not from the rest pose.** Even with matched leg lengths, the actor's
+feet and the character's reach the floor differently. Uncorrected, Y Bot's planted toes sat 2.7 cm
+high on Bandai-Namco and about 1 cm low on LAFAN and Edinburgh. `RT_ground` is set so that the
+median height of the lower toe joint over every parked frame equals the character's rest toe
+height. In locomotion some foot is planted on most frames, and a planted toe sits at its rest
+height. So parking locomotion clips is what makes the measurement mean something. The
+hand-authored −5.5 cm on the Edinburgh blend's `RT_ground` was for the corrected rig's legs and is
+not carried over.
+
+**The export keeps the character's own skeleton.** A Mixamo rig's `_End` bones are real bones. The
+setup marks the model `fbx_add_leaf_bones = False`, so the exporter does not hang a second leaf off
+each one. The result imports with the same 65 bones as the character FBX. The importer puts the
+file's centimetre units on the armature as a 0.01 object scale. That scale is applied into the data
+before anything is built, because left in place it would reach the FBX's armature node, which is
+exactly the failure described under *Hidden inputs* below.
+
+`direct_retarget.py` reads its mapping from the helpers: each helper is named after the model bone it
+drives and parented to the bridge bone it follows. That is what lets a live setup's two rigs use
+different names, `mixamorig:LeftToeBase` following LAFAN's `LeftToe`.
+
+A batched Y Bot take matches its live rig exactly (0.000°). The same check found that the Hips of
+the existing LAFAN `Lafan_corrected` export are off their own rig by 1.1° on average and 6.7° at
+worst on `walk1_subject1`. Every bone inherits the same error, which points at the root's local
+curves. That export was made with `--simplify 1`, the likely cause but not a confirmed one. It
+contradicts the 0.2° cost quoted for that setting, which is a mean over every bone.
+
 ## Hidden inputs that decide correctness
 
 Five properties of this pipeline are invisible in the file and were each found the hard way.
@@ -618,6 +677,7 @@ missing the leaves would be a hard stop rather than a degraded mode.
 | Solving BVH out of the Edinburgh point clouds | `Tools/Retargeting/edinburgh_npz_to_bvh.py` |
 | Composing the Edinburgh setup from one converted clip | `Tools/Retargeting/make_edinburgh_setup.py` |
 | Overlaying a solved skeleton on the points it came from | `Tools/Retargeting/edinburgh_solve_preview.py` |
+| Rebuilding any setup onto a Mixamo character, live | `Tools/Retargeting/make_mixamo_setup.py` |
 | Unity launcher | `Assets/AnimationTools/Editor/Retargeting/RetargetBatchWindow.cs` |
 | Per-dataset run settings | `Assets/AnimationTools/Editor/Retargeting/RetargetBatchSettings.cs` |
 
