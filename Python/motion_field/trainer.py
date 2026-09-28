@@ -251,7 +251,7 @@ def train(data_dir: str,
     started = time.perf_counter()
 
     progress('Loading pose database', 0.0)
-    skeleton, poses_x, poses_v, poses_y, _, frame_time, _ = load_animations(data_dir, db_name)
+    skeleton, poses_x, poses_v, poses_y, _, _, frame_time, _ = load_animations(data_dir, db_name)
 
     motion_field = MotionField(poses_x, poses_v, poses_y, skeleton, frame_time,
                                device=device, pos_weight=pos_weight, vel_weight=vel_weight,

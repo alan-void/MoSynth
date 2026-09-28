@@ -139,7 +139,7 @@ def compute_embedding(data_dir: str, db_name: str, out_path: str,
     started = time.perf_counter()
 
     progress('Loading pose database', 0.0)
-    skeleton, poses_x, poses_v, poses_y, _, frame_time, pose_set = \
+    skeleton, poses_x, poses_v, poses_y, _, _, frame_time, pose_set = \
         action_predictor.load_animations(data_dir, db_name)
 
     # Built only for its similarity features; no value function is needed.

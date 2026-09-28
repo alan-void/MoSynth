@@ -89,7 +89,11 @@ def load_animations(data_dir='../Assets/StreamingAssets/MMDatabases/MotionMatchi
     is one bone longer than ``pose_set.skeleton``, which keeps describing the file's own
     arrays. See :func:`with_virtual_root`.
 
-    :returns: ``(skeleton, pose_x, pose_v, pose_y, pose_contacts, frame_time, pose_set)``
+    ``pose_contacts`` holds the foot contacts of frame i itself and ``next_contacts``
+    those of frame i + 1, the pose one step from state i lands on.
+
+    :returns: ``(skeleton, pose_x, pose_v, pose_y, pose_contacts, next_contacts,
+        frame_time, pose_set)``
     """
     pose_set: PoseSet = deserialize_pose_set(data_dir, db_name)
 
@@ -145,8 +149,10 @@ def load_animations(data_dir='../Assets/StreamingAssets/MMDatabases/MotionMatchi
     pose_y[:, 4:, :3] = lav[nxt, 1:, :]
 
     pose_contacts = pose_set.foot_contacts[idx, :].copy()
+    next_contacts = pose_set.foot_contacts[nxt, :].copy()
 
-    return skeleton, pose_x, pose_v, pose_y, pose_contacts, pose_set.frameTime, pose_set
+    return (skeleton, pose_x, pose_v, pose_y, pose_contacts, next_contacts,
+            pose_set.frameTime, pose_set)
 
 
 def get_pose_arrays(skeleton: Skeleton,

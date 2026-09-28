@@ -143,7 +143,9 @@ class MotionField:
                  bone_weights=None,
                  locomotion_factor: float = 1.0,
                  locomotion_speed_threshold: float = 0.5,
-                 value_function_path: str = None):
+                 value_function_path: str = None,
+                 pose_contacts: np.ndarray = None,
+                 next_contacts: np.ndarray = None):
         """
         Initialize the MotionField.
 
@@ -170,6 +172,10 @@ class MotionField:
         :param locomotion_speed_threshold: Root speed, m/s, at which a state
             counts as fully moving. The score ramps linearly from 0 below it.
         :param value_function_path: Optional `.mffield.npz` enabling `optimal_action`.
+        :param pose_contacts: (state_count, 2) left/right foot contacts of each state's
+            own frame. Required by the policies, which report the contacts of the pose
+            they return; training and the embedding need neither.
+        :param next_contacts: (state_count, 2) foot contacts one frame after each state.
         """
         self.current_frame = None
         assert (poses_x.shape[:-2] ==
@@ -191,6 +197,8 @@ class MotionField:
         self.states_count = poses_x.shape[0]
         self.bone_count = poses_x.shape[-2] - 2
         self.bone_weights = pack_bone_weights(skeleton, bone_weights)
+        self.pose_contacts = pose_contacts
+        self.next_contacts = next_contacts
 
         # How much each database state "moves", for the locomotion reward term.
         self.locomotion_factor = float(locomotion_factor)
@@ -455,7 +463,8 @@ class MotionField:
         :param theta: The character's current heading expressed in the goal
             frame, radians. Unity computes it as
             `-SignedAngle(root.forward, desiredWorldDir, up)`.
-        :return: (new_x, new_v), both (1, num_bones+2, 4)
+        :return: (new_x, new_v, contacts): the pose and velocity, both
+            (1, num_bones+2, 4), and the (2,) left/right foot contacts.
         """
         if self.value_function is None:
             return self.greedy_action(theta, current_x, current_v, delta_time)
@@ -470,7 +479,7 @@ class MotionField:
 
         best = int(np.argmax(self.value_rewards(theta, xs, vs)))
         self._record_decision(indices, weights, best)
-        return xs[best:best + 1], vs[best:best + 1]
+        return xs[best:best + 1], vs[best:best + 1], self._blend_contacts(indices, actions[best])
 
     def greedy_action(self, theta: float,
                       current_x: np.ndarray, current_v: np.ndarray,
@@ -478,6 +487,8 @@ class MotionField:
         """
         One-step-greedy fallback: pick whichever action best aligns the heading
         with the goal on the next frame. Used when no value function is loaded.
+
+        :return: (new_x, new_v, contacts), as `optimal_action`.
         """
         indices, distances = self.get_knn(
             self.build_motion_states(current_x, current_v), k=self.k_neighbors)
@@ -494,7 +505,7 @@ class MotionField:
                    + self.locomotion_factor * arrival)
         best = int(np.argmax(rewards))
         self._record_decision(indices, weights, best)
-        return xs[best:best + 1], vs[best:best + 1]
+        return xs[best:best + 1], vs[best:best + 1], self._blend_contacts(indices, actions[best])
 
     def get_next_pose(self, current_x: np.ndarray, current_v: np.ndarray, delta_time):
         """Debug playback: walk the database frame by frame from the nearest match."""
@@ -505,13 +516,34 @@ class MotionField:
             self.current_frame = (self.current_frame + 1) % self.states_count
 
         return (self.poses_x[self.current_frame][np.newaxis, ...],
-                self.poses_v[self.current_frame][np.newaxis, ...])
+                self.poses_v[self.current_frame][np.newaxis, ...],
+                self._require_contacts(self.pose_contacts)[self.current_frame])
 
     def get_next_pose_from_field(self, current_x: np.ndarray, current_v: np.ndarray, delta_time):
         """Debug: snap to the successor of the nearest database state."""
         indices, _ = self.get_knn(self.build_motion_states(current_x, current_v), k=self.k_neighbors)
         nxt = min(int(indices[0]) + 1, self.states_count - 1)
-        return self.poses_x[nxt][np.newaxis, ...], self.poses_v[nxt][np.newaxis, ...]
+        return (self.poses_x[nxt][np.newaxis, ...], self.poses_v[nxt][np.newaxis, ...],
+                self._require_contacts(self.pose_contacts)[nxt])
+
+    def _blend_contacts(self, indices: np.ndarray, action_weights: np.ndarray) -> np.ndarray:
+        """
+        Foot contacts of a blended step: each foot is down when the neighbours' next
+        frames, weighted as the action weighted their velocities, mostly have it down.
+
+        :param indices: (k,) neighbour state ids
+        :param action_weights: (k,) the chosen action's convex weights
+        :return: (2,) bool, left then right
+        """
+        contacts = self._require_contacts(self.next_contacts)[indices].astype(np.float32)
+        return action_weights @ contacts >= 0.5
+
+    @staticmethod
+    def _require_contacts(contacts):
+        if contacts is None:
+            raise ValueError('MotionField was built without foot contacts; pass '
+                             'pose_contacts and next_contacts to use a policy.')
+        return contacts
 
     def build_motion_states(self, x: np.ndarray, v: np.ndarray) -> np.ndarray:
         """

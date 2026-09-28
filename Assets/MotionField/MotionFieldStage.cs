@@ -26,7 +26,6 @@ public class MotionFieldStage : MoSynthStage, IDisposable
     private dynamic _skeleton;
     private dynamic _currentX;
     private dynamic _currentV;
-    private dynamic _currentContacts;
 
     // The character frame this stage steers against: the component's own Transform.
     private Transform _characterTransform;
@@ -142,7 +141,8 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                 dynamic poseV = animData[2];
                 dynamic poseY = animData[3];
                 dynamic poseContacts = animData[4];
-                dynamic frameTime = animData[5];
+                dynamic nextContacts = animData[5];
+                dynamic frameTime = animData[6];
 
                 using var boneWeights = MotionFieldBoneWeights.ToPython(config);
 
@@ -156,7 +156,9 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                     knn_chunk: config.knnChunk,
                     bone_weights: boneWeights,
                     locomotion_factor: config.locomotionFactor,
-                    locomotion_speed_threshold: config.locomotionSpeedThreshold);
+                    locomotion_speed_threshold: config.locomotionSpeedThreshold,
+                    pose_contacts: poseContacts,
+                    next_contacts: nextContacts);
 
                 // A stale or absent value function degrades to greedy control rather than throwing.
                 var valuePath = config.GetValueFunctionPath();
@@ -184,7 +186,6 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                 var index = Mathf.Clamp(startStateIndex, 0, Mathf.Max(0, stateCount - 1));
                 _currentX = poseX[index].copy();
                 _currentV = poseV[index].copy();
-                _currentContacts = poseContacts[index];
 
                 if (collectDebugData)
                 {
@@ -273,6 +274,7 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                 dynamic nextPose = StepPolicy(deltaTime);
                 _currentX = nextPose[0];
                 _currentV = nextPose[1];
+                dynamic contacts = nextPose[2];
 
                 if (collectDebugData)
                 {
@@ -280,7 +282,7 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                 }
 
                 var poseArrays = _actionPredictor.get_pose_arrays(
-                    _skeleton, _currentX, _currentV, _currentContacts);
+                    _skeleton, _currentX, _currentV, contacts);
 
                 var posArray = (float[])poseArrays[0];
                 var quatArray = (float[])poseArrays[1];
@@ -381,7 +383,6 @@ public class MotionFieldStage : MoSynthStage, IDisposable
             _skeleton = null;
             _currentX = null;
             _currentV = null;
-            _currentContacts = null;
         }
 
         _isInitialized = false;
