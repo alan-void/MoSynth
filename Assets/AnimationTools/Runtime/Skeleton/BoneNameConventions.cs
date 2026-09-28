@@ -42,6 +42,37 @@ public static class BoneNameConventions
         return false;
     }
 
+    /// <summary>Which side of the body a bone name says it is on.</summary>
+    public enum BodySide
+    {
+        Centre,
+        Left,
+        Right
+    }
+
+    private static readonly char[] NameSeparators = { '_', '.', ' ', ':', '-', '|' };
+
+    /// <summary>
+    /// The side a bone name declares: "Left"/"Right" anywhere in it (<c>LeftUpLeg</c>,
+    /// <c>mixamorig:RightHand</c>), or an "l"/"r" token between separators (<c>thigh_l</c>,
+    /// <c>hand.R</c>, <c>l_arm</c>).
+    /// </summary>
+    public static BodySide SideOf(string boneName)
+    {
+        if (string.IsNullOrEmpty(boneName)) return BodySide.Centre;
+
+        if (boneName.IndexOf("Left", StringComparison.OrdinalIgnoreCase) >= 0) return BodySide.Left;
+        if (boneName.IndexOf("Right", StringComparison.OrdinalIgnoreCase) >= 0) return BodySide.Right;
+
+        foreach (var token in boneName.Split(NameSeparators, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (token.Equals("l", StringComparison.OrdinalIgnoreCase)) return BodySide.Left;
+            if (token.Equals("r", StringComparison.OrdinalIgnoreCase)) return BodySide.Right;
+        }
+
+        return BodySide.Centre;
+    }
+
     public static bool IsLeftArmBone(string boneName)
     {
         return IsSideArmBone(boneName, "Left");

@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:1dc0194d51f397481e2dadadd91daf4b176f89007eb9b67bef08e8dc64e76c69",
+  "claims": [
+    {
+      "id": "claim_28c35c4e2e5244f5a99898e29d497a98",
+      "statement": "Auto-tagging runs in three stages sharing one run folder under Library/AutoTag: Unity renders each clip to MP4 plus a manifest, a Python CLI asks Gemini for tag frame ranges and writes results.json, and Unity applies the results to AnimationTagComponent channels.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/AutoTagWindow.cs",
+          "version": "repo-file-v1:sha256:3beb00ab95cc58a579184dd943d3707e429d1f72b8a6384805e2584ce34c788a"
+        },
+        {
+          "resource": "repo://Python/autotag/annotate.py",
+          "version": "repo-file-v1:sha256:780fbe5049dcc6f61a69a2c7bb462c5c5413e8a4f992b1dcb56861507e4bec50"
+        }
+      ]
+    },
+    {
+      "id": "claim_1e01103d5f9144f480c1dd86b1d03bf4",
+      "statement": "A tag's meaning for the model comes from the description field on GameplayTagSO; ancestor descriptions are sent as context.",
+      "evidence": [
+        {
+          "resource": "repo://Packages/com.alanvoid.gameplaytags/Runtime/GameplayTagSO.cs",
+          "version": "repo-file-v1:sha256:b97074997ef3e0abf0479ea54c40d911fbdacd0dd581dced5c0c0cf2262a608f"
+        },
+        {
+          "resource": "repo://Python/autotag/prompt.py",
+          "version": "repo-file-v1:sha256:990e7b9d0402047adefce391ebbc93d6a6435a2159586c97888adbe1b47ccd00"
+        }
+      ]
+    },
+    {
+      "id": "claim_661c9ac1c752494fb124c4eb937d99da",
+      "statement": "Each video frame has its clip-local frame number burned in, and the model is told to read frame numbers from that counter rather than from video time, so answers land in clip frames regardless of sampling.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/BurnInLabel.cs",
+          "version": "repo-file-v1:sha256:6ec36b0c5f320eea503df11e6df769e8a8dd88c387d838bc8e9e7092ff0c696c"
+        },
+        {
+          "resource": "repo://Python/autotag/prompt.py",
+          "version": "repo-file-v1:sha256:990e7b9d0402047adefce391ebbc93d6a6435a2159586c97888adbe1b47ccd00"
+        }
+      ]
+    },
+    {
+      "id": "claim_85653aa40099450d952a65e59ae6f29b",
+      "statement": "The character is rendered as a capsule figure (left blue, right red) with a custom unlit shader, followed by a camera whose yaw is fixed per clip so turning and travel stay visible against a checker floor.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/CapsuleFigure.cs#L15-L30",
+          "version": "repo-lines-v1:sha256:699b7f16e482a5d7922be0cd2e41a3923dceccd61c80b13682ebd2a871eb93f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZDA1YmZkOGIxMzdlYzQ1Y2M5ZGQxZDAyYjhlNmViZTg0NGZmMDUwOTFhMWFmN2I0YjYyMzA4ZmYwMTk3YjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYTIxZTQyM2U0MTFjNWY1MDZkN2M0MDY2ZDRhODNmMDU1ZWI1NGU2Nzc1ZmQ2ZDMxNjg5NTc3Y2M4NmNhNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OWUxYTk5MzkyOGJlMmNlYmI3ZDQ2ZTgyNjYwNDJmY2I3MTljN2JiYWIyNmI4MjJhOTY3YTg5OWNhMTNjMzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ODZlMGVmZjkwMjBmY2Y4ZGY5YjgzODE4ZThlYjI1ZjljZTM1OTdiODYwNzEwMzI4ZDBlNTM3NjEyMzJlZGYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/ClipVideoRenderer.cs#L195-L225",
+          "version": "repo-lines-v1:sha256:7ac9f4639397984c2915b12346cae7d248291884b273d4efac9b1186923c5b2e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0NzBjNzkyM2Q4MDdmNTAzYjJiNzM4MWU0YmIyZTk5OTdhY2ZiNWFkY2JiMDczOTM0MDU3MzE2YWU2Y2EwNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkYzhlNjFkMmU4ZGIxODUxMmI2ZDhiYmU5ZGEzOGNkZmE0MGU0ZGRiMjA5MjdiYmY4ODBkZDkwYWE0YmM4MzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c894562b42304d0193e0e5ed8af7b414",
+      "statement": "Model segments are cleaned in Python before Unity sees them: below-threshold confidence dropped, clamped to the slice, overlapping/adjacent and short-gap spans merged, then too-short spans dropped.",
+      "evidence": [
+        {
+          "resource": "repo://Python/autotag/postprocess.py#L18-L41",
+          "version": "repo-lines-v1:sha256:7fd8e5e80268e6166ae155d1eeed6a197629f1cab1ae909dbf13d50781520df8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3NTFmOGViODNkN2FiNDVhNWE1YTBiMTIzZTNlZmEyMDVjYmY0Njg0ZWVjODJhMTRlYmE1YzRlYWNiNTcxYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhZWIyOTg5NGI0Yzk0ODllYzgwMjAxMjVmNjFhZmIzODhkOWQxOTdhODY3MTg3YjU5YjA5ZWM5YmQ2YjNlYjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmOGNjNDEwZTFmNjIyZDU1MTZkNmZiNGUyOTMwNDRlMTgyNzJiNzk5YTM0ZDEzYzE0NWFmOWZjNTc4ZGMyYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkY2ZiYmI2OGVjY2ZmMzgwZWIzNzZiM2EwMzViMWEyODE3ZTE1MmQwOWY5NGE4ZTJiNzA5NDU4OWE1ZTBlMjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_44d9f8eba9bd46cfb93479a038c97e7a",
+      "statement": "Applying results is one undo group; an existing channel for a tag that already holds keys is skipped unless the user chooses Overwrite, and clips whose annotation failed are skipped.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/AutoTagApply.cs",
+          "version": "repo-file-v1:sha256:524d4ec903ed0c77313796caa9ac8d6b4e53d1e491e4f452ac8981683372f839"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/AutoTagWindow.cs",
+          "version": "repo-file-v1:sha256:3beb00ab95cc58a579184dd943d3707e429d1f72b8a6384805e2584ce34c788a"
+        }
+      ]
+    },
+    {
+      "id": "claim_17f0fcb61e544d0eb111e8013934cbda",
+      "statement": "Raw model responses are saved per clip before parsing, so --resume re-parses them without paying for the API call again.",
+      "evidence": [
+        {
+          "resource": "repo://Python/autotag/annotate.py",
+          "version": "repo-file-v1:sha256:780fbe5049dcc6f61a69a2c7bb462c5c5413e8a4f992b1dcb56861507e4bec50"
+        }
+      ]
+    },
+    {
+      "id": "claim_95e361a7784d43fab27c147addfa4af7",
+      "statement": "Unity runs the annotate stage as a child process of the project venv's python with working directory Python/, passing GEMINI_API_KEY, rather than through PythonNET.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/AutoTagAnnotateProcess.cs#L80-L140",
+          "version": "repo-lines-v1:sha256:9daf530867c9b5b350d5b43eb23fa90eb4d19e2da14ac412746477fd217e6c53:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNTc2ZmVjZmVmNTJhMGNhYjcxZmNlYmM4NGNiNDZhZWJjY2VlNGI3ZmRjNTNiZTk2NDg5NTRhYmE4NzNjZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjOTI4MDc1YzU0MDA0OTQyMGEyNWM3NGEwNzg4MjA2M2VhOTg1NTFhM2RhNzVlYjIyNWEwMDZiODZjNTNiMjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwNDc1MzYyOTk4YTU1MTdhMGVjZmUzNzdkNDFkNGIxMjI5OGEwNWMxMzYzMTk2YjFkNDM1ZjI3MzI5MmJiNTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_39aade2be65f44b884d8aae7fa165f95",
+      "statement": "By default all tags go to the model in one request per clip; the per-tag setting instead sends one request per tag over a single upload, which re-bills the video for every tag.",
+      "evidence": [
+        {
+          "resource": "repo://Python/autotag/annotate.py",
+          "version": "repo-file-v1:sha256:780fbe5049dcc6f61a69a2c7bb462c5c5413e8a4f992b1dcb56861507e4bec50"
+        },
+        {
+          "resource": "repo://Python/autotag/gemini.py",
+          "version": "repo-file-v1:sha256:033e2dad520d5b6c107c33aedffe4f94aba5cee9eb48a873df16c031b0fd9c3e"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/AutoTagManifest.cs",
+          "version": "repo-file-v1:sha256:8ea6a4afae376b7cc5ba289b9fba22c3b8d2e23d99aa3f7967cd6bfeaf5940c9"
+        }
+      ]
+    },
+    {
+      "id": "claim_474a8fab336246f2a21e9260d19eac07",
+      "statement": "The prompt tells the model the tags are independent and may overlap, so it does not treat them as mutually exclusive classes.",
+      "evidence": [
+        {
+          "resource": "repo://Python/autotag/prompt.py",
+          "version": "repo-file-v1:sha256:990e7b9d0402047adefce391ebbc93d6a6435a2159586c97888adbe1b47ccd00"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-09-26T20:16:03.254Z"
+  }
+}

@@ -23,6 +23,7 @@ MonoBehaviour:
   endFrame: 120
   components:
   - rid: 4326263008685457588
+  - rid: 4326263301103419505
   references:
     version: 2
     RefIds:
@@ -49,3 +50,10 @@ MonoBehaviour:
         smoothingRadius: 6
         standingSpeed: 0.1
         standingPeriod: 1
+    - rid: 4326263301103419505
+      type: {class: AnimationTagComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        channels:
+        - tag: {fileID: 11400000, guid: 34a850499929a674694031ffec05393c, type: 2}
+          toggles: 0000000030000000

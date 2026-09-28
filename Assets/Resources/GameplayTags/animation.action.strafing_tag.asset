@@ -15,3 +15,6 @@ MonoBehaviour:
   tagName: strafing
   parentTag: {fileID: 11400000, guid: 0cc992ddb4d155746aad444b6d798705, type: 2}
   childTags: []
+  description: The character travels sideways or diagonally relative to the way its
+    body faces (sidestepping, crab-walking), at walking or running pace. Excludes
+    moving straight forwards or straight backwards, and turning on the spot.

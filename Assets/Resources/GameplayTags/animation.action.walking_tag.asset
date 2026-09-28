@@ -15,3 +15,7 @@ MonoBehaviour:
   tagName: walking
   parentTag: {fileID: 11400000, guid: 0cc992ddb4d155746aad444b6d798705, type: 2}
   childTags: []
+  description: 'The character walks: at every moment at least one foot is on the
+    ground, at normal walking speed (roughly 0.5-2 m/s). Includes walking forwards,
+    backwards or sideways and walking while turning. Excludes standing still, shuffling
+    in place and running.'

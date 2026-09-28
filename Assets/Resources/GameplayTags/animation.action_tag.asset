@@ -20,3 +20,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 72aa64aaf85e8c54dafc3cb32eee2b23, type: 2}
   - {fileID: 11400000, guid: bd8192d74313c394fbb1b21d8c242712, type: 2}
   - {fileID: 11400000, guid: 2e2479b34646e664fb6b7e2487e808de, type: 2}
+  description: What the character's body is doing. Actions are independent; several can apply at once (e.g. running while strafing).

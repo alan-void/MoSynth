@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:00b790e1d8d4dd84cfa110c0d0b6a89d797397fea6ec9fca65ed7dd1d4267920",
+  "claims": [
+    {
+      "id": "claim_feaf8b51b810438aa4c27a0d3b5be51f",
+      "statement": "Video frame k shows clip frame startFrame + k*frameStep with frameStep = max(1, round(clipFrameRate / renderFps)).",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/ClipVideoRenderer.cs#L75-L100",
+          "version": "repo-lines-v1:sha256:de75813375a5a64bf5debb0b4bf7ace40702264fd874850c6182ba051759299c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhYmZkNGYyNzgxZGIxODA1OTU3Yjg1YjA4NWM1MWQ5N2QyOWJmOWFlYmZlZTlmMDczMzk5NjBhMjA0MGRkYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5M2ZjOTc4OTQxNDA2MjMwOTZjYTlkYjcxNTQ0MjJkNDA0NGNkZGJmYzk1YWQ0MGRhYTc4NWY5YjkzNDJjZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5ZWU0YjA4MzU3NTIxYTY0OWJjYjdiNzQ0YTE3NDk3YmMwMjUxMDU3ZTk4MmIxMzQ4MWYwOTIwMmRhMWQ1OTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1ZTY4ZTdmMTY0YjdlMGU2NjFlYzNjZGFmMjU2ZTAxNjk3NzkyNWMyZmJkNmM2MGJkNzk1OWMzYmJmOGRjOTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_943be95f64c84b90a7cbc8a71bdc6806",
+      "statement": "The annotate CLI reports progress via PROGRESS/USAGE/CLIPERROR/DONE stdout lines and exits 0 on success, 2 on partial failure, 1 on fatal error; Unity parses these lines.",
+      "evidence": [
+        {
+          "resource": "repo://Python/autotag/annotate.py",
+          "version": "repo-file-v1:sha256:780fbe5049dcc6f61a69a2c7bb462c5c5413e8a4f992b1dcb56861507e4bec50"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/AutoTagAnnotateProcess.cs",
+          "version": "repo-file-v1:sha256:b1b29bdc1d378b98280922dd17262f1b7a7f8e78f0900c104cd45a909ca57298"
+        }
+      ]
+    },
+    {
+      "id": "claim_49a53c8404714e2e93c5d9176bfe1976",
+      "statement": "Only autotag.gemini imports google.genai; annotate imports it lazily and the tests assert the SDK is never loaded.",
+      "evidence": [
+        {
+          "resource": "repo://Python/autotag/gemini.py",
+          "version": "repo-file-v1:sha256:033e2dad520d5b6c107c33aedffe4f94aba5cee9eb48a873df16c031b0fd9c3e"
+        },
+        {
+          "resource": "repo://Python/autotag/annotate.py",
+          "version": "repo-file-v1:sha256:780fbe5049dcc6f61a69a2c7bb462c5c5413e8a4f992b1dcb56861507e4bec50"
+        },
+        {
+          "resource": "repo://Python/tests/test_autotag.py",
+          "version": "repo-file-v1:sha256:43eda8b18cff6ab2ff35086f5e10bb420646c6423f534c2e50bad214435ab522"
+        }
+      ]
+    },
+    {
+      "id": "claim_4e0089edfa484708b2edd9398a4877ca",
+      "statement": "Rendering uses the Hidden/MoSynth/AutoTagShaded shader rather than URP Lit, and the frame label is drawn onto read-back pixels by BurnInLabel.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/CapsuleFigure.cs#L15-L30",
+          "version": "repo-lines-v1:sha256:699b7f16e482a5d7922be0cd2e41a3923dceccd61c80b13682ebd2a871eb93f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZDA1YmZkOGIxMzdlYzQ1Y2M5ZGQxZDAyYjhlNmViZTg0NGZmMDUwOTFhMWFmN2I0YjYyMzA4ZmYwMTk3YjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYTIxZTQyM2U0MTFjNWY1MDZkN2M0MDY2ZDRhODNmMDU1ZWI1NGU2Nzc1ZmQ2ZDMxNjg5NTc3Y2M4NmNhNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OWUxYTk5MzkyOGJlMmNlYmI3ZDQ2ZTgyNjYwNDJmY2I3MTljN2JiYWIyNmI4MjJhOTY3YTg5OWNhMTNjMzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ODZlMGVmZjkwMjBmY2Y4ZGY5YjgzODE4ZThlYjI1ZjljZTM1OTdiODYwNzEwMzI4ZDBlNTM3NjEyMzJlZGYifQ"
+        },
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/BurnInLabel.cs",
+          "version": "repo-file-v1:sha256:6ec36b0c5f320eea503df11e6df769e8a8dd88c387d838bc8e9e7092ff0c696c"
+        }
+      ]
+    },
+    {
+      "id": "claim_e89adfd96c9a413eb745549bd3d51482",
+      "statement": "Capsule left/right colouring is decided by BoneNameConventions.SideOf from bone names.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Runtime/Skeleton/BoneNameConventions.cs",
+          "version": "repo-file-v1:sha256:379fc17ee283446b19951583cd146a2e296b775a2bdf4b0ab94276cf3c890a06"
+        }
+      ]
+    },
+    {
+      "id": "claim_c43560591bc74e6f8f93d7ce1e41af3a",
+      "statement": "Apply skips an existing tag channel holding keys unless overwrite is set, and skips clips whose result carries an error.",
+      "evidence": [
+        {
+          "resource": "repo://Assets/AnimationTools/Editor/AutoTag/AutoTagApply.cs",
+          "version": "repo-file-v1:sha256:524d4ec903ed0c77313796caa9ac8d6b4e53d1e491e4f452ac8981683372f839"
+        }
+      ]
+    },
+    {
+      "id": "claim_ac6fcd68486e4a36a8bdc58730de13e1",
+      "statement": "raw/<guid>.json holds a responses list, one entry per model request with its text and token counts; annotate merges the responses' tags lists before post-processing.",
+      "evidence": [
+        {
+          "resource": "repo://Python/autotag/annotate.py",
+          "version": "repo-file-v1:sha256:780fbe5049dcc6f61a69a2c7bb462c5c5413e8a4f992b1dcb56861507e4bec50"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-09-26T20:16:03.254Z"
+  }
+}
