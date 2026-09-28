@@ -7,9 +7,10 @@
 Same command line and the same FBX as batch_retarget.py, and it borrows that module for
 everything except the retarget itself -- import, export, manifest, the `done` sentinel.
 
-A setup built by make_edinburgh_setup.py --live already holds the rig Rokoko would build and
-throw away: one helper bone per mapped bone, sitting at the model bone's rest but parented to the
-cleaned bone, with the model constrained to follow it. So the whole chain is live --
+A setup built by make_edinburgh_setup.py --live or by make_mixamo_setup.py already holds the rig
+Rokoko would build and throw away: one helper bone per mapped bone, sitting at the model bone's
+rest but parented to the cleaned bone, with the model constrained to follow it. So the whole chain
+is live --
 
     source action -> cleaned (constraints) -> helpers (parenting) -> model (constraints)
 
@@ -72,17 +73,22 @@ def resolve_setup(scene):
                          "point at {}.".format(bridge.name, len(sources)))
 
     # Every bone the model actually follows, read off its constraints rather than a stored list:
-    # the wiring is the mapping here, so the two cannot drift apart.
+    # the wiring is the mapping here, so the two cannot drift apart. A helper is named after the
+    # model bone it drives and parented to the bridge bone it follows, so each row pairs the two.
     mapped = sorted({pb.name for pb in model.pose.bones for c in pb.constraints
                      if c.type == "COPY_ROTATION" and c.target is bridge})
     if not mapped:
         raise SetupError('No bone on "{}" copies rotation from "{}".'.format(model.name,
                                                                              bridge.name))
-    missing = [n for n in mapped if not bridge.pose.bones.get(HELPER_PREFIX + n)]
+    missing = [n for n in mapped if not bridge.data.bones.get(HELPER_PREFIX + n)]
     if missing:
         raise SetupError("The model follows helpers that do not exist: " + ", ".join(missing))
+    orphans = [n for n in mapped if bridge.data.bones[HELPER_PREFIX + n].parent is None]
+    if orphans:
+        raise SetupError("Helpers with no bridge bone to follow: " + ", ".join(orphans))
 
-    bone_map = [(name, name, "", False) for name in mapped]
+    bone_map = [(bridge.data.bones[HELPER_PREFIX + name].parent.name, name, "", False)
+                for name in mapped]
     return batch.Setup(sources.pop(), bridge, model, bone_map)
 
 
@@ -92,11 +98,11 @@ def select_mapped(model, setup):
     batch.activate(model)
     bpy.ops.object.mode_set(mode="POSE")
     bpy.ops.pose.select_all(action="DESELECT")
-    for source_name, _, _, _ in setup.bone_map:
+    for _, model_name, _, _ in setup.bone_map:
         try:
-            model.data.bones[source_name].select = True          # Blender before 5.0
+            model.data.bones[model_name].select = True          # Blender before 5.0
         except AttributeError:
-            model.pose.bones[source_name].select = True
+            model.pose.bones[model_name].select = True
 
 
 def silence_takes(model, muted):

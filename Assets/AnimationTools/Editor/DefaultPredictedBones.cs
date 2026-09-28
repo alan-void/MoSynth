@@ -19,7 +19,8 @@ public static class DefaultPredictedBones
 
     /// <summary>
     /// Suffix marking a rig's leaf tips. They exist to give the bone above them a direction and
-    /// carry no motion of their own.
+    /// carry no motion of their own. Matched ignoring case: Blender writes <c>_end</c>, Mixamo
+    /// <c>_End</c>.
     /// </summary>
     private const string LeafSuffix = "_end";
 
@@ -40,7 +41,7 @@ public static class DefaultPredictedBones
         {
             var boneName = skeleton.GetBone(i).Name;
 
-            if (boneName.EndsWith(LeafSuffix, StringComparison.Ordinal))
+            if (boneName.EndsWith(LeafSuffix, StringComparison.OrdinalIgnoreCase))
             {
                 if (!excluded.Contains(boneName)) excluded.Add(boneName);
                 continue;

@@ -25,6 +25,11 @@ import mathutils
 # run so the exported FBX still carries a bind-pose take.
 REST_TRACK_NAME = "T-Pose"
 
+# Set to False on a model rig whose leaf bones are already real bones, as a Mixamo rig's "_End"
+# bones are. The exporter would otherwise hang a second leaf off each of them, and the exported
+# skeleton would no longer match the character it was retargeted onto.
+ADD_LEAF_BONES_PROPERTY = "fbx_add_leaf_bones"
+
 # Rokoko applies and un-applies the target armature's object transform on every retarget,
 # which is only identity in exact arithmetic. Past this much drift in a rest bone position
 # the exported rig is no longer the rig the setup was authored against.
@@ -514,7 +519,7 @@ def export_fbx(setup, out_path, simplify):
         filepath=out_path,
         use_selection=True,
         object_types={"ARMATURE", "MESH"},
-        add_leaf_bones=True,
+        add_leaf_bones=bool(setup.model.get(ADD_LEAF_BONES_PROPERTY, True)),
         bake_anim=True,
         bake_anim_use_all_bones=True,
         bake_anim_use_nla_strips=True,

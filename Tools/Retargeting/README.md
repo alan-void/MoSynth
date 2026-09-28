@@ -233,8 +233,9 @@ blender --background Assets/LFS/Retargeting/edinburgh_rest_authoring.blend \
 Same command line and the same FBX as `batch_retarget.py`, which it imports as a library for
 everything except the retarget itself. It finds the rig structurally — the one armature carrying
 `RT_*` helper bones — and reads the bone map off the model's own constraints, so the wiring *is*
-the mapping and the two cannot drift apart. A setup with no helper rig is refused rather than
-retargeted badly; `batch_retarget.py` still owns those.
+the mapping and the two cannot drift apart. A helper is named after the model bone it drives and
+parented to the bridge bone it follows, so the bone names on the two rigs need not match. A setup
+with no helper rig is refused rather than retargeted badly; `batch_retarget.py` still owns those.
 
 What it buys:
 
@@ -255,6 +256,47 @@ degrees mean, 0.079 max**.
 underneath them, so a stacked take cannot disturb a *mapped* bone — but an unmapped one (here the
 target's `Spine2`) has no constraint, so it would be posed by whatever the previous clips left on
 the stack, and everything hanging off it moves with it. The error compounds clip by clip.
+
+## Retargeting onto a Mixamo character
+
+`make_mixamo_setup.py` turns any of the setups above into a live setup for a Mixamo character. It
+keeps the source, the cleaned skeleton and its constraints, and swaps the corrected rig for the
+character:
+
+```
+blender --background --python Tools/Retargeting/make_mixamo_setup.py -- \
+    --setup Assets/LFS/Retargeting/lafan_bvh_to_lafan_corrected.blend \
+    --model-fbx "Assets/LFS/Characters/Y Bot.fbx" \
+    --clips Assets/LFS/Animation/lafan1/bvh/walk1_subject1.bvh \
+    --out Assets/LFS/Retargeting/ybot/lafan_bvh_to_ybot.blend
+```
+
+Open the result and press play to preview. Switch clips by unmuting a different NLA track on the
+source. The same blend is also a run's setup, so batch it with `--script direct`. The three Y Bot
+setups are in `Assets/LFS/Retargeting/ybot/`.
+
+- **The calibration is carried across, not re-authored.** Each setup's cleaned rest was judged
+  against the corrected rig's rest, so the character is posed to match that rig when the cleaned
+  skeleton is at rest. Arms, forearms, thighs, shins and feet are swung onto the corrected rig's
+  directions; for Y Bot that is 1 to 6 degrees. The torso, clavicles, head and hands keep the
+  character's own rest. Two rigs place their spine and neck joints differently inside the body,
+  and two upright rests can disagree by up to 15 degrees there.
+- **The actor is scaled to the character's leg length.** The script scales the source and the cleaned
+  skeleton uniformly, by the character's hip height above the toe divided by the actor's, so a
+  stride covers the character's own leg length. For Y Bot that is 1.040 for LAFAN, 1.081 for
+  Bandai-Namco and 0.972 for Edinburgh.
+- **The height is set from the parked clips.** `RT_ground` is raised until the median lowest toe
+  joint over every parked frame sits at the character's rest toe height, because a planted toe sits
+  there. Park locomotion clips so the measurement means something. Run without `--clips` on a setup
+  that holds none and the height is left uncorrected.
+- **The export keeps the character's own skeleton.** A Mixamo rig's `_End` bones are real bones,
+  so the model carries `fbx_add_leaf_bones = False` and the exporter adds no leaves. The FBX has
+  the same 65 bones as the character, and the file's centimetre import scale is applied into the
+  data so the armature node exports at unit scale.
+
+A batched Y Bot take matches its live rig to 0.000 degrees. The Hips of the existing LAFAN
+`Lafan_corrected` export are 1.1 degrees off their own rig on average, and 6.7 at worst. That export
+used `--simplify 1`, which is the likely cause but has not been confirmed.
 
 ## Setting one up for a new dataset
 

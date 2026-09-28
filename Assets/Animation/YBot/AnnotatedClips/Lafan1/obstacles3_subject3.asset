@@ -1,0 +1,173 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b81a3691c81c50d41858624eac4a6299, type: 3}
+  m_Name: obstacles3_subject3
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.AnnotatedAnimationClip
+  clip: {fileID: 7077970223450978054, guid: 49e6935cc22141638b3c61a89faadbf8, type: 3}
+  skeleton:
+    root: {fileID: -1050826867531605487, guid: 49e6935cc22141638b3c61a89faadbf8, type: 3}
+  rootMotionBone:
+    skeleton:
+      root: {fileID: -1050826867531605487, guid: 49e6935cc22141638b3c61a89faadbf8, type: 3}
+    bone: {fileID: -1050826867531605487, guid: 49e6935cc22141638b3c61a89faadbf8, type: 3}
+  startFrame: 0
+  endFrame: 3933
+  components:
+  - rid: 4326263298971140237
+  references:
+    version: 2
+    RefIds:
+    - rid: 4326263298971140237
+      type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        footfalls:
+        - frame: 144
+          foot: 0
+        - frame: 170
+          foot: 1
+        - frame: 191
+          foot: 0
+        - frame: 480
+          foot: 1
+        - frame: 499
+          foot: 0
+        - frame: 511
+          foot: 1
+        - frame: 529
+          foot: 0
+        - frame: 545
+          foot: 1
+        - frame: 565
+          foot: 0
+        - frame: 589
+          foot: 1
+        - frame: 608
+          foot: 0
+        - frame: 626
+          foot: 1
+        - frame: 643
+          foot: 0
+        - frame: 661
+          foot: 1
+        - frame: 681
+          foot: 0
+        - frame: 697
+          foot: 1
+        - frame: 715
+          foot: 0
+        - frame: 732
+          foot: 1
+        - frame: 749
+          foot: 0
+        - frame: 773
+          foot: 1
+        - frame: 788
+          foot: 0
+        - frame: 809
+          foot: 1
+        - frame: 829
+          foot: 0
+        - frame: 845
+          foot: 1
+        - frame: 860
+          foot: 0
+        - frame: 878
+          foot: 1
+        - frame: 895
+          foot: 0
+        - frame: 914
+          foot: 1
+        - frame: 928
+          foot: 0
+        - frame: 951
+          foot: 1
+        - frame: 969
+          foot: 0
+        - frame: 985
+          foot: 1
+        - frame: 1001
+          foot: 0
+        - frame: 1220
+          foot: 0
+        - frame: 1250
+          foot: 1
+        - frame: 1279
+          foot: 0
+        - frame: 1308
+          foot: 1
+        - frame: 1340
+          foot: 0
+        - frame: 1386
+          foot: 1
+        - frame: 1429
+          foot: 0
+        - frame: 1484
+          foot: 1
+        - frame: 1531
+          foot: 0
+        - frame: 1596
+          foot: 1
+        - frame: 1662
+          foot: 0
+        - frame: 1701
+          foot: 1
+        - frame: 1730
+          foot: 1
+        - frame: 1773
+          foot: 0
+        - frame: 1811
+          foot: 0
+        - frame: 1877
+          foot: 1
+        - frame: 1942
+          foot: 0
+        - frame: 2070
+          foot: 0
+        - frame: 2091
+          foot: 1
+        - frame: 2109
+          foot: 0
+        - frame: 2134
+          foot: 1
+        - frame: 2199
+          foot: 0
+        - frame: 2283
+          foot: 0
+        - frame: 2306
+          foot: 0
+        - frame: 2403
+          foot: 0
+        - frame: 2436
+          foot: 1
+        - frame: 2457
+          foot: 0
+        - frame: 2475
+          foot: 1
+        - frame: 2803
+          foot: 1
+        - frame: 2832
+          foot: 0
+        - frame: 3889
+          foot: 0
+        - frame: 3901
+          foot: 1
+        - frame: 3916
+          foot: 0
+        - frame: 3927
+          foot: 1
+        leftContactBoneName: 
+        rightContactBoneName: 
+        contactVelocityThreshold: 0.15
+        smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

@@ -1,0 +1,177 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b81a3691c81c50d41858624eac4a6299, type: 3}
+  m_Name: run1_subject2
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.AnnotatedAnimationClip
+  clip: {fileID: 2154609796068107567, guid: cc6bde678e434b3799913a6b9ad8a947, type: 3}
+  skeleton:
+    root: {fileID: -1050826867531605487, guid: cc6bde678e434b3799913a6b9ad8a947, type: 3}
+  rootMotionBone:
+    skeleton:
+      root: {fileID: -1050826867531605487, guid: cc6bde678e434b3799913a6b9ad8a947, type: 3}
+    bone: {fileID: -1050826867531605487, guid: cc6bde678e434b3799913a6b9ad8a947, type: 3}
+  startFrame: 0
+  endFrame: 7135
+  components:
+  - rid: 4326263298971140253
+  references:
+    version: 2
+    RefIds:
+    - rid: 4326263298971140253
+      type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        footfalls:
+        - frame: 109
+          foot: 0
+        - frame: 139
+          foot: 1
+        - frame: 199
+          foot: 0
+        - frame: 208
+          foot: 1
+        - frame: 216
+          foot: 0
+        - frame: 229
+          foot: 1
+        - frame: 260
+          foot: 0
+        - frame: 269
+          foot: 1
+        - frame: 282
+          foot: 0
+        - frame: 307
+          foot: 0
+        - frame: 320
+          foot: 1
+        - frame: 341
+          foot: 0
+        - frame: 410
+          foot: 1
+        - frame: 462
+          foot: 1
+        - frame: 474
+          foot: 0
+        - frame: 489
+          foot: 1
+        - frame: 499
+          foot: 0
+        - frame: 511
+          foot: 1
+        - frame: 524
+          foot: 0
+        - frame: 537
+          foot: 1
+        - frame: 548
+          foot: 0
+        - frame: 562
+          foot: 1
+        - frame: 599
+          foot: 0
+        - frame: 611
+          foot: 1
+        - frame: 647
+          foot: 0
+        - frame: 660
+          foot: 1
+        - frame: 672
+          foot: 0
+        - frame: 687
+          foot: 1
+        - frame: 697
+          foot: 0
+        - frame: 710
+          foot: 1
+        - frame: 722
+          foot: 0
+        - frame: 746
+          foot: 0
+        - frame: 760
+          foot: 1
+        - frame: 795
+          foot: 0
+        - frame: 4012
+          foot: 0
+        - frame: 4033
+          foot: 1
+        - frame: 4042
+          foot: 0
+        - frame: 4271
+          foot: 1
+        - frame: 4273
+          foot: 0
+        - frame: 4310
+          foot: 1
+        - frame: 4320
+          foot: 1
+        - frame: 4330
+          foot: 0
+        - frame: 4346
+          foot: 1
+        - frame: 4372
+          foot: 1
+        - frame: 4374
+          foot: 1
+        - frame: 4483
+          foot: 1
+        - frame: 4625
+          foot: 1
+        - frame: 4652
+          foot: 0
+        - frame: 4654
+          foot: 1
+        - frame: 4772
+          foot: 1
+        - frame: 4774
+          foot: 0
+        - frame: 4851
+          foot: 1
+        - frame: 4852
+          foot: 0
+        - frame: 4958
+          foot: 1
+        - frame: 4965
+          foot: 0
+        - frame: 4987
+          foot: 0
+        - frame: 4988
+          foot: 1
+        - frame: 5055
+          foot: 0
+        - frame: 5055
+          foot: 1
+        - frame: 5118
+          foot: 1
+        - frame: 6283
+          foot: 0
+        - frame: 6450
+          foot: 1
+        - frame: 6764
+          foot: 1
+        - frame: 6970
+          foot: 0
+        - frame: 7000
+          foot: 1
+        - frame: 7040
+          foot: 1
+        - frame: 7089
+          foot: 1
+        - frame: 7111
+          foot: 0
+        - frame: 7111
+          foot: 1
+        leftContactBoneName: 
+        rightContactBoneName: 
+        contactVelocityThreshold: 0.15
+        smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

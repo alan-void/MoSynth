@@ -190,14 +190,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         {
             if (GUILayout.Button("Generate Pose Database", GUILayout.Height(24)))
             {
-                if (GeneratePoseDatabase(config))
-                {
-                    config.hasPoseDatabase = true;
-                    config.hasTrained = false; // the states the value function indexes were renumbered
-                    EditorUtility.SetDirty(config);
-                    AssetDatabase.SaveAssetIfDirty(config);
-                }
-
+                GeneratePoseDatabase(config);
                 InvalidateSkeleton(); // the joint list the bone weight rows are drawn from
             }
         }
@@ -439,8 +432,11 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         }
     }
 
-    /// <summary>Extract and serialize the pose database. Returns false if it did not get written.</summary>
-    private static bool GeneratePoseDatabase(MotionFieldConfig config)
+    /// <summary>
+    /// Extract and serialize the pose database, and mark any trained value function stale. Returns
+    /// false if it did not get written.
+    /// </summary>
+    public static bool GeneratePoseDatabase(MotionFieldConfig config)
     {
         try
         {
@@ -452,6 +448,11 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
             Debug.Log($"[MotionField] Wrote {config.GetOrImportPoseSet().NumberPoses} poses to " +
                       $"{ProjectRelative(config.GetAssetPath())}.");
+
+            config.hasPoseDatabase = true;
+            config.hasTrained = false; // the states the value function indexes were renumbered
+            EditorUtility.SetDirty(config);
+            AssetDatabase.SaveAssetIfDirty(config);
             return true;
         }
         catch (Exception e)
@@ -467,7 +468,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         }
     }
 
-    private void TrainMotionField(MotionFieldConfig config)
+    public static void TrainMotionField(MotionFieldConfig config)
     {
         // A domain reload while the interpreter is mid-call takes the editor down with it, so hold
         // reloads off for the duration.
@@ -536,7 +537,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     /// Fit the UMAP projection of the database. Same execution model as
     /// <see cref="TrainMotionField"/>: in-process, synchronous, reloads locked out.
     /// </summary>
-    private static void ComputeEmbedding(MotionFieldConfig config)
+    public static void ComputeEmbedding(MotionFieldConfig config)
     {
         EditorApplication.LockReloadAssemblies();
         try

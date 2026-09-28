@@ -1458,7 +1458,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a05c5aae2e92dd488c4471d3a984be3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MotionMatching::MotionMatching.SplineControlInput
-  motionSynthesizer: {fileID: 3211120851710737630}
+  synthesizer: {fileID: 3211120851710737630}
   trajectoryPositionFeatureName: FuturePosition
   trajectoryDirectionFeatureName: FutureDirection
   splineContainer: {fileID: 0}
@@ -2863,8 +2863,7 @@ MonoBehaviour:
       type: {class: MotionMatchingStage, ns: MotionMatching, asm: MotionMatching}
       data:
         isEnabled: 1
-        controlInput: {fileID: 5924722208322530787}
-        mmData: {fileID: 11400000, guid: 74ea31e3cadcaa345b7e1171ab5116a9, type: 2}
+        mmData: {fileID: 11400000, guid: 64050a1a630c85c42b9b4e2410a3b78f, type: 2}
         mmSearch:
           rid: 6955135100694298814
         searchInterval: 0.16666667
@@ -2872,6 +2871,78 @@ MonoBehaviour:
         quality: 1
         minFrameSwitchDistance: 20
         featureWeights:
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
+        - 1
         - 1
         - 1
         - 1

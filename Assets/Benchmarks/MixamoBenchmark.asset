@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 034896ec3a22b4945a0e43b968fe84f4, type: 3}
+  m_Name: MixamoBenchmark
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.SynthesisBenchmarkConfig
+  methods:
+  - name: MotionMatching
+    characterPrefab: {fileID: 3293866932155512955, guid: 50cbcdb40cf27754fb70181285e6d069, type: 3}
+    overrides: []
+  - name: MotionField
+    characterPrefab: {fileID: 211504526001226711, guid: 7e5c38f0de45fd545ac20f34a7ef522e, type: 3}
+    overrides: []
+  - name: Pfnn
+    characterPrefab: {fileID: 7972638687316098455, guid: 1752257d9449bb948b5d9280d2a8940f, type: 3}
+    overrides: []
+  - name: Lmm
+    characterPrefab: {fileID: 558495185502698151, guid: 8e6cc1e9ecc3c6c4aac22b104a887fcc, type: 3}
+    overrides: []
+  pathPrefabFolder: Assets/Benchmarks/Paths
+  pathPrefabs: []
+  lapsRequired: 1
+  settleTime: 3
+  maxRunSeconds: 180
+  synthesisFrameRate: 30
+  fixedTimestep: 1
+  speedSmoothingWindow: 0.2
+  recordFullPose: 0
+  recordVideo: 1
+  videoWidth: 960
+  videoHeight: 540
+  outputDirectory: Benchmarks
+  references:
+    version: 2
+    RefIds: []

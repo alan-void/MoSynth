@@ -124,14 +124,7 @@ public class PfnnConfigEditor : UnityEditor.Editor
         {
             if (GUILayout.Button("Generate Pose Database", GUILayout.Height(24)))
             {
-                if (GeneratePoseDatabase(config))
-                {
-                    config.hasPoseDatabase = true;
-                    config.hasTrained = false;
-                    EditorUtility.SetDirty(config);
-                    AssetDatabase.SaveAssetIfDirty(config);
-                }
-
+                GeneratePoseDatabase(config);
                 InvalidateSkeleton(); // the joint list the bone rows are drawn from
             }
         }
@@ -345,8 +338,11 @@ public class PfnnConfigEditor : UnityEditor.Editor
         }
     }
 
-    /// <summary>Extract and serialize the pose database. Returns false if it did not get written.</summary>
-    private static bool GeneratePoseDatabase(PfnnConfig config)
+    /// <summary>
+    /// Extract and serialize the pose database, and mark any trained network stale. Returns false
+    /// if it did not get written.
+    /// </summary>
+    public static bool GeneratePoseDatabase(PfnnConfig config)
     {
         try
         {
@@ -359,6 +355,11 @@ public class PfnnConfigEditor : UnityEditor.Editor
 
             Debug.Log($"[PFNN] Wrote {config.GetOrImportPoseSet().NumberPoses} poses to " +
                       $"{ProjectRelative(config.GetAssetPath())}.");
+
+            config.hasPoseDatabase = true;
+            config.hasTrained = false;
+            EditorUtility.SetDirty(config);
+            AssetDatabase.SaveAssetIfDirty(config);
             return true;
         }
         catch (Exception e)
