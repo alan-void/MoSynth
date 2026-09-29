@@ -4,9 +4,16 @@ title: Motion field policies
 description: The similarity metric, the candidate action set, and the two policies plus two debug modes the runtime steps the field with.
 tags: [python, motion-field, knn, policy]
 sources:
+  - id: openwiki-source-13742752b942a8c72fc71381
+    resource: repo://Assets/MotionField/MotionFieldStage.cs
   - id: openwiki-source-3d18ac229a9f725ecb715bab
     resource: repo://Python/motion_field/field.py
-generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
+  - id: openwiki-source-cd81fde2d8ed86cd0b51960f
+    resource: repo://Python/motion_field/trainer.py
+generated: {by: "claude-code", at: "2026-09-29T08:27:12.326Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-29T08:27:12.326Z
 ---
 
 # Motion field policies
@@ -91,7 +98,7 @@ into regions it has no data for.
 | Method | Behaviour |
 | --- | --- |
 | `optimal_action` | scores each candidate with `R + γ·V(s′)`; falls back to greedy, silently, when no value function is loaded |
-| `greedy_action` | picks whichever action best aligns the heading on the next frame |
+| `greedy_action` | picks whichever action scores best on the immediate reward alone: facing, travel direction and the locomotion bonus on the next frame |
 | `get_next_pose` | debug: walk the database frame by frame from the nearest match |
 | `get_next_pose_from_field` | debug: snap to the successor of the nearest state |
 
@@ -100,9 +107,9 @@ anticipation is the whole reason for training a value function.
 
 The runtime scores with the **same Bellman objective the training optimised** — immediate reward plus
 discounted value. Scoring on discounted future value alone would optimise something the value
-function was never fitted to. For the same reason the locomotion bonus is paid on the arrival state
-through the same neighbourhood: the immediate reward must match what value iteration optimised, or
-the argmax drifts off-policy.
+function was never fitted to. For the same reason every term of the immediate reward — heading,
+travel and the locomotion bonus, the last paid on the arrival state through the same neighbourhood —
+is computed exactly as value iteration computed it, or the argmax drifts off-policy.
 
 Because each action rotates the character, the goal moves in its frame, so the successor's value is
 read at the shifted heading.
@@ -113,6 +120,57 @@ The value function is stored only at discrete database states. `interpolate_valu
 across the two bracketing headings on the task grid, then weights by motion-space similarity.
 
 **That is what makes it behave as if it were continuous over the whole field.**
+
+## The reward
+
+```
+theta' = wrap(theta + Δyaw)                                  # goal angle after the action
+R      = -|theta'|                                           # face the goal
+         - travel_factor · speed_gate · |wrap(beta + theta')|  # move toward it
+         + locomotion_factor · moving_score(s')              # keep moving
+```
+
+### Why facing alone is not enough
+
+The heading term only measures how far the character's **facing** is from the goal. On its own, any
+action that faces the goal scores perfectly **whichever way it moves**, so a strafe or a backpedal
+that faces the goal is as good as walking at it. That is the
+[facing-versus-travel](../animation-tools/simulation-frame.md) distinction again, this time inside a
+reward.
+
+On a database with lateral material the policy uses that freedom. Measured on the Y Bot Holden
+database, **25% of moving states travel more than 45° off their facing, and 6.5% more than 135°**.
+With the heading term alone, the motion field strafed on the Oval and sharp-cornered benchmark paths:
+it sped up to about 1.85 m/s against about 1.4 m/s elsewhere and slid 2–3 m off the path. Adding the
+travel term at `travel_factor = 0.5` brought the mean path error over the 17-path Holden sweep from
+**0.86 m to 0.10 m** and the mean heading error from **22.4° to 9.5°**.
+
+### The travel term
+
+`beta` is where the arrival state moves, measured from where it faces. It is read from the frame slot
+of the packed arrival velocity, which is expressed in the character frame's own axes (+Z forward,
++X right), as `atan2(x, z)` — positive to the right, like Unity's `SignedAngle`.
+
+**The sign.** `theta` is `-SignedAngle(facing, goal)` (see
+[the stage](../motion-field/motion-field-stage.md)), so after the action the goal sits at `-theta'`
+relative to the new facing. Travel sits at `beta` relative to that same facing. The gap between them
+is `beta - (-theta') = beta + theta'`: zero walking straight at the goal, π/2 for a strafe that faces
+it, π for backing toward it.
+
+**The speed gate.** Below walking speed the direction of travel is noise, so the term is multiplied by
+the same linear ramp the locomotion score uses. An idle state pays nothing; the locomotion bonus is
+what keeps idling from being attractive.
+
+**The heading term stays.** With the travel term alone the policy could walk at the goal with its
+torso pointing elsewhere. The two terms together penalise both ways of going wrong.
+
+Measuring `theta` against travel direction instead of facing was the rejected alternative. It needs
+no extra term, but it goes unstable at low speed, exactly where the gate above switches the travel
+term off.
+
+`travel_penalty` holds the runtime's copy of the term. The trainer computes the same expression per
+`(state, action)` from the post-tug arrival velocity, and the two **must agree**. See
+[value function training](value-function-training.md).
 
 ### The locomotion score
 

@@ -10,9 +10,12 @@ sources:
     resource: repo://Assets/MotionField/MotionFieldSplineControlInput.cs
   - id: openwiki-source-13742752b942a8c72fc71381
     resource: repo://Assets/MotionField/MotionFieldStage.cs
-  - id: openwiki-source-556de75b4b36254c0d3e2158
-    resource: repo://Python/MotionField.py
-generated: {by: "claude-code", at: "2026-08-24T17:01:26.052Z"}
+  - id: openwiki-source-3d18ac229a9f725ecb715bab
+    resource: repo://Python/motion_field/field.py
+generated: {by: "claude-code", at: "2026-09-29T08:27:12.326Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-29T08:27:12.326Z
 ---
 
 # The motion field stage
@@ -53,6 +56,11 @@ on.
 policy never crosses the boundary as a value — no enum, no string, no integer is sent. An unknown
 policy is a C# `NotImplementedException` rather than a Python `AttributeError`.
 
+Every policy returns the foot contacts alongside the pose, so the contacts the stage reports each
+frame belong to the step just taken. For the two scoring policies, each foot is down when the chosen
+action's neighbours, weighted as the action weighted their velocities, mostly have it down one frame
+later.
+
 ## Theta: the goal, expressed relative to the character
 
 The control input supplies a desired world heading. The stage converts it to `Theta` — **the
@@ -67,8 +75,10 @@ independently of Unity's transform**, and the only thing coupling the two is the
 Measuring the goal relative to the character's *current* facing means the two accumulators never have
 to be synchronised at all.
 
-The negation matches the training convention, where reward is `-|theta + delta_yaw|`: the action that
-cancels theta is the one that turns the character onto the goal.
+The negation matches the training convention, where the heading term is `-|theta + delta_yaw|`: the
+action that cancels theta is the one that turns the character onto the goal. The travel term measures
+its gap against that same shifted theta, which is where its `beta + theta'` sign comes from — see
+[the reward](../python/motion-field-policies.md#the-reward).
 
 Callers are expected to push a fresh direction every frame, because Theta is measured against the
 root's current facing. A near-zero vector keeps the previous heading and only refreshes Theta.
@@ -159,8 +169,6 @@ might hold it.
   running against a frozen pose.
 - After that same failure, `Dispose` early-returns and the Python handles are never released under
   the GIL.
-- **Foot contacts are captured once at `Init`** from the start state and never updated, so the contact
-  booleans reported every frame derive from the start pose rather than the current one.
 - **A bone-count disagreement across the boundary fails asymmetrically.** The unpacking loop is
   bounded by the *pose buffer's* bone count while indexing the flat Python arrays. So a Python side
   returning **fewer** bones than the rig reads past the end of those arrays and throws — caught by

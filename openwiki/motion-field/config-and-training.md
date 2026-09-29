@@ -10,7 +10,10 @@ sources:
     resource: repo://Assets/MotionField/MotionFieldConfig.cs
   - id: openwiki-source-13742752b942a8c72fc71381
     resource: repo://Assets/MotionField/MotionFieldStage.cs
-generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
+generated: {by: "claude-code", at: "2026-09-29T08:27:12.326Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-29T08:27:12.326Z
 ---
 
 # Config, training and the staleness contract
@@ -120,7 +123,7 @@ surfaced rather than silently kept, because keeping them would make the summary 
 
 ## Hyperparameters worth understanding
 
-Most are ordinary knobs. Three carry real arguments.
+Most are ordinary knobs. Four carry real arguments.
 
 **`posWeight` / `velWeight`** — the defaults put **roughly three quarters** of the distance on joint
 positions. That ratio matters: a velocity-dominated metric matches states that merely *move* alike
@@ -131,6 +134,13 @@ half's metres.
 **`locomotionFactor`** — a reward bonus for landing in moving states. This is not optional tuning: at
 0, **every reward is ≤ 0, so an idle pose that faces the goal scores a perfect zero forever and the
 policy freezes into it.** Changing it requires a retrain.
+
+**`travelFactor`** — a penalty, per radian, on the gap between the direction the character *moves*
+and the goal, gated off below `locomotionSpeedThreshold`. The heading term alone only asks the
+character to *face* the goal, **so a strafe that faces it scores perfectly** — and on a database with
+lateral material the policy strafes off the path. 0.5 is the default; the argument and the benchmark
+numbers are in [the reward](../python/motion-field-policies.md#the-reward). Changing it requires a
+retrain.
 
 **`kNeighbors`** — neighbours considered per step, and *also* the number of candidate actions, since
 each action emphasises one neighbour.
@@ -175,8 +185,9 @@ config's own rig immediately rather than carried across unresolved.
 ## What is not recorded anywhere
 
 The `.mffield.npz` persists only the heading grid, `gamma` and `k_neighbors`. It records **nothing**
-about `locomotionFactor`, `posWeight`, `velWeight`, `tugRatio` or the bone weights — yet the runtime
-re-applies the locomotion bonus and re-computes the metric using the config's current values. Change
+about `locomotionFactor`, `travelFactor`, `posWeight`, `velWeight`, `tugRatio` or the bone weights —
+yet the runtime re-applies the locomotion bonus and the travel term and re-computes the metric using
+the config's current values. Change
 one without retraining and the runtime's scoring silently disagrees with the fitted value function.
 
 `hasTrained` is the only thing standing between you and that, which is why it over-flags.

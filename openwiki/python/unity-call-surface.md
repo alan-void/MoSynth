@@ -12,7 +12,10 @@ sources:
     resource: repo://Python/debugging/test_server.py
   - id: openwiki-source-d19fee973919a137b3ac0360
     resource: repo://Python/motion_field/action_predictor.py
-generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
+generated: {by: "claude-code", at: "2026-09-29T08:27:12.326Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-29T08:27:12.326Z
 ---
 
 # The Unity call surface
@@ -32,10 +35,11 @@ This is the Python-side counterpart of [reaching Python](../motion-field/python-
 
 ```
 load_animations(dataPath, name)
-  → (skeleton, pose_x, pose_v, pose_y, pose_contacts, frame_time, pose_set)
+  → (skeleton, pose_x, pose_v, pose_y, pose_contacts, next_contacts, frame_time, pose_set)
 MotionField(pose_x, pose_v, pose_y, skeleton, frame_time, device=…, pos_weight=…,
             vel_weight=…, k_neighbors=…, tug_ratio=…, knn_chunk=…, bone_weights=…,
-            locomotion_factor=…, locomotion_speed_threshold=…)
+            locomotion_factor=…, locomotion_speed_threshold=…, travel_factor=…,
+            pose_contacts=…, next_contacts=…)
 load_value_function(path, log_callable)          # optional
 load_embedding_arrays(path, stateCount, log)     # optional, debug only
 ```
@@ -119,10 +123,10 @@ Importing `motion_field.action_predictor` attaches to a PyCharm debug server, vi
 The cost argument for gating it is real: attaching costs a socket timeout per import and injects a
 debugger egg into `sys.path`, which is **pure overhead for batch work such as training**.
 
-> **The comment says "Opt in." The implementation is opt-out.** The environment variable defaults to
-> enabled and the test is *not equal to zero*, so the attach runs on every import — including training
-> and embedding runs — unless it is explicitly disabled. The retry backoff bounds, but does not
-> remove, the per-import cost when no debug server is listening.
+> **The attach is opt-out.** `MOSYNTH_PYCHARM_DEBUG` defaults to enabled and the test is *not equal
+> to zero*, so the attach runs on every import — including training and embedding runs — unless it is
+> set to `0`. The retry backoff bounds, but does not remove, the per-import cost when no debug server
+> is listening.
 
 The attach logic itself is careful for a specific reason: **PyCharm clears pydevd's global debugger
 when its debug-server socket closes**, so a healthy connection is left alone, including across Unity

@@ -4,11 +4,16 @@ title: Value function training
 description: Fitted value iteration over the whole database, what the produced artefact does and does not record, and why the loader deliberately checks nothing.
 tags: [python, training, value-iteration, format]
 sources:
+  - id: openwiki-source-13742752b942a8c72fc71381
+    resource: repo://Assets/MotionField/MotionFieldStage.cs
   - id: openwiki-source-93fd80dba91ea0f5bb6027e9
     resource: repo://Python/motion_field/io.py
   - id: openwiki-source-cd81fde2d8ed86cd0b51960f
     resource: repo://Python/motion_field/trainer.py
-generated: {by: "claude-code", at: "2026-09-21T19:17:12.006Z"}
+generated: {by: "claude-code", at: "2026-09-29T08:27:12.326Z"}
+verified:
+  - by: openwiki/0.3.3
+    at: 2026-09-29T08:27:12.326Z
 ---
 
 # Value function training
@@ -31,7 +36,8 @@ Training fits a value function over the whole database, after which the runtime 
 ## The pipeline
 
 1. **Precompute**, for every database state and each of its *K* candidate actions, the yaw that
-   action produces and the neighbourhood of the state it lands in. This is the expensive part, and it
+   action produces, which way the state it lands in travels (and how fast, for the speed gate), and
+   the neighbourhood of that state. This is the expensive part, and it
    is **rebuilt on every train**.
 2. **Iterate** the Bellman backup over that fixed transition structure until the residual stops
    moving.
@@ -46,18 +52,29 @@ The transition tables are intermediate and never persisted. Only the value funct
 ### The backup
 
 ```
+theta'[s,a,t] = wrap(theta[t] + delta_yaw[s,a])
 bonus[s,a]    = factor * Σ_j w[s,a,j] * state_scores[s'[s,a,j]]
-reward[s,a,t] = -|wrap(theta[t] + delta_yaw[s,a])| + bonus[s,a]
-Q[s,a,t]      = reward + gamma * Σ_j w[s,a,j] * V(s'[s,a,j], theta[t] + delta_yaw[s,a])
+travel[s,a,t] = travel_factor * travel_weight[s,a] * |wrap(travel_beta[s,a] + theta'[s,a,t])|
+reward[s,a,t] = -|theta'[s,a,t]| - travel[s,a,t] + bonus[s,a]
+Q[s,a,t]      = reward + gamma * Σ_j w[s,a,j] * V(s'[s,a,j], theta'[s,a,t])
 V[s,t]        = max over a of Q[s,a,t]
 ```
 
-Two things in there are load-bearing:
+`travel_beta` and `travel_weight` do not depend on the heading, so like the bonus they are computed
+once per `(state, action)` and broadcast over the heading grid.
+
+Three things in there are load-bearing:
 
 **The bonus is not optional.** The heading term is how badly the character faces away from the goal
 after the action, and on its own it is **never positive** — which makes any idle state the reward can
 reach a perfect score once aligned. The bonus, keyed on root speed and paid on the *arrival* state, is
 what makes continuing to move strictly better than freezing.
+
+**The travel term is what stops strafing.** The heading term asks only that the character *face* the
+goal, so a strafe that faces it would score perfectly. The travel term charges the angle between the
+arrival state's travel direction and the goal. Its sign, speed gate, and the measurements that
+motivated it are on [the policies page](motion-field-policies.md#the-reward). The trainer's
+expression must stay identical to `MotionField.travel_penalty`.
 
 **The successor's value is read at a shifted heading.** Because the action rotates the character, the
 goal moves in its frame — so the lookup is at `theta + delta_yaw`, not at `theta`, interpolated
@@ -106,11 +123,11 @@ the first key the loader reaches for that is not there.
 ## What is *not* recorded, and why it matters
 
 The three persisted scalars are not the full set of things training assumed. `locomotionFactor`,
-`locomotionSpeedThreshold`, `posWeight`, `velWeight`, `tugRatio` and the bone weights all shape the
-fit and **none of them is written to the file**.
+`locomotionSpeedThreshold`, `travelFactor`, `posWeight`, `velWeight`, `tugRatio` and the bone weights
+all shape the fit and **none of them is written to the file**.
 
-The runtime re-applies the locomotion bonus and re-computes the metric from the config's *current*
-values. Change one without retraining and the runtime's Q silently disagrees with the fitted V.
+The runtime re-applies the locomotion bonus and the travel term and re-computes the metric from the
+config's *current* values. Change one without retraining and the runtime's Q silently disagrees with the fitted V.
 
 `hasTrained` is the only thing standing between you and that, which is exactly why it
 [over-flags](../motion-field/config-and-training.md).

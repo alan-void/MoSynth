@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:786b60fe177d19a6949fea0e5f62cfe6c3959509eabefb185d448a54b55c2a3e",
+  "pageVersion": "sha256:6c31cdbce1e3061fd68088db4014a5d8d39ed0d50093fe6a80b733c992cf832b",
   "claims": [
     {
       "id": "claim_4cfca4f77a0547adb388f9d0480e1119",
       "statement": "The similarity metric is frame-invariant by construction because forward kinematics pins the character frame to the origin with identity rotation, so where the character is in the world never influences which states it matches.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L552-L600",
-          "version": "repo-lines-v1:sha256:8ad951b3f99da936f073bf3983365c0cded0e67223509ccaadda20712e809f04:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjOWQyZWQzNzU5NDMwMmFhZTBmMGU4OGZjYjcyYmFhYmE1Mjc4NjA4NWI5ZDBmZjA1YjZmNmJmZjQyZGM1NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjMmU2OWQ3M2ZmYmM5M2I1ZDdiNjEwOTkwN2YyNTlkNzlkZmNmZjUyZDcxZjNhOWNhZjBhMGU5YjZlNzRlN2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYTUwNGU2MGRjZDRmODE0NDMxYWZmNzhkNTVlNGM5YTY0ZGRhNmM5MTVhNTNhMWU4MDIxNDY5MzIzNDBkZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjZjU2MzgwODFlOGM2NGY2MzEwOWJlOTM0NjE1MzNjMDdlYWM1OGI1YzBiNDIzNzMzM2IxOTM4YTBhZDBmNjUifQ"
+          "resource": "repo://Python/motion_field/field.py#L598-L640",
+          "version": "repo-lines-v1:sha256:b394048bc7dbd775ab58cd95fa2ff68e22e32d7741585451ab918d853213e807:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjOWQyZWQzNzU5NDMwMmFhZTBmMGU4OGZjYjcyYmFhYmE1Mjc4NjA4NWI5ZDBmZjA1YjZmNmJmZjQyZGM1NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjMmU2OWQ3M2ZmYmM5M2I1ZDdiNjEwOTkwN2YyNTlkNzlkZmNmZjUyZDcxZjNhOWNhZjBhMGU5YjZlNzRlN2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MGU5ZmQ3YjQ0OWQwODQyN2M1ZDU2NjEzNTI2MWQ2YzMzN2E2ODRlN2M0MGNiMTA4NTcyMDk3NDkwZWFmMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjZjU2MzgwODFlOGM2NGY2MzEwOWJlOTM0NjE1MzNjMDdlYWM1OGI1YzBiNDIzNzMzM2IxOTM4YTBhZDBmNjUifQ"
         }
       ]
     },
@@ -17,8 +17,8 @@
       "statement": "The metric is also root-translation-invariant because both forward-kinematics passes substitute the root bone's rest-pose offset for the pose's own: a live root offset is a rigid translation of every joint, so it would enter all rows at once and drown the per-joint shape signal the metric exists to compare. The exact offset is irrelevant since any constant cancels when two states are subtracted — it only has to be the same for every state.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L552-L600",
-          "version": "repo-lines-v1:sha256:8ad951b3f99da936f073bf3983365c0cded0e67223509ccaadda20712e809f04:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjOWQyZWQzNzU5NDMwMmFhZTBmMGU4OGZjYjcyYmFhYmE1Mjc4NjA4NWI5ZDBmZjA1YjZmNmJmZjQyZGM1NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjMmU2OWQ3M2ZmYmM5M2I1ZDdiNjEwOTkwN2YyNTlkNzlkZmNmZjUyZDcxZjNhOWNhZjBhMGU5YjZlNzRlN2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYTUwNGU2MGRjZDRmODE0NDMxYWZmNzhkNTVlNGM5YTY0ZGRhNmM5MTVhNTNhMWU4MDIxNDY5MzIzNDBkZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjZjU2MzgwODFlOGM2NGY2MzEwOWJlOTM0NjE1MzNjMDdlYWM1OGI1YzBiNDIzNzMzM2IxOTM4YTBhZDBmNjUifQ"
+          "resource": "repo://Python/motion_field/field.py#L598-L640",
+          "version": "repo-lines-v1:sha256:b394048bc7dbd775ab58cd95fa2ff68e22e32d7741585451ab918d853213e807:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjOWQyZWQzNzU5NDMwMmFhZTBmMGU4OGZjYjcyYmFhYmE1Mjc4NjA4NWI5ZDBmZjA1YjZmNmJmZjQyZGM1NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjMmU2OWQ3M2ZmYmM5M2I1ZDdiNjEwOTkwN2YyNTlkNzlkZmNmZjUyZDcxZjNhOWNhZjBhMGU5YjZlNzRlN2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MGU5ZmQ3YjQ0OWQwODQyN2M1ZDU2NjEzNTI2MWQ2YzMzN2E2ODRlN2M0MGNiMTA4NTcyMDk3NDkwZWFmMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjZjU2MzgwODFlOGM2NGY2MzEwOWJlOTM0NjE1MzNjMDdlYWM1OGI1YzBiNDIzNzMzM2IxOTM4YTBhZDBmNjUifQ"
         }
       ]
     },
@@ -27,8 +27,8 @@
       "statement": "Changing the metric in code invalidates every trained field by hand, because Unity's staleness check watches config fields and an edit to the metric function moves none of them.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L552-L600",
-          "version": "repo-lines-v1:sha256:8ad951b3f99da936f073bf3983365c0cded0e67223509ccaadda20712e809f04:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjOWQyZWQzNzU5NDMwMmFhZTBmMGU4OGZjYjcyYmFhYmE1Mjc4NjA4NWI5ZDBmZjA1YjZmNmJmZjQyZGM1NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjMmU2OWQ3M2ZmYmM5M2I1ZDdiNjEwOTkwN2YyNTlkNzlkZmNmZjUyZDcxZjNhOWNhZjBhMGU5YjZlNzRlN2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYTUwNGU2MGRjZDRmODE0NDMxYWZmNzhkNTVlNGM5YTY0ZGRhNmM5MTVhNTNhMWU4MDIxNDY5MzIzNDBkZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjZjU2MzgwODFlOGM2NGY2MzEwOWJlOTM0NjE1MzNjMDdlYWM1OGI1YzBiNDIzNzMzM2IxOTM4YTBhZDBmNjUifQ"
+          "resource": "repo://Python/motion_field/field.py#L598-L612",
+          "version": "repo-lines-v1:sha256:08c10d4f197007afe37c82afbdce2b65be378612eba5deb042c778fbb8554e70:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjOWQyZWQzNzU5NDMwMmFhZTBmMGU4OGZjYjcyYmFhYmE1Mjc4NjA4NWI5ZDBmZjA1YjZmNmJmZjQyZGM1NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczNmFiNjEyMTkxODRhYTE4MzEyNzQ2NTcyN2E5Y2UyN2RmNGQ2MWEwMDA3Y2U0ODA5OTc5NjUzNzZjMjExZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MGU5ZmQ3YjQ0OWQwODQyN2M1ZDU2NjEzNTI2MWQ2YzMzN2E2ODRlN2M0MGNiMTA4NTcyMDk3NDkwZWFmMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxMmNhOGM4MzI4MDM0NTA2OWJlNDk4ZDk1YjExNmU4NTczOGMyYzY3YjIyOWQzNTE5ZTJjMDFhNTc0YmYyN2IifQ"
         }
       ]
     },
@@ -37,12 +37,8 @@
       "statement": "Bone weights are resolved by joint name because the feature rows follow a depth-first walk that happens to match the serialisation order but is not guaranteed to, and rows for the character frame and the rig root are forced to neutral since their contribution is structurally constant and so cannot move a distance.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L72-L86",
-          "version": "repo-lines-v1:sha256:318377924ae37c9052944ab33fc54111189e434d19f106bf471c4f10896bd85b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiMDNhOTAwOTJhYzYzNWQxNjY5ZGRhOGMwZDQyNTk1ZmMxMmVjZTQ5OTI5N2M3MmYxNzM4MGQ1OTViYTYzYzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxM2Y2Y2Q5ZDI1ZTFkZmE0NzRkMGU5MDhiZTEyZTQ0MTBkOTczNjhmMDk4NDhiYTNkMTVkYjFiMjAyZmE2NDcifQ"
-        },
-        {
-          "resource": "repo://Python/motion_field/field.py#L113-L122",
-          "version": "repo-lines-v1:sha256:53530ff35cb67a0a612167f1eaaaf33de6fd5c5a23a69d6acf4d21bf5e460c38:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzZjNjMjc5Y2JlMjIxNzdiZmE1ZTc1NzhkN2JjNjg1NjNkNGI1YzIyZDhkZjVjNGQ4MTg1NWEwZmExOWJhZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzNGE2NzNkYjA5NjRkYmM4ODBmODc4ZWE4MDUzMDFlZGYxOTI3NDc4ZDBjODk1NDZhMTEyZWI3Y2Y2NmE3NGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmYWM3ODQ3MGM3MGRjOWU3MmU1YWM4Zjc0NGJiMDdlNDVkZmUwOTUyMTgxMDg0NmY1YzRhZTBkZmJkYmVkZTMifQ"
+          "resource": "repo://Python/motion_field/field.py#L88-L136",
+          "version": "repo-lines-v1:sha256:d246eb8cfe3944411a03eabefe4e2fc180168796984b91910bd3fa00c43127e4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYmY5YWY0NDgwOTJkY2MzOGZhMGNlZjI1MWU0YmY0MjI4YjQwMzJlNzBhYzEwNTZkYmQwZmE1NTNmZTU2N2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhOGM2ZmI1NDBjODlkYTEwNGI0Y2JjYTQxODc0YzRmMWNkZjg1YjZhM2M0NmMxZDc3ZTEwOTQ5YzNhNDIwZjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkZmI0MjFkNDcxYmUzNjMyODZmMzVhNTFjOWM1MDc0OWIwYWMyNTU3MGQ5NTVjZjdkNWVhZDc4NWYyNDczYmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyNTUwZmM1N2ZmNWFlZGZiZmYwZTAyYzk0ODZiZDZhM2I2MzI4ODI1OWIyNjE3NWUzYTE4YjhhODQ2MWFhNDAifQ"
         }
       ]
     },
@@ -51,8 +47,8 @@
       "statement": "There is one candidate action per neighbour: the similarity weights are taken and that neighbour's weight pinned to one before renormalising, so each action leans on a different neighbour while still respecting the similarity distribution.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L283-L292",
-          "version": "repo-lines-v1:sha256:d62ec359c5bee6f0e669e0421eef97921898782977060de61d6950c3a2e6c5b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwZGUyNTg3MTk2MTQ5MjYwNzFjOGZiMTlmZDg2NjE1MDU1NWYxYjAxMzU0ZjhjZDE2MDNhMTA5YTdkZGFlNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0YTJlY2IxYzExODFjNTI4ZGZlM2Q0MjA4NjRjYjYzMzM4NGNlYTU2ZTE3Yzc1OTRlNDkzYThhZWQwOTQyYWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiYTFiNzEyMGQ0MzIyNzdkYjEwOGM1MGIyOWU2OWMzZThhNTVlZDM5NTU5ZjJhMTg5NDE1ZTEyMjIyZWQ0NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4ZjViMGI5Yzg2YmVjNWExNjk1NjMzZTQ5M2Q3ZWM2YTA0ZWEyNzExZGNiZjg1NjZjOTAwNDUwZmY1ZWYyN2EifQ"
+          "resource": "repo://Python/motion_field/field.py#L305-L320",
+          "version": "repo-lines-v1:sha256:f2df30a26476820076e3c1e34aeafaeb289648652b4bfb23fedb9c8d3d642aeb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYTg2N2M3MmYwZWI0MGYwOGQ0OTI3YWI4YzlkN2M3ZmIxOGJkMzQzNTE3NGIyMGI1MjdhYjUxNzA3NTg5ODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNTAxNzk1ZTU3NTY2MmMxYjE0YTA3MmIwMzMzOWFhZTQ0YWExZGZiYzZhMDdmZGM1YmE3YzJjNDdiMjY5M2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljOGU3YWU1OGYyNjMzYzRiNDU4OWY0NGNiZmM1YzAyMWQ1MTQzYjEyOTRkM2ZlYzM0NmViZjU5YTJjMDFlZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhZTgzNDFiNzFmNTEzYWU5MDE5NTYxYzE3ZDkwZWJkOTU5MDRmMTZiNWQwMzhmZjIwYjlhZTc0YThlYjc0N2QifQ"
         }
       ]
     },
@@ -61,8 +57,8 @@
       "statement": "The character frame slot is zeroed on every step because it is a per-frame increment rather than a world pose: database states are stored in their own frame, so a tug blending against one would drag an accumulated world position toward the origin every frame and collapse it to the origin in about thirty frames. Unity owns world placement and integrates it from the returned velocities anyway, so zeroing also makes training and runtime structurally identical.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L343-L356",
-          "version": "repo-lines-v1:sha256:9bcc4e170a8514e035115c19f63d572a2843fc837cab4dc38b3931f389b966fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5YTI2YmJjNDQwZWJmYmRiOWJiYmQ5NjViMTVjZmI3OWE4OWY0OWVhYWRjYmQ4NzQ1YmEzOTUwMjUyMjg5ZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmZjJlNzMzYjI2NDMyM2MxODE5YmRlYzY5NmU2MjE1NTQ1NjVkY2NjM2Q0YjYxZmE2MWQ4ODE0ZTNiYjc2YWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzNjc5NDQ3YmQ0M2FhYTQ4MDI2MWJlODc3YzQ1ODIxODkxZGUyNWJjMTIwNGMyNmI4ZTJhOGExMTExMTk4MDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3MGU3ZjBjYmY2NjliNTM4MjdlZTk0NWIyYjliYWRmNTUyODZhY2NjN2Y3YjQyOGEyMmQzZWU5NTkwMjJmM2IifQ"
+          "resource": "repo://Python/motion_field/field.py#L364-L372",
+          "version": "repo-lines-v1:sha256:e998e46fcb80d47e9aa2c4ddb10f82384ae8b83fe4d21f42d1e1b25715b6aeb5:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTlhMjZiYmM0NDBlYmZiZGI5YmJiZDk2NWIxNWNmYjc5YTg5ZjQ5ZWFhZGNiZDg3NDViYTM5NTAyNTIyODlkYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODM2Nzk0NDdiZDQzYWFhNDgwMjYxYmU4NzdjNDU4MjE4OTFkZTI1YmMxMjA0YzI2YjhlMmE4YTExMTExOTgwMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmU0NmY5N2I2NzU4NjMzOWE2OWJlOWRlNjEzZWQ3ZDMxMjM4NmI3YTAzMmEwMThlNGFhYWUxOWEwMDhhMjkzOSJ9"
         }
       ]
     },
@@ -71,18 +67,22 @@
       "statement": "The tug is a contraction applied per call, so its strength must follow the step size: at a step shorter than one database frame a fixed ratio would pull onto a database pose faster than the scaled advance can move away, freezing the character. Compounding it per database frame makes many small steps tug exactly as much as one full frame.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L303-L330",
-          "version": "repo-lines-v1:sha256:6a870225fde83e2a9fd12f7fd7208fdceabd03c4782b71e1bb5717a5f932c08f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmNTQ1YjAxN2IxZmYyZWM2ZTUxOTZjM2NiY2NiNzA4NzgzNmI0MTJhY2FhODcxNmUzOTVkMTg2YTAxNDE4M2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZjM2Zjg4Mjg5NWVhNzQ0MzUxMTcxMmIzMzc2MjNhY2Y0YzNiYmFiY2RhZTFhZjBhNzg1ZjNiNzM3ZDdhMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhZjk3ZjljM2ViOTYxODg4OTQzMmRlNmQ0MTQ3ZTE3YmRiZWZkYmI5MjdkYmY4Yzk4MjE1YjhkM2UzNmU3MjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2YWI2MmQ5Y2E4MjQxZTBkYjIyMjk3YTNkMjRiYjU0Yjk0ZmYxNWUzZTYzZTRjNWI1NmQwZGUzMzUxZWNjMmIifQ"
+          "resource": "repo://Python/motion_field/field.py#L326-L352",
+          "version": "repo-lines-v1:sha256:d5cb5c0854ae0f9e5799118c2c8fd47ca6e78eaf706b91be58feda8747445a86:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmNTQ1YjAxN2IxZmYyZWM2ZTUxOTZjM2NiY2NiNzA4NzgzNmI0MTJhY2FhODcxNmUzOTVkMTg2YTAxNDE4M2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1ZmVmYTBhZDQwNTk2ZWVkYTJlMWVhNjJlNTk0MjQ2YWRhNWM1NTY1YTRiZjIzMTI3N2RiOTZhNWM3NTgwZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhZjk3ZjljM2ViOTYxODg4OTQzMmRlNmQ0MTQ3ZTE3YmRiZWZkYmI5MjdkYmY4Yzk4MjE1YjhkM2UzNmU3MjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5Y2M3OTQzMDU5YjMyNGNiMDgxODY5MTc2NzgyYzdiMzllMjM3OTM2NDI1YTk3MmRjMzdiNDU2NTJmNDI0YzUifQ"
         }
       ]
     },
     {
       "id": "claim_12819e9642ee404c987e2abbebaa9dba",
-      "statement": "The runtime scores actions with the same Bellman objective the training optimised, immediate reward plus discounted value, because scoring on discounted future value alone would optimise something the value function was never fitted to; the locomotion bonus is likewise paid on the arrival state through the same neighbourhood, since the immediate reward must match what value iteration optimised or the argmax drifts off-policy.",
+      "statement": "The runtime scores actions with the same Bellman objective the training optimised, immediate reward plus discounted value, because scoring on discounted future value alone would optimise something the value function was never fitted to; the immediate reward's heading term, travel term and locomotion bonus are all computed as value iteration computed them, since a mismatch lets the argmax drift off-policy.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L433-L471",
-          "version": "repo-lines-v1:sha256:cd707c0972ba27818b555912ff921cf30083a9e5bc5adc010c95fb818127ceeb:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjN2VkN2ZkODdjNGM0M2I5MGYyMmM5ZjMwYWY4YWNhNWRhNzk5MjJhMDQyNjFmYzI4MTQ1ODgzNTMwMDUyNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5YjkyMGE4NzFlMWYyYWFkMTYxNGQ2OGU5M2NiZTU3MzVjNTY0OWNkMGY0N2Y0NjJlNzNhZWE2YTE4MDgzZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwMmYyYTIzODI0OTI3NDgyZjYyYTc1MjQxOTcyY2VhZWFmMzhiZTk5OWYwYjE5Y2RlMzk1ZjA2MmFkNmIzYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3Y2Y2NzQ4YzA0YmZlMTFiMTYxYmQwMmM4NTFjYTViODQ0MWU2MmNhYzBjZDZiNDA1NzY4MzU3MDgyNmVkMzYifQ"
+          "resource": "repo://Python/motion_field/field.py#L455-L477",
+          "version": "repo-lines-v1:sha256:84cbb0825c61c1edea681b16341e6285a59777ada1d4caed3c3e9a40a954ac7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxMTIxM2I5N2IwNGMwMTk1ZDY3MDMxNzMzNDQ5OTIxOGRiOThmMjFiMDU5MWRkODFlNTQxYWVlYTQxOTcwM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhZjg2NWFiODVjODZkNTUyODlhZDA2ZmJiZWZiY2Q0YWJmMzY5ZWU1YmM2YzM3ZjcyYTlhOGE3YThjZGFlMTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkYjJkYmEwYjFhMzg4OTk4MDI2YTdiMmFjMmJjNmYwYjI0MmJmOTM1MjQ3YTllODBlOWJhMWViOWJjY2VhYjcifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field/trainer.py#L136-L154",
+          "version": "repo-lines-v1:sha256:4e0994239972434e1e5c744ab17058a71b0feefc15557130f765f2e5645e3f3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmZGY1MDA4MjYyNWQzM2E5ZjM4MWZjMWM1NjdmY2IzZmEwMWQyNGYwYmY4Y2EyYjI5YTBkZTdhZWY4Yjg4ZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2MzE0MGI5YmZiYmQ3OGNhODNhYjY5YjcyNzczZWM3MDhlMzQ0MzVjYmI5YzE0ZDgwZGFjODIyYzQ2MWZmNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMzQ1NzAzYjg4YTVhMTljN2FlNzI2NGY1ZmVlMjQ2ZjY1NzIwZmZiZmJlMTc1M2Y5Yzk3NzhhNTI2ZWMwZTgifQ"
         }
       ]
     },
@@ -91,8 +91,8 @@
       "statement": "Sampling the value function at only the discrete database states and interpolating — linearly across the two bracketing goal headings, then by motion-space similarity weights — is what makes a discrete table behave as a continuous function over the whole field.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L408-L431",
-          "version": "repo-lines-v1:sha256:1bc31c816456e343af7a0ef1d8cd3682d197b972f6eed24f31633bfa969fe3dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0YThlMDA3YzM3Y2E0NTk2MzI0NjA1N2RkNWNjN2ZmZDQ3NjEzM2Y2ZjA5NTY0MTZhYzc1NGZkMmFmOTMxMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiMzU0M2Y2ZDJjZTRhNjUzNDQ3YzBiMWI3NzlkOGY4OTUzMjliNjZiYTQ2NDA2YzNkZWMzMjIzNzkwOTI0ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4ZWZhOTg3MDEwZWJlY2VkOTFiODRkYzMzN2M3NTQ0NTdlMWMyZDA1MDg5OTcyZTMwNjZmNWE0MWNkNWNlNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhMWRlNzVjZmI3Yzg1OGU5NjhkNTdhMTY5ZWMwN2M4ZmM2ODY1ODMzYThlMDUzMjk1NzExNTUyNzg1MmY0ZDQifQ"
+          "resource": "repo://Python/motion_field/field.py#L417-L439",
+          "version": "repo-lines-v1:sha256:f38dcb7c5b878fe9f217e951649db3d4dc1fe6bf5936d5f9bd7980fe63b2ac40:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0YThlMDA3YzM3Y2E0NTk2MzI0NjA1N2RkNWNjN2ZmZDQ3NjEzM2Y2ZjA5NTY0MTZhYzc1NGZkMmFmOTMxMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiMzU0M2Y2ZDJjZTRhNjUzNDQ3YzBiMWI3NzlkOGY4OTUzMjliNjZiYTQ2NDA2YzNkZWMzMjIzNzkwOTI0ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4ZWZhOTg3MDEwZWJlY2VkOTFiODRkYzMzN2M3NTQ0NTdlMWMyZDA1MDg5OTcyZTMwNjZmNWE0MWNkNWNlNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhMWRlNzVjZmI3Yzg1OGU5NjhkNTdhMTY5ZWMwN2M4ZmM2ODY1ODMzYThlMDUzMjk1NzExNTUyNzg1MmY0ZDQifQ"
         }
       ]
     },
@@ -101,8 +101,8 @@
       "statement": "Loading a value function returns false rather than raising when the file is missing or unreadable, because Unity calls it inside the GIL where an exception surfaces as an opaque managed error; whether the file matches the config is decided in Unity beforehand and nothing is re-checked, so a file trained against a re-extracted database addresses the wrong poses with no symptom this module could detect.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L380-L398",
-          "version": "repo-lines-v1:sha256:e225f06902577920e0456e5a98d4859aa816c9c51090e841f2780c772b885291:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3OGJiODk0ZTdjOTRmN2M4ZDc4MGZhNjlmNzkzNzJiMDEwNDhjYzgyMTJkY2YzMmI0ZmI0YTAzZTNkNTU1ZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwZGUyNTg3MTk2MTQ5MjYwNzFjOGZiMTlmZDg2NjE1MDU1NWYxYjAxMzU0ZjhjZDE2MDNhMTA5YTdkZGFlNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5NDViYzViMzljOGU2ZmQwMWRjMDIwMWE2MmRhN2NlNjMxYzM4YWYxYTk5ZDI4NTYyOGMyMjcyMDRjN2ZiMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyNTE5NDQ4MTQyYjQ0YzVlNzlmYjliNzllNmNiZDA0OTFhYWFkODM3YTAwMjI4YjVhOGExZWI1ZWY5NzEzNWUifQ"
+          "resource": "repo://Python/motion_field/field.py#L394-L415",
+          "version": "repo-lines-v1:sha256:af4c0f2d398cad30f416728883fb3bb7e66a8adb1710d21a745ecd9644f05efc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3OGJiODk0ZTdjOTRmN2M4ZDc4MGZhNjlmNzkzNzJiMDEwNDhjYzgyMTJkY2YzMmI0ZmI0YTAzZTNkNTU1ZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjMmE5NmRiMTZiN2QwZWZkZWM1ODgyZDc3ODZmODc5OTc0ZjBjZTdiOTZlOGQyZjJjYTgwNTBlYmQwZDE3MWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5NDViYzViMzljOGU2ZmQwMWRjMDIwMWE2MmRhN2NlNjMxYzM4YWYxYTk5ZDI4NTYyOGMyMjcyMDRjN2ZiMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3NDM5YzAwOGNmNzI1MzBlMGJhNzY5MGFlMWQzYjc4ZjcyODg2OTdhMzdhN2Y0NjMyZDk3N2M3NzNhYTg2OGUifQ"
         }
       ]
     },
@@ -111,8 +111,8 @@
       "statement": "The locomotion score generalises the reference implementation's walk-versus-jog set membership to moving versus idle, which is what keeps an idle pose from being a zero-cost place for the reward's heading term to hide in; it is ramped rather than thresholded so slow turn-around frames keep partial credit instead of flickering across a cliff.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L36-L45",
-          "version": "repo-lines-v1:sha256:bc6c851ba3d0b0ea39e29226a9cdd0a966b4c49cc81ebfaf4365071d7ca6fd0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1NGU4MTg2NWNmZmY4N2IzNzBlNDExMzU1ZDIyYWMwZGU4ZjNlOTk1N2Y0NGE1NGI2ZmFiN2IwY2M2MDhmMzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZTBiOGZlZWU1Njg2NTljOTA2NTU0MTJkZmIyNGQ0NjA0Y2ViNjFlMWM0NThmNzFjODE3MTA5ZjRhNTU4MjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUyNDc5NDcxN2M3NTM1NDkyZTdjYmMzMDc3OTNlNjk3NzNkYjcxZTk3YmQ0ZWExMjFhMDc0YWZjNmEzYTUxYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmYzY0ZGE5ZGM0OTFiNDljNTUyYjgyOTI3ZDRjYTc2MGJiNWY4MWY3OGVkZWQzNjdiNTU4NDk0ZmY5OGY4OTQifQ"
+          "resource": "repo://Python/motion_field/field.py#L35-L44",
+          "version": "repo-lines-v1:sha256:d07d7199ab3fa7b8c751407c9082f90b1c2441779618886dfa19e1e6939d0595:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1NGU4MTg2NWNmZmY4N2IzNzBlNDExMzU1ZDIyYWMwZGU4ZjNlOTk1N2Y0NGE1NGI2ZmFiN2IwY2M2MDhmMzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1YmE1NWUzN2FjYjZlNjRiNGQzY2VlNjM1YjFhN2MyNjBkZmQxMWVjNTU0MmM0YTcxMWJiNmQzZDRlZmUyYWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUyNDc5NDcxN2M3NTM1NDkyZTdjYmMzMDc3OTNlNjk3NzNkYjcxZTk3YmQ0ZWExMjFhMDc0YWZjNmEzYTUxYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3NjljNmRiNjUyMzlkY2ZjMThiYzJlZDczM2I3MWIyYzAwMzBmNGY2MmJlOGVjM2NlMDA1MmJjMTUxMWEyN2YifQ"
         }
       ]
     },
@@ -121,14 +121,74 @@
       "statement": "Yaw is extracted from the frame quaternion exactly rather than approximately, because the frame rotation is built as a pure yaw by construction; the extraction reads the y and w components, and the wxyz formula the reference implementation uses would read the wrong components and return nonsense under this codebase's xyzw ordering.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/field.py#L21-L33",
-          "version": "repo-lines-v1:sha256:9cd4c4d026188fd0ba62fa7385e89fc6908b93bd2dff3534534e04947cd86a26:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkYzhkOTcxOTEzMzA1MmFmNDRiMTAwMGMwYTM1NDRmMzc3NGZhYjBlYTEyMjJhNTZkNjU5ZmYwNjcxNzdmNzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4YTE0MzM4YzQ3YjQ2YjYyNWMzOTMxZDdiZTBiYjYxNjdkYWIwYTRmNzViMGRkNjUzNmZmZGExYTk2YzlkNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5OTNjN2ZhOGJmMGFmOThjYjM4YzljMWM4ZGUxMjExNDcyMGNjMzljZjBlNDE0M2IyZTg3ZmFlZTA3NzU5OTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5ZWRiMTI2NTVhOGMyYzA1MzhkNDQxNzc0Y2RjMjFhYzFkYzgzMWEyZjY3YWEyMjViNWQ3ZjQzYTdmZmQ4Y2QifQ"
+          "resource": "repo://Python/motion_field/field.py#L22-L32",
+          "version": "repo-lines-v1:sha256:b042a25a39c9c51d5ba504d8c66d77569265883978af721dadc7988b8eae5e3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkYzhkOTcxOTEzMzA1MmFmNDRiMTAwMGMwYTM1NDRmMzc3NGZhYjBlYTEyMjJhNTZkNjU5ZmYwNjcxNzdmNzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4YTE0MzM4YzQ3YjQ2YjYyNWMzOTMxZDdiZTBiYjYxNjdkYWIwYTRmNzViMGRkNjUzNmZmZGExYTk2YzlkNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5OTNjN2ZhOGJmMGFmOThjYjM4YzljMWM4ZGUxMjExNDcyMGNjMzljZjBlNDE0M2IyZTg3ZmFlZTA3NzU5OTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5ZWRiMTI2NTVhOGMyYzA1MzhkNDQxNzc0Y2RjMjFhYzFkYzgzMWEyZjY3YWEyMjViNWQ3ZjQzYTdmZmQ4Y2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_22aa647c180b4d80b17ce99990a152c3",
+      "statement": "The heading term measures only how far the character's facing is from the goal, so on its own any action that faces the goal scores perfectly whichever way it moves — a strafe or backpedal that faces the goal is as good as walking at it. The travel term closes that gap by charging, per radian, the angle between the arrival state's direction of travel and the goal, scaled by travel_factor.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field/field.py#L478-L501",
+          "version": "repo-lines-v1:sha256:a26587f1cd434c5538a6f9e708d2907fc1764e64614223922a8e73a70dbf0f67:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZDVmYTc5MGVkMTAwMWZmZjI3ODM5YjFlNzgzMThkNWNlZmQ5MjZhMWRlYTgxNTY3OTM3MTYwZGM0Mzc2YjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2ZWY1Y2QxNzM4YWE0MTkwMzQ1ZjgyZjEzNzQ4NDU1ZDM4YWI0NjdmOWFiMTk1ZTJhMTZiM2Q2NjIzNzY3NjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MmFkMDVkYjI5MjU0NjI2ZDczMDE1MTA2MDYzZjM2MmJiYzFmNmYzODRiMjc1NGU5NmYzOWQyNGVjYjJjNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzNGZlNTA0MWZjYjhlNGM1NGZkNzY0MjM3NTdmMjI5MjY1MjI3OTk2MjU5NTQwMGI0YjM0NmJkNzYzYWU5NzMifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field/field.py#L189-L192",
+          "version": "repo-lines-v1:sha256:a8bad0617630c092afb6f10d39011bff4a288bd999fc452d2f32fef64f9dfed9:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzE1ZGYyZWRhZTliNTM4MjlkZjI3MmU2NzFiMTBmMDE4NGQzMmE3MTE3MmNkYTkyYTFjOGRiYzYwNDlkZDE1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWZlOWJlNTQ0YmUzNWNlZDExZTk1OWNiM2I1YTc3ODBlNWQ4MWYzODU3MTk5MTRhZGY5YTM5MmIwMjU3NmZjYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2U1NTNlMTEzNWE3NGFmYmQ3NjRiYThiM2RlZjJlNjIxZDA0MmU3MzgzZjE2MzhiYjYxZTk2MzcxZjQyMWRjOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2VlYmZkMTEyY2YyNDEyYTVkNmM5NjcxNjhkODhkYmNkODg4Yjk1OGM5NjY4YjU0NzcxOGMzMmUwZjQzYTUyZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_074a5ec3ac474d1d83002995e9f5eb44",
+      "statement": "The travel gap is beta + theta': theta is the negated signed angle from facing to goal, so after the action the goal sits at -theta' relative to the new facing, while travel sits at beta relative to the same facing, and their difference is beta - (-theta'). It is zero walking straight at the goal, pi/2 for a strafe facing it and pi for backing toward it.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field/field.py#L478-L501",
+          "version": "repo-lines-v1:sha256:a26587f1cd434c5538a6f9e708d2907fc1764e64614223922a8e73a70dbf0f67:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZDVmYTc5MGVkMTAwMWZmZjI3ODM5YjFlNzgzMThkNWNlZmQ5MjZhMWRlYTgxNTY3OTM3MTYwZGM0Mzc2YjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2ZWY1Y2QxNzM4YWE0MTkwMzQ1ZjgyZjEzNzQ4NDU1ZDM4YWI0NjdmOWFiMTk1ZTJhMTZiM2Q2NjIzNzY3NjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MmFkMDVkYjI5MjU0NjI2ZDczMDE1MTA2MDYzZjM2MmJiYzFmNmYzODRiMjc1NGU5NmYzOWQyNGVjYjJjNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzNGZlNTA0MWZjYjhlNGM1NGZkNzY0MjM3NTdmMjI5MjY1MjI3OTk2MjU5NTQwMGI0YjM0NmJkNzYzYWU5NzMifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L348-L378",
+          "version": "repo-lines-v1:sha256:6e31b077c6f2789067fc8acf7858f86b031acb99bfb520d55cc4705b9cf26f70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYjZkYzkwYjJmNzkyOTYzZGNkYWRmZWZiNDA4NDg1NDkzYzAzYzNlMWE4MGYxNDliYzYzODAzY2RkMDQ2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NmEwNjUwM2UzZTJmZDM3NGI3MjgyZGEyMzE3OWZhYmY0MjgwMzI5OGQzM2IzMTRmOWUzMDUwMGU2MjVmMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExNjllMGE3MDg5NWNmOTcwZTAwMGViMzliOGU0Y2M2OTViZmMwNzYxMzhlNzQyODdkMTI3NDdjYjE2OWVkNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZTMwMjAwMzRiODg2YzZhNjcxZmQwNDA1MzgzZjQ0MmU4NWIzOTNjN2JkODM0M2ZjMmY4Y2E4MjMxMTU4MjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d1e1867cb2994f5995c5a0e265d10859",
+      "statement": "The travel direction beta is read from the frame slot of the packed arrival velocity, which is expressed in the character frame's own axes with +Z forward and +X right, as atan2(x, z) — positive to the right like Unity's SignedAngle. Below walking speed that direction is noise, so the term is gated by the same linear speed ramp as the locomotion score and an idle state pays nothing.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field/field.py#L47-L65",
+          "version": "repo-lines-v1:sha256:563634c6be75537be009273b0ef2d4bfd094cd37f2a2d6d12d2f27697abc7724:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3ZjY4ZjY1ZjVmMWQzZDFjOTU3OTExODQ4Yzg4YzIxYjlkODA0Y2M4ZGQyMThkMTU0NTJkNzUzNzA0ZDQwN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxYmNlZGFiZWM0YmM5NDRkMTVkN2JhMjVmNWMxMGZkZWZiMDkzYWNkYWQwMjBlYWYyNDA3MDYwMTgyYmZlZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4N2E5NTYyZTg2MWVkOWJjMjk4NDY5YWJhMDZlNGQwODFmOTgyNjhlOWQ1MmMyYTI4MDU3NDUxMTA4OWEzYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiN2UwODBlM2IzY2QxZjA1YjZmZTFlYTkxYjllNDg0MGM1MGViMWM4ZDA2OWQxNTIyOTM3MTRiMDFkZWYwNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8b5e5b82c3ad4da5815fb1f1db6faf42",
+      "statement": "The greedy policy, the runtime Bellman score and value iteration all charge the same travel term from the post-tug arrival velocity, and the trainer's copy must agree with MotionField.travel_penalty or the runtime argmax optimises something the value function was not fitted to.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field/field.py#L533-L558",
+          "version": "repo-lines-v1:sha256:3bd7d44f6d4ed374338e102885907e592a6c0d4d9f89eef13f9aceb79861c734:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzM2M2YWViMDY2NWNmZDNlNjY4NzUzZjA5MmY5ZTg1ZjljZGIxNDNkZmFlZjE5YTQyNmVmN2I0ZmRhNjEzMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZjE3ZTY5N2Q0YzJkMWE4Y2Y5ZDFkODhmZTFhZTY4ODVjZGY2MjllMTA4YmExNDNlNWNmNjA4MTFkMDhjNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiNmY3NmFkYmM2MTI2MDM0MmVmNDJjYmIwNzQ5MTY2YjkxZDE4MDZhNGU3ZWZlNWE4ZWNjMDM3NGE3Nzc1MjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiYmY1ZjU5NjMyYjIwNTM2YzZiZGViMDM4ZWQxMDY1MDFmMTg4NTg3YzA2OTQ4ZTFmMWVmZTE2OThiZWQzZDgifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field/field.py#L455-L501",
+          "version": "repo-lines-v1:sha256:74465068cfe14201a0c11d9407e8e42b002f98b2a0e07f0d41ab868ea6614d63:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxMTIxM2I5N2IwNGMwMTk1ZDY3MDMxNzMzNDQ5OTIxOGRiOThmMjFiMDU5MWRkODFlNTQxYWVlYTQxOTcwM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2ZWY1Y2QxNzM4YWE0MTkwMzQ1ZjgyZjEzNzQ4NDU1ZDM4YWI0NjdmOWFiMTk1ZTJhMTZiM2Q2NjIzNzY3NjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhZjg2NWFiODVjODZkNTUyODlhZDA2ZmJiZWZiY2Q0YWJmMzY5ZWU1YmM2YzM3ZjcyYTlhOGE3YThjZGFlMTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzNGZlNTA0MWZjYjhlNGM1NGZkNzY0MjM3NTdmMjI5MjY1MjI3OTk2MjU5NTQwMGI0YjM0NmJkNzYzYWU5NzMifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field/trainer.py#L99-L117",
+          "version": "repo-lines-v1:sha256:8c8b7ae7b7053377fa16b878e91c836f7db6d1155e7822336625287c29164708:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1YmIzOTM5YWFkNzNhZjUxMGNhYWUxYmM0ZWQzZjM5NDI0M2VjZDFiMjM2NWE0NTVmNmJkYTBmMTQ3YzkyZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwY2U4OWI1NzkzMjI2YWNmMDE3YzQ5MGQ5M2E4OWIzMDE4ZWI2ZGI1OTMzYTdhZTdkMzEwYTU5NjEzN2MzY2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiYmU1YmFhM2NkZjFmOTI1MDlmODMyNTM0YWUyNDQ2NzljMjVlZGI3MmZjNGNiMjIyOGVlZjAxZWJlZmUyYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5N2Q4NmExZGM4ODA0Nzg1NDQyNjQxMDVjMWE2ZmUxNTRlOWJhNjk2MjVjNjY4NzgyMWMwMDhhNjdiYWUxNDQifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field/trainer.py#L194-L210",
+          "version": "repo-lines-v1:sha256:afa89ab8a8d276248ad1072479333f82218383a831509a28e6dd8572fd59f439:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjZGE1ZmE4NGY0N2U3MDAyYjdmMWVlNDkyODIxY2M1NDUyOTBmMGFlYmQ2MTk1OGU0MWY4YjBhMzZmNDU3Y2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwZjU2ZDBlMGM0N2I0MWFiOWNkYmMxMWE5YzY4ZjNiMGE2MTE5NWZlM2RjM2I3MDcwODdiN2I1MmE5ZGJmNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ZDZmNGEyMWRjZGRmOTgwMGE3ODNmZmQ4NGUzMmJiZmQxZTdiODk2YjJiZjk5ZjFkZDI0M2E1ZTJkODE1MTEifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-09-21T19:17:12.006Z"
+    "at": "2026-09-29T08:27:12.326Z"
   }
 }

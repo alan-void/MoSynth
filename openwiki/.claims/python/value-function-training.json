@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:9c9ce642aae8d09735fee5434dc97c4ff9fe5e50328c8dbb51e512b93e3b5654",
+  "pageVersion": "sha256:03f0f0858da7fbd6d6576002738e32251c256ebc7be0f6e9f8d19da1f16b46a2",
   "claims": [
     {
       "id": "claim_4a005fdaabe54fd6bc0ed94774e6c004",
@@ -14,15 +14,15 @@
     },
     {
       "id": "claim_adb9dbb9b4714737a13983b5e300ddca",
-      "statement": "The pipeline precomputes, for every database state and each of its candidate actions, the yaw that action produces and the neighbourhood of the state it lands in; that transition structure is the expensive part and is rebuilt on every train, while only the value function is persisted.",
+      "statement": "The pipeline precomputes, for every database state and each of its candidate actions, the yaw that action produces, the direction and speed gate of the arrival state's travel, and the neighbourhood of the state it lands in; that transition structure is the expensive part and is rebuilt on every train, while only the value function is persisted.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/trainer.py#L10-L23",
-          "version": "repo-lines-v1:sha256:e2d4bfc6de80a4400df85e7082814ba44aa1d1ce149e69fdeafbe42082321818:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4N2U5MWU2ODQyMTJkMmUzOWFjNTVlYjQ5ZmY0MGU3MGJhOTUxODA0ODM3ZDEyYWEwMGZkYzMxNWFlOGUyYWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5MzZkMzgyNDk3MjQxZTA1YTQ0MDYzNmJhYmIwNTY1ZGQzZWM1NDc2ZWViNmIwYjUxYThmMDNhOTgyZjMwNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3M2EzMjY1YmZiZDIxYmRiNmNjNDEyNDIzNjA2OWNkMjY2MTQwNDI5NjRhZTNhZmVmMzQ4N2ExMWZjNDA2ODMifQ"
+          "resource": "repo://Python/motion_field/trainer.py#L52-L122",
+          "version": "repo-lines-v1:sha256:9b465fe418e01b51fbd5f07d831e7d2e269084596def19d79a2bada50491113e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NzM4MjNkNjVmOThlM2MwZjcyMmI2ZWRlNGVlODhiZmE2Njk4YmE1MzNkNGJlMTlmNGY5OTIxYmE2ZWVlMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMTYxYTcwMjFlYjQwYTdkZjY3ZjY0YzhkZGQwMDRjMjI0MDExZTE4MDg1ZDdkY2I1OWJiZmFiYjlmNzU4YjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NDEyNzMwOWZkZTJiZWUxOWQzODY1MWRkOWU5ZmJiZmQzM2E5MGM2Yjc1ODk4NjY4MzM3N2U1YmNjNzUyOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyOTU5ODg3YmFjMjhiMmJhYjBjZDA1OWFhNzFmOTUyZjM0YTVjYjE1OTc0MDQ3ODkzZDViMDVmN2MxMzM5Y2IifQ"
         },
         {
-          "resource": "repo://Python/motion_field/io.py#L1-L15",
-          "version": "repo-lines-v1:sha256:86f4ead08094c90cc9795c7098f8ad079a0ea590523ce1c186165d162d7cc868:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+          "resource": "repo://Python/motion_field/io.py#L1-L11",
+          "version": "repo-lines-v1:sha256:409dd95f960481b2fe093fe340cc1ef68a836b70122a16a8e7d80b633f6b0ff4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
         }
       ]
     },
@@ -41,8 +41,8 @@
       "statement": "The precompute is fully batched rather than integrating one action at a time as the reference implementation does, which takes about fifteen seconds here against roughly five minutes for the per-action form.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/trainer.py#L64-L67",
-          "version": "repo-lines-v1:sha256:c5348fdf77d61ed243a4bf584ddee810bfcabe1f9702bf7ec4016b3852ffc83e:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjMxYzdhMDVjN2NhZTBhNjZhNGYxNGVjMDA4YjA4ZjZhNjJkZDI3ZmRjYTQ3NmJjYjQyNmM5YWZiMWE4MzIyMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODdiNGZjNzg1Y2ZlNzkwM2E1OTdiYmFmZjA3MzY1ZDk4ZjllNTAxMWYxMGJhYzFkYjdhNWIwN2NmNTRmNGVkZCJ9"
+          "resource": "repo://Python/motion_field/trainer.py#L52-L70",
+          "version": "repo-lines-v1:sha256:7924a053e8392527748fe2745265f4a4a1b23b857c13ee82e8852a0f6a6e0a6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NzM4MjNkNjVmOThlM2MwZjcyMmI2ZWRlNGVlODhiZmE2Njk4YmE1MzNkNGJlMTlmNGY5OTIxYmE2ZWVlMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhYjhkYjZlOTI1M2NmZGNiZWMzZWJiNjE0MzExOTJhMzIzMzBiNzA2OTJlNzg3MzQzMzIwYzBhYzAzZTY0MDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NDEyNzMwOWZkZTJiZWUxOWQzODY1MWRkOWU5ZmJiZmQzM2E5MGM2Yjc1ODk4NjY4MzM3N2U1YmNjNzUyOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkYzg0NDdkZTI4NGY3OGU3YjkzN2JlYjcxZWQ1OWY2YzlhMjQ0YmNmZWMyMjcxMTNiNjJlMzI4NjhiZTgyYTUifQ"
         }
       ]
     },
@@ -51,8 +51,8 @@
       "statement": "States are processed in chunks because the dominant allocation is the neighbour gather, about forty-six megabytes at five hundred and twelve states with fifteen neighbours, where gathering all seven thousand eight hundred and thirty-eight states at once would need roughly seven hundred megabytes.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/trainer.py#L43-L46",
-          "version": "repo-lines-v1:sha256:6a01d1d390bbec1532f3097ec43cd3eb53ff5c0a8b10ce4c8b9ad12adc597249:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTE4MTMzNjkxZWEyYjI0YzMzMjAyNDMwZGJiY2Y4ZTZlZGQ2OWQzN2MxOWViNzcwYTFmYzg3M2JkMDMzOWIxMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDVlYThmNjBhZDZjZmQ2YjEwNGQ1ZDE1NTAxMGFjNDg2ZGZiN2I1MjFlNGZhN2VlMWEzNTQwNjZlNzhmZjlkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTNmODhmNjM3ZTM2ZWY3YmNkNDM5NTA2NzQ4YWFkYmUyNTg2ZWFiYTI1MTMzNTA1NzhmMTcwMDBlMjI5YjhmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDU3ZTI2MzY2YzQwMDIwMDZjMzA5ZjY2Yzc5MTRjNzEyNzY1YjM1N2EwMWUzNTQzZTBmMTY3NGY3YTUyNGViYSJ9"
+          "resource": "repo://Python/motion_field/trainer.py#L42-L45",
+          "version": "repo-lines-v1:sha256:1aa95307f316d4f804e49b0bdcd9c41b06049d765b68d46e263c41ab30ebab86:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDVlYThmNjBhZDZjZmQ2YjEwNGQ1ZDE1NTAxMGFjNDg2ZGZiN2I1MjFlNGZhN2VlMWEzNTQwNjZlNzhmZjlkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODJkZTUxOTVjNDEzNjJiNTRjNDI0M2Q2ZWZiNTk5ZmIyMjRhMTNkZjQ1ODM4NjVkODU0NGI2NzBkYjViMGNiZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDU3ZTI2MzY2YzQwMDIwMDZjMzA5ZjY2Yzc5MTRjNzEyNzY1YjM1N2EwMWUzNTQzZTBmMTY3NGY3YTUyNGViYSJ9"
         }
       ]
     },
@@ -61,8 +61,8 @@
       "statement": "The heading term of the reward is never positive on its own, which would make any reachable idle state a perfect score once aligned; the locomotion bonus paid on the arrival state is what makes continuing to move strictly better than freezing.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/trainer.py#L134-L142",
-          "version": "repo-lines-v1:sha256:a176aeab75bfbf8a140ff50915a73dacb938ff354f4c7829aed28cd2abdd2db2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzNhZGQ4ZDc1YzA2MjBjNDk4YzZlNmYyMmFiZWU1YjlkYzRhMzkxOTQ3YjU0MjczYTdmMzNjMDcyMjEwNjBkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODBkMDgzNWY4MmE2MTllNDk4YmFiZTdkNzNiNDhmOTAzMGMzMDMwODVmMTY4YjVlYWQ3NTFlYWI4NzNjZmZiNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmM1ZjhlNWZlZjhhOGFjODM0Y2NkNjJhNzI3NTBjMWUxZTQwYWIwZTFjNGFmZTU1MWNlNzA0Y2ExOGNmZDMwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjAzNDU3MDNiODhhNWExOWM3YWU3MjY0ZjVmZWUyNDZmNjU3MjBmZmJmYmUxNzUzZjljOTc3OGE1MjZlYzBlOCJ9"
+          "resource": "repo://Python/motion_field/trainer.py#L136-L149",
+          "version": "repo-lines-v1:sha256:e54a2e3435a6c8776a2befd4dd3379aa0513847d52de206cbaefd7c2aecbf763:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NDc1YmM5MjZkZTQ4ODVlZDNlNzExNTRhNDQ1NTM2ZjJiMjM2YjIwOGEzYWVjMGM2ODkxMjQ0MTY1MTFhNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2MzE0MGI5YmZiYmQ3OGNhODNhYjY5YjcyNzczZWM3MDhlMzQ0MzVjYmI5YzE0ZDgwZGFjODIyYzQ2MWZmNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwMDY1ZWVhNTJiNWUwZGE5MmIwM2VjNGJmZjkzNmU5YzBkN2YzZmQ1ZDU0ODAyMWY5ZDA3NzhlZmZlZGVlYTEifQ"
         }
       ]
     },
@@ -71,8 +71,8 @@
       "statement": "Because an action rotates the character the goal moves in its frame, so the successor's value is read at the heading shifted by the action's yaw change rather than at the original heading, and that shifted lookup is interpolated across the two bracketing grid headings.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/trainer.py#L134-L142",
-          "version": "repo-lines-v1:sha256:a176aeab75bfbf8a140ff50915a73dacb938ff354f4c7829aed28cd2abdd2db2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzNhZGQ4ZDc1YzA2MjBjNDk4YzZlNmYyMmFiZWU1YjlkYzRhMzkxOTQ3YjU0MjczYTdmMzNjMDcyMjEwNjBkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODBkMDgzNWY4MmE2MTllNDk4YmFiZTdkNzNiNDhmOTAzMGMzMDMwODVmMTY4YjVlYWQ3NTFlYWI4NzNjZmZiNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmM1ZjhlNWZlZjhhOGFjODM0Y2NkNjJhNzI3NTBjMWUxZTQwYWIwZTFjNGFmZTU1MWNlNzA0Y2ExOGNmZDMwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjAzNDU3MDNiODhhNWExOWM3YWU3MjY0ZjVmZWUyNDZmNjU3MjBmZmJmYmUxNzUzZjljOTc3OGE1MjZlYzBlOCJ9"
+          "resource": "repo://Python/motion_field/trainer.py#L136-L149",
+          "version": "repo-lines-v1:sha256:e54a2e3435a6c8776a2befd4dd3379aa0513847d52de206cbaefd7c2aecbf763:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NDc1YmM5MjZkZTQ4ODVlZDNlNzExNTRhNDQ1NTM2ZjJiMjM2YjIwOGEzYWVjMGM2ODkxMjQ0MTY1MTFhNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2MzE0MGI5YmZiYmQ3OGNhODNhYjY5YjcyNzczZWM3MDhlMzQ0MzVjYmI5YzE0ZDgwZGFjODIyYzQ2MWZmNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwMDY1ZWVhNTJiNWUwZGE5MmIwM2VjNGJmZjkzNmU5YzBkN2YzZmQ1ZDU0ODAyMWY5ZDA3NzhlZmZlZGVlYTEifQ"
         }
       ]
     },
@@ -81,8 +81,8 @@
       "statement": "Each candidate action is tugged toward the neighbour it emphasises, which is what keeps the outcomes distinguishable from one another.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/trainer.py#L74-L115",
-          "version": "repo-lines-v1:sha256:6471516d4aee9d67544709a891fe733d3a9b8077278855bd93982d181b0c95f7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhYmU4MWFiY2QzYjEyNTM2OTg3YTMyZWU0MDg0NjkwODIzZDIwNzE3YWIyOTk5MzgyNWYyZTk4YTU1YjFlYTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxMGE4YjM0ZmQyZDczMzA1NmFmMWQ0ODdhNjZkNjA2MDE0MWNlNWFkZDM5MjQwNGYwZGY0NTAyMjVlMTU0ZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1MWQyOGI2NWUzMWNjNWNlYWVkMGE0N2NiOThlMDU2MmIyYTk4ZDVlMTQwNjQ3ZTkzZWRlYmJhZjU4M2JkYmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzMmI1Yjc2NzNhZDg2MzVhZWIyNTNiNGI5OTk2MTFkNGZkNWJiMjk0Yzk3OTcyZmI1YTcwNzIxZTZmMTYyMjQifQ"
+          "resource": "repo://Python/motion_field/trainer.py#L85-L122",
+          "version": "repo-lines-v1:sha256:ea5fb9a7128b06f31070c5a80dc8cb965710ecb2b4d10dfd939ea2f415de57dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMTYxYTcwMjFlYjQwYTdkZjY3ZjY0YzhkZGQwMDRjMjI0MDExZTE4MDg1ZDdkY2I1OWJiZmFiYjlmNzU4YjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmZTQ3YTQwNGU4YWY1MDA0YzI3ZWY4MmEyMDI4ZjIxYjgyZWFiZTc0MjI3ZjZjMGM1NWJhYTA1MDA3NzcwYzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyOTU5ODg3YmFjMjhiMmJhYjBjZDA1OWFhNzFmOTUyZjM0YTVjYjE1OTc0MDQ3ODkzZDViMDVmN2MxMzM5Y2IifQ"
         }
       ]
     },
@@ -91,12 +91,12 @@
       "statement": "Deciding whether a value function still matches the config that will run it is Unity's job rather than the loader's, so the answer is known in the inspector rather than at load time with the character already in play mode; the file therefore carries only what the loader reads back and nothing describing the run that produced it.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/io.py#L1-L15",
-          "version": "repo-lines-v1:sha256:86f4ead08094c90cc9795c7098f8ad079a0ea590523ce1c186165d162d7cc868:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+          "resource": "repo://Python/motion_field/io.py#L1-L11",
+          "version": "repo-lines-v1:sha256:409dd95f960481b2fe093fe340cc1ef68a836b70122a16a8e7d80b633f6b0ff4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
         },
         {
-          "resource": "repo://Python/motion_field/io.py#L67-L76",
-          "version": "repo-lines-v1:sha256:47af949c7e00ed15ee382435e8825c812451251882680904a514dba5b2dff8d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhNTQ5YzM2MzJjNzA2NzNiYmI4ZmJhNTczOWY3ZjYxZTkyOTdkYTlmMTVhN2FjZWM2YzljNTRjNDM0YjM1NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MDE3YmI5YTdhMDU0OWE1ZmFlMTZiOThiOTQ0NzYyODZhNGNmNjNkMzNlZWY2Mjg4ZWJmNWY5NmExYmE3NTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkMzA3MzkxN2RmNDE5Yjk5ZWQ4YTZhMWYzYWYwZTYxNjcxODA2NGE1MGIwYmYwZmRlODU3ZWMzNDMxZTBkMzgifQ"
+          "resource": "repo://Python/motion_field/io.py#L59-L83",
+          "version": "repo-lines-v1:sha256:e271c048b01348c6da8b53359a298be8d5dde6938d38b8cf452b68d70477b1b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhNTQ5YzM2MzJjNzA2NzNiYmI4ZmJhNTczOWY3ZjYxZTkyOTdkYTlmMTVhN2FjZWM2YzljNTRjNDM0YjM1NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -105,8 +105,8 @@
       "statement": "Alongside the arrays the file stores exactly three scalars the runtime cannot recover on its own — the heading grid the values are sampled on, and the discount factor and neighbour count the fit assumed — which the policy must reuse for its lookahead to score actions the way training scored them.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/io.py#L46-L64",
-          "version": "repo-lines-v1:sha256:56d2b97dd640acd5606bb994cfccebf7f72f70c3695fb96fb7dba7f18e82ea8d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlNTBhMDQzOGVmZDI0Mzg3OWZjYWY0NzUwMWExNGZkYjY5ODA2NTQzNDk5ZGNmOTIwMDNjMzEyYmQyNjQyNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhM2NmNTE5MjM1NGY3MTYxNWFjNTEwMzRiM2U5N2MyMGVkYTk5NjQzZmNhZjViYmU2ZDQxYWQ1OWJkMTIxNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2YzEyNDliZWYwOTBkYjFiZWZiMjQ2NTA1MTgxYTNlZjVjZjgyZmQ3ZjJkMDU3YWJmYmVkOGEzMmFmOTQ5NDgifQ"
+          "resource": "repo://Python/motion_field/io.py#L40-L56",
+          "version": "repo-lines-v1:sha256:869334a485966afaf14776b053b682680dcbc4d17753adc3b2c9801ceba94d01:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlNTBhMDQzOGVmZDI0Mzg3OWZjYWY0NzUwMWExNGZkYjY5ODA2NTQzNDk5ZGNmOTIwMDNjMzEyYmQyNjQyNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMjAxNDZjZWMwMzRiYTJiNTkxYmZiNjBlN2Q4MDY3Y2UyNGQ5ZDUzYjBlNzUyMjNmNjg1NjlhMTFkMWJhZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2YzEyNDliZWYwOTBkYjFiZWZiMjQ2NTA1MTgxYTNlZjVjZjgyZmQ3ZjJkMDU3YWJmYmVkOGEzMmFmOTQ5NDgifQ"
         }
       ]
     },
@@ -115,8 +115,8 @@
       "statement": "Nothing records a format version, so a file written by an older layout shows up as a missing-key error rather than a version mismatch.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/io.py#L90-L92",
-          "version": "repo-lines-v1:sha256:a7efa4513e0429b135c63847a2765c03e47724c5f1164724dc046a6066539b06:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzM1MGRhM2RhMzlkODRjYTdlMDcwMDU2NDA4MTFjNzI2ZmUwZjBlYTY2MjFhMmZmOWRkNDEwNTM5NTAxODE4NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGM4MTc5YWVkYmM3OWFjN2NjOTNkYTUxNDg1MjRiNmIyMjFiN2Q4NTBiYTJmZjc2MDY1NGU1MTM3OTY5YjVjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzBhOGQ2MTE4OGU2Y2JkYzIxNDMzMmE4ZmI1MjViYzVjYmMwZjc0NmZlZjM4NzIxMTNiNTY1MmEwM2Y2MGVmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTZiZWNjY2U3MWVmOGE1NDdkYjcyODlmZGQ1NTU1NGY3NWFkNGVjYWYwMWNjNWJiMzcyYzRkMGIyYjJmZDY1YyJ9"
+          "resource": "repo://Python/motion_field/io.py#L79-L83",
+          "version": "repo-lines-v1:sha256:1843f4ffe87a20076aaf1b7722d4f6a916746cd103bdcfeeb9060573655a1881:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzM1MGRhM2RhMzlkODRjYTdlMDcwMDU2NDA4MTFjNzI2ZmUwZjBlYTY2MjFhMmZmOWRkNDEwNTM5NTAxODE4NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU3Yzk1N2JjYjQ0ZmI2NzNjOThiMDA1MGE3NWQzODA4MmRiODFkOTE4ZGUzMTNhM2YwN2MxMjM1MzA2ZDdlYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzBhOGQ2MTE4OGU2Y2JkYzIxNDMzMmE4ZmI1MjViYzVjYmMwZjc0NmZlZjM4NzIxMTNiNTY1MmEwM2Y2MGVmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
     },
@@ -125,14 +125,46 @@
       "statement": "The trainer's advertised standalone command line does not work: the main function and its entry guard are both commented out, so running the module does nothing, and the example data directory in the docstring does not exist. It is the only module under Python/ with a documented CLI that has no live __main__ guard.",
       "evidence": [
         {
-          "resource": "repo://Python/motion_field/trainer.py#L302-L349",
-          "version": "repo-lines-v1:sha256:965c0718246da80dab9d110f9556bdb29780501599b612300ce4f13a043ea914:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0OGNhYzcyOWNhZjkzNzhlNTViZDZlYmNjOTZlMzczYTEyYzU2NjVlM2I4ZThmNDg2YWQwZmZkY2QzOTA5N2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmOTAxMDNkNWI5ZmIwNjdjMTRkODJiMjAxMjNhYjg0YmM5MDFlZmNmZTJiZDZmZTc2NWU2OWIxZDRiZDA5NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5NjU4ZmNiYjkyYmU5YTZjMGYyMWJiY2IyMTRkYjBiOWZkMGRjMzRjZTkwYzhiODM3MTk4NDdlOGYzMWZlNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://Python/motion_field/trainer.py#L1-L27",
+          "version": "repo-lines-v1:sha256:6a2603aba3da510f41aae6b984ccd2a05975a0d1f2d48b4920fc5b0a72528bcf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field/trainer.py#L358-L381",
+          "version": "repo-lines-v1:sha256:70482a5c6b05d0c70f1e8dffb9a139976e683b73457a95690bc3c9a51aa62188:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmYmJkNTkxMTI5ZWI0NmYwYWM5ZmI0YTU0MTM1ODM0YjM4YmQ5NTQ4NTc2OTI0ZjQ1NDQ3OGQ4MTY0NDUxMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmOTAxMDNkNWI5ZmIwNjdjMTRkODJiMjAxMjNhYjg0YmM5MDFlZmNmZTJiZDZmZTc2NWU2OWIxZDRiZDA5NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NTRlNWVkOWE0YTAxYWViNDgyYWNlYzJlOWY3NjZlYjIxZjg2MzRlODU2NTRhZjg2MGM5ZmQ0ZjFhZjM3MTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d8faab28c024eb1ac73fea48a7538a7",
+      "statement": "The Bellman reward subtracts a travel term, travel_factor times the arrival state's speed gate times the absolute angle between its travel direction and the goal after the action, alongside the heading term and the locomotion bonus. Its sign and gating are those of MotionField.travel_penalty, so value iteration fits the objective the runtime scores.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field/trainer.py#L136-L154",
+          "version": "repo-lines-v1:sha256:4e0994239972434e1e5c744ab17058a71b0feefc15557130f765f2e5645e3f3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmZGY1MDA4MjYyNWQzM2E5ZjM4MWZjMWM1NjdmY2IzZmEwMWQyNGYwYmY4Y2EyYjI5YTBkZTdhZWY4Yjg4ZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2MzE0MGI5YmZiYmQ3OGNhODNhYjY5YjcyNzczZWM3MDhlMzQ0MzVjYmI5YzE0ZDgwZGFjODIyYzQ2MWZmNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwMzQ1NzAzYjg4YTVhMTljN2FlNzI2NGY1ZmVlMjQ2ZjY1NzIwZmZiZmJlMTc1M2Y5Yzk3NzhhNTI2ZWMwZTgifQ"
+        },
+        {
+          "resource": "repo://Python/motion_field/trainer.py#L194-L210",
+          "version": "repo-lines-v1:sha256:afa89ab8a8d276248ad1072479333f82218383a831509a28e6dd8572fd59f439:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjZGE1ZmE4NGY0N2U3MDAyYjdmMWVlNDkyODIxY2M1NDUyOTBmMGFlYmQ2MTk1OGU0MWY4YjBhMzZmNDU3Y2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwZjU2ZDBlMGM0N2I0MWFiOWNkYmMxMWE5YzY4ZjNiMGE2MTE5NWZlM2RjM2I3MDcwODdiN2I1MmE5ZGJmNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ZDZmNGEyMWRjZGRmOTgwMGE3ODNmZmQ4NGUzMmJiZmQxZTdiODk2YjJiZjk5ZjFkZDI0M2E1ZTJkODE1MTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2a92a741c3484f76a7bb070bd2d59b05",
+      "statement": "travel_factor, like the locomotion factor, is not written to the value function file; the runtime takes it from the config's current value, so changing it without retraining leaves the runtime's scoring disagreeing with the fitted values.",
+      "evidence": [
+        {
+          "resource": "repo://Python/motion_field/io.py#L40-L56",
+          "version": "repo-lines-v1:sha256:869334a485966afaf14776b053b682680dcbc4d17753adc3b2c9801ceba94d01:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlNTBhMDQzOGVmZDI0Mzg3OWZjYWY0NzUwMWExNGZkYjY5ODA2NTQzNDk5ZGNmOTIwMDNjMzEyYmQyNjQyNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMjAxNDZjZWMwMzRiYTJiNTkxYmZiNjBlN2Q4MDY3Y2UyNGQ5ZDUzYjBlNzUyMjNmNjg1NjlhMTFkMWJhZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2YzEyNDliZWYwOTBkYjFiZWZiMjQ2NTA1MTgxYTNlZjVjZjgyZmQ3ZjJkMDU3YWJmYmVkOGEzMmFmOTQ5NDgifQ"
+        },
+        {
+          "resource": "repo://Assets/MotionField/MotionFieldStage.cs#L149-L162",
+          "version": "repo-lines-v1:sha256:924889710fa2bf9b90d88e2d6bcf255dc45784a237b8f5966ed8ee224e3e5ec2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMmRjOWQ0ODk0YTRlZTAzNGRmY2NlN2RmMTQ1YWY2YzI3MTM1MTIyOTZlNjI1OTRhM2I4OGUxZmM5MDYwMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4NzhmZmJjMGVmNjM3ZGUwYmI3ODdjYWUwZmM5MzNmMWMxODFjZGQwMWI3MTI0NGExMDEzMjYwNDllOGRlNWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2YjY4MWI3NmZiOTcwZjhkMDNiMTg5NzgwNzBiN2FlMTU4YzdiMWQ0ODVjYWEwOGRlMWZlYTM5OGI4YzU3YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxZDQ2ODA4YTlhNzMxNmE5NzYzZmY0ZjdmODQyMzIzMjEwNTVhZWZjZDlmZDcwMjY3ZjAyZTRkYWVlYmY3YWEifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.3.3",
-    "at": "2026-09-21T19:17:12.006Z"
+    "at": "2026-09-29T08:27:12.326Z"
   }
 }
