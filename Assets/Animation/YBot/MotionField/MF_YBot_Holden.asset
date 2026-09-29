@@ -34,6 +34,7 @@ MonoBehaviour:
   velWeight: 0.06
   locomotionFactor: 1
   locomotionSpeedThreshold: 0.5
+  travelFactor: 0.5
   boneWeights: []
   thetaCount: 17
   epochs: 300

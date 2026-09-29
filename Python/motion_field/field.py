@@ -44,6 +44,27 @@ def state_locomotion_scores(poses_v: np.ndarray, speed_threshold: float) -> np.n
     return np.clip(speeds / max(float(speed_threshold), 1e-6), 0.0, 1.0).astype(np.float32)
 
 
+def travel_direction(packed_v: np.ndarray, speed_threshold: float):
+    """
+    Which way a state moves, relative to the way it faces, for the travel reward term.
+
+    The frame slot of a packed velocity is the character-frame velocity in the
+    frame's own axes (+Z forward, +X right), so `beta = atan2(x, z)` is the travel
+    direction measured from facing, positive to the right like Unity's SignedAngle.
+
+    Below walking speed that direction is noise, so the term is gated by the same
+    linear speed ramp `state_locomotion_scores` uses: an idle state pays nothing.
+
+    :param packed_v: packed per-second velocity, (..., num_bones + 2, 4)
+    :return: (beta (...,) radians, speed_weight (...,) in [0, 1]), both float32
+    """
+    velocity = np.asarray(packed_v)[..., 0, :3]
+    beta = np.arctan2(velocity[..., 0], velocity[..., 2])
+    speed = np.linalg.norm(velocity[..., [0, 2]], axis=-1)
+    speed_weight = np.clip(speed / max(float(speed_threshold), 1e-6), 0.0, 1.0)
+    return beta.astype(np.float32), speed_weight.astype(np.float32)
+
+
 def resolve_device(preference=None) -> str:
     if preference in (None, '', 'auto'):
         return 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -143,6 +164,7 @@ class MotionField:
                  bone_weights=None,
                  locomotion_factor: float = 1.0,
                  locomotion_speed_threshold: float = 0.5,
+                 travel_factor: float = 0.5,
                  value_function_path: str = None,
                  pose_contacts: np.ndarray = None,
                  next_contacts: np.ndarray = None):
@@ -171,6 +193,10 @@ class MotionField:
             perfect 0, so the policy freezes into it. 0 disables the bonus.
         :param locomotion_speed_threshold: Root speed, m/s, at which a state
             counts as fully moving. The score ramps linearly from 0 below it.
+        :param travel_factor: Weight on the travel-direction penalty, which charges an
+            action for moving anywhere but toward the goal. The heading term alone
+            only asks the character to *face* the goal, so a strafe that faces it
+            scores perfectly. See `travel_penalty`. 0 disables it.
         :param value_function_path: Optional `.mffield.npz` enabling `optimal_action`.
         :param pose_contacts: (state_count, 2) left/right foot contacts of each state's
             own frame. Required by the policies, which report the contacts of the pose
@@ -204,6 +230,7 @@ class MotionField:
         self.locomotion_factor = float(locomotion_factor)
         self.locomotion_speed_threshold = float(locomotion_speed_threshold)
         self.state_scores = state_locomotion_scores(poses_v, self.locomotion_speed_threshold)
+        self.travel_factor = float(travel_factor)
 
         self.state_features = self.build_motion_states(poses_x, poses_v)
         self.feature_shape = self.state_features.shape[-2:]
@@ -444,8 +471,30 @@ class MotionField:
         # The locomotion bonus is paid on the arrival state through the same
         # neighbourhood as V, matching what the value iteration optimised.
         arrival = np.sum(self.state_scores[indices] * weights, axis=1)
-        return (-np.abs(theta_prime) + self.locomotion_factor * arrival
+        return (-np.abs(theta_prime) - self.travel_penalty(theta_prime, next_v)
+                + self.locomotion_factor * arrival
                 + self.value_function.gamma * future)
+
+    def travel_penalty(self, theta_prime: np.ndarray, next_v: np.ndarray) -> np.ndarray:
+        """
+        The reward's travel term: how far the arrival state's movement points away
+        from the goal, scaled by `travel_factor` and gated by speed.
+
+        `theta` is `-SignedAngle(facing, goal)` (MotionFieldStage.SetDesiredDirection),
+        so after the action the goal sits at `-theta'` relative to the new facing.
+        Travel sits at `beta` relative to that same facing. The gap between them is
+        `beta - (-theta') = beta + theta'`: zero when walking straight at the goal,
+        pi/2 for a strafe that faces it, pi for backing toward it.
+
+        `trainer.train_value_function` computes the same term; the two must agree or
+        the runtime argmax optimises something the value function was not fitted to.
+
+        :param theta_prime: (n,) goal heading after the action, radians
+        :param next_v: (n, num_bones + 2, 4) packed arrival velocities
+        :return: (n,) non-negative penalty
+        """
+        beta, speed_weight = travel_direction(next_v, self.locomotion_speed_threshold)
+        return self.travel_factor * speed_weight * np.abs(wrap_angle(beta + theta_prime))
 
     # ------------------------------------------------------------------ #
     # Policies
@@ -498,10 +547,11 @@ class MotionField:
         xs, vs = self.compute_new_states(current_x, delta_time, indices, actions,
                                          tug_indices=indices)
 
-        # Heading, plus the locomotion bonus -- without which standing (zero yaw)
-        # beats the yaw wiggle of any walk cycle once the character is aligned.
+        # Heading and travel direction, plus the locomotion bonus -- without which
+        # standing (zero yaw) beats the yaw wiggle of any walk cycle once aligned.
+        theta_prime = wrap_angle(theta + root_yaw(xs))
         arrival = actions @ self.state_scores[indices]
-        rewards = (-np.abs(wrap_angle(theta + root_yaw(xs)))
+        rewards = (-np.abs(theta_prime) - self.travel_penalty(theta_prime, vs)
                    + self.locomotion_factor * arrival)
         best = int(np.argmax(rewards))
         self._record_decision(indices, weights, best)

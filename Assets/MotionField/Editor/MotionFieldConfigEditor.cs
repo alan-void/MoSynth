@@ -505,6 +505,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 kwargs["locomotion_factor"] = ((double)config.locomotionFactor).ToPython();
                 kwargs["locomotion_speed_threshold"] =
                     ((double)config.locomotionSpeedThreshold).ToPython();
+                kwargs["travel_factor"] = ((double)config.travelFactor).ToPython();
                 kwargs["device"] = config.DeviceName.ToPython();
                 kwargs["knn_chunk"] = config.knnChunk.ToPython();
                 kwargs["state_chunk"] = config.stateChunk.ToPython();

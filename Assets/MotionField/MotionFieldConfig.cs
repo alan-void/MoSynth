@@ -71,6 +71,12 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
              "score ramps linearly from 0 below it.")]
     [Min(0.01f)] public float locomotionSpeedThreshold = 0.5f;
 
+    [Tooltip("Penalty weight on moving anywhere but toward the goal. The heading term alone only " +
+             "asks the character to face the goal, so a strafe that faces it scores perfectly. " +
+             "Per radian of gap between travel direction and goal, gated off below " +
+             "locomotionSpeedThreshold. Changing this needs a retrain.")]
+    [Min(0f)] public float travelFactor = 0.5f;
+
     /// <summary>
     /// Per-joint emphasis in the similarity metric, keyed by skeleton joint name.
     /// </summary>

@@ -157,6 +157,7 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                     bone_weights: boneWeights,
                     locomotion_factor: config.locomotionFactor,
                     locomotion_speed_threshold: config.locomotionSpeedThreshold,
+                    travel_factor: config.travelFactor,
                     pose_contacts: poseContacts,
                     next_contacts: nextContacts);
 
