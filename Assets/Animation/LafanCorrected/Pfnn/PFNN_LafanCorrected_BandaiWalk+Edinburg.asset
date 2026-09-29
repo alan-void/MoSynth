@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4c6e72a7a48fe234eb37522d8844916b, type: 3}
-  m_Name: PFNN_LafanCorrected_BandaiWalk
+  m_Name: PFNN_LafanCorrected_BandaiWalk+Edinburg
   m_EditorClassIdentifier: Pfnn::Pfnn.PfnnConfig
   animationClips:
   - {fileID: 11400000, guid: 1faa31483699d1a46bc2763b77beb80d, type: 2}
@@ -1952,6 +1952,7 @@ MonoBehaviour:
     skeleton:
       root: {fileID: 0}
     bone: {fileID: 0}
+  mirrorClips: 0
   windowRadiusFrames: 30
   windowStrideFrames: 5
   hiddenUnits: 256
@@ -1969,5 +1970,5 @@ MonoBehaviour:
   validationFraction: 0.1
   seed: 42
   device: 0
-  hasPoseDatabase: 1
-  hasTrained: 1
+  hasPoseDatabase: 0
+  hasTrained: 0
