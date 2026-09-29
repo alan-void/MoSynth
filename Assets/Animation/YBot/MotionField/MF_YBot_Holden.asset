@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c46cbd39c09fb443816118e8a024778, type: 3}
+  m_Name: MF_YBot_Holden
+  m_EditorClassIdentifier: Assembly-CSharp::MotionField.MotionFieldConfig
+  animationClips:
+  - {fileID: 11400000, guid: a900ba0b08c34ff8987e9174aba01ca5, type: 2}
+  - {fileID: 11400000, guid: cb4adb548538430490a4e53a94fb6c3d, type: 2}
+  - {fileID: 11400000, guid: 6ed43c1ed50f40eebe62e1e3367ed0ac, type: 2}
+  skeleton:
+    root: {fileID: 5465940246521907071, guid: 1ba485fe9aa0e3c40906e13cd24f4752, type: 3}
+  contactVelocityThreshold: 0.15
+  leftContactBone:
+    skeleton:
+      root: {fileID: 5465940246521907071, guid: 1ba485fe9aa0e3c40906e13cd24f4752, type: 3}
+    bone: {fileID: -6874584590210671055, guid: 1ba485fe9aa0e3c40906e13cd24f4752, type: 3}
+  rightContactBone:
+    skeleton:
+      root: {fileID: 5465940246521907071, guid: 1ba485fe9aa0e3c40906e13cd24f4752, type: 3}
+    bone: {fileID: 608321761475470972, guid: 1ba485fe9aa0e3c40906e13cd24f4752, type: 3}
+  mirrorClips: 1
+  kNeighbors: 15
+  tugRatio: 0.1
+  posWeight: 1
+  velWeight: 0.06
+  locomotionFactor: 1
+  locomotionSpeedThreshold: 0.5
+  boneWeights: []
+  thetaCount: 17
+  epochs: 300
+  gamma: 0.99
+  device: 0
+  knnChunk: 64
+  stateChunk: 512
+  umapFeatures: 0
+  umapNeighbors: 80
+  umapMinDist: 0.1
+  umapComponents: 3
+  umapSeed: 42
+  hasPoseDatabase: 1
+  hasTrained: 1

@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3e87fa833d65834a973383b30215e1e, type: 3}
+  m_Name: LMM_YBot_Holden
+  m_EditorClassIdentifier: Lmm::Lmm.LmmConfig
+  mmData: {fileID: 11400000, guid: a6231d3468c147cf8a5805332bbcd65e, type: 2}
+  excludedBones:
+  - mixamorig:LeftToe_End
+  - mixamorig:RightToe_End
+  - mixamorig:LeftHandIndex1
+  - mixamorig:LeftHandIndex2
+  - mixamorig:LeftHandIndex3
+  - mixamorig:LeftHandIndex4
+  - mixamorig:LeftHandMiddle1
+  - mixamorig:LeftHandMiddle2
+  - mixamorig:LeftHandMiddle3
+  - mixamorig:LeftHandMiddle4
+  - mixamorig:LeftHandPinky1
+  - mixamorig:LeftHandPinky2
+  - mixamorig:LeftHandPinky3
+  - mixamorig:LeftHandPinky4
+  - mixamorig:LeftHandRing1
+  - mixamorig:LeftHandRing2
+  - mixamorig:LeftHandRing3
+  - mixamorig:LeftHandRing4
+  - mixamorig:LeftHandThumb1
+  - mixamorig:LeftHandThumb2
+  - mixamorig:LeftHandThumb3
+  - mixamorig:LeftHandThumb4
+  - mixamorig:HeadTop_End
+  - mixamorig:RightHandIndex1
+  - mixamorig:RightHandIndex2
+  - mixamorig:RightHandIndex3
+  - mixamorig:RightHandIndex4
+  - mixamorig:RightHandMiddle1
+  - mixamorig:RightHandMiddle2
+  - mixamorig:RightHandMiddle3
+  - mixamorig:RightHandMiddle4
+  - mixamorig:RightHandPinky1
+  - mixamorig:RightHandPinky2
+  - mixamorig:RightHandPinky3
+  - mixamorig:RightHandPinky4
+  - mixamorig:RightHandRing1
+  - mixamorig:RightHandRing2
+  - mixamorig:RightHandRing3
+  - mixamorig:RightHandRing4
+  - mixamorig:RightHandThumb1
+  - mixamorig:RightHandThumb2
+  - mixamorig:RightHandThumb3
+  - mixamorig:RightHandThumb4
+  featureWeights:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  latentSize: 32
+  compressorHiddenUnits: 0
+  decompressorHiddenUnits: 0
+  stepperHiddenUnits: 0
+  projectorHiddenUnits: 0
+  trainStepper: 1
+  stepperWindow: 20
+  stepperIterations: 30000
+  stepperPatience: 5
+  stepperMaxSeconds: 0
+  trainProjector: 1
+  projectorIterations: 30000
+  projectorPatience: 5
+  projectorNoise: 1
+  projectorMaxSeconds: 0
+  latentVelocityWeight: 0.01
+  iterations: 200000
+  batchSize: 256
+  learningRate: 0.001
+  weightDecay: 0.001
+  learningRateDecay: 0.99
+  maxSeconds: 1700
+  validationFraction: 0.1
+  validationInterval: 1000
+  seed: 42
+  device: 0
+  hasTrained: 1
