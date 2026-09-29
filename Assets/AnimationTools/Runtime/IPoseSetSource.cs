@@ -36,6 +36,11 @@ public interface IPoseSetSource
     /// </summary>
     string RightContactBoneName { get; }
 
+    /// <summary>
+    /// Also bake each clip mirrored left-to-right, as a clip of its own right after the original.
+    /// </summary>
+    bool MirrorClips { get; }
+
     /// <summary>Directory the serialized database lives in. Created if missing (editor only).</summary>
     string GetAssetPath();
 }

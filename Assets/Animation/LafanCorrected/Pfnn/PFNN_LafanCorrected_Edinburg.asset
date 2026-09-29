@@ -1859,6 +1859,7 @@ MonoBehaviour:
     skeleton:
       root: {fileID: 0}
     bone: {fileID: 0}
+  mirrorClips: 0
   windowRadiusFrames: 30
   windowStrideFrames: 5
   hiddenUnits: 256
@@ -1876,5 +1877,5 @@ MonoBehaviour:
   validationFraction: 0.1
   seed: 42
   device: 0
-  hasPoseDatabase: 0
+  hasPoseDatabase: 1
   hasTrained: 0

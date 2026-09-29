@@ -43,6 +43,9 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
     [Tooltip("Bone driving right foot-contact detection. Empty picks by name heuristic.")]
     public SkeletonBone rightContactBone;
 
+    [Tooltip("Also bake every clip mirrored left-to-right, doubling the database.")]
+    public bool mirrorClips;
+
     // --- Model ------------------------------------------------------------------------------
 
     [Header("Model")]
@@ -98,6 +101,7 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
     public float ContactVelocityThreshold => contactVelocityThreshold;
     public string LeftContactBoneName => leftContactBone?.Name;
     public string RightContactBoneName => rightContactBone?.Name;
+    public bool MirrorClips => mirrorClips;
 
     /// <summary>The pose skeleton: the rig's root bone, identical to each clip's skeleton.</summary>
     public Skeleton Skeleton => skeleton;

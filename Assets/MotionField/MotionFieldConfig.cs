@@ -36,6 +36,9 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
     public SkeletonBone rightContactBone = new();
 
+    [Tooltip("Also bake every clip mirrored left-to-right, doubling the database.")]
+    public bool mirrorClips;
+
     [Header("Motion Field")]
     [Tooltip("Neighbours considered per step. Also the number of candidate actions, since each " +
              "action emphasises one neighbour.")]
@@ -207,6 +210,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     public float ContactVelocityThreshold => contactVelocityThreshold;
     public string LeftContactBoneName => leftContactBone?.Name;
     public string RightContactBoneName => rightContactBone?.Name;
+    public bool MirrorClips => mirrorClips;
 
     /// <summary>The pose skeleton: the rig's root bone, identical to each clip's skeleton.</summary>
     public Skeleton Skeleton => skeleton;

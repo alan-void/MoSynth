@@ -30,6 +30,10 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
     private SkeletonBone rightContactBone = new();
 
+    [SerializeField]
+    [Tooltip("Also bake every clip mirrored left-to-right, doubling the database.")]
+    private bool mirrorClips;
+
     public List<TrajectoryFeatureChannel> trajectoryFeatures = new();
 
     public List<PoseFeatureChannel> poseFeatures = new();
@@ -57,6 +61,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     public float ContactVelocityThreshold => contactVelocityThreshold;
     public string LeftContactBoneName => leftContactBone?.Name;
     public string RightContactBoneName => rightContactBone?.Name;
+    public bool MirrorClips => mirrorClips;
 
     /// <summary>
     /// Whether this asset describes a feature vector at all. False makes it a pose-only database:

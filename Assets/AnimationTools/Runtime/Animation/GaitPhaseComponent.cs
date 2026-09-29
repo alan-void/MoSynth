@@ -63,7 +63,15 @@ public sealed class GaitPhaseComponent : AnimationClipComponent
     /// Covers the whole clip rather than the slice, because the anchors do: an anchor just past the
     /// trim still tells the frames before it what their cycle is.
     /// </remarks>
-    public void Evaluate(AnnotatedAnimationClip clip, out float[] phase, out float[] phaseRate)
+    public void Evaluate(AnnotatedAnimationClip clip, out float[] phase, out float[] phaseRate) =>
+        Evaluate(clip, false, out phase, out phaseRate);
+
+    /// <summary>
+    /// As <see cref="Evaluate(AnnotatedAnimationClip, out float[], out float[])"/>, with every
+    /// footfall's foot swapped when <paramref name="mirrored"/> — the phase of the clip's
+    /// left-to-right mirror image, which still starts its cycle on a right footfall.
+    /// </summary>
+    public void Evaluate(AnnotatedAnimationClip clip, bool mirrored, out float[] phase, out float[] phaseRate)
     {
         var frameCount = Mathf.Max(0, clip != null ? ((SkeletonAnimation)clip).FrameCount : 0);
         phase = new float[frameCount];
@@ -75,8 +83,21 @@ public sealed class GaitPhaseComponent : AnimationClipComponent
         var skeleton = clip.Skeleton;
         var speed = skeleton != null ? GaitMeasure.GroundSpeed(clip, skeleton, 0, frameCount) : null;
 
-        GaitPhase.Evaluate(footfalls, clip.FrameTime, speed, standingSpeed, standingPeriod,
+        var anchors = mirrored && footfalls != null ? SwapFeet(footfalls) : footfalls;
+        GaitPhase.Evaluate(anchors, clip.FrameTime, speed, standingSpeed, standingPeriod,
             phase, phaseRate);
+    }
+
+    private static List<GaitPhase.Footfall> SwapFeet(List<GaitPhase.Footfall> source)
+    {
+        var swapped = new List<GaitPhase.Footfall>(source.Count);
+        foreach (var footfall in source)
+        {
+            var otherFoot = footfall.foot == GaitPhase.Foot.Left ? GaitPhase.Foot.Right : GaitPhase.Foot.Left;
+            swapped.Add(new GaitPhase.Footfall(footfall.frame, otherFoot));
+        }
+
+        return swapped;
     }
 
     /// <summary>

@@ -76,6 +76,13 @@ public static class PoseSetImporter
         var skeleton = source.Skeleton;
         var clips = source.AnimationClips;
 
+        PoseMirror mirror = null;
+        if (source.MirrorClips && !PoseMirror.TryCreate(skeleton, out mirror, out var mirrorError))
+        {
+            Debug.LogError($"[PoseSet] '{source.name}': cannot mirror clips. {mirrorError}");
+            return null;
+        }
+
         var poseSet = new PoseSet();
         poseSet.SetSkeleton(skeleton);
 
@@ -92,11 +99,18 @@ public static class PoseSetImporter
             if (!PoseExtractor.Extract(clip, poseSet, source))
             {
                 Debug.LogWarning($"[PoseSet] '{source.name}': failed to extract poses from clip {i}.");
+                continue;
+            }
+
+            if (mirror != null && !PoseExtractor.Extract(clip, poseSet, source, mirror))
+            {
+                Debug.LogWarning($"[PoseSet] '{source.name}': failed to extract the mirrored copy of clip {i}.");
             }
         }
 
         poseSet.ConvertTagsToNativeArrays();
-        Debug.Log($"[PoseSet] '{source.name}': {poseSet.NumberPoses} poses.");
+        var mirrorNote = mirror != null ? ", every clip followed by its mirrored copy" : "";
+        Debug.Log($"[PoseSet] '{source.name}': {poseSet.NumberPoses} poses{mirrorNote}.");
         return poseSet;
     }
 

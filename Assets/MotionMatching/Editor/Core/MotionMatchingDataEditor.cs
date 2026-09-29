@@ -27,6 +27,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     private SerializedProperty _contactVelocityThresholdProperty;
     private SerializedProperty _leftContactBoneProperty;
     private SerializedProperty _rightContactBoneProperty;
+    private SerializedProperty _mirrorClipsProperty;
     private SerializedProperty _trajectoryFeaturesProperty;
     private SerializedProperty _poseFeaturesProperty;
 
@@ -78,6 +79,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         _contactVelocityThresholdProperty = serializedObject.FindProperty("contactVelocityThreshold");
         _leftContactBoneProperty = serializedObject.FindProperty("leftContactBone");
         _rightContactBoneProperty = serializedObject.FindProperty("rightContactBone");
+        _mirrorClipsProperty = serializedObject.FindProperty("mirrorClips");
         _trajectoryFeaturesProperty = serializedObject.FindProperty("trajectoryFeatures");
         _poseFeaturesProperty = serializedObject.FindProperty("poseFeatures");
     }
@@ -123,6 +125,8 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         SkeletonBoneDrawer.DrawLayout(
             new GUIContent("Right Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
             _rightContactBoneProperty, rigRoot);
+
+        EditorGUILayout.PropertyField(_mirrorClipsProperty);
     }
 
     private void DrawTrajectoryFeatures(Transform rigRoot)

@@ -13,7 +13,11 @@ public static class PoseExtractor
     /// Appends the clip's poses to <paramref name="poseSet"/> without clearing it. False when the
     /// clip's skeleton does not match the pose set's and nothing was added.
     /// </summary>
-    public static bool Extract(AnnotatedAnimationClip animationClip, PoseSet poseSet, IPoseSetSource source)
+    /// <param name="mirror">
+    /// When given, the clip is appended as its left-to-right mirror image: poses, contacts and phase.
+    /// </param>
+    public static bool Extract(AnnotatedAnimationClip animationClip, PoseSet poseSet, IPoseSetSource source,
+        PoseMirror mirror = null)
     {
         var clipSkeleton = animationClip.Skeleton;
         if (clipSkeleton == null)
@@ -38,7 +42,7 @@ public static class PoseExtractor
 
         for (var i = 0; i < frameCount - 1; i++)
         {
-            ExtractPose(frames[i], animationClip, i);
+            ExtractPose(frames[i], animationClip, i, mirror);
         }
 
         for (var i = 0; i < frameCount - 2; i++)
@@ -49,7 +53,7 @@ public static class PoseExtractor
         var lastPose = PoseBuffer.Allocate(poseSet.PoseLayout, Allocator.Temp);
         try
         {
-            ExtractPose(lastPose, animationClip, frameCount - 1);
+            ExtractPose(lastPose, animationClip, frameCount - 1, mirror);
             ExtractPoseVelocities(frames[frames.Count - 1], lastPose, animationClip);
         }
         finally
@@ -57,7 +61,7 @@ public static class PoseExtractor
             lastPose.Dispose();
         }
 
-        WriteContactsAndPhase(animationClip, poseSet, frames, source);
+        WriteContactsAndPhase(animationClip, poseSet, frames, source, mirror != null);
 
         return true;
     }
@@ -73,7 +77,7 @@ public static class PoseExtractor
     /// cycle" sentinel that keeps those frames out of training.
     /// </remarks>
     private static void WriteContactsAndPhase(AnnotatedAnimationClip animationClip, PoseSet poseSet,
-        PoseSet.PoseFrameRange frames, IPoseSetSource source)
+        PoseSet.PoseFrameRange frames, IPoseSetSource source, bool mirrored)
     {
         var gait = animationClip.GetComponent<GaitPhaseComponent>();
 
@@ -88,18 +92,21 @@ public static class PoseExtractor
             contacts = null;
         }
 
+        // A mirrored clip plants its left foot where the original planted its right.
+        var leftOffset = mirrored ? 1 : 0;
+        var rightOffset = 1 - leftOffset;
         for (var i = 0; i < frames.Count; i++)
         {
             var frame = frames[i];
-            frame.SetBool(poseSet.LeftFootContactHandle, contacts != null && contacts[i * 2]);
-            frame.SetBool(poseSet.RightFootContactHandle, contacts != null && contacts[i * 2 + 1]);
+            frame.SetBool(poseSet.LeftFootContactHandle, contacts != null && contacts[i * 2 + leftOffset]);
+            frame.SetBool(poseSet.RightFootContactHandle, contacts != null && contacts[i * 2 + rightOffset]);
         }
 
         if (gait == null) return;
 
         // Anchors are numbered against the whole clip, so database frame i of this clip reads clip
         // frame startFrame + i.
-        gait.Evaluate(animationClip, out var phase, out var phaseRate);
+        gait.Evaluate(animationClip, mirrored, out var phase, out var phaseRate);
         for (var i = 0; i < frames.Count; i++)
         {
             var clipFrame = animationClip.startFrame + i;
@@ -143,7 +150,8 @@ public static class PoseExtractor
     /// offsets and parent-local rotations below it. The character frame is derived from the stored
     /// pose on demand — see <see cref="SimulationFrame"/> — so nothing is reparented here.
     /// </summary>
-    private static void ExtractPose(PoseBuffer pose, AnnotatedAnimationClip animationClip, int frameIndex)
+    private static void ExtractPose(PoseBuffer pose, AnnotatedAnimationClip animationClip, int frameIndex,
+        PoseMirror mirror)
     {
         var frame = animationClip.GetFrame(frameIndex);
         var framePositions = frame.Positions;
@@ -156,6 +164,8 @@ public static class PoseExtractor
             posePositions[i] = framePositions[i];
             poseRotations[i] = frameRotations[i];
         }
+
+        mirror?.Mirror(pose, pose);
     }
 
     private static void ExtractPoseVelocities(PoseBuffer pose, PoseBuffer nextPose, AnnotatedAnimationClip animationClip)
