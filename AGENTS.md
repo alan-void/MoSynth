@@ -149,7 +149,7 @@ Integrates a neural motion field into the pipeline via PythonNET:
 ### Python module layout
 
 `Python/` is one package per subsystem — `core`, `formats`, `training`, `pfnn`, `lmm`,
-`motion_field`, `autotag`, `debugging` — and `Python/` itself is the import root, because that is the single
+`motion_field`, `autotag`, `benchmark`, `debugging` — and `Python/` itself is the import root, because that is the single
 folder `PythonRuntime` puts on `sys.path`. Three consequences follow, and all three are easy to
 break:
 
@@ -281,6 +281,7 @@ Python/                              [one package per subsystem; see "Python mod
 │   ├── embedding.py                 [UMAP projection for the debug visualizer]
 │   └── action_predictor.py          [animation loading & conversion]
 ├── autotag/                         [Gemini video annotation of clip tags; CLI run by Unity's Auto Tag window]
+├── benchmark/                       [report.py: per-method summary table over one or more sweeps' results.csv]
 ├── tests/                           [stdlib unittest suites; no Unity or venv extras needed]
 └── debugging/                       [debug scripts, not in builds]
 
@@ -384,6 +385,10 @@ and unit-tested: path following (`PathFollowingMetricsCalculator`, reused unchan
 (`MotionQualityMetricsCalculator` — footskate, root jerk, discontinuity rate), and cost
 (`SynthesisCostMetrics` — per-stage `Apply()` ms and GC bytes per tick). Cost is measured wall-clock
 inside the Editor: valid for comparing methods within one sweep on one machine, and nothing more.
+
+`python -m benchmark.report <sweep-folder>...` (from `Python/`) reduces each sweep's `results.csv` to one
+row per method, so sweeps over different datasets line up in one table. Every path counts equally;
+`--stat median` and `--exclude-timeouts` change the reduction, and `--format markdown|csv` the output.
 
 ### Testing & Validation
 - **C# edit-mode suites**: `MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests`,
