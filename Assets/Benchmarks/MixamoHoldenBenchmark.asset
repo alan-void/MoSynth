@@ -33,7 +33,7 @@ MonoBehaviour:
   synthesisFrameRate: 30
   fixedTimestep: 1
   speedSmoothingWindow: 0.2
-  recordFullPose: 0
+  recordFullPose: 1
   recordVideo: 1
   videoWidth: 960
   videoHeight: 540

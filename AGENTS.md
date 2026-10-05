@@ -283,7 +283,7 @@ Python/                              [one package per subsystem; see "Python mod
 │   ├── embedding.py                 [UMAP projection for the debug visualizer]
 │   └── action_predictor.py          [animation loading & conversion]
 ├── autotag/                         [Gemini video annotation of clip tags; CLI run by Unity's Auto Tag window]
-├── benchmark/                       [report.py: per-method summary table over one or more sweeps' results.csv]
+├── benchmark/                       [report.py: per-method summary table over sweeps' results.csv; fmd.py + motion_features.py: Fréchet Motion Distance against the database]
 ├── tests/                           [stdlib unittest suites; no Unity or venv extras needed]
 └── debugging/                       [debug scripts, not in builds]
 
@@ -395,6 +395,16 @@ inside the Editor: valid for comparing methods within one sweep on one machine, 
 `python -m benchmark.report <sweep-folder>...` (from `Python/`) reduces each sweep's `results.csv` to one
 row per method, so sweeps over different datasets line up in one table. Every path counts equally;
 `--stat median` and `--exclude-timeouts` change the reduction, and `--format markdown|csv` the output.
+
+`python -m benchmark.fmd <sweep-folder> --database <folder with the .mmpose>` scores naturalness as a
+Fréchet Motion Distance: an autoencoder trained on the database's one-second windows, and the Fréchet
+distance between Gaussians fitted to database and generated latents. It needs a sweep recorded with
+`recordFullPose` on, and writes `fmd.csv` / `fmd_runs.csv` into the sweep folder. **Read the matched
+score, not the plain one**: a path asks for a narrow band of travel, and against the whole database
+even real walking windows score far from zero, so the headline compares each generated window only
+with database windows that travel alike. The recorded pose keeps bone 0 in its source clip's space;
+`benchmark.motion_features.world_pose` rebuilds the rendered root from the `root`/`rootForward`
+channels, and features computed without it are garbage.
 
 ### Testing & Validation
 - **C# edit-mode suites**: `MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests`,
