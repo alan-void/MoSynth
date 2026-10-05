@@ -7,6 +7,8 @@
         --simplify 1 --workers 6
 
 `--script direct` runs direct_retarget.py instead, for a setup carrying its own helper rig.
+`--shard-list-dir Tools/Retargeting/shards/<rig>/<dataset>` replaces `--bvh-dir` and replays the
+exact split a published run used.
 
 A retarget script exports one FBX holding a take per clip, which does not scale to a few thousand:
 every retargeted action stays resident until that single export, and Rokoko's rest-pose drift
@@ -39,6 +41,10 @@ RETARGET_SCRIPTS = {
     "batch": os.path.join(TOOLS_DIR, "batch_retarget.py"),
     "direct": os.path.join(TOOLS_DIR, "direct_retarget.py"),
 }
+
+# Where a machine with Blender somewhere else says so. Checked before the candidates below, because
+# a build agent has no Unity window to pick one in.
+BLENDER_ENV = "MOSYNTH_BLENDER_EXE"
 
 # The same candidates RetargetBatchWindow probes, so the two launchers agree on which Blender runs.
 BLENDER_CANDIDATES = [
@@ -76,10 +82,16 @@ def find_blender(explicit):
         if not os.path.isfile(explicit):
             sys.exit("No Blender at " + explicit)
         return explicit
+    from_env = os.environ.get(BLENDER_ENV, "")
+    if from_env:
+        if not os.path.isfile(from_env):
+            sys.exit("{} points at {}, which does not exist".format(BLENDER_ENV, from_env))
+        return from_env
     for candidate in BLENDER_CANDIDATES:
         if os.path.isfile(candidate):
             return candidate
-    sys.exit("Could not find Blender; pass --blender with the path to blender.exe")
+    sys.exit("Could not find Blender; pass --blender or set {} to the path to blender.exe"
+             .format(BLENDER_ENV))
 
 
 # --- sharding -------------------------------------------------------------------------
@@ -156,6 +168,40 @@ def build_shards(bvh_dir, prefix, max_per_file, only, limit, scheme):
     return shards
 
 
+def load_shard_lists(list_dir, only, limit):
+    """The shards a previous run was made of, replayed from its clip lists rather than recomputed.
+
+    Each `<shard>.txt` holds that shard's BVH paths in take order, relative to the repository root,
+    and names the FBX it becomes. Recomputing the split would only match the original if the folder
+    held exactly the same files, and a take's position in its FBX is part of what a clip asset
+    refers to.
+    """
+    names = sorted(n for n in os.listdir(list_dir) if n.lower().endswith(".txt"))
+    if not names:
+        sys.exit("No shard lists (*.txt) in " + list_dir)
+
+    shards, missing = [], []
+    for name in names:
+        stem = os.path.splitext(name)[0]
+        if only and stem not in only:
+            continue
+        with open(os.path.join(list_dir, name), encoding="utf-8") as handle:
+            clips = [resolve(line.strip()) for line in handle if line.strip()]
+        if not clips:
+            sys.exit("Shard list is empty: " + os.path.join(list_dir, name))
+        if limit:
+            clips = clips[:limit]
+        missing.extend(c for c in clips if not os.path.isfile(c))
+        shards.append({"name": stem, "clips": clips})
+
+    if not shards:
+        sys.exit("No shard lists left after --only " + ",".join(sorted(only)))
+    if missing:
+        sys.exit("{} clip(s) listed in {} do not exist, starting with {}".format(
+            len(missing), list_dir, missing[0]))
+    return shards
+
+
 # --- running --------------------------------------------------------------------------
 
 
@@ -211,7 +257,12 @@ def run_shard(shard, options):
 def main():
     parser = argparse.ArgumentParser(prog="run_batch_all", description=__doc__)
     parser.add_argument("--setup", required=True, help="the retarget setup .blend")
-    parser.add_argument("--bvh-dir", required=True, help="folder of source BVH files")
+    parser.add_argument("--bvh-dir", help="folder of source BVH files, split into shards here")
+    parser.add_argument("--shard-list-dir",
+                        help="replay a previous run's split instead of computing one: a folder of "
+                             "<shard>.txt files, each listing repo-relative BVH paths in take "
+                             "order. --only then names shards rather than motions, and the "
+                             "options that shape a split are ignored")
     parser.add_argument("--out-dir", required=True, help="where the FBX files are written")
     parser.add_argument("--prefix", default="bandai",
                         help="leading token of each output file name (default: bandai)")
@@ -226,7 +277,8 @@ def main():
                              "Bandai-Namco's dataset_motion_style_index (default), action for "
                              "LAFAN's action_subject")
     parser.add_argument("--only", default="",
-                        help="comma-separated motion labels to include, e.g. walk,run")
+                        help="comma-separated motion labels to include, e.g. walk,run; with "
+                             "--shard-list-dir, shard names")
     parser.add_argument("--limit", type=int, default=0,
                         help="take at most N clips from each shard (smoke runs)")
     parser.add_argument("--keep-capture-position", action="store_true",
@@ -243,10 +295,14 @@ def main():
                         help="list the shards and stop")
     options = parser.parse_args()
 
+    if bool(options.bvh_dir) == bool(options.shard_list_dir):
+        parser.error("pass exactly one of --bvh-dir and --shard-list-dir")
+    source_label, source = (("BVH folder", options.bvh_dir) if options.bvh_dir
+                            else ("shard list folder", options.shard_list_dir))
+    source = resolve(source)
     options.setup = resolve(options.setup)
-    options.bvh_dir = resolve(options.bvh_dir)
     options.out_dir = resolve(options.out_dir)
-    for label, path in (("setup blend", options.setup), ("BVH folder", options.bvh_dir)):
+    for label, path in (("setup blend", options.setup), (source_label, source)):
         if not os.path.exists(path):
             sys.exit("No such {}: {}".format(label, path))
     options.script_path = RETARGET_SCRIPTS[options.script]
@@ -255,8 +311,11 @@ def main():
             os.path.basename(options.script_path), options.script_path))
 
     only = {token.strip() for token in options.only.split(",") if token.strip()}
-    shards = build_shards(options.bvh_dir, options.prefix, options.max_per_file,
-                          only, options.limit, options.shard_by)
+    if options.shard_list_dir:
+        shards = load_shard_lists(source, only, options.limit)
+    else:
+        shards = build_shards(source, options.prefix, options.max_per_file,
+                              only, options.limit, options.shard_by)
 
     options.work_dir = os.path.join(options.out_dir, WORK_DIRNAME)
     for shard in shards:

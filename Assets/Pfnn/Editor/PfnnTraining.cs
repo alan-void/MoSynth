@@ -19,8 +19,11 @@ public static class PfnnTraining
     /// Train <paramref name="config"/>'s network and write its checkpoint. Sets
     /// <see cref="PfnnConfig.hasTrained"/> only when training actually produced one.
     /// </summary>
-    public static void Run(PfnnConfig config)
+    /// <returns>The trainer's summary as JSON, or null when training failed.</returns>
+    public static string Run(PfnnConfig config)
     {
+        string summaryJson = null;
+
         // A domain reload while the interpreter is mid-call takes the editor down with it, so hold
         // reloads off for the duration.
         EditorApplication.LockReloadAssemblies();
@@ -68,6 +71,7 @@ public static class PfnnTraining
                 config.hasTrained = true;
                 EditorUtility.SetDirty(config);
                 AssetDatabase.SaveAssetIfDirty(config);
+                summaryJson = PythonRuntime.ToJson((PyObject)summary);
             }
 
             GC.KeepAlive(report);
@@ -82,6 +86,8 @@ public static class PfnnTraining
             EditorApplication.UnlockReloadAssemblies();
             AssetDatabase.Refresh();
         }
+
+        return summaryJson;
     }
 }
 }

@@ -11,72 +11,50 @@
     the Editor is already open, use the MoSynth > Benchmark > Run Sweep menu item instead of this
     script.
 
+    Unity is found as described in common.ps1 (MOSYNTH_UNITY_EXE, else the Unity Hub default).
+
 .EXAMPLE
-    .un-benchmark.ps1
-    .un-benchmark.ps1 -Config "Assets/Benchmarks/Ablation.asset" -Output "Benchmarks/ablation"
+    .\run-benchmark.ps1
+    .\run-benchmark.ps1 -Config "Assets/Benchmarks/Ablation.asset" -Output "Benchmarks/ablation"
 #>
 param(
     [string]$Config = "Assets/Benchmarks/DefaultBenchmark.asset",
     [string]$Output,
-    [string]$ProjectPath = "E:\UnityProjects\MoSynth",
-    [string]$UnityExe = "C:\Program Files\Unity\Hub\Editor\6000.4.4f1\Editor\Unity.exe",
+    [string]$UnityExe,
     [switch]$Visible
 )
+
+. "$PSScriptRoot\common.ps1"
+
+$projectPath = Get-MoSynthProjectPath
+$UnityExe = Get-MoSynthUnityExe -Override $UnityExe
 
 if (-not $Output) {
     $Output = "Benchmarks/" + (Get-Date -Format yyyyMMdd_HHmmss)
 }
 
-if (-not (Test-Path -LiteralPath $UnityExe)) {
-    Write-Error "Unity executable not found at '$UnityExe'. Pass -UnityExe with the correct path."
-    exit 1
-}
-
 $resolvedOutput = $Output
 if (-not [System.IO.Path]::IsPathRooted($resolvedOutput)) {
-    $resolvedOutput = Join-Path $ProjectPath $resolvedOutput
+    $resolvedOutput = Join-Path $projectPath $resolvedOutput
 }
-
 New-Item -ItemType Directory -Force -Path $resolvedOutput | Out-Null
 
 $logFile = Join-Path $resolvedOutput "unity.log"
 $resultsCsv = Join-Path $resolvedOutput "results.csv"
 
-$unityArgs = @(
-    "-projectPath", $ProjectPath,
-    "-executeMethod", "AnimationTools.Editor.SynthesisBenchmarkCli.Run",
-    "-benchmarkConfig", $Config,
-    "-benchmarkOutput", $Output,
-    "-logFile", $logFile
-)
-
-if (-not $Visible) {
-    $unityArgs += "-batchmode"
-    $unityArgs += "-nographics"
+if ($Visible) {
+    Write-Host "Visible mode: the sweep will not quit Unity when it finishes; close the Editor to release this script."
 }
 
 # Deliberately no -quit: batchmode Unity stays alive after -executeMethod returns, and the sweep
 # needs that because it runs asynchronously across play-mode frames. SynthesisBenchmarkCli.Run only
 # starts it; SynthesisBenchmarkDriver calls EditorApplication.Exit once the report is written.
-
-if ($Visible) {
-    Write-Host "Visible mode: the sweep will not quit Unity when it finishes; close the Editor to release this script."
-}
-
-$process = Start-Process -FilePath $UnityExe -ArgumentList $unityArgs -PassThru -Wait -NoNewWindow
-$exitCode = $process.ExitCode
+$exitCode = Invoke-MoSynthUnity -UnityExe $UnityExe -LogFile $logFile -Visible:$Visible -Arguments @(
+    "-executeMethod", "AnimationTools.Editor.SynthesisBenchmarkCli.Run",
+    "-benchmarkConfig", $Config,
+    "-benchmarkOutput", $Output
+)
 
 Write-Host "Unity exited with code $exitCode"
 Write-Host "Results CSV: $resultsCsv"
-
-if ($exitCode -ne 0) {
-    Write-Host "Run failed. Tail of $logFile :"
-    if (Test-Path -LiteralPath $logFile) {
-        Get-Content -LiteralPath $logFile -Tail 40
-    }
-    else {
-        Write-Host "(log file not found)"
-    }
-}
-
 exit $exitCode

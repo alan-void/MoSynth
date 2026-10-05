@@ -313,9 +313,9 @@ start MoSynth.sln
 python -m venv .anim_env
 .anim_env\Scripts\activate
 
-# Install dependencies
-pip install numpy scipy torch
-pip install google-genai   # only for auto-tagging; the key comes from the GEMINI_API_KEY env var
+# Install the pinned dependencies (from the Python/ folder)
+pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu130
+pip install -r requirements-autotag.txt   # only for auto-tagging; the key comes from GEMINI_API_KEY
 
 # Smoke-test the Python side (from the Python/ folder)
 python -m unittest discover -s tests -t tests
@@ -337,6 +337,26 @@ setx MOSYNTH_PYTHON_VENV "C:/path/to/.anim_env"
 
 Restart Unity so it picks the variables up. Either way the interpreter is chosen once per process, so
 a path changed mid-session takes effect at the next domain reload.
+
+### Reproducing the results from a fresh clone
+
+`README.md` is the stranger's entry point. `Tools/reproduce.ps1` runs the stages fetch, retarget,
+databases, train, benchmark and report; `DATA.md` covers dataset provenance and licences. Hazards
+an edit can create:
+
+- **`Assets/LFS` is rebuilt, not shipped.** Tracked clips find the regenerated FBX only because
+  `Tools/Data/lfs_meta.py restore` puts the mirrored `.meta` (`Tools/Data/lfs-meta/`) beside each FBX
+  before Unity sees it. After a retarget that adds or renames an FBX referenced by a tracked asset, run
+  `lfs_meta.py export` and commit the mirror, and `Tools/Data/export_shard_lists.py` for the shard
+  lists. Renaming a take or bone changes the name-hashed sub-asset IDs, and no meta can rescue that
+- **The retarget calibration ships as stripped blends** in `Tools/Retargeting/setups/`, made by
+  `strip_setup.py`. Re-strip after editing a setup under `Assets/LFS/Retargeting/`
+- **What counts as a paper result is `Assets/Benchmarks/PaperReproduction.asset`.**
+  `ReproductionPipeline` (`Assets/Editor/Reproduction/`) derives every config it builds or trains
+  from the method prefabs of the benchmarks listed there, so a config is never listed twice. Its
+  entry points run synchronously and call `EditorApplication.Exit` in batchmode
+- Machine paths come from `MOSYNTH_UNITY_EXE`, `MOSYNTH_PYTHON_VENV` and `MOSYNTH_BLENDER_EXE`, else
+  from the default install locations (`Tools/common.ps1`). Never hard-code a path in a tool script
 
 ### Building for Distribution
 The project uses standard Unity build pipeline:
@@ -421,6 +441,13 @@ channels, and features computed without it are garbage.
   --name <name> --rollout 300`, which runs the model against its own predictions.
   `MoSynth/Pfnn/Check Training Agreement` compares the C# and Python character-frame definitions on
   the same frames — the check that the model is run on the arrays it was trained on
+- **Record every training run's time.** The paper reports training cost, and a time not written
+  down when the run happens is lost. For each PFNN, LMM (every stage) and motion-field training run,
+  keep the wall-clock time together with the hardware, the config/dataset, the epoch or iteration
+  count, and whether it ran in the Editor or a shell. The trainers measure it (`seconds`,
+  `stepper_seconds`, `projector_seconds` in their returned summaries), and `ReproductionPipeline.Train`
+  writes those summaries, the wall-clock time and the machine to `training_log_*.json`. A checkpoint
+  still stores none of it, so a run trained from an inspector button must be written down by hand
 - **Motion database**: `MoSynth/Database/Regenerate Motion Matching Databases` rebuilds every
   `MotionMatchingData` asset's `.mmpose` and `.mmfeatures`. Run it after any change to an extraction
   format or a feature definition — the files are unversioned, and a stale one is refused rather than

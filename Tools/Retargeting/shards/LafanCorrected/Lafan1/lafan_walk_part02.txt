@@ -1,0 +1,6 @@
+Assets/LFS/Animation/lafan1/bvh/walk3_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/walk3_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/walk3_subject3.bvh
+Assets/LFS/Animation/lafan1/bvh/walk3_subject4.bvh
+Assets/LFS/Animation/lafan1/bvh/walk3_subject5.bvh
+Assets/LFS/Animation/lafan1/bvh/walk4_subject1.bvh

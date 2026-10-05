@@ -1,0 +1,9 @@
+Assets/LFS/Animation/lafan1/bvh/obstacles1_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/obstacles1_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/obstacles1_subject5.bvh
+Assets/LFS/Animation/lafan1/bvh/obstacles2_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/obstacles2_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/obstacles2_subject5.bvh
+Assets/LFS/Animation/lafan1/bvh/obstacles3_subject3.bvh
+Assets/LFS/Animation/lafan1/bvh/obstacles3_subject4.bvh
+Assets/LFS/Animation/lafan1/bvh/obstacles4_subject2.bvh

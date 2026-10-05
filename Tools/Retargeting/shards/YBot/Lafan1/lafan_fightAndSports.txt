@@ -1,0 +1,2 @@
+Assets/LFS/Animation/lafan1/bvh/fightAndSports1_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/fightAndSports1_subject4.bvh

@@ -63,7 +63,7 @@ public static class SynthesisBenchmarkCli
     /// Value of a <c>-name value</c> pair on Unity's command line, or null. Unity ignores arguments
     /// it does not recognise, which is what makes custom ones possible.
     /// </summary>
-    private static string GetArgument(string name)
+    public static string GetArgument(string name)
     {
         var args = Environment.GetCommandLineArgs();
         for (var i = 0; i < args.Length - 1; i++)

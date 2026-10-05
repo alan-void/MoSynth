@@ -1,0 +1,8 @@
+Assets/LFS/Animation/lafan1/bvh/dance1_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/dance1_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/dance1_subject3.bvh
+Assets/LFS/Animation/lafan1/bvh/dance2_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/dance2_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/dance2_subject3.bvh
+Assets/LFS/Animation/lafan1/bvh/dance2_subject4.bvh
+Assets/LFS/Animation/lafan1/bvh/dance2_subject5.bvh

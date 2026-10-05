@@ -1,0 +1,4 @@
+Assets/LFS/Animation/lafan1/bvh/run1_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/run1_subject5.bvh
+Assets/LFS/Animation/lafan1/bvh/run2_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/run2_subject4.bvh

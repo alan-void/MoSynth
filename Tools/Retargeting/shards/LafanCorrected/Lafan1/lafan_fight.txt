@@ -1,0 +1,3 @@
+Assets/LFS/Animation/lafan1/bvh/fight1_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/fight1_subject3.bvh
+Assets/LFS/Animation/lafan1/bvh/fight1_subject5.bvh

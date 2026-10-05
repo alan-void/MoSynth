@@ -19,7 +19,8 @@ public static class LmmTraining
     /// Train <paramref name="config"/>'s networks and write its checkpoint. Sets
     /// <see cref="LmmConfig.hasTrained"/> only when training actually produced one.
     /// </summary>
-    public static void Run(LmmConfig config) => Execute(config, Fit.Everything);
+    /// <returns>The trainer's summary as JSON, or null when training failed.</returns>
+    public static string Run(LmmConfig config) => Execute(config, Fit.Everything);
 
     /// <summary>
     /// Refit only the stepper, against the latents the checkpoint already carries.
@@ -46,13 +47,16 @@ public static class LmmTraining
         Projector,
     }
 
-    private static void Execute(LmmConfig config, Fit fit)
+    /// <summary>Runs one fit; returns the trainer's summary as JSON, or null when it failed.</summary>
+    private static string Execute(LmmConfig config, Fit fit)
     {
         if (!config.TryValidate(out var error))
         {
             Debug.LogError($"[LMM] '{config.name}' cannot be trained — {error}", config);
-            return;
+            return null;
         }
+
+        string summaryJson = null;
 
         // A domain reload while the interpreter is mid-call takes the editor down with it, so hold
         // reloads off for the duration.
@@ -92,6 +96,8 @@ public static class LmmTraining
                     EditorUtility.SetDirty(config);
                     AssetDatabase.SaveAssetIfDirty(config);
                 }
+
+                summaryJson = PythonRuntime.ToJson(summary);
             }
 
             GC.KeepAlive(report);
@@ -106,6 +112,8 @@ public static class LmmTraining
             EditorApplication.UnlockReloadAssemblies();
             AssetDatabase.Refresh();
         }
+
+        return summaryJson;
     }
 
     /// <summary>

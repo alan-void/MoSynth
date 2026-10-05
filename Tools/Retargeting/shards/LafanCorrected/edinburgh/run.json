@@ -1,0 +1,7 @@
+{
+  "setup": "Assets/LFS/Retargeting/edinburgh_rest_authoring.blend",
+  "script": "direct",
+  "simplify": 0.0,
+  "keep_capture_position": false,
+  "out_dir": "Assets/LFS/Animation/LafanCorrected/edinburgh"
+}

@@ -298,6 +298,51 @@ A batched Y Bot take matches its live rig to 0.000 degrees. The Hips of the exis
 `Lafan_corrected` export are 1.1 degrees off their own rig on average, and 6.7 at worst. That export
 used `--simplify 1`, which is the likely cause but has not been confirmed.
 
+### The published setups
+
+The setups the Y Bot blends were built from live in the unpublished `Assets/LFS`, so stripped copies
+are in `Tools/Retargeting/setups/` — armatures, constraints, the mapping, `RT_ground` and the
+corrected rig's motion-free `T-Pose` track, with no mesh and no capture data:
+
+| Published | Stripped from | Rebuilds |
+| --- | --- | --- |
+| `lafan_bvh_to_lafan_corrected.blend` | `Assets/LFS/Retargeting/lafan_bvh_to_lafan_corrected.blend` | `ybot/lafan_bvh_to_ybot.blend` |
+| `bandai_namco_to_lafan_corrected.blend` | `bandai-namco/bandai_namco_retarget_to_corrected_lafan_claude.blend` | `ybot/bandai_namco_to_ybot.blend` |
+| `edinburgh_rest_authoring.blend` | `edinburgh_rest_authoring.blend` (the hand-authored rest) | `ybot/edinburgh_bvh_to_ybot.blend` |
+
+`strip_setup.py` makes them, and refuses to write over its input:
+
+```
+blender --background Assets/LFS/Retargeting/edinburgh_rest_authoring.blend \
+    --python Tools/Retargeting/strip_setup.py -- \
+    --out Tools/Retargeting/setups/edinburgh_rest_authoring.blend
+```
+
+It keeps whatever the setup's constraints point at, through every object pointer and not only
+`target`: LAFAN's cleaned `Hips` copies rotation in the custom space of the `hip_correction` empty,
+and dropping that empty moves the character.
+
+**Stripping drops the parked clips, and the parked clips set the height.** `RT_ground` is measured
+over them, so a rebuild has to pass the original clips back, in the original order, with the
+original `--keep-capture-position`. `reproduce_all.py` holds them in `SETUP_RECIPES`. Rebuilt that
+way, each Y Bot setup matches the original exactly, and a retargeted take matches key for key.
+
+### Reproducing every retarget
+
+`run_batch_all.py --shard-list-dir Tools/Retargeting/shards/<rig>/<dataset>` replays the exact split
+a published run used rather than computing one, so each FBX holds the same takes in the same order.
+`reproduce_all.py` drives it for a whole character: it converts the Edinburgh `.npz` if its BVH are
+missing, builds any missing setup from the published ones, replays every dataset's shards, and
+finally runs `Tools/Data/lfs_meta.py restore`. Unity must be closed throughout.
+
+```
+python Tools/Retargeting/reproduce_all.py --dry-run          # the plan
+python Tools/Retargeting/reproduce_all.py [--rig YBot] [--dataset edinburgh]
+```
+
+Blender is `--blender`, else `MOSYNTH_BLENDER_EXE`, else the usual install folders. `--only`,
+`--limit` and `--out-root` make a smoke run that writes outside `Assets/LFS`.
+
 ## Setting one up for a new dataset
 
 1. Import one representative BVH with the same settings the batch uses (`global_scale=0.01`,

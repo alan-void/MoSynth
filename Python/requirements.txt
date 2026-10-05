@@ -1,0 +1,8 @@
+# Python 3.13 is required: it is the version PythonNET embeds in the Unity Editor.
+# torch is pinned to the CUDA 13.0 build used for the paper's training runs; install it with
+#   pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu130
+# or drop the +cu130 suffix to get the CPU build (slower training, same results within tolerance).
+numpy==2.4.4
+scipy==1.17.1
+torch==2.13.0+cu130
+umap-learn==0.5.12

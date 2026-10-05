@@ -50,6 +50,9 @@ public class RetargetBatchWindow : EditorWindow
 
     private static string ProbeForBlender()
     {
+        var fromEnvironment = Environment.GetEnvironmentVariable("MOSYNTH_BLENDER_EXE");
+        if (!string.IsNullOrEmpty(fromEnvironment) && File.Exists(fromEnvironment)) return fromEnvironment;
+
         foreach (var path in BlenderProbePaths)
         {
             if (File.Exists(path)) return path;

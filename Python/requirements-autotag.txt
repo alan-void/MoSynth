@@ -1,0 +1,4 @@
+# Only for the Gemini clip auto-tagger (python -m autotag.annotate); the API key is read from GEMINI_API_KEY.
+-r requirements.txt
+google-genai==2.25.0
+httpx==0.28.1

@@ -1,0 +1,7 @@
+{
+  "setup": "Assets/LFS/Retargeting/ybot/bandai_namco_to_ybot.blend",
+  "script": "direct",
+  "simplify": 1.0,
+  "keep_capture_position": true,
+  "out_dir": "Assets/LFS/Animation/YBot/bandai-namco"
+}

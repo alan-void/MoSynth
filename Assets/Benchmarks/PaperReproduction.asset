@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9082c548870499680c51461a07cdf2c, type: 3}
+  m_Name: PaperReproduction
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Reproduction.ReproductionManifest
+  benchmarks:
+  - {fileID: 11400000, guid: 213e55709fed43c4194b76499cf86094, type: 2}
+  - {fileID: 11400000, guid: 5dd6619c9b0a1d940a7c31bef54b246c, type: 2}

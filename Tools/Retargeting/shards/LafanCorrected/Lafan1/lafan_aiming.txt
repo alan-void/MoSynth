@@ -1,0 +1,5 @@
+Assets/LFS/Animation/lafan1/bvh/aiming1_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/aiming1_subject4.bvh
+Assets/LFS/Animation/lafan1/bvh/aiming2_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/aiming2_subject3.bvh
+Assets/LFS/Animation/lafan1/bvh/aiming2_subject5.bvh

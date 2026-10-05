@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software or reproduce its results, please cite it as below."
+title: "MoSynth: an empirical comparison of motion matching, motion fields, PFNN and learned motion matching"
+type: software
+authors:
+  - family-names: Babu
+    given-names: Alan
+repository-code: "https://github.com/alanaman/MoSynth"
+license: MIT

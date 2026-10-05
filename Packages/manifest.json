@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
-    "com.mackysoft.serializereference-extensions": "https://github.com/mackysoft/Unity-SerializeReferenceExtensions.git?path=Assets/MackySoft/MackySoft.SerializeReferenceExtensions",
-    "com.monitor1394.xcharts": "https://github.com/XCharts-Team/XCharts.git",
+    "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity#acc1c7bc9ea34c33b830e40316fca52553878d29",
+    "com.mackysoft.serializereference-extensions": "https://github.com/mackysoft/Unity-SerializeReferenceExtensions.git?path=Assets/MackySoft/MackySoft.SerializeReferenceExtensions#5fadcb6564f0c6e988641e2e4a4aba4b6b1caafe",
+    "com.monitor1394.xcharts": "https://github.com/XCharts-Team/XCharts.git#e40f02d45cd46d1b7e4ccbd18966fdc3afc5be86",
     "com.unity.ai.assistant": "2.17.0-pre.1",
     "com.unity.ai.navigation": "2.0.12",
     "com.unity.barracuda": "3.0.2",
@@ -19,7 +19,7 @@
     "com.unity.timeline": "1.8.13",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.11",
-    "com.yasirkula.assetusagedetector": "https://github.com/yasirkula/UnityAssetUsageDetector.git",
+    "com.yasirkula.assetusagedetector": "https://github.com/yasirkula/UnityAssetUsageDetector.git#69f7ee5a27fc33442e3fa5778308bd4c29389a72",
     "org.mujoco": "file:../External/mujoco/unity",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.adaptiveperformance": "1.0.0",

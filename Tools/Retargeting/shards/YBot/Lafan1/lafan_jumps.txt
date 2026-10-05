@@ -1,0 +1,3 @@
+Assets/LFS/Animation/lafan1/bvh/jumps1_subject1.bvh
+Assets/LFS/Animation/lafan1/bvh/jumps1_subject2.bvh
+Assets/LFS/Animation/lafan1/bvh/jumps1_subject5.bvh

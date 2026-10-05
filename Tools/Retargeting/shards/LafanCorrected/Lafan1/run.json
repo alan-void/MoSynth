@@ -1,0 +1,7 @@
+{
+  "setup": "Assets/LFS/Retargeting/lafan_bvh_to_lafan_corrected.blend",
+  "script": "batch",
+  "simplify": 1.0,
+  "keep_capture_position": false,
+  "out_dir": "Assets/LFS/Animation/LafanCorrected/Lafan1"
+}
