@@ -43,8 +43,7 @@ namespace AnimationTools.Editor
             EditorGUILayout.PropertyField(_clipProp);
             EditorGUILayout.PropertyField(_skeletonProp);
             EditorGUILayout.PropertyField(_rootMotionBoneProp);
-            EditorGUILayout.PropertyField(_startFrameProp);
-            EditorGUILayout.PropertyField(_endFrameProp);
+            DrawFrameRange(_startFrameProp, _endFrameProp, clip);
 
             EditorGUILayout.Space();
 
@@ -78,6 +77,27 @@ namespace AnimationTools.Editor
             {
                 AnnotatedClipEditorWindow.Open(clip);
             }
+        }
+
+        /// <summary>
+        /// Draws a slice's start and end frame fields, clamping an edit to the clip's length.
+        /// </summary>
+        /// <remarks>
+        /// The clamp lives here rather than in the clip's OnValidate, which runs on every load and
+        /// would load every clip's curves to read their length.
+        /// </remarks>
+        public static void DrawFrameRange(SerializedProperty startFrame, SerializedProperty endFrame,
+            SkeletonAnimation clip)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(startFrame);
+            EditorGUILayout.PropertyField(endFrame);
+            if (!EditorGUI.EndChangeCheck() || !clip.HasClip) return;
+
+            // SkeletonAnimation's FrameCount is the whole clip's; AnnotatedAnimationClip hides it with the slice's.
+            var clipFrameCount = clip.FrameCount;
+            endFrame.intValue = Mathf.Clamp(endFrame.intValue, 0, clipFrameCount);
+            startFrame.intValue = Mathf.Clamp(startFrame.intValue, 0, endFrame.intValue);
         }
     }
 }

@@ -27,8 +27,9 @@ public abstract class AnimationClipComponent
     public abstract string Describe();
 
     /// <summary>
-    /// Called from the owning clip's <c>OnValidate</c>, after the clip has clamped its own frame
-    /// range. Clamp anything that indexes into the clip here — the range may just have moved.
+    /// Called from the owning clip's <c>OnValidate</c>, which Unity also calls on every load. Must
+    /// not read the clip's animation, or loading a config would load the curves of every clip it
+    /// lists.
     /// </summary>
     public virtual void OnValidate(AnnotatedAnimationClip clip)
     {

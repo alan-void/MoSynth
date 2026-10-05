@@ -242,7 +242,8 @@ public class LmmConfig : ScriptableObject
             return false;
         }
 
-        return mmData.TryValidate(out error);
+        // Training reads the baked database, never the clips, so the clip-loading check is not needed.
+        return PoseSetImporter.TryValidateSettings(mmData, out error);
     }
 
     /// <summary>

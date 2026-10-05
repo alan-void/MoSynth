@@ -40,7 +40,10 @@ namespace AnimationTools.Editor
 
         public int StartFrame => Clip == null ? 0 : Mathf.Clamp(Clip.startFrame, 0, ClipFrameCount);
 
-        /// <summary>Exclusive, and clamped to the clip, matching what <c>OnValidate</c> enforces.</summary>
+        /// <summary>
+        /// Exclusive, and clamped to the clip, matching what
+        /// <see cref="AnnotatedAnimationClipEditor.DrawFrameRange"/> enforces on edit.
+        /// </summary>
         public int EndFrame => Clip == null ? 0 : Mathf.Clamp(Clip.endFrame, StartFrame, ClipFrameCount);
 
         public int SliceFrameCount => Mathf.Max(0, EndFrame - StartFrame);

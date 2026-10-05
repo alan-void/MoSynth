@@ -614,8 +614,8 @@ namespace AnimationTools.Editor
             EditorGUILayout.PropertyField(_context.SerializedClip.FindProperty("clip"));
             EditorGUILayout.PropertyField(_context.SerializedClip.FindProperty("skeleton"));
             EditorGUILayout.PropertyField(_context.SerializedClip.FindProperty("rootMotionBone"));
-            EditorGUILayout.PropertyField(_context.StartFrameProperty);
-            EditorGUILayout.PropertyField(_context.EndFrameProperty);
+            AnnotatedAnimationClipEditor.DrawFrameRange(_context.StartFrameProperty,
+                _context.EndFrameProperty, _clip);
 
             // Error, not Warning: a TryValidate failure means the asset cannot be baked at all.
             if (!((SkeletonAnimation)_clip).TryValidate(out var error))

@@ -13,7 +13,9 @@ namespace AnimationTools
 /// </summary>
 public class SkeletonAnimation : ScriptableObject
 {
-    [SerializeField] private AnimationClip clip;
+    // Lazy so that loading this asset, or a config listing thousands of them, does not load every
+    // clip's curves; only reading Clip does.
+    [SerializeField] private LazyLoadReference<AnimationClip> clip;
 
     [Tooltip("The rig's root bone; the skeleton is that Transform and everything beneath it. Drop " +
              "the imported model here, then use the dropdown to reach a bone deeper in it — a " +
@@ -29,8 +31,11 @@ public class SkeletonAnimation : ScriptableObject
     [SerializeField]
     private SkeletonBone rootMotionBone = new();
 
-    public AnimationClip Clip => clip;
-    public bool HasClip => clip != null;
+    /// <summary>The animation, loaded on first access.</summary>
+    public AnimationClip Clip => clip.asset;
+
+    /// <summary>Whether a clip is assigned. Loads nothing, so a clip that no longer resolves still counts.</summary>
+    public bool HasClip => clip.isSet;
 
     /// <summary>The skeleton's bone 0; null when no resolvable skeleton root is assigned.</summary>
     public Transform RootBone => skeleton != null && IsResolvable(skeleton.Root) ? skeleton.Root : null;
@@ -60,11 +65,10 @@ public class SkeletonAnimation : ScriptableObject
     public Transform RootMotionBone =>
         rootMotionBone != null && rootMotionBone.IsSet ? rootMotionBone.Transform : RootBone;
 
-    public float FrameTime => clip != null ? 1f / clip.frameRate : 0f;
+    public float FrameTime => Clip != null ? 1f / Clip.frameRate : 0f;
 
-    // Plain arithmetic; must not materialize the sequence, since OnValidate and inspectors call
-    // this every repaint.
-    public int FrameCount => FrameCountOf(clip);
+    // Plain arithmetic; must not materialize the sequence, since inspectors call this every repaint.
+    public int FrameCount => FrameCountOf(Clip);
 
     /// <summary>How many frames a clip bakes to, without an asset having to hold it first.</summary>
     public static int FrameCountOf(AnimationClip animationClip) =>
@@ -85,9 +89,15 @@ public class SkeletonAnimation : ScriptableObject
     /// </summary>
     public bool TryValidate(out string error)
     {
-        if (clip == null)
+        if (!HasClip)
         {
             error = "No animation clip assigned.";
+            return false;
+        }
+
+        if (Clip == null)
+        {
+            error = "The assigned animation clip no longer resolves; reassign it.";
             return false;
         }
 
@@ -138,11 +148,11 @@ public class SkeletonAnimation : ScriptableObject
     {
         // Hashing the clip reference rather than its instance id: Object.GetHashCode is the same
         // identity without the deprecation that GetInstanceID now carries.
-        var key = HashCode.Combine(clip, skeleton.ContentHash,
+        var key = HashCode.Combine(Clip, skeleton.ContentHash,
             Skeleton.CollectTransformsDfs(skeleton.Root).Count);
         if (!_hasValidatedClip || key != _validatedClipKey)
         {
-            AnimationClipBaker.TryValidateClip(clip, skeleton, out _clipValidationError);
+            AnimationClipBaker.TryValidateClip(Clip, skeleton, out _clipValidationError);
             _validatedClipKey = key;
             _hasValidatedClip = true;
         }
@@ -162,7 +172,7 @@ public class SkeletonAnimation : ScriptableObject
 
             var skeletonToBake = Skeleton;
             var layout = PoseLayout.CreateFullPose(skeletonToBake, false, false);
-            var baked = AnimationClipBaker.Bake(clip, skeletonToBake, FrameCount, FrameTime);
+            var baked = AnimationClipBaker.Bake(Clip, skeletonToBake, FrameCount, FrameTime);
             if (baked == null) return null;
 
             var nativeFrameData = new NativeArray<float>(baked, Allocator.Domain);

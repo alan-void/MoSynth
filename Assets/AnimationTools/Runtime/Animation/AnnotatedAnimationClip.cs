@@ -33,7 +33,7 @@ public class AnnotatedAnimationClip : SkeletonAnimation
 
     /// <summary>
     /// Number of frames in the slice, clamped because a serialized endFrame can exceed the
-    /// animation's frame count until OnValidate re-runs.
+    /// animation's frame count: nothing clamps it on load, and the clip may since have got shorter.
     /// </summary>
     public new int FrameCount => !HasClip ? 0 : Math.Max(0, Math.Min(endFrame, base.FrameCount) - startFrame);
 
@@ -61,18 +61,14 @@ public class AnnotatedAnimationClip : SkeletonAnimation
         return component != null;
     }
 
+    /// <remarks>
+    /// Must not read <see cref="SkeletonAnimation.Clip"/>: Unity calls this on every load, so doing
+    /// so would load the curves of every clip a config lists. Clamping the range to the clip's
+    /// length is left to the fields that edit it.
+    /// </remarks>
     protected override void OnValidate()
     {
         base.OnValidate();
-
-        if (!HasClip)
-            return;
-
-        if (startFrame >= base.FrameCount)
-            startFrame = base.FrameCount;
-
-        if (endFrame >= base.FrameCount)
-            endFrame = base.FrameCount;
 
         // A start past the end would leave FrameCount at 0 and the clip editor blank with no reason shown.
         if (startFrame > endFrame)
