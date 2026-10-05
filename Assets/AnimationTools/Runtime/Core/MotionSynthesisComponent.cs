@@ -39,9 +39,20 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
     /// <summary>Layout of <see cref="CurrentPose"/> and the pose passed to every stage's Apply.</summary>
     public PoseLayout PoseLayout { get; private set; }
 
-    /// <summary>Foot-contact Bool channels of the pipeline pose.</summary>
-    public ChannelHandle LeftFootContactHandle { get; private set; }
-    public ChannelHandle RightFootContactHandle { get; private set; }
+    /// <summary>
+    /// Contact Bool channels of the pipeline pose, one per slot of <see cref="ContactBoneNames"/>.
+    /// Empty until Awake has adopted the list.
+    /// </summary>
+    public ContactHandles ContactHandles { get; private set; } = ContactHandles.Empty;
+
+    /// <summary>
+    /// Bones whose contact the pipeline pose flags, in slot order, as adopted from the stages'
+    /// databases. See <see cref="IContactBoneSource"/>.
+    /// </summary>
+    public IReadOnlyList<string> ContactBoneNames { get; private set; } = Array.Empty<string>();
+
+    /// <summary>Skeleton index of each <see cref="ContactBoneNames"/> entry, in slot order.</summary>
+    public IReadOnlyList<int> ContactBoneIndices => ContactHandles.BoneIndices;
 
     // Reused every LateUpdate as the mutable pose the stage chain runs on.
     private PoseBuffer _scratchPose;
@@ -212,7 +223,13 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
 
         SimulationFrame = SimulationFrameDef.Default(skeleton);
 
-        InitCurrentPose();
+        if (!TryAdoptContactBones(out var contactBoneIndices))
+        {
+            enabled = false;
+            return;
+        }
+
+        InitCurrentPose(contactBoneIndices);
 
         foreach (var stage in stages)
         {
@@ -268,12 +285,39 @@ public class MotionSynthesisComponent : MonoBehaviour, ISkeletonProvider
         return true;
     }
 
-    /// <summary>Builds the pose layout, allocates the buffers, and seeds them from the rig.</summary>
-    private void InitCurrentPose()
+    /// <summary>
+    /// Takes the contact-bone list from the stages' databases and resolves it on the skeleton. Every
+    /// stage is asked, enabled or not, because a disabled stage still runs Init against this layout.
+    /// </summary>
+    private bool TryAdoptContactBones(out int[] boneIndices)
     {
-        PoseLayout = PoseLayoutBuilder.Build(skeleton, out var contacts);
-        LeftFootContactHandle = contacts.Left;
-        RightFootContactHandle = contacts.Right;
+        boneIndices = null;
+        if (!ContactBoneSources.TryAgree(stages, out var names, out var error))
+        {
+            Debug.LogError($"MotionSynthesisComponent \"{name}\": {error} Disabling the component.", this);
+            return false;
+        }
+
+        boneIndices = new int[names.Count];
+        for (var slot = 0; slot < names.Count; slot++)
+        {
+            boneIndices[slot] = skeleton.IndexOfName(names[slot]);
+            if (boneIndices[slot] >= 0) continue;
+
+            Debug.LogError($"MotionSynthesisComponent \"{name}\": contact bone \"{names[slot]}\" is not " +
+                           $"in skeleton \"{skeleton.Name}\". Disabling the component.", this);
+            return false;
+        }
+
+        ContactBoneNames = names;
+        return true;
+    }
+
+    /// <summary>Builds the pose layout, allocates the buffers, and seeds them from the rig.</summary>
+    private void InitCurrentPose(int[] contactBoneIndices)
+    {
+        PoseLayout = PoseLayoutBuilder.Build(skeleton, contactBoneIndices, out var contacts);
+        ContactHandles = contacts;
 
         CurrentPose = PoseBuffer.Allocate(PoseLayout, Allocator.Persistent);
         _scratchPose = PoseBuffer.Allocate(PoseLayout, Allocator.Persistent);

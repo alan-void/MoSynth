@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AnimationTools;
@@ -26,14 +27,12 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     private int[] _jointDepths;
     private bool _skeletonRead;
 
-    private SerializedProperty _leftContactBoneProperty;
-    private SerializedProperty _rightContactBoneProperty;
+    private SerializedProperty _contactBonesProperty;
 
     private void OnEnable()
     {
         InvalidateSkeleton();
-        _leftContactBoneProperty = serializedObject.FindProperty("leftContactBone");
-        _rightContactBoneProperty = serializedObject.FindProperty("rightContactBone");
+        _contactBonesProperty = serializedObject.FindProperty("contactBones");
     }
 
     private void InvalidateSkeleton()
@@ -46,15 +45,14 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     public override void OnInspectorGUI()
     {
         var config = (MotionFieldConfig)target;
-        var rigRoot = PoseSetSourceGUI.GetRigRoot(config.Skeleton);
 
         serializedObject.Update();
 
         // Scoped to the fields: GUI.changed is also set by a button press, so a blanket check would
         // wipe hasTrained the instant Train Motion Field set it.
         EditorGUI.BeginChangeCheck();
-        DrawPropertiesExcluding(serializedObject, "m_Script", "leftContactBone", "rightContactBone");
-        DrawContactBones(rigRoot);
+        DrawPropertiesExcluding(serializedObject, "m_Script", "contactBones");
+        PoseSetSourceGUI.DrawContactBones(_contactBonesProperty, config.Skeleton);
         var fieldsChanged = EditorGUI.EndChangeCheck();
 
         serializedObject.ApplyModifiedProperties();
@@ -102,17 +100,6 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         EditorUtility.SetDirty(config);
     }
 
-    private void DrawContactBones(Transform rigRoot)
-    {
-        EditorGUILayout.LabelField("Contact Bones", EditorStyles.boldLabel);
-        SkeletonBoneDrawer.DrawLayout(
-            new GUIContent("Left Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
-            _leftContactBoneProperty, rigRoot);
-        SkeletonBoneDrawer.DrawLayout(
-            new GUIContent("Right Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
-            _rightContactBoneProperty, rigRoot);
-    }
-
     private void DrawImportSection(MotionFieldConfig config)
     {
         _showImport = EditorGUILayout.Foldout(_showImport, "Import Settings From an IPoseSetSource asset", true);
@@ -141,8 +128,14 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 var rigRoot = PoseSetSourceGUI.GetRigRoot(config.Skeleton);
                 Undo.RecordObject(config, "Import MotionField settings");
                 config.contactVelocityThreshold = source.ContactVelocityThreshold;
-                config.leftContactBone = ResolveContactBone(source.LeftContactBoneName, rigRoot);
-                config.rightContactBone = ResolveContactBone(source.RightContactBoneName, rigRoot);
+                config.contactBones = new List<SkeletonBone>();
+                foreach (var boneName in source.ContactBoneNames)
+                {
+                    var bone = ResolveContactBone(boneName, rigRoot);
+                    if (bone.IsSet) config.contactBones.Add(bone);
+                }
+
+                serializedObject.Update(); // the drawn list caches the old one
                 MarkStale(config, database: true); // rewrites the clips extraction reads
                 Debug.Log($"[MotionField] Copied contact threshold and contact bones from '{source.name}'.");
             }
@@ -171,12 +164,6 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         EditorGUILayout.LabelField("Pose Database", EditorStyles.boldLabel);
         EditorGUILayout.LabelField("Output", ProjectRelative(config.GetAssetPath()));
 
-        var hasClips = config.animationClips != null && config.animationClips.Count > 0;
-        if (!hasClips)
-        {
-            EditorGUILayout.HelpBox("Assign at least one animation clip.", MessageType.Warning);
-        }
-
         if (File.Exists(config.GetPoseDatabasePath()))
         {
             DrawBuildState(config.hasPoseDatabase,
@@ -185,8 +172,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 "too.");
         }
 
-        // Gated on the check ImportPoseSet runs; DrawSkeletonValidation has already shown why.
-        using (new EditorGUI.DisabledScope(!config.TryValidate(out _)))
+        // DrawSkeletonValidation has already shown why; the clips are checked when the button is pressed.
+        using (new EditorGUI.DisabledScope(!PoseSetImporter.TryValidateSettings(config, out _)))
         {
             if (GUILayout.Button("Generate Pose Database", GUILayout.Height(24)))
             {
@@ -438,6 +425,12 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     /// </summary>
     public static bool GeneratePoseDatabase(MotionFieldConfig config)
     {
+        if (!config.TryValidate(out var error))
+        {
+            Debug.LogError($"[MotionField] '{config.name}': {error}", config);
+            return false;
+        }
+
         try
         {
             EditorUtility.DisplayProgressBar("Motion Field", "Extracting poses...", 0.3f);
@@ -468,8 +461,15 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
         }
     }
 
-    public static void TrainMotionField(MotionFieldConfig config)
+    /// <summary>
+    /// Fit the value function and write it beside the pose database. Sets
+    /// <see cref="MotionFieldConfig.hasTrained"/> only when training actually produced one.
+    /// </summary>
+    /// <returns>The trainer's summary as JSON, or null when training failed.</returns>
+    public static string TrainMotionField(MotionFieldConfig config)
     {
+        string summaryJson = null;
+
         // A domain reload while the interpreter is mid-call takes the editor down with it, so hold
         // reloads off for the duration.
         EditorApplication.LockReloadAssemblies();
@@ -518,6 +518,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 config.hasTrained = true;
                 EditorUtility.SetDirty(config);
                 AssetDatabase.SaveAssetIfDirty(config);
+                summaryJson = PythonRuntime.ToJson(summary);
             }
 
             GC.KeepAlive(report);
@@ -532,14 +533,19 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
             EditorApplication.UnlockReloadAssemblies();
             AssetDatabase.Refresh();
         }
+
+        return summaryJson;
     }
 
     /// <summary>
     /// Fit the UMAP projection of the database. Same execution model as
     /// <see cref="TrainMotionField"/>: in-process, synchronous, reloads locked out.
     /// </summary>
-    public static void ComputeEmbedding(MotionFieldConfig config)
+    /// <returns>The embedding's summary as JSON, or null when it failed.</returns>
+    public static string ComputeEmbedding(MotionFieldConfig config)
     {
+        string summaryJson = null;
+
         EditorApplication.LockReloadAssemblies();
         try
         {
@@ -574,6 +580,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
 
                 using PyObject summary = embedding.InvokeMethod("compute_embedding", args, kwargs);
                 Debug.Log($"[MotionField] {summary}");
+                summaryJson = PythonRuntime.ToJson(summary);
             }
 
             GC.KeepAlive(report);
@@ -588,6 +595,8 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
             EditorApplication.UnlockReloadAssemblies();
             AssetDatabase.Refresh();
         }
+
+        return summaryJson;
     }
 
     private static string ProjectRelative(string absolute)

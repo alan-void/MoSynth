@@ -122,6 +122,42 @@ class RoundTripTests(unittest.TestCase):
             self.assertEqual(list(data['bone_names']), ['Hips', 'Spine'])
 
 
+class ContactBoneTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.directory.name, 'test.lmm.npz')
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def test_contact_bone_names_read_back_in_slot_order(self):
+        lmm_io.save_checkpoint(self.path, **autoencoder_arguments(),
+                               contact_bone_names=['toe_l', 'toe_r', 'hand_l'])
+
+        loaded = lmm_io.load_checkpoint(self.path)
+
+        self.assertEqual(loaded.contact_bone_names, ['toe_l', 'toe_r', 'hand_l'])
+
+    def test_a_checkpoint_without_contact_names_loads_as_legacy(self):
+        lmm_io.save_checkpoint(self.path, **autoencoder_arguments())
+
+        loaded = lmm_io.load_checkpoint(self.path)
+
+        self.assertIsNotNone(loaded)
+        self.assertIsNone(loaded.contact_bone_names)
+
+    def test_a_rewrite_keeps_the_names(self):
+        # A later training stage rewrites the file from a loaded checkpoint's arguments.
+        lmm_io.save_checkpoint(self.path, **autoencoder_arguments(),
+                               contact_bone_names=['toe_l', 'toe_r', 'hand_l'])
+        rewritten = os.path.join(self.directory.name, 'again.lmm.npz')
+        lmm_io.save_checkpoint(rewritten,
+                               **lmm_io.checkpoint_arguments(lmm_io.load_checkpoint(self.path)))
+
+        self.assertEqual(lmm_io.load_checkpoint(rewritten).contact_bone_names,
+                         ['toe_l', 'toe_r', 'hand_l'])
+
+
 class StagesTrainedTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()

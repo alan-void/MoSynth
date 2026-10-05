@@ -29,7 +29,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from training.training_data import TrainingSet, rotations_to_6d
+from training.training_data import LEGACY_CONTACT_COUNT, TrainingSet, rotations_to_6d
 
 # Frames either side of the query frame the default window spans -- one second at 30 fps, which is
 # the horizon the paper uses. Wide enough that a turn is visible before the character reaches it.
@@ -106,12 +106,22 @@ class PfnnSpec:
     :param bone_indices: (B,) database bone indices this model predicts, ascending.
     :param bone_names: the names of those bones, in the same order.
     :param frame_time: seconds per frame of the database it was packed from.
+    :param contact_bone_names: the bone behind each contact slot, in slot order. None marks a
+        legacy checkpoint written before contact bones were named, which always carried
+        :data:`LEGACY_CONTACT_COUNT` slots.
     """
 
     window_offsets: np.ndarray
     bone_indices: np.ndarray
     bone_names: tuple
     frame_time: float
+    contact_bone_names: tuple | None = None
+
+    @property
+    def n_contacts(self) -> int:
+        if self.contact_bone_names is None:
+            return LEGACY_CONTACT_COUNT
+        return len(self.contact_bone_names)
 
     @property
     def n_offsets(self) -> int:
@@ -136,7 +146,7 @@ class PfnnSpec:
                         ('trajectory_directions', 2 * self.n_offsets),
                         ('joint_positions', 3 * self.n_bones),
                         ('joint_velocities', 3 * self.n_bones),
-                        ('contacts', 2)])
+                        ('contacts', self.n_contacts)])
 
     def output_layout(self) -> list:
         """
@@ -152,7 +162,7 @@ class PfnnSpec:
                         ('root_height', 1),
                         ('root_delta', 3),
                         ('phase_delta', 1),
-                        ('contacts', 2),
+                        ('contacts', self.n_contacts),
                         ('future_positions', 2 * self.n_future),
                         ('future_directions', 2 * self.n_future)])
 
@@ -207,13 +217,26 @@ def check_output_blocks(stored_names, layout) -> None:
 def build_spec(training_set: TrainingSet, excluded_bones=(),
                window_radius: int = DEFAULT_WINDOW_RADIUS,
                window_stride: int = DEFAULT_WINDOW_STRIDE) -> PfnnSpec:
-    """The packing a model over this database and this bone selection will use."""
+    """
+    The packing a model over this database and this bone selection will use.
+
+    :raises ValueError: if the training set names no contact bones yet does not hold the legacy
+        slot count, since the spec could then not describe its contact width.
+    """
     bone_indices = select_bones(training_set.bone_names, training_set.parents, excluded_bones)
+
+    contact_bone_names = training_set.contact_bone_names
+    if contact_bone_names is None and training_set.n_contacts != LEGACY_CONTACT_COUNT:
+        raise ValueError(
+            f'the training set holds {training_set.n_contacts} contact slots but names none of '
+            f'them; rebuild it from a regenerated database')
+
     return PfnnSpec(
         window_offsets=default_window_offsets(window_radius, window_stride),
         bone_indices=bone_indices,
         bone_names=tuple(training_set.bone_names[i] for i in bone_indices),
-        frame_time=float(training_set.frame_time))
+        frame_time=float(training_set.frame_time),
+        contact_bone_names=None if contact_bone_names is None else tuple(contact_bone_names))
 
 
 def usable_queries(training_set: TrainingSet) -> np.ndarray:

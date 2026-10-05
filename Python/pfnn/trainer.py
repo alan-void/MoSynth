@@ -129,7 +129,8 @@ def train(data_dir: str,
     pfnn_io.save_checkpoint(out_path, weights, biases, x_mean, x_std, y_mean, y_std,
                             spec.bone_names, [name for name, _, _ in spec.output_layout()],
                             spec.window_offsets, spec.frame_time,
-                            hidden_units, dropout, losses)
+                            hidden_units, dropout, losses,
+                            contact_bone_names=spec.contact_bone_names)
 
     summary = {
         'out_path': out_path,

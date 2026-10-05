@@ -107,12 +107,16 @@ codebase.
 
 1. **Skeleton block** — `uint boneCount`, then per bone: name (LEB128 string), `uint parentIndex`,
    `float3` rest local position, `quaternion` rest local rotation.
-2. `uint numberClips`, then per clip: `uint Start`, `uint End`, `float FrameTime`.
-3. `uint numberPoses`, `uint boneCount` *(again)*, `uint numberTags`.
-4. Per pose: positions, rotations, velocities, angular velocities (all `boneCount` long), then
-   `uint` left contact and `uint` right contact. That is `boneCount * 13 * 4 + 8` bytes per pose.
-5. **Gait phase block** — `numberPoses` pairs of `float phase, float phaseRate`.
-6. Per tag: name, `uint numberRanges`, then range pairs.
+2. **Contact bone block** — `uint contactCount`, then `contactCount` bone names (LEB128 strings) in
+   slot order: the config's `contactBones` list. The reader refuses a file whose names or order
+   differ from the config's, the same way it refuses a different skeleton.
+3. `uint numberClips`, then per clip: `uint Start`, `uint End`, `float FrameTime`.
+4. `uint numberPoses`, `uint boneCount` *(again)*, `uint numberTags`.
+5. Per pose: positions, rotations, velocities, angular velocities (all `boneCount` long), then
+   `contactCount` `uint` flags (1 or 0) in slot order. That is `boneCount * 13 * 4 + contactCount * 4`
+   bytes per pose.
+6. **Gait phase block** — `numberPoses` pairs of `float phase, float phaseRate`.
+7. Per tag: name, `uint numberRanges`, then range pairs.
 
 Phase is a block of its own rather than two more floats on each pose, because it is not a pose
 channel: every channel in the layout system is keyed to a bone, and nothing in C# reads phase back

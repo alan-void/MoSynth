@@ -96,7 +96,7 @@ public sealed class PoseMirror
         for (var i = 0; i < boneCount; i++)
         {
             var name = skeleton.GetBone(i).Name;
-            var counterpart = skeleton.IndexOfName(SwapSide(name));
+            var counterpart = skeleton.IndexOfName(CounterpartName(name));
             counterparts[i] = counterpart >= 0 ? counterpart : i;
 
             if (counterpart >= 0 && counterpart != i && IsLeft(name))
@@ -195,9 +195,10 @@ public sealed class PoseMirror
 
     /// <summary>
     /// The name of the bone on the other side: Left/Right tokens anywhere in the name are swapped,
-    /// and so is a trailing .L/.R or _L/_R.
+    /// and so is a trailing .L/.R or _L/_R. A bone is paired with its counterpart only when a bone
+    /// of that name exists; otherwise it is its own counterpart.
     /// </summary>
-    private static string SwapSide(string name)
+    public static string CounterpartName(string name)
     {
         var swapped = SideToken.Replace(name, match => match.Value switch
         {

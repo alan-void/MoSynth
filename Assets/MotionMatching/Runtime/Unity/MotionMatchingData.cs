@@ -23,12 +23,9 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     public float contactVelocityThreshold = 0.15f; // Foot speed below which the foot counts as in ground contact
 
     [SerializeField]
-    [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
-    private SkeletonBone leftContactBone = new();
-
-    [SerializeField]
-    [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
-    private SkeletonBone rightContactBone = new();
+    [Tooltip("Bones whose contact the database flags, one channel each, in this order. Empty means " +
+             "no contact channels.")]
+    private List<SkeletonBone> contactBones = new();
 
     [SerializeField]
     [Tooltip("Also bake every clip mirrored left-to-right, doubling the database.")]
@@ -59,8 +56,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     // IPoseSetSource: the subset of this asset the pose-database pipeline reads.
     public List<AnnotatedAnimationClip> AnimationClips => animationClips;
     public float ContactVelocityThreshold => contactVelocityThreshold;
-    public string LeftContactBoneName => leftContactBone?.Name;
-    public string RightContactBoneName => rightContactBone?.Name;
+    public IReadOnlyList<string> ContactBoneNames => ContactBoneSources.NamesOf(contactBones);
     public bool MirrorClips => mirrorClips;
 
     /// <summary>
@@ -107,12 +103,13 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     /// <summary>
     /// Checks that this asset can produce a pose database: a skeleton, at least one clip, and every
     /// clip's skeleton being structurally identical to this one. Returns false with a message
-    /// suitable for an Inspector HelpBox. Never logs — inspectors call it every repaint.
+    /// suitable for an Inspector HelpBox. Loads every clip, so never call it per repaint.
     /// </summary>
     public bool TryValidate(out string error) => PoseSetImporter.TryValidate(this, out error);
 
     /// <summary>
-    /// Null when <see cref="TryValidate"/> fails. Reached from OnValidate every repaint, so it
+    /// Null when <see cref="PoseSetImporter.TryValidateSettings"/> fails, or when there is no
+    /// database file and the clips cannot be extracted. Reached from OnValidate every repaint, so it
     /// reports through the inspector rather than the console.
     /// </summary>
     public PoseSet GetOrImportPoseSet()
@@ -130,7 +127,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     public void ImportPoseSet() => _poseSet = PoseSetImporter.Import(this);
 
     /// <summary>
-    /// Null when <see cref="TryValidate"/> fails, for the same reason as
+    /// Null when <see cref="PoseSetImporter.TryValidateSettings"/> fails, for the same reason as
     /// <see cref="GetOrImportPoseSet"/>, and null for a pose-only asset
     /// (<see cref="HasFeatureChannels"/>).
     /// </summary>
@@ -138,7 +135,7 @@ public class MotionMatchingData : ScriptableObject, IPoseSetSource
     {
         if (FeatureSet == null)
         {
-            if (!TryValidate(out _)) return null;
+            if (!PoseSetImporter.TryValidateSettings(this, out _)) return null;
             if (!HasFeatureChannels) return null;
 
             PROFILE.BEGIN_SAMPLE_PROFILING("Feature Import");

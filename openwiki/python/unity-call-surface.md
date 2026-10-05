@@ -50,7 +50,8 @@ load_embedding_arrays(path, stateCount, log)     # optional, debug only
 optimal_action | greedy_action | get_next_pose | get_next_pose_from_field
   (theta, current_x, current_v, delta_time)  → (new_x, new_v)
 get_pose_arrays(skeleton, x, v, contacts)
-  → (positions, quaternions, linear_velocities, angular_velocities, leftContact, rightContact)
+  → (positions, quaternions, linear_velocities, angular_velocities, contacts)
+                                                  # contacts: list of bool, one per contact bone
 get_debug_arrays()                                # when collecting debug data
 ```
 

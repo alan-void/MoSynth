@@ -1944,14 +1944,13 @@ MonoBehaviour:
   skeleton:
     root: {fileID: -1031852490016989477, guid: f632c8aa7a25e824193dbf4b6d164a41, type: 3}
   contactVelocityThreshold: 0.15
-  leftContactBone:
-    skeleton:
-      root: {fileID: 0}
-    bone: {fileID: 0}
-  rightContactBone:
-    skeleton:
-      root: {fileID: 0}
-    bone: {fileID: 0}
+  contactBones:
+  - skeleton:
+      root: {fileID: -1031852490016989477, guid: f632c8aa7a25e824193dbf4b6d164a41, type: 3}
+    bone: {fileID: 4581474362363489848, guid: f632c8aa7a25e824193dbf4b6d164a41, type: 3}
+  - skeleton:
+      root: {fileID: -1031852490016989477, guid: f632c8aa7a25e824193dbf4b6d164a41, type: 3}
+    bone: {fileID: 4832083527067105837, guid: f632c8aa7a25e824193dbf4b6d164a41, type: 3}
   mirrorClips: 0
   windowRadiusFrames: 30
   windowStrideFrames: 5
@@ -1970,5 +1969,5 @@ MonoBehaviour:
   validationFraction: 0.1
   seed: 42
   device: 0
-  hasPoseDatabase: 0
+  hasPoseDatabase: 1
   hasTrained: 0

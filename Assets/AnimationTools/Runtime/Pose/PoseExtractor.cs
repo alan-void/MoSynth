@@ -4,7 +4,7 @@ using Unity.Collections;
 namespace AnimationTools
 {
 /// <summary>
-/// Extracts full poses, their rates, foot contacts and gait phase from an annotated clip into a
+/// Extracts full poses, their rates, bone contacts and gait phase from an annotated clip into a
 /// <see cref="PoseSet"/>.
 /// </summary>
 public static class PoseExtractor
@@ -61,47 +61,90 @@ public static class PoseExtractor
             lastPose.Dispose();
         }
 
-        WriteContactsAndPhase(animationClip, poseSet, frames, source, mirror != null);
+        WriteContacts(animationClip, poseSet, frames, source, mirror);
+        WritePhase(animationClip, poseSet, frames, mirror != null);
 
         return true;
     }
 
     /// <summary>
-    /// Writes the clip's foot contacts and gait phase into the database frames it just filled.
+    /// Writes one contact flag per slot of the pose set's contact list into the database frames the
+    /// clip just filled, each measured on its own bone by <see cref="GaitMeasure"/>.
     /// </summary>
     /// <remarks>
-    /// Both come from the clip's <see cref="GaitPhaseComponent"/> when it has one, measured by
-    /// <see cref="GaitMeasure"/> — so what a database records is what the clip editor drew when the
-    /// footfalls were corrected. A clip with no component still gets contacts, measured the same way
-    /// against the config's threshold, and a phase of zero at a rate of zero: the "no measurable
-    /// cycle" sentinel that keeps those frames out of training.
+    /// The threshold and smoothing come from the clip's <see cref="GaitPhaseComponent"/> when it has
+    /// one, so a clip's database contacts follow the settings its footfalls were corrected under;
+    /// otherwise from the config and the default radius.
     /// </remarks>
-    private static void WriteContactsAndPhase(AnnotatedAnimationClip animationClip, PoseSet poseSet,
-        PoseSet.PoseFrameRange frames, IPoseSetSource source, bool mirrored)
+    private static void WriteContacts(AnnotatedAnimationClip animationClip, PoseSet poseSet,
+        PoseSet.PoseFrameRange frames, IPoseSetSource source, PoseMirror mirror)
+    {
+        var contacts = poseSet.ContactHandles;
+        if (contacts.Count == 0) return;
+
+        var gait = animationClip.GetComponent<GaitPhaseComponent>();
+        var threshold = gait != null ? gait.contactVelocityThreshold : source.ContactVelocityThreshold;
+        var smoothingRadius = gait != null ? gait.smoothingRadius : GaitMeasure.DefaultSmoothingRadius;
+
+        var skeleton = animationClip.Skeleton;
+        var measured = new bool[contacts.Count][];
+        for (var slot = 0; slot < contacts.Count; slot++)
+        {
+            measured[slot] = GaitMeasure.Contacts(animationClip, skeleton, contacts.GetBoneIndex(slot),
+                animationClip.startFrame, animationClip.FrameCount, threshold, smoothingRadius);
+        }
+
+        var sourceSlots = MirrorSourceSlots(contacts, mirror);
+        for (var slot = 0; slot < contacts.Count; slot++)
+        {
+            if (sourceSlots[slot] < 0)
+            {
+                Debug.LogError($"Clip \"{animationClip.name}\": the mirrored copy has no contact slot for the " +
+                               $"counterpart of \"{poseSet.ContactBoneNames[slot]}\"; its contacts are left unset.");
+                continue;
+            }
+
+            var flags = measured[sourceSlots[slot]];
+            for (var i = 0; i < frames.Count && i < flags.Length; i++)
+            {
+                frames[i].SetBool(contacts[slot], flags[i]);
+            }
+        }
+    }
+
+    /// <summary>
+    /// For each contact slot, the slot whose measurement it takes: itself for an unmirrored clip, and
+    /// the slot of its bone's counterpart for a mirrored one, since the mirror image plants each bone
+    /// where the original planted its counterpart. -1 when the counterpart has no slot.
+    /// </summary>
+    public static int[] MirrorSourceSlots(ContactHandles contacts, PoseMirror mirror)
+    {
+        var sourceSlots = new int[contacts.Count];
+        for (var slot = 0; slot < sourceSlots.Length; slot++)
+        {
+            if (mirror == null)
+            {
+                sourceSlots[slot] = slot;
+                continue;
+            }
+
+            sourceSlots[slot] = contacts.TryGetSlot(mirror.Counterpart(contacts.GetBoneIndex(slot)), out var source)
+                ? source
+                : -1;
+        }
+
+        return sourceSlots;
+    }
+
+    /// <summary>
+    /// Writes the clip's gait phase from its <see cref="GaitPhaseComponent"/>. A clip with none keeps
+    /// a phase of zero at a rate of zero: the "no measurable cycle" sentinel that keeps those frames
+    /// out of training.
+    /// </summary>
+    private static void WritePhase(AnnotatedAnimationClip animationClip, PoseSet poseSet,
+        PoseSet.PoseFrameRange frames, bool mirrored)
     {
         var gait = animationClip.GetComponent<GaitPhaseComponent>();
-
-        bool[] contacts;
-        if (gait == null)
-        {
-            contacts = ConfiguredContacts(animationClip, source);
-        }
-        else if (!gait.TryDetectSliceContacts(animationClip, out contacts, out var error))
-        {
-            Debug.LogWarning($"Clip \"{animationClip.name}\": {error} No foot contacts written.");
-            contacts = null;
-        }
-
-        // A mirrored clip plants its left foot where the original planted its right.
-        var leftOffset = mirrored ? 1 : 0;
-        var rightOffset = 1 - leftOffset;
-        for (var i = 0; i < frames.Count; i++)
-        {
-            var frame = frames[i];
-            frame.SetBool(poseSet.LeftFootContactHandle, contacts != null && contacts[i * 2 + leftOffset]);
-            frame.SetBool(poseSet.RightFootContactHandle, contacts != null && contacts[i * 2 + rightOffset]);
-        }
-
         if (gait == null) return;
 
         // Anchors are numbered against the whole clip, so database frame i of this clip reads clip
@@ -113,36 +156,6 @@ public static class PoseExtractor
             if (clipFrame >= phase.Length) break;
             poseSet.SetPhase(frames.Start + i, phase[clipFrame], phaseRate[clipFrame]);
         }
-    }
-
-    /// <summary>Contacts for a clip with no <see cref="GaitPhaseComponent"/> to take settings from.</summary>
-    private static bool[] ConfiguredContacts(AnnotatedAnimationClip animationClip, IPoseSetSource source)
-    {
-        var skeleton = animationClip.Skeleton;
-        return GaitMeasure.Contacts(animationClip, skeleton,
-            ResolveContactBoneIndex(skeleton, source.LeftContactBoneName, true),
-            ResolveContactBoneIndex(skeleton, source.RightContactBoneName, false),
-            animationClip.startFrame, animationClip.FrameCount,
-            source.ContactVelocityThreshold, GaitMeasure.DefaultSmoothingRadius);
-    }
-
-    /// <summary>
-    /// Resolves the contact-detection bone for one side: an explicit <paramref name="boneName"/>
-    /// wins if configured, falling back to <see cref="BoneNameConventions.TryFindContactBone"/>
-    /// (and finally index 0) when unset or unresolvable.
-    /// </summary>
-    private static int ResolveContactBoneIndex(Skeleton skeleton, string boneName, bool left)
-    {
-        if (!string.IsNullOrEmpty(boneName))
-        {
-            if (skeleton.TryFindByName(boneName, out var index)) return index;
-            Debug.LogError($"Configured contact bone \"{boneName}\" not found in BVHAnimation; falling back to the name heuristic.");
-        }
-
-        if (BoneNameConventions.TryFindContactBone(skeleton, left, out var heuristicIndex)) return heuristicIndex;
-
-        Debug.LogError($"{(left ? "Left" : "Right")}Toes not found in BVHAnimation");
-        return 0;
     }
 
     /// <summary>

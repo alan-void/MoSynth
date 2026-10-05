@@ -31,12 +31,14 @@ public class PoseSerializerTests
         TestSkeletons.DestroyAll();
     }
 
+    private static readonly string[] TwoContacts = { "spine", "head" };
+
     /// <summary>Two clips of three frames each, every channel given a distinct value per frame
     /// and per bone so a misaligned read cannot pass by coincidence.</summary>
-    private static PoseSet BuildPoseSet(Skeleton skeleton)
+    private static PoseSet BuildPoseSet(Skeleton skeleton, string[] contactBones = null)
     {
         var poseSet = new PoseSet();
-        poseSet.SetSkeleton(skeleton);
+        poseSet.SetSkeleton(skeleton, contactBones ?? TwoContacts);
 
         for (var clip = 0; clip < 2; clip++)
         {
@@ -61,8 +63,11 @@ public class PoseSerializerTests
                     angularVelocities[b] = new float3(seed * 4f, -seed, seed * 0.5f);
                 }
 
-                frame.SetBool(poseSet.LeftFootContactHandle, f % 2 == 0);
-                frame.SetBool(poseSet.RightFootContactHandle, f % 2 == 1);
+                for (var slot = 0; slot < poseSet.ContactHandles.Count; slot++)
+                {
+                    frame.SetBool(poseSet.ContactHandles[slot], (f + slot + clip) % 2 == 0);
+                }
+
                 poseSet.SetPhase(frames.Start + f, clip + f * 0.125f, clip * 10f + f);
             }
         }
@@ -71,14 +76,21 @@ public class PoseSerializerTests
     }
 
     [Test]
-    public void RoundTrip_PreservesClipsAndEveryPoseChannel()
+    public void RoundTrip_PreservesClipsAndEveryPoseChannel() => AssertRoundTrip(TwoContacts);
+
+    [Test]
+    public void RoundTrip_PreservesThreeContactSlots() => AssertRoundTrip(new[] { "root", "spine", "head" });
+
+    private void AssertRoundTrip(string[] contactBones)
     {
         var skeleton = TestSkeletons.CreateChain3();
-        var written = BuildPoseSet(skeleton);
+        var written = BuildPoseSet(skeleton, contactBones);
 
         new PoseSerializer().Serialize(written, _directory, "db");
 
-        Assert.IsTrue(new PoseSerializer().Deserialize(_directory, "db", skeleton, out var read));
+        Assert.IsTrue(new PoseSerializer().Deserialize(_directory, "db", skeleton, contactBones, out var read));
+        CollectionAssert.AreEqual(contactBones, read.ContactBoneNames);
+        Assert.AreEqual(contactBones.Length, read.ContactHandles.Count);
 
         Assert.AreEqual(written.NumberClips, read.NumberClips);
         Assert.AreEqual(written.NumberPoses, read.NumberPoses);
@@ -104,10 +116,11 @@ public class PoseSerializerTests
                     $"angular velocity, pose {p} bone {b}");
             }
 
-            Assert.AreEqual(expected.GetBool(written.LeftFootContactHandle),
-                actual.GetBool(read.LeftFootContactHandle), $"left contact, pose {p}");
-            Assert.AreEqual(expected.GetBool(written.RightFootContactHandle),
-                actual.GetBool(read.RightFootContactHandle), $"right contact, pose {p}");
+            for (var slot = 0; slot < contactBones.Length; slot++)
+            {
+                Assert.AreEqual(expected.GetBool(written.ContactHandles[slot]),
+                    actual.GetBool(read.ContactHandles[slot]), $"contact slot {slot}, pose {p}");
+            }
 
             Assert.AreEqual(written.GetPhase(p), read.GetPhase(p), 1e-6f, $"phase, pose {p}");
             Assert.AreEqual(written.GetPhaseRate(p), read.GetPhaseRate(p), 1e-6f, $"phase rate, pose {p}");
@@ -127,7 +140,7 @@ public class PoseSerializerTests
         LogAssert.Expect(LogType.Error, new Regex("skeleton of 3 bones"));
 
         Assert.IsFalse(new PoseSerializer()
-            .Deserialize(_directory, "db", TestSkeletons.CreateBranch4(), out _));
+            .Deserialize(_directory, "db", TestSkeletons.CreateBranch4(), TwoContacts, out _));
     }
 
     /// <summary>
@@ -148,7 +161,7 @@ public class PoseSerializerTests
 
         LogAssert.Expect(LogType.Error, new Regex("\"head\" at bone 2"));
 
-        Assert.IsFalse(new PoseSerializer().Deserialize(_directory, "db", renamed, out _));
+        Assert.IsFalse(new PoseSerializer().Deserialize(_directory, "db", renamed, TwoContacts, out _));
     }
 
     [Test]
@@ -166,7 +179,7 @@ public class PoseSerializerTests
 
         LogAssert.Expect(LogType.Error, new Regex("parents bone 2"));
 
-        Assert.IsFalse(new PoseSerializer().Deserialize(_directory, "db", reparented, out _));
+        Assert.IsFalse(new PoseSerializer().Deserialize(_directory, "db", reparented, TwoContacts, out _));
     }
 
     /// <summary>
@@ -187,7 +200,25 @@ public class PoseSerializerTests
 
         LogAssert.Expect(LogType.Error, new Regex("truncated"));
 
-        Assert.IsFalse(new PoseSerializer().Deserialize(_directory, "db", skeleton, out _));
+        Assert.IsFalse(new PoseSerializer().Deserialize(_directory, "db", skeleton, TwoContacts, out _));
+    }
+
+    /// <summary>
+    /// A file baked against another contact list has the same width only by coincidence, so the
+    /// labelled block is what stops its flags being read into the wrong slots.
+    /// </summary>
+    [Test]
+    public void Deserialize_RejectsADatabaseBakedAgainstADifferentContactList()
+    {
+        var skeleton = TestSkeletons.CreateChain3();
+        var written = BuildPoseSet(skeleton);
+        new PoseSerializer().Serialize(written, _directory, "db");
+        written.Dispose();
+
+        LogAssert.Expect(LogType.Error, new Regex("flags contacts on"));
+
+        Assert.IsFalse(new PoseSerializer()
+            .Deserialize(_directory, "db", skeleton, new[] { "head", "spine" }, out _));
     }
 }
 }

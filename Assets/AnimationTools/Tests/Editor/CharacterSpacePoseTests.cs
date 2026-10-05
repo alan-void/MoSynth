@@ -38,7 +38,7 @@ public class CharacterSpacePoseTests
         _skeletonData = _skeleton.GetSkeletonData();
         _frameDef = SimulationFrameDef.Default(_skeleton);
 
-        _pose = PoseBuffer.Allocate(PoseLayoutBuilder.Build(_skeleton, out _), Allocator.Temp);
+        _pose = PoseBuffer.Allocate(PoseLayoutBuilder.Build(_skeleton, System.Array.Empty<int>(), out _), Allocator.Temp);
         var positions = _pose.Positions;
         var rotations = _pose.Rotations;
         for (var i = 0; i < _skeleton.BoneCount; i++)

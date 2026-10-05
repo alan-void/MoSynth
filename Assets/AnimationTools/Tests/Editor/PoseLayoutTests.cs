@@ -347,5 +347,86 @@ public class PoseLayoutTests
             buffer.Dispose();
         }
     }
+
+    [Test]
+    public void Builder_PlacesOneContactBoolPerListedBoneInListOrder()
+    {
+        var layout = PoseLayoutBuilder.Build(skeleton, new[] { 2, 0, 1 }, out var contacts);
+
+        Assert.AreEqual(3, contacts.Count);
+        CollectionAssert.AreEqual(new[] { 2, 0, 1 }, contacts.BoneIndices);
+        Assert.IsTrue(contacts.TryGetSlot(0, out var rootSlot));
+        Assert.AreEqual(1, rootSlot);
+
+        var buffer = PoseBuffer.Allocate(layout, Allocator.Temp);
+        try
+        {
+            buffer.SetBool(contacts[1], true);
+            Assert.IsFalse(buffer.GetBool(contacts[0]));
+            Assert.IsTrue(buffer.GetBool(contacts[1]));
+            Assert.IsFalse(buffer.GetBool(contacts[2]));
+        }
+        finally
+        {
+            buffer.Dispose();
+        }
+    }
+
+    [Test]
+    public void Builder_WithNoContactBones_HasNoContactSlots()
+    {
+        PoseLayoutBuilder.Build(skeleton, Array.Empty<int>(), out var contacts);
+
+        Assert.AreEqual(0, contacts.Count);
+        Assert.IsFalse(contacts.TryGetSlot(0, out _));
+    }
+
+    [Test]
+    public void Builder_RefusesADuplicateContactBone()
+    {
+        Assert.Throws<ArgumentException>(() => PoseLayoutBuilder.Build(skeleton, new[] { 1, 1 }, out _));
+    }
+
+    private sealed class FakeContactSource : IContactBoneSource
+    {
+        public IReadOnlyList<string> ContactBoneNames { get; set; }
+    }
+
+    [Test]
+    public void ContactSources_AgreeingListsAreAdopted()
+    {
+        var candidates = new object[]
+        {
+            new FakeContactSource { ContactBoneNames = new[] { "a", "b" } },
+            "not a source",
+            new FakeContactSource { ContactBoneNames = null },
+            new FakeContactSource { ContactBoneNames = new[] { "a", "b" } }
+        };
+
+        Assert.IsTrue(ContactBoneSources.TryAgree(candidates, out var names, out var error), error);
+        CollectionAssert.AreEqual(new[] { "a", "b" }, names);
+    }
+
+    [Test]
+    public void ContactSources_DisagreeingOrderIsRefusedNamingBothStages()
+    {
+        var candidates = new object[]
+        {
+            new FakeContactSource { ContactBoneNames = new[] { "a", "b" } },
+            new FakeContactSource { ContactBoneNames = new[] { "b", "a" } }
+        };
+
+        Assert.IsFalse(ContactBoneSources.TryAgree(candidates, out _, out var error));
+        StringAssert.Contains("stage 0", error);
+        StringAssert.Contains("stage 1", error);
+    }
+
+    [Test]
+    public void ContactSources_NoSourceMeansNoContacts()
+    {
+        Assert.IsTrue(ContactBoneSources.TryAgree(new object[] { "x", new FakeContactSource() },
+            out var names, out _));
+        Assert.AreEqual(0, names.Count);
+    }
 }
 }

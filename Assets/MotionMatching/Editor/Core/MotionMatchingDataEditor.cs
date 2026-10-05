@@ -25,8 +25,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     private SerializedProperty _animationClipsProperty;
     private SerializedProperty _skeletonProperty;
     private SerializedProperty _contactVelocityThresholdProperty;
-    private SerializedProperty _leftContactBoneProperty;
-    private SerializedProperty _rightContactBoneProperty;
+    private SerializedProperty _contactBonesProperty;
     private SerializedProperty _mirrorClipsProperty;
     private SerializedProperty _trajectoryFeaturesProperty;
     private SerializedProperty _poseFeaturesProperty;
@@ -41,6 +40,12 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
     /// </remarks>
     public static void GenerateDatabases(MotionMatchingData mmData)
     {
+        if (!mmData.TryValidate(out var error))
+        {
+            Debug.LogError($"[MotionMatching] \"{mmData.name}\": {error}", mmData);
+            return;
+        }
+
         PROFILE.BEGIN_SAMPLE_PROFILING("Pose Extract");
         mmData.ImportPoseSet();
         PROFILE.END_AND_PRINT_SAMPLE_PROFILING("Pose Extract");
@@ -77,8 +82,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         _animationClipsProperty = serializedObject.FindProperty("animationClips");
         _skeletonProperty = serializedObject.FindProperty("skeleton");
         _contactVelocityThresholdProperty = serializedObject.FindProperty("contactVelocityThreshold");
-        _leftContactBoneProperty = serializedObject.FindProperty("leftContactBone");
-        _rightContactBoneProperty = serializedObject.FindProperty("rightContactBone");
+        _contactBonesProperty = serializedObject.FindProperty("contactBones");
         _mirrorClipsProperty = serializedObject.FindProperty("mirrorClips");
         _trajectoryFeaturesProperty = serializedObject.FindProperty("trajectoryFeatures");
         _poseFeaturesProperty = serializedObject.FindProperty("poseFeatures");
@@ -97,7 +101,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         DrawAnimations();
         _generateButtonError |= PoseSetSourceGUI.DrawSkeletonValidation(data);
 
-        DrawContactThreshold(rigRoot);
+        DrawContacts(data);
         DrawTrajectoryFeatures(rigRoot);
         DrawPoseFeatures(rigRoot);
         DrawGenerateButton(data);
@@ -111,7 +115,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
         EditorGUILayout.PropertyField(_animationClipsProperty);
     }
 
-    private void DrawContactThreshold(Transform rigRoot)
+    private void DrawContacts(MotionMatchingData data)
     {
         EditorGUILayout.Separator();
         EditorGUILayout.LabelField("Contacts", EditorStyles.boldLabel);
@@ -119,12 +123,7 @@ public class MotionMatchingDataEditor : UnityEditor.Editor
             new GUIContent("Contact Velocity Threshold",
                 "Minimum velocity of the foot to be considered in movement and not in contact with the ground"));
 
-        SkeletonBoneDrawer.DrawLayout(
-            new GUIContent("Left Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
-            _leftContactBoneProperty, rigRoot);
-        SkeletonBoneDrawer.DrawLayout(
-            new GUIContent("Right Contact Bone", "Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe)."),
-            _rightContactBoneProperty, rigRoot);
+        PoseSetSourceGUI.DrawContactBones(_contactBonesProperty, data.Skeleton);
 
         EditorGUILayout.PropertyField(_mirrorClipsProperty);
     }

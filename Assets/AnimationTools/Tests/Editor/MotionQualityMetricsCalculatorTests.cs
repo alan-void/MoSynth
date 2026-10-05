@@ -28,7 +28,7 @@ public class MotionQualityMetricsCalculatorTests
         var rightContacts = new[] { false, false, false, false, false };
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, leftFoot, rightFoot, leftContacts, rightContacts, null, times, 0f);
+            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0f);
 
         Assert.AreEqual(5, result.framesEvaluated);
         Assert.AreEqual(0f, result.footskatePerMeter, 1e-5f);
@@ -50,7 +50,7 @@ public class MotionQualityMetricsCalculatorTests
         var rightContacts = new[] { false, false, false, false, false };
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, leftFoot, rightFoot, leftContacts, rightContacts, null, times, 0f);
+            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0f);
 
         // totalSlip = 4 * 0.05 = 0.2, totalRootTravelXZ = 4 * 0.1 = 0.4
         Assert.AreEqual(0.5f, result.footskatePerMeter, 1e-4f);
@@ -79,7 +79,7 @@ public class MotionQualityMetricsCalculatorTests
         var rightContacts = new bool[11];
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, leftFoot, rightFoot, leftContacts, rightContacts, null, times, 0.5f);
+            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0.5f);
 
         Assert.AreEqual(6, result.framesEvaluated);
         Assert.Less(result.framesEvaluated, times.Length);
@@ -94,7 +94,7 @@ public class MotionQualityMetricsCalculatorTests
         for (var i = 0; i < 20; i++) root[i] = new float3(times[i], 0f, 0f);
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, null, null, times, 0f);
+            root, null, null, null, times, 0f);
 
         Assert.AreEqual(0f, result.rootJerkMean, 1e-3f);
         Assert.AreEqual(0f, result.rootJerkP95, 1e-3f);
@@ -109,7 +109,7 @@ public class MotionQualityMetricsCalculatorTests
         root[5] += new float3(1f, 0f, 0f); // single-frame pop
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, null, null, times, 0f);
+            root, null, null, null, times, 0f);
 
         Assert.Greater(result.rootJerkP95, 0f);
         Assert.Greater(result.rootJerkP95, result.rootJerkMean);
@@ -123,7 +123,7 @@ public class MotionQualityMetricsCalculatorTests
         for (var i = 0; i < 5; i++) root[i] = new float3(times[i], 0f, 0f);
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, null, null, times, 0f);
+            root, null, null, null, times, 0f);
 
         Assert.IsNaN(result.footskatePerMeter);
         Assert.IsNaN(result.meanFootskateSpeed);
@@ -139,7 +139,7 @@ public class MotionQualityMetricsCalculatorTests
         var root = new[] { float3.zero, float3.zero, float3.zero };
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, null, null, times, 0f);
+            root, null, null, null, times, 0f);
 
         Assert.AreEqual(0, result.framesEvaluated);
         Assert.IsNaN(result.footskatePerMeter);
@@ -162,7 +162,7 @@ public class MotionQualityMetricsCalculatorTests
         discontinuities[8] = true;
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, null, discontinuities, times, 0f);
+            root, null, null, discontinuities, times, 0f);
 
         Assert.AreEqual(3f, result.discontinuitiesPerSecond, 1e-4f);
     }
@@ -183,11 +183,41 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, foot, foot, contacts, contacts, null, times, 0f);
+            root, new[] { foot, foot }, new[] { contacts, contacts }, null, times, 0f);
 
         Assert.IsNaN(result.footskatePerMeter);
         Assert.IsNaN(result.meanFootskateSpeed);
         Assert.AreEqual(0f, result.contactFraction, 1e-6f);
+    }
+
+    [Test]
+    public void ThreeContactBones_SlipSumsOverEveryBoneAndAnyContactCounts()
+    {
+        var times = UniformTimes(5, 0.1f);
+        var root = new float3[5];
+        var planted = new float3[5];
+        var sliding = new float3[5];
+        for (var i = 0; i < 5; i++)
+        {
+            root[i] = new float3(times[i], 0f, 0f); // 0.4 m total travel
+            sliding[i] = new float3(0.05f * i, 0f, 0f); // 0.2 m slip
+        }
+
+        var always = new[] { true, true, true, true, true };
+        var never = new bool[5];
+        var once = new[] { false, false, true, false, false };
+
+        var result = MotionQualityMetricsCalculator.Evaluate(
+            root, new[] { planted, sliding, planted }, new[] { always, always, once }, null, times, 0f);
+
+        Assert.AreEqual(0.5f, result.footskatePerMeter, 1e-4f);
+        // Two bones planted across four intervals: 0.2 m over 0.8 contact-seconds.
+        Assert.AreEqual(0.25f, result.meanFootskateSpeed, 1e-4f);
+        Assert.AreEqual(1f, result.contactFraction, 1e-5f);
+
+        var sparse = MotionQualityMetricsCalculator.Evaluate(
+            root, new[] { planted, sliding, planted }, new[] { never, never, once }, null, times, 0f);
+        Assert.AreEqual(0.2f, sparse.contactFraction, 1e-5f);
     }
 }
 }

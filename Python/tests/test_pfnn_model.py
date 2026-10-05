@@ -179,6 +179,24 @@ class CheckpointTests(unittest.TestCase):
         self.assertIsNone(pfnn_io.load_checkpoint(path, log=messages.append))
         self.assertTrue(any('could not read checkpoint' in message for message in messages))
 
+    def test_contact_bone_names_read_back_in_slot_order(self):
+        path = os.path.join(self.directory.name, 'named.pfnn.npz')
+        pfnn_io.save_checkpoint(
+            path, self.weights, self.biases,
+            np.zeros(5), np.ones(5), np.zeros(3), np.ones(3),
+            ['root'], ['root_delta'], np.array([0]), 1.0 / 30.0, 8, 0.3, [(1.0, 1.0)],
+            contact_bone_names=['toe_l', 'toe_r', 'hand_l'])
+
+        checkpoint = pfnn_io.load_checkpoint(path)
+
+        self.assertEqual(checkpoint.contact_bone_names, ['toe_l', 'toe_r', 'hand_l'])
+
+    def test_a_checkpoint_without_contact_names_loads_as_legacy(self):
+        checkpoint = pfnn_io.load_checkpoint(self.write())
+
+        self.assertIsNotNone(checkpoint)
+        self.assertIsNone(checkpoint.contact_bone_names)
+
     def test_the_wrong_number_of_layers_is_refused(self):
         with self.assertRaises(ValueError):
             pfnn_io.save_checkpoint(
@@ -186,6 +204,67 @@ class CheckpointTests(unittest.TestCase):
                 self.weights[:2], self.biases[:2],
                 np.zeros(5), np.ones(5), np.zeros(3), np.ones(3),
                 ['root'], ['root_delta'], np.array([0]), 1.0 / 30.0, 8, 0.3, [(1.0, 1.0)])
+
+
+@unittest.skipUnless(HAS_TORCH, 'torch is not installed')
+class PolicyContactTests(unittest.TestCase):
+    """The step's contract with ``PfnnStage``: contacts as one list of bools, at slot 7."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def policy_for(self, training_set, write_names: bool):
+        from pfnn import dataset as pfnn_dataset
+        from pfnn import runtime as pfnn_runtime
+
+        spec = pfnn_dataset.build_spec(training_set)
+        torch.manual_seed(5)
+        network = pfnn_model.PhaseFunctionedNetwork(spec.input_size, spec.output_size,
+                                                    hidden_units=8, dropout=0.0)
+        path = os.path.join(self.directory.name, 'policy.pfnn.npz')
+        pfnn_io.save_checkpoint(
+            path,
+            [layer.weights.detach().numpy() for layer in network.layers],
+            [layer.biases.detach().numpy() for layer in network.layers],
+            np.zeros(spec.input_size), np.ones(spec.input_size),
+            np.zeros(spec.output_size), np.ones(spec.output_size),
+            spec.bone_names, [name for name, _, _ in spec.output_layout()],
+            spec.window_offsets, spec.frame_time, 8, 0.0, [(1.0, 1.0)],
+            contact_bone_names=spec.contact_bone_names if write_names else None)
+        return spec, pfnn_runtime.PfnnPolicy(path, log=lambda message: None)
+
+    @staticmethod
+    def step(policy, spec, n_contacts):
+        return policy.step(np.zeros(2 * spec.n_offsets), np.zeros(2 * spec.n_offsets),
+                           np.zeros(3 * spec.n_bones), np.zeros(3 * spec.n_bones),
+                           np.zeros(n_contacts), 0.0)
+
+    def test_a_named_checkpoint_returns_one_flag_per_contact_bone(self):
+        from test_pfnn_dataset import three_contact_walk_set
+
+        spec, policy = self.policy_for(three_contact_walk_set(), write_names=True)
+        result = self.step(policy, spec, 3)
+
+        self.assertEqual(policy.contact_bone_names, ['foot', 'spine', 'root'])
+        self.assertEqual(len(result), 10)
+        self.assertIsInstance(result[7], list)
+        self.assertEqual(len(result[7]), 3)
+        self.assertTrue(all(isinstance(flag, bool) for flag in result[7]))
+        self.assertEqual(len(result[8]), 2 * spec.n_future)
+        self.assertEqual(len(result[9]), 2 * spec.n_future)
+
+    def test_a_checkpoint_without_names_is_read_as_two_legacy_slots(self):
+        from test_pfnn_dataset import straight_walk_set
+
+        spec, policy = self.policy_for(straight_walk_set(), write_names=False)
+        result = self.step(policy, spec, 2)
+
+        self.assertIsNone(policy.contact_bone_names)
+        self.assertEqual(policy.spec.n_contacts, 2)
+        self.assertEqual(len(result[7]), 2)
 
 
 if __name__ == '__main__':

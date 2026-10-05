@@ -1,31 +1,19 @@
+using System;
 using System.Collections.Generic;
 
 namespace AnimationTools
 {
 /// <summary>
 /// Builds the single pose layout the pipeline shares: parent-local position + rotation per bone
-/// (element index == bone index), per-bone velocities and angular velocities, and two foot-contact
-/// Bool channels.
+/// (element index == bone index), per-bone velocities and angular velocities, and one contact Bool
+/// channel per contact bone.
 /// </summary>
 /// <remarks>
-/// <see cref="PoseSet"/> and <see cref="MotionSynthesisComponent"/> both build through here, so they
-/// get the same cached layout and frames copy between them. The contact host bones must stay a pure
-/// function of bone names, so structurally equal skeletons always hash the same.
+/// <see cref="PoseSet"/> and <see cref="MotionSynthesisComponent"/> both build through here from the
+/// same contact-bone list, so they get the same cached layout and frames copy between them.
 /// </remarks>
 public static class PoseLayoutBuilder
 {
-    public readonly struct ContactHandles
-    {
-        public readonly ChannelHandle Left;
-        public readonly ChannelHandle Right;
-
-        internal ContactHandles(ChannelHandle left, ChannelHandle right)
-        {
-            Left = left;
-            Right = right;
-        }
-    }
-
     /// <summary>
     /// The full-pose channel set without the contact bools, for consumers that append their
     /// own extra channels before calling <see cref="PoseLayout.Build"/> themselves.
@@ -56,33 +44,41 @@ public static class PoseLayoutBuilder
     }
 
     /// <summary>
-    /// The authoritative motion-matching pose layout: full-pose channels plus the two
-    /// foot-contact Bool channels, with their handles bound.
+    /// The authoritative pose layout: full-pose channels plus one contact Bool channel per entry of
+    /// <paramref name="contactBoneIndices"/>, in that order, with their handles bound.
     /// </summary>
-    public static PoseLayout Build(Skeleton skeleton, out ContactHandles contacts)
+    /// <exception cref="ArgumentException">An index is out of range or listed twice.</exception>
+    public static PoseLayout Build(Skeleton skeleton, IReadOnlyList<int> contactBoneIndices,
+        out ContactHandles contacts)
     {
         var channels = BuildFullPoseChannels(skeleton);
 
-        var leftContactBone = BoneNameConventions.TryFindContactBone(skeleton, true, out var leftIndex)
-            ? leftIndex
-            : 0;
-        var rightContactBone = BoneNameConventions.TryFindContactBone(skeleton, false, out var rightIndex)
-            ? rightIndex
-            : skeleton.BoneCount - 1;
-        // The layout rejects duplicate channel identities, so a skeleton missing one side must
-        // still end up with two distinct host bones.
-        if (rightContactBone == leftContactBone)
+        var count = contactBoneIndices?.Count ?? 0;
+        var boneIndices = new int[count];
+        for (var slot = 0; slot < count; slot++)
         {
-            rightContactBone = leftContactBone == 0 ? skeleton.BoneCount - 1 : 0;
+            var bone = contactBoneIndices[slot];
+            if (bone < 0 || bone >= skeleton.BoneCount)
+                throw new ArgumentException($"Contact bone index {bone} is outside the skeleton's " +
+                                            $"{skeleton.BoneCount} bones.", nameof(contactBoneIndices));
+            if (Array.IndexOf(boneIndices, bone, 0, slot) >= 0)
+                throw new ArgumentException($"Contact bone \"{skeleton.GetBone(bone).Name}\" is listed twice.",
+                    nameof(contactBoneIndices));
+
+            boneIndices[slot] = bone;
+            channels.Add(new BoolChannel(skeleton.GetBoneId(bone), ChannelUsage.Contact));
         }
 
-        channels.Add(new BoolChannel(skeleton.GetBoneId(leftContactBone), ChannelUsage.Contact));
-        channels.Add(new BoolChannel(skeleton.GetBoneId(rightContactBone), ChannelUsage.Contact));
-
         var layout = PoseLayout.Build(skeleton, channels);
-        contacts = new ContactHandles(
-            layout.BindChannel(new BoolChannel(skeleton.GetBoneId(leftContactBone), ChannelUsage.Contact)),
-            layout.BindChannel(new BoolChannel(skeleton.GetBoneId(rightContactBone), ChannelUsage.Contact)));
+
+        var handles = new ChannelHandle[count];
+        for (var slot = 0; slot < count; slot++)
+        {
+            handles[slot] = layout.BindChannel(
+                new BoolChannel(skeleton.GetBoneId(boneIndices[slot]), ChannelUsage.Contact));
+        }
+
+        contacts = new ContactHandles(boneIndices, handles);
         return layout;
     }
 }

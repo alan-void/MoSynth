@@ -22,12 +22,15 @@ class PoseSet:
         0, the rig's root, which carries the clip's own world position
     :param local_quats: (n_frames, n_bones, 4) parent-local joint rotations, xyzw, bone 0
         again in world space
-    :param foot_contacts: (n_frames, 2) left/right foot contact flags
+    :param foot_contacts: (n_frames, n_contacts) bool, one contact flag per contact bone, in
+        the order of ``contact_bone_names``. Despite the name, a contact bone need not be a foot
     :param local_vel: (n_frames, n_bones, 3) linear velocities, m/s, per-channel finite
         differences of the two above
     :param local_angular_vel: (n_frames, n_bones, 3) angular velocities as rotation
         vectors, rad/s
     :param clips: per-clip frame ranges, as dicts with ``start`` and ``end``
+    :param contact_bone_names: the bones whose contacts ``foot_contacts`` holds, in slot
+        order, or None when the source did not name them
     :param phase: (n_frames,) gait phase in radians in [0, 2*pi), or None for a database
         that carries none
     :param phase_rate: (n_frames,) its rate in rad/s. **Zero marks a frame with no
@@ -52,6 +55,7 @@ class PoseSet:
                  local_vel,
                  local_angular_vel,
                  clips,
+                 contact_bone_names=None,
                  phase=None,
                  phase_rate=None,
                  ):
@@ -62,6 +66,8 @@ class PoseSet:
         self.local_velocities: np.ndarray = local_vel
         self.local_angular_velocities: np.ndarray = local_angular_vel
         self.foot_contacts: np.ndarray = foot_contacts
+        self.contact_bone_names: list[str] | None = \
+            None if contact_bone_names is None else list(contact_bone_names)
         self.clips: list = clips
 
         n_frames = len(local_pos)

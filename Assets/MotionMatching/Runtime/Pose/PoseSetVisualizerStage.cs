@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AnimationTools;
 using Unity.Mathematics;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace MotionMatching
 /// The component's skeleton must be the database's own rig. It can be the only stage on a component.
 /// </remarks>
 [Serializable]
-public class PoseSetVisualizerStage : MoSynthStage
+public class PoseSetVisualizerStage : MoSynthStage, IContactBoneSource
 {
     private MotionSynthesisComponent _owner;
 
@@ -32,6 +33,7 @@ public class PoseSetVisualizerStage : MoSynthStage
     [SerializeField]
     private int startFrame;
 
+    public IReadOnlyList<string> ContactBoneNames => mmData == null ? null : mmData.ContactBoneNames;
 
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
@@ -57,6 +59,15 @@ public class PoseSetVisualizerStage : MoSynthStage
             Debug.LogError($"PoseSetVisualizerStage on \"{motionSynthesisComponent.name}\": the component's " +
                            $"Skeleton is not the rig MotionMatchingData \"{mmData.name}\" was built over. " +
                            "Assign that rig's root bone, or regenerate the database.");
+            _poseSet = null;
+            return;
+        }
+
+        if (!ContactBoneSources.SameNames(_poseSet.ContactBoneNames, motionSynthesisComponent.ContactBoneNames))
+        {
+            Debug.LogError($"PoseSetVisualizerStage on \"{motionSynthesisComponent.name}\": the database flags " +
+                           $"contacts on {ContactBoneSources.Describe(_poseSet.ContactBoneNames)} but the " +
+                           $"component adopted {ContactBoneSources.Describe(motionSynthesisComponent.ContactBoneNames)}.");
             _poseSet = null;
             return;
         }

@@ -16,15 +16,16 @@ public class MotionQualityMetricsResult
     public int framesEvaluated;
 
     /// <summary>
-    /// Meters a foot slides while flagged as planted, per meter the root travelled. Scale-free, so
-    /// it compares across methods running at different speeds. 0 is a perfectly planted foot.
+    /// Meters the contact bones slide while flagged as planted, summed over bones, per meter the root
+    /// travelled. Scale-free, so it compares across methods running at different speeds. 0 is
+    /// perfect planting.
     /// </summary>
     public float footskatePerMeter;
 
     /// <summary>Mean slip speed in m/s, averaged over contact frames only. NaN when nothing was ever in contact.</summary>
     public float meanFootskateSpeed;
 
-    /// <summary>Fraction of evaluated frames with at least one foot flagged in contact. A sanity check on the metric above.</summary>
+    /// <summary>Fraction of evaluated frames with at least one contact bone flagged in contact. A sanity check on the metric above.</summary>
     public float contactFraction;
 
     /// <summary>Mean magnitude of the simulation frame's third positional derivative, m/s^3.</summary>

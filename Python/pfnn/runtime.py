@@ -70,8 +70,15 @@ class PfnnPolicy:
             window_offsets=checkpoint.window_offsets,
             bone_indices=np.arange(checkpoint.n_bones, dtype=np.int64),
             bone_names=tuple(checkpoint.bone_names),
-            frame_time=checkpoint.frame_time)
+            frame_time=checkpoint.frame_time,
+            contact_bone_names=(None if checkpoint.contact_bone_names is None
+                                else tuple(checkpoint.contact_bone_names)))
         self._output_layout = self.spec.output_layout()
+
+        # The bone behind each contact slot, for the stage to check against its own contact list.
+        # None for a legacy checkpoint, whose two slots cannot be checked by name.
+        self.contact_bone_names = (None if checkpoint.contact_bone_names is None
+                                   else list(checkpoint.contact_bone_names))
 
         # Before anything is fed through it, not at the first odd-looking frame.
         dataset.check_output_blocks(checkpoint.output_blocks, self._output_layout)
@@ -111,10 +118,11 @@ class PfnnPolicy:
         per bone over :meth:`bone_names`, all in the character frame of the frame being queried.
 
         :return: ``(rotations_6d, joint_velocities, root_height, dx, dz, dyaw, phase_delta,
-            left_contact, right_contact, future_positions, future_directions)``. The rotations are
-            6 floats per bone in the same bone order; ``dx``/``dz``/``dyaw`` are the step into the
-            next character frame, expressed in the current one; ``phase_delta`` is in radians. The
-            two future arrays are ``(x, z)`` per positive window offset, in the *next* character
+            contacts, future_positions, future_directions)``. The rotations are 6 floats per bone
+            in the same bone order; ``dx``/``dz``/``dyaw`` are the step into the next character
+            frame, expressed in the current one; ``phase_delta`` is in radians. ``contacts`` is a
+            list of bools, one per contact slot in :attr:`contact_bone_names` order. The two
+            future arrays are ``(x, z)`` per positive window offset, in the *next* character
             frame -- the trajectory the caller should hand back as the future half of its next
             input.
         """
@@ -154,7 +162,7 @@ class PfnnPolicy:
             float(dataset.block(y, layout, 'root_height')[0]),
             float(root_delta[0]), float(root_delta[1]), float(root_delta[2]),
             float(dataset.block(y, layout, 'phase_delta')[0]),
-            bool(contacts[0] > 0.5), bool(contacts[1] > 0.5),
+            [bool(flag) for flag in contacts > 0.5],
             future_positions.astype(np.float32).tolist(),
             future_directions.astype(np.float32).tolist(),
         )
@@ -173,6 +181,14 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
         database's own, the largest joint excursion seen, and how far the predicted future
         trajectory fell from the one the character really walked.
     """
+    if policy.spec.n_contacts != training_set.n_contacts:
+        raise ValueError(f'the checkpoint reads {policy.spec.n_contacts} contact slots but the '
+                         f'database carries {training_set.n_contacts}')
+    if policy.contact_bone_names is not None and training_set.contact_bone_names is not None \
+            and list(policy.contact_bone_names) != list(training_set.contact_bone_names):
+        raise ValueError(f'the checkpoint reads contacts on {policy.contact_bone_names} but the '
+                         f'database carries them on {training_set.contact_bone_names}')
+
     spec = dataset.build_spec(training_set, _excluded_for(policy, training_set),
                               window_radius=int(abs(policy.checkpoint.window_offsets).max()),
                               window_stride=int(_stride_of(policy.checkpoint.window_offsets)))
@@ -197,7 +213,7 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
 
     for step_index in range(frames):
         frame = min(start_frame + step_index, training_set.n_frames - 1)
-        (six, next_velocities, root_height, dx, dz, dyaw, phase_delta, left, right,
+        (six, next_velocities, root_height, dx, dz, dyaw, phase_delta, next_contacts,
          future_positions, future_directions) = policy.step(
             window_positions[frame], window_directions[frame],
             positions, velocities, contacts, phase)
@@ -217,7 +233,7 @@ def rollout(policy: PfnnPolicy, training_set, frames: int = 300, start_frame: in
         rotations = rotations_from_6d(np.asarray(six, dtype=np.float32).reshape(-1, 6))
         positions = _forward_kinematics(rotations, rest_offsets, parents_in_subset, root_height)
         velocities = np.asarray(next_velocities, dtype=np.float32).reshape(-1, 3)
-        contacts = np.array([float(left), float(right)], dtype=np.float32)
+        contacts = np.asarray(next_contacts, dtype=np.float32)
         phase = (phase + phase_delta) % (2.0 * np.pi)
 
         step_length = float(np.hypot(dx, dz))

@@ -31,16 +31,19 @@ import torch
 
 from lmm import fk
 from training import neural_packing
-from training.training_data import TrainingSet, rotations_to_6d
+from training.training_data import LEGACY_CONTACT_COUNT, TrainingSet, rotations_to_6d
 
 # Floats the latent is compressed to. The paper's section 4.4 and the reference implementation's
 # shipped graphs agree on it, over a rig of comparable size.
 DEFAULT_LATENT_SIZE = 32
 
 
-def pose_vector_layout(n_bones: int) -> list:
+def pose_vector_layout(n_bones: int, n_contacts: int) -> list:
     """
     ``(name, offset, float_count)`` per block of ``Y``, the decompressor's output.
+
+    :param n_bones: bones the decompressor predicts.
+    :param n_contacts: contact slots the database carries, one float each.
 
     Two departures from the paper's ``Y``, both forced by what ``CharacterSpacePose.Apply``
     consumes: no joint-local translations (it writes rest offsets regardless), and the rate channels
@@ -54,7 +57,7 @@ def pose_vector_layout(n_bones: int) -> list:
         ('root_height', 1),
         ('root_velocity', 3),
         ('root_yaw_rate', 1),
-        ('contacts', 2),
+        ('contacts', n_contacts),
     ])
 
 
@@ -160,6 +163,9 @@ class LmmSpec:
     :param feature_size: floats per matching feature vector, i.e. the width of ``X``.
     :param latent_size: floats per latent, i.e. the width of ``Z``.
     :param frame_time: seconds per frame of the database it was packed from.
+    :param contact_bone_names: the bone behind each contact slot, in slot order. None marks a
+        legacy checkpoint written before contact bones were named, which always carried
+        :data:`training.training_data.LEGACY_CONTACT_COUNT` slots.
     """
 
     bone_indices: np.ndarray
@@ -169,14 +175,21 @@ class LmmSpec:
     feature_size: int
     latent_size: int
     frame_time: float
+    contact_bone_names: tuple | None = None
 
     @property
     def n_bones(self) -> int:
         return int(np.size(self.bone_indices))
 
+    @property
+    def n_contacts(self) -> int:
+        if self.contact_bone_names is None:
+            return LEGACY_CONTACT_COUNT
+        return len(self.contact_bone_names)
+
     def pose_layout(self) -> list:
         """``(name, offset, float_count)`` per block of ``Y``."""
-        return pose_vector_layout(self.n_bones)
+        return pose_vector_layout(self.n_bones, self.n_contacts)
 
     def character_layout(self) -> list:
         """``(name, offset, float_count)`` per block of ``Q``."""
@@ -217,6 +230,12 @@ def build_spec(training_set: TrainingSet, excluded_bones=(),
             'Learned motion matching reads the same features the classic matcher searches; '
             'generate them from a MotionMatchingData asset that authors feature channels.')
 
+    contact_bone_names = training_set.contact_bone_names
+    if contact_bone_names is None and training_set.n_contacts != LEGACY_CONTACT_COUNT:
+        raise ValueError(
+            f'the training set holds {training_set.n_contacts} contact slots but names none of '
+            f'them; rebuild it from a regenerated database')
+
     bone_indices = neural_packing.select_bones(
         training_set.bone_names, training_set.parents, excluded_bones)
     parents = fk.parents_within(training_set.parents, bone_indices)
@@ -229,7 +248,8 @@ def build_spec(training_set: TrainingSet, excluded_bones=(),
                                      training_set.rotations[0][bone_indices], parents),
         feature_size=int(training_set.features.shape[1]),
         latent_size=int(latent_size),
-        frame_time=float(training_set.frame_time))
+        frame_time=float(training_set.frame_time),
+        contact_bone_names=None if contact_bone_names is None else tuple(contact_bone_names))
 
 
 def pose_vector(training_set: TrainingSet, spec: LmmSpec) -> np.ndarray:

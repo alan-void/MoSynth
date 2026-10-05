@@ -37,7 +37,7 @@ public class CharacterSpacePoseApplyTests
         _skeletonData = _skeleton.GetSkeletonData();
         _frameDef = SimulationFrameDef.Default(_skeleton);
 
-        var layout = PoseLayoutBuilder.Build(_skeleton, out _);
+        var layout = PoseLayoutBuilder.Build(_skeleton, System.Array.Empty<int>(), out _);
         _pose = PoseBuffer.Allocate(layout, Allocator.Temp);
         _rebuilt = PoseBuffer.Allocate(layout, Allocator.Temp);
 

@@ -123,24 +123,13 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
 
         if (debugContacts)
         {
-            if (!BoneNameConventions.TryFindContactBone(_poseSet.Skeleton, left: true, out var leftToesIndex))
-            {
-                Debug.LogWarning("[MotionMatchingDataVisualiser] Could not find a left contact bone; falling back to the skeleton root.");
-                leftToesIndex = 0;
-            }
-            if (!BoneNameConventions.TryFindContactBone(_poseSet.Skeleton, left: false, out var rightToesIndex))
-            {
-                Debug.LogWarning("[MotionMatchingDataVisualiser] Could not find a right contact bone; falling back to the skeleton root.");
-                rightToesIndex = 0;
-            }
             Gizmos.color = Color.green;
-            if (pose.GetBool(_poseSet.LeftFootContactHandle))
+            var contacts = _poseSet.ContactHandles;
+            for (var slot = 0; slot < contacts.Count; slot++)
             {
-                Gizmos.DrawSphere(_skeletonTransforms[leftToesIndex].position, spheresRadius);
-            }
-            if (pose.GetBool(_poseSet.RightFootContactHandle))
-            {
-                Gizmos.DrawSphere(_skeletonTransforms[rightToesIndex].position, spheresRadius);
+                if (!pose.GetBool(contacts[slot])) continue;
+
+                Gizmos.DrawSphere(_skeletonTransforms[contacts.GetBoneIndex(slot)].position, spheresRadius);
             }
         }
 

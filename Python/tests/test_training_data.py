@@ -38,7 +38,8 @@ def build_pose_set(root_positions: np.ndarray,
                    clips,
                    foot_contacts: np.ndarray | None = None,
                    phase: np.ndarray | None = None,
-                   phase_rate: np.ndarray | None = None) -> PoseSet:
+                   phase_rate: np.ndarray | None = None,
+                   contact_bone_names=None) -> PoseSet:
     """
     A database whose rig is rigid: every bone holds its rest offset and identity rotation,
     and only bone 0 moves. Stored velocities are the per-channel differences the extractor
@@ -83,6 +84,7 @@ def build_pose_set(root_positions: np.ndarray,
                        local_vel=velocities,
                        local_angular_vel=angular_velocities,
                        clips=[{'start': start, 'end': end} for start, end in clips],
+                       contact_bone_names=contact_bone_names,
                        phase=phase,
                        phase_rate=phase_rate)
     pose_set.sim_frame_bone_index = 0
@@ -170,9 +172,28 @@ class PoseVectorTests(unittest.TestCase):
         vector = self.training_set.pose_vector()
         layout = self.training_set.pose_vector_layout()
 
-        self.assertEqual(vector.shape, (12, 15 * self.training_set.n_bones + 6))
+        self.assertEqual(vector.shape, (12, 15 * self.training_set.n_bones + 4 + 2))
         self.assertEqual(layout[0][1], 0)
         self.assertEqual(layout[-1][1] + layout[-1][2], vector.shape[1])
+
+    def test_the_contact_block_is_as_wide_as_the_database_has_contact_bones(self):
+        contacts = np.zeros((12, 3), dtype=bool)
+        contacts[::2, 2] = True
+        pose_set = build_pose_set(walking_straight(12, 1.0), np.zeros(12, dtype=np.float32),
+                                  [(0, 12)], foot_contacts=contacts,
+                                  contact_bone_names=['spine', 'foot', 'root'])
+        training_set = training_data.build_training_set(pose_set)
+
+        vector = training_set.pose_vector()
+        blocks = dict((name, (offset, count)) for name, offset, count in
+                      training_set.pose_vector_layout())
+
+        self.assertEqual(training_set.n_contacts, 3)
+        self.assertEqual(training_set.contact_bone_names, ['spine', 'foot', 'root'])
+        self.assertEqual(vector.shape, (12, 15 * training_set.n_bones + 4 + 3))
+        offset, count = blocks['contacts']
+        self.assertEqual(count, 3)
+        np.testing.assert_array_equal(vector[:, offset:offset + count], contacts.astype(np.float32))
 
     def test_blocks_line_up_with_the_arrays_they_came_from(self):
         vector = self.training_set.pose_vector()
@@ -295,7 +316,8 @@ class RoundTripTests(unittest.TestCase):
         contacts[5:12, 0] = True
         contacts[15:22, 1] = True
         pose_set = build_pose_set(walking_straight(30, 1.2), np.zeros(30, dtype=np.float32),
-                                  [(0, 30)], foot_contacts=contacts)
+                                  [(0, 30)], foot_contacts=contacts,
+                                  contact_bone_names=['foot', 'spine'])
         original = training_data.build_training_set(pose_set)
 
         with tempfile.TemporaryDirectory() as directory:
@@ -311,7 +333,26 @@ class RoundTripTests(unittest.TestCase):
         np.testing.assert_allclose(restored.phase, original.phase)
         np.testing.assert_allclose(restored.frame_position, original.frame_position)
         np.testing.assert_allclose(restored.frame_yaw, original.frame_yaw)
+        np.testing.assert_array_equal(restored.contacts, original.contacts)
+        self.assertEqual(restored.contact_bone_names, ['foot', 'spine'])
         self.assertIsNone(restored.features)
+
+    def test_an_npz_without_contact_names_takes_its_slot_count_from_the_contacts(self):
+        import tempfile
+
+        pose_set = build_pose_set(walking_straight(10, 1.0), np.zeros(10, dtype=np.float32),
+                                  [(0, 10)], foot_contacts=np.zeros((10, 3), dtype=bool))
+        original = training_data.build_training_set(pose_set)
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, 'training.npz')
+            training_data.save_npz(original, path)
+            with np.load(path, allow_pickle=True) as data:
+                self.assertNotIn('contact_bone_names', data.files)
+            restored = training_data.load_npz(path)
+
+        self.assertIsNone(restored.contact_bone_names)
+        self.assertEqual(restored.n_contacts, 3)
 
 
 if __name__ == '__main__':

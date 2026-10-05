@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AnimationTools;
 using Python.Runtime;
 using Unity.Collections;
@@ -16,7 +17,7 @@ namespace Pfnn
 /// that has to be written into a <see cref="PoseBuffer"/> anyway. See openwiki/pfnn/pfnn-stage.md.
 /// </remarks>
 [Serializable]
-public class PfnnStage : MoSynthStage, IDisposable
+public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
 {
     [SerializeField]
     [Tooltip("The trained config. Its checkpoint decides which bones this stage writes.")]
@@ -64,6 +65,8 @@ public class PfnnStage : MoSynthStage, IDisposable
     private Transform _characterTransform;
     private SkeletonData _skeletonData;
     private SimulationFrameDef _frameDef;
+
+    public IReadOnlyList<string> ContactBoneNames => config == null ? null : config.ContactBoneNames;
 
     /// <summary>Whatever is steering the character, when it is a PFNN input; null while nothing is.</summary>
     public PfnnControlInput ControlInput => _owner?.ControlInput as PfnnControlInput;
@@ -113,7 +116,9 @@ public class PfnnStage : MoSynthStage, IDisposable
     private float[] _windowDirections;
     private float[] _jointPositions;
     private float[] _jointVelocities;
-    private readonly float[] _contacts = new float[2];
+    // One entry per contact slot of the pipeline pose: the flags fed back in, and those predicted.
+    private float[] _contacts;
+    private bool[] _predictedContacts;
 
     private PfnnTrajectory _trajectory;
 
@@ -202,9 +207,31 @@ public class PfnnStage : MoSynthStage, IDisposable
         for (var i = 0; i < _slotOfBone.Length; i++) _slotOfBone[i] = -1;
         for (var slot = 0; slot < _boneIndices.Length; slot++) _slotOfBone[_boneIndices[slot]] = slot;
 
+        if (!ContactBoneSources.TryMatchCheckpoint((int)_policy.spec.n_contacts,
+                PythonRuntime.ToStringArrayOrNull(_policy.contact_bone_names),
+                _owner.ContactBoneNames, out error))
+        {
+            _initializationFailed = true;
+            Debug.LogError($"[PFNN] '{config.name}' checkpoint does not fit this character: {error}. " +
+                           "Regenerate the database and retrain.");
+            return false;
+        }
+
         _windowOffsets = (int[])_policy.window_offsets();
         _databaseFrameTime = (float)_policy.frame_time();
         return true;
+    }
+
+    /// <summary>
+    /// Copies the predicted contact flags, a Python list of bool in slot order, into
+    /// <see cref="_predictedContacts"/>. Must be called with the GIL held.
+    /// </summary>
+    private void ReadContacts(dynamic contacts)
+    {
+        for (var slot = 0; slot < _predictedContacts.Length; slot++)
+        {
+            _predictedContacts[slot] = (bool)contacts[slot];
+        }
     }
 
     private void AllocateBuffers()
@@ -220,6 +247,8 @@ public class PfnnStage : MoSynthStage, IDisposable
         _windowDirections = new float[_windowOffsets.Length * 2];
         _jointPositions = new float[_boneIndices.Length * 3];
         _jointVelocities = new float[_boneIndices.Length * 3];
+        _contacts = new float[_owner.ContactHandles.Count];
+        _predictedContacts = new bool[_owner.ContactHandles.Count];
 
         var reach = 0;
         foreach (var offset in _windowOffsets) reach = math.max(reach, -offset);
@@ -258,8 +287,11 @@ public class PfnnStage : MoSynthStage, IDisposable
         _hasPreviousPose = false;
         _hasPrediction = false;
 
-        _contacts[0] = _owner.CurrentPose.GetBool(_owner.LeftFootContactHandle) ? 1f : 0f;
-        _contacts[1] = _owner.CurrentPose.GetBool(_owner.RightFootContactHandle) ? 1f : 0f;
+        var contacts = _owner.ContactHandles;
+        for (var slot = 0; slot < contacts.Count; slot++)
+        {
+            _contacts[slot] = _owner.CurrentPose.GetBool(contacts[slot]) ? 1f : 0f;
+        }
 
         Phase = startPhase * Tau;
         _trajectory.Seed(CurrentGroundPosition(), CurrentYaw());
@@ -290,7 +322,6 @@ public class PfnnStage : MoSynthStage, IDisposable
             FillTrajectoryWindow();
 
             float rootHeight, dx, dz, dyaw, phaseDelta;
-            bool leftContact, rightContact;
             float[] rotations6d, jointVelocities, futurePositions, futureDirections;
 
             using (Py.GIL())
@@ -305,10 +336,9 @@ public class PfnnStage : MoSynthStage, IDisposable
                 dz = (float)result[4];
                 dyaw = (float)result[5];
                 phaseDelta = (float)result[6];
-                leftContact = (bool)result[7];
-                rightContact = (bool)result[8];
-                futurePositions = (float[])result[9];
-                futureDirections = (float[])result[10];
+                ReadContacts(result[7]);
+                futurePositions = (float[])result[8];
+                futureDirections = (float[])result[9];
             }
 
             BuildCharacterSpacePose(rotations6d, jointVelocities, rootHeight);
@@ -326,11 +356,12 @@ public class PfnnStage : MoSynthStage, IDisposable
                 frameVelocity, frameYawRate, _positions, _rotations,
                 _velocities, _angularVelocities);
 
-            pose.SetBool(_owner.LeftFootContactHandle, leftContact);
-            pose.SetBool(_owner.RightFootContactHandle, rightContact);
-
-            _contacts[0] = leftContact ? 1f : 0f;
-            _contacts[1] = rightContact ? 1f : 0f;
+            var contacts = _owner.ContactHandles;
+            for (var slot = 0; slot < contacts.Count; slot++)
+            {
+                pose.SetBool(contacts[slot], _predictedContacts[slot]);
+                _contacts[slot] = _predictedContacts[slot] ? 1f : 0f;
+            }
 
             // Every training phase delta was non-negative (GaitPhase is monotone), so a negative
             // prediction is extrapolation; letting it through runs the cycle backwards unrecoverably.

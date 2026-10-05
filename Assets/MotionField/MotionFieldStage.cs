@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using AnimationTools;
 using Python.Runtime;
@@ -16,7 +17,7 @@ namespace MotionField
 /// rather than committing to multi-step turns. See openwiki/motion-field/motion-field-stage.md.
 /// </remarks>
 [Serializable]
-public class MotionFieldStage : MoSynthStage, IDisposable
+public class MotionFieldStage : MoSynthStage, IDisposable, IContactBoneSource
 {
     private bool _isInitialized;
     private bool _initializationFailed;
@@ -62,6 +63,8 @@ public class MotionFieldStage : MoSynthStage, IDisposable
     }
 
     [SerializeField] public Policy policy = Policy.Optimal;
+
+    public IReadOnlyList<string> ContactBoneNames => config == null ? null : config.ContactBoneNames;
 
     /// <summary>Last desired heading in world space, for gizmos and debugging.</summary>
     public Vector3 DesiredWorldDirection { get; private set; } = Vector3.forward;
@@ -143,6 +146,19 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                 dynamic poseContacts = animData[4];
                 dynamic nextContacts = animData[5];
                 dynamic frameTime = animData[6];
+
+                string[] names = PythonRuntime.ToStringArrayOrNull(animData[7].contact_bone_names);
+                if (names != null)
+                {
+                    if (!ContactBoneSources.TryMatchCheckpoint(names.Length, names,
+                            _owner.ContactBoneNames, out var contactError))
+                    {
+                        Debug.LogError($"[MotionField] '{config.name}' database does not fit this character: " +
+                                       $"{contactError}. Regenerate the pose database.");
+                        _initializationFailed = true;
+                        return;
+                    }
+                }
 
                 using var boneWeights = MotionFieldBoneWeights.ToPython(config);
 
@@ -290,8 +306,12 @@ public class MotionFieldStage : MoSynthStage, IDisposable
                 var lvArray = (float[])poseArrays[2];
                 var lavArray = (float[])poseArrays[3];
 
-                pose.SetBool(_owner.LeftFootContactHandle, (bool)poseArrays[4]);
-                pose.SetBool(_owner.RightFootContactHandle, (bool)poseArrays[5]);
+                dynamic contactFlags = poseArrays[4];
+                var contactHandles = _owner.ContactHandles;
+                for (var slot = 0; slot < contactHandles.Count; slot++)
+                {
+                    pose.SetBool(contactHandles[slot], (bool)contactFlags[slot]);
+                }
 
                 var positions = pose.Positions;
                 var rotations = pose.Rotations;

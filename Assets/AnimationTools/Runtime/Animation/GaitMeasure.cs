@@ -31,28 +31,42 @@ public static class GaitMeasure
         int firstFrame, int frameCount, float velocityThreshold, int smoothingRadius)
     {
         var contacts = new bool[math.max(0, frameCount) * 2];
+        var left = Contacts(clip, skeleton, leftBone, firstFrame, frameCount, velocityThreshold, smoothingRadius);
+        var right = Contacts(clip, skeleton, rightBone, firstFrame, frameCount, velocityThreshold, smoothingRadius);
+        for (var i = 0; i < left.Length; i++)
+        {
+            contacts[i * 2] = left[i];
+            contacts[i * 2 + 1] = right[i];
+        }
+
+        return contacts;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="bone"/> is planted on each of <paramref name="frameCount"/> frames
+    /// from <paramref name="firstFrame"/>, smoothed. Index <c>i</c> is frame <c>firstFrame + i</c>.
+    /// </summary>
+    public static bool[] Contacts(SkeletonAnimation clip, Skeleton skeleton, int bone,
+        int firstFrame, int frameCount, float velocityThreshold, int smoothingRadius)
+    {
+        var contacts = new bool[math.max(0, frameCount)];
         if (frameCount < 2 || clip.FrameTime <= 0f) return contacts;
 
-        var left = new float3[frameCount];
-        var right = new float3[frameCount];
+        var positions = new float3[frameCount];
         var skeletonData = skeleton.GetSkeletonData();
         for (var i = 0; i < frameCount; i++)
         {
-            var pose = clip.GetFrame(firstFrame + i);
-            left[i] = skeletonData.CharacterSpacePosition(pose, leftBone);
-            right[i] = skeletonData.CharacterSpacePosition(pose, rightBone);
+            positions[i] = skeletonData.CharacterSpacePosition(clip.GetFrame(firstFrame + i), bone);
         }
 
         for (var i = 0; i < frameCount; i++)
         {
             // The last frame has no successor to difference against, so it inherits the one before
             // it rather than being reported as a sudden plant.
-            var from = math.min(i, frameCount - 2);
-            contacts[i * 2] = Speed(left, from, clip.FrameTime) < velocityThreshold;
-            contacts[i * 2 + 1] = Speed(right, from, clip.FrameTime) < velocityThreshold;
+            contacts[i] = Speed(positions, math.min(i, frameCount - 2), clip.FrameTime) < velocityThreshold;
         }
 
-        GaitPhase.SmoothContacts(contacts, frameCount, smoothingRadius);
+        GaitPhase.SmoothContactTrack(contacts, frameCount, smoothingRadius);
         return contacts;
     }
 

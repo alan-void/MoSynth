@@ -89,8 +89,9 @@ def load_animations(data_dir='../Assets/StreamingAssets/MMDatabases/MotionMatchi
     is one bone longer than ``pose_set.skeleton``, which keeps describing the file's own
     arrays. See :func:`with_virtual_root`.
 
-    ``pose_contacts`` holds the foot contacts of frame i itself and ``next_contacts``
-    those of frame i + 1, the pose one step from state i lands on.
+    ``pose_contacts`` holds the contact flags of frame i itself and ``next_contacts``
+    those of frame i + 1, the pose one step from state i lands on; both are
+    (n_states, n_contacts), one column per contact bone of the database.
 
     :returns: ``(skeleton, pose_x, pose_v, pose_y, pose_contacts, next_contacts,
         frame_time, pose_set)``
@@ -168,8 +169,10 @@ def get_pose_arrays(skeleton: Skeleton,
     carries the frame-local root state and the frame's own rates are folded into bone
     0's velocities, where C# reads them back out.
 
-    :returns: ``(positions, quaternions, linear_velocities, angular_velocities,
-        left_foot_contact, right_foot_contact)``
+    :param pose_contacts: (n_contacts,) the pose's contact flags, in the database's contact
+        slot order.
+    :returns: ``(positions, quaternions, linear_velocities, angular_velocities, contacts)``,
+        ``contacts`` being a list of bools, one per contact slot
     """
     p_x = Pose.from_array(current_x)
     p_v = PoseDelta.from_array(current_v)
@@ -193,4 +196,6 @@ def get_pose_arrays(skeleton: Skeleton,
     lv = np.ascontiguousarray(lv, dtype=np.float32).flatten().tolist()
     lav = np.ascontiguousarray(lav, dtype=np.float32).flatten().tolist()
 
-    return pos, quats, lv, lav, bool(pose_contacts[0]), bool(pose_contacts[1])
+    contacts = [bool(flag) for flag in np.asarray(pose_contacts).ravel()]
+
+    return pos, quats, lv, lav, contacts

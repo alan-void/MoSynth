@@ -122,6 +122,56 @@ class LayoutTests(unittest.TestCase):
             pfnn_dataset.block(np.zeros(self.spec.input_size),
                                self.spec.input_layout(), 'terrain_heights')
 
+    def test_an_unnamed_set_reads_as_the_legacy_two_contact_slots(self):
+        self.assertIsNone(self.spec.contact_bone_names)
+        self.assertEqual(self.spec.n_contacts, 2)
+
+
+def three_contact_walk_set(n_frames: int = 80, names=('foot', 'spine', 'root')):
+    """A straight walk whose database carries a third contact slot, on its own cadence."""
+    contacts = np.concatenate([contacts_for(n_frames),
+                               (np.arange(n_frames) % 3 == 0)[:, np.newaxis]], axis=1)
+    phase, phase_rate = phase_for(n_frames)
+    pose_set = build_pose_set(walking_straight(n_frames, 1.5),
+                              np.zeros(n_frames, dtype=np.float32),
+                              [(0, n_frames)],
+                              foot_contacts=contacts,
+                              phase=phase,
+                              phase_rate=phase_rate,
+                              contact_bone_names=None if names is None else list(names))
+    return training_data.build_training_set(pose_set)
+
+
+class ContactCountTests(unittest.TestCase):
+    def setUp(self):
+        self.training_set = three_contact_walk_set()
+        self.spec = pfnn_dataset.build_spec(self.training_set)
+
+    def test_the_spec_carries_the_databases_contact_bones(self):
+        self.assertEqual(self.spec.contact_bone_names, ('foot', 'spine', 'root'))
+        self.assertEqual(self.spec.n_contacts, 3)
+
+    def test_both_contact_blocks_are_as_wide_as_the_contact_list(self):
+        for layout in (self.spec.input_layout(), self.spec.output_layout()):
+            counts = {name: count for name, _, count in layout}
+            self.assertEqual(counts['contacts'], 3)
+
+    def test_the_packed_contacts_are_the_databases_own_slots(self):
+        x, y, _, frames = pfnn_dataset.build_vectors(self.training_set, self.spec)
+
+        self.assertEqual(x.shape[1], self.spec.input_size)
+        self.assertEqual(y.shape[1], self.spec.output_size)
+        np.testing.assert_array_equal(
+            pfnn_dataset.block(x, self.spec.input_layout(), 'contacts'),
+            self.training_set.contacts[frames])
+        np.testing.assert_array_equal(
+            pfnn_dataset.block(y, self.spec.output_layout(), 'contacts'),
+            self.training_set.contacts[frames + 1])
+
+    def test_an_unnamed_set_with_other_than_two_slots_is_refused(self):
+        with self.assertRaises(ValueError):
+            pfnn_dataset.build_spec(three_contact_walk_set(names=None))
+
 
 class SampleSelectionTests(unittest.TestCase):
     def test_no_sample_takes_its_target_from_the_next_clip(self):

@@ -3,8 +3,9 @@ On-disk format for a trained Learned Motion Matching model: ``<name>.lmm.npz``.
 
 One artefact per config, written into StreamingAssets so it ships with the player. It holds every
 network's parameters, the normalisation the vectors were packed with, the baked latents, and a full
-description of the packing -- the bones, the feature schema, the authored feature weights -- because
-a model fed a differently shaped input does not throw, it just produces bad motion.
+description of the packing -- the bones, the contact bones, the feature schema, the authored feature
+weights -- because a model fed a differently shaped input does not throw, it just produces bad
+motion.
 
 **Every training stage writes the same contents; what changes is which arrays are populated.**
 ``stages_trained`` records how far training got, and a runtime refuses a checkpoint that lacks what
@@ -99,6 +100,10 @@ class LmmCheckpoint:
     projector_losses: np.ndarray | None = None
     projector_loss_columns: list = field(default_factory=list)
 
+    # The bone behind each contact slot, in slot order. None for a checkpoint written before the
+    # names were stored, which carries the legacy two slots and cannot be checked by name.
+    contact_bone_names: list | None = None
+
     @property
     def feature_size(self) -> int:
         return int(self.x_mean.size)
@@ -168,6 +173,7 @@ def checkpoint_arguments(checkpoint: LmmCheckpoint) -> dict:
         'projector_biases': checkpoint.projector_biases,
         'projector_losses': checkpoint.projector_losses,
         'projector_loss_columns': checkpoint.projector_loss_columns,
+        'contact_bone_names': checkpoint.contact_bone_names,
     }
 
 
@@ -221,13 +227,15 @@ def save_checkpoint(out_path: str, *,
                     xz_rate_mean=None, xz_rate_std=None,
                     stepper_losses=None, stepper_loss_columns=(),
                     projector_weights=None, projector_biases=None,
-                    projector_losses=None, projector_loss_columns=()) -> None:
+                    projector_losses=None, projector_loss_columns=(),
+                    contact_bone_names=None) -> None:
     """
     Write ``<name>.lmm.npz``.
 
     Every argument up to ``loss_columns`` describes the autoencoder and is required. The stepper
     and projector arguments are what later stages add; **leaving them out removes them from the
-    file** -- see this module's docstring.
+    file** -- see this module's docstring. ``contact_bone_names`` left as None writes no names,
+    which reads back as a legacy checkpoint.
 
     ``stages_trained`` is derived from which of them arrived rather than passed in, so it cannot
     claim a stage the file does not carry.
@@ -278,6 +286,9 @@ def save_checkpoint(out_path: str, *,
     arrays.update(_layer_arrays('decompressor', decompressor_weights, decompressor_biases))
     arrays.update(_layer_arrays('stepper', stepper_weights or [], stepper_biases or []))
     arrays.update(_layer_arrays('projector', projector_weights or [], projector_biases or []))
+
+    if contact_bone_names is not None:
+        arrays['contact_bone_names'] = np.array(list(contact_bone_names), dtype=np.str_)
 
     if xz_rate_mean is not None and xz_rate_std is not None:
         arrays['xz_rate_mean'] = np.ascontiguousarray(xz_rate_mean, dtype=np.float32)
@@ -355,7 +366,9 @@ def load_checkpoint(path: str, log=print):
                 projector_losses=(np.ascontiguousarray(f['projector_losses'], dtype=np.float32)
                                   if 'projector_losses' in f else None),
                 projector_loss_columns=([str(name) for name in f['projector_loss_columns']]
-                                        if 'projector_loss_columns' in f else []))
+                                        if 'projector_loss_columns' in f else []),
+                contact_bone_names=([str(name) for name in f['contact_bone_names']]
+                                    if 'contact_bone_names' in f else None))
     except (OSError, ValueError, KeyError) as exc:
         # KeyError: a file written by an older layout, which has no version to say so.
         log(f'[LMM] could not read checkpoint {path}: {exc}. Press Train on the config to rebuild it.')

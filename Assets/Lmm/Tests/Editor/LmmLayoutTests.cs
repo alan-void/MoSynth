@@ -12,6 +12,7 @@ namespace Lmm.Tests
 public class LmmLayoutTests
 {
     private const int BoneCount = 4;
+    private const int ContactCount = 2;
 
     /// <summary>The blocks Python packs, in order, as <c>LmmPolicy.pose_blocks</c> reports them.</summary>
     private static string[] Names() => new[]
@@ -21,9 +22,9 @@ public class LmmLayoutTests
     };
 
     /// <summary>Offset and count per block, flattened, as <c>LmmPolicy.pose_block_offsets</c> does.</summary>
-    private static int[] OffsetsAndCounts(int bones = BoneCount)
+    private static int[] OffsetsAndCounts(int bones = BoneCount, int contacts = ContactCount)
     {
-        int[] counts = { 6 * bones, 3 * bones, 3 * bones, 1, 3, 1, 2 };
+        int[] counts = { 6 * bones, 3 * bones, 3 * bones, 1, 3, 1, contacts };
         var flat = new int[counts.Length * 2];
         var offset = 0;
 
@@ -40,7 +41,7 @@ public class LmmLayoutTests
     [Test]
     public void TryBind_ReadsEveryBlockOffset()
     {
-        Assert.IsTrue(PoseVectorLayout.TryBind(Names(), OffsetsAndCounts(), BoneCount,
+        Assert.IsTrue(PoseVectorLayout.TryBind(Names(), OffsetsAndCounts(), BoneCount, ContactCount,
             out var layout, out var error), error);
 
         Assert.AreEqual(0, layout.Rotations);
@@ -55,7 +56,7 @@ public class LmmLayoutTests
     [Test]
     public void TryBind_TotalIsTwelveFloatsPerBonePlusTheRoots()
     {
-        PoseVectorLayout.TryBind(Names(), OffsetsAndCounts(), BoneCount, out var layout, out _);
+        PoseVectorLayout.TryBind(Names(), OffsetsAndCounts(), BoneCount, ContactCount, out var layout, out _);
 
         Assert.AreEqual(12 * BoneCount + 7, layout.FloatCount);
     }
@@ -66,7 +67,7 @@ public class LmmLayoutTests
         var names = Names();
         names[1] = "joint_velocities";
 
-        Assert.IsFalse(PoseVectorLayout.TryBind(names, OffsetsAndCounts(), BoneCount, out _,
+        Assert.IsFalse(PoseVectorLayout.TryBind(names, OffsetsAndCounts(), BoneCount, ContactCount, out _,
             out var error));
         StringAssert.Contains("joint_velocities", error);
         StringAssert.Contains("velocities", error);
@@ -78,14 +79,14 @@ public class LmmLayoutTests
         var names = Names();
         (names[0], names[1]) = (names[1], names[0]);
 
-        Assert.IsFalse(PoseVectorLayout.TryBind(names, OffsetsAndCounts(), BoneCount, out _, out _));
+        Assert.IsFalse(PoseVectorLayout.TryBind(names, OffsetsAndCounts(), BoneCount, ContactCount, out _, out _));
     }
 
     [Test]
     public void TryBind_RefusesABlockSizedForADifferentBoneCount()
     {
         // The checkpoint was written for five bones; this stage resolved four against the rig.
-        Assert.IsFalse(PoseVectorLayout.TryBind(Names(), OffsetsAndCounts(bones: 5), BoneCount,
+        Assert.IsFalse(PoseVectorLayout.TryBind(Names(), OffsetsAndCounts(bones: 5), BoneCount, ContactCount,
             out _, out var error));
         StringAssert.Contains("rotations_6d", error);
     }
@@ -103,8 +104,27 @@ public class LmmLayoutTests
         extended[^2] = 12 * BoneCount + 7;
         extended[^1] = 1;
 
-        Assert.IsFalse(PoseVectorLayout.TryBind(names, extended, BoneCount, out _, out var error));
+        Assert.IsFalse(PoseVectorLayout.TryBind(names, extended, BoneCount, ContactCount, out _, out var error));
         StringAssert.Contains("pose blocks", error);
+    }
+
+    [Test]
+    public void TryBind_ReadsAContactBlockAsWideAsTheContactList()
+    {
+        Assert.IsTrue(PoseVectorLayout.TryBind(Names(), OffsetsAndCounts(contacts: 3), BoneCount, 3,
+            out var layout, out var error), error);
+
+        Assert.AreEqual(3, layout.ContactCount);
+        Assert.AreEqual(12 * BoneCount + 5, layout.Contacts);
+        Assert.AreEqual(12 * BoneCount + 8, layout.FloatCount);
+    }
+
+    [Test]
+    public void TryBind_RefusesAContactBlockSizedForADifferentContactList()
+    {
+        Assert.IsFalse(PoseVectorLayout.TryBind(Names(), OffsetsAndCounts(contacts: 2), BoneCount, 3,
+            out _, out var error));
+        StringAssert.Contains("contacts", error);
     }
 }
 }

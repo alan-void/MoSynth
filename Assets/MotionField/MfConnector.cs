@@ -134,8 +134,13 @@ public class MfConnector : MoSynthStage, IDisposable
                 angularVelocities[i] = newPose.jointLocalAngularVelocities[i];
             }
 
-            pose.SetBool(_owner.LeftFootContactHandle, newPose.leftFootContact);
-            pose.SetBool(_owner.RightFootContactHandle, newPose.rightFootContact);
+            // The wire format carries a left/right pair, written to the first two contact slots.
+            var contacts = _owner.ContactHandles;
+            if (contacts.Count >= 2)
+            {
+                pose.SetBool(contacts[0], newPose.leftFootContact);
+                pose.SetBool(contacts[1], newPose.rightFootContact);
+            }
 
             return true;
         }

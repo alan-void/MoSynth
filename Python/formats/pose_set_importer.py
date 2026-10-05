@@ -14,7 +14,7 @@ _CHARACTER_FORWARD = np.array([0.0, 0.0, 1.0], dtype=np.float64)
 def read_skeleton(f) -> tuple[Skeleton, int, np.ndarray]:
     """
     Reads the skeleton block at the head of an open .mmpose file, leaving the stream
-    positioned at the clip table.
+    positioned at the contact block (see :func:`read_contact_bones`).
 
     Unity writes this block because the Python side has no ScriptableObject to read the bone
     tree from: names key the per-bone weight table, parent indices drive FK, and the rest
@@ -68,6 +68,18 @@ def read_skeleton(f) -> tuple[Skeleton, int, np.ndarray]:
     return Skeleton("char", joints[0]), sim_frame_bone_index, sim_frame_forward
 
 
+def read_contact_bones(f) -> list[str]:
+    """
+    Reads the contact block that follows the skeleton block: the names of the bones whose
+    contact flags every pose carries, in slot order.
+
+    The names are stored rather than implied so that a consumer can check a database's contact
+    slots against the bones it expects, instead of trusting that both sides agree on an order.
+    """
+    n_contacts = struct.unpack('<I', f.read(4))[0]
+    return [read_csharp_string(f) for _ in range(n_contacts)]
+
+
 def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
     """
     Reads the .mmpose file from the given path and constructs a PoseSet object.
@@ -84,6 +96,8 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
 
     with open(pose_path, 'rb') as f:
         skeleton, sim_frame_bone_index, sim_frame_forward = read_skeleton(f)
+        contact_bone_names = read_contact_bones(f)
+        n_contacts = len(contact_bone_names)
 
         n_clips = struct.unpack('<I', f.read(4))[0]
         clips = []
@@ -102,7 +116,7 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
         vel = np.zeros((n_poses, n_joints, 3), dtype=np.float32)
         ang_vel = np.zeros((n_poses, n_joints, 3), dtype=np.float32)
 
-        foot_contacts = np.zeros((n_poses, 2), dtype=bool)
+        foot_contacts = np.zeros((n_poses, n_contacts), dtype=bool)
 
         for i in range(n_poses):
             pos[i] = np.frombuffer(f.read(n_joints * 12), dtype=np.float32).reshape(n_joints, 3)
@@ -110,9 +124,7 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
             vel[i] = np.frombuffer(f.read(n_joints * 12), dtype=np.float32).reshape(n_joints, 3)
             ang_vel[i] = np.frombuffer(f.read(n_joints * 12), dtype=np.float32).reshape(n_joints, 3)
 
-            left_contact = struct.unpack('<I', f.read(4))[0] == 1
-            right_contact = struct.unpack('<I', f.read(4))[0] == 1
-            foot_contacts[i] = [left_contact, right_contact]
+            foot_contacts[i] = np.frombuffer(f.read(n_contacts * 4), dtype='<u4') == 1
 
         # Gait phase and its rate, one pair per pose, evaluated by Unity from each clip's
         # authored footfalls so that nothing on this side reconstructs phase from contacts.
@@ -147,6 +159,7 @@ def deserialize_pose_set(path: str, file_name: str) -> PoseSet:
         local_pos=pos,
         local_quats=quats,
         foot_contacts=foot_contacts,
+        contact_bone_names=contact_bone_names,
         local_vel=vel,
         local_angular_vel=ang_vel,
         clips=clips,

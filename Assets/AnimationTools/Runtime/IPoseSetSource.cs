@@ -25,16 +25,10 @@ public interface IPoseSetSource
     float ContactVelocityThreshold { get; }
 
     /// <summary>
-    /// Bone whose velocity drives left foot-contact detection during extraction; null/empty
-    /// picks by name heuristic.
+    /// Bones whose contact the database flags, one channel each, in slot order. Empty means no
+    /// contact channels; nothing falls back to a name heuristic. An unset entry is null.
     /// </summary>
-    string LeftContactBoneName { get; }
-
-    /// <summary>
-    /// Bone whose velocity drives right foot-contact detection during extraction; null/empty
-    /// picks by name heuristic.
-    /// </summary>
-    string RightContactBoneName { get; }
+    IReadOnlyList<string> ContactBoneNames { get; }
 
     /// <summary>
     /// Also bake each clip mirrored left-to-right, as a clip of its own right after the original.

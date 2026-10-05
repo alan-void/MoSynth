@@ -3,8 +3,8 @@ On-disk format for a trained PFNN: ``<name>.pfnn.npz``.
 
 Written into StreamingAssets so it ships with the player. It holds the network's parameters, the
 normalisation the vectors were packed with, and the description of that packing -- bone names,
-trajectory horizons and output block names -- because a model fed a differently shaped input does
-not throw, it just produces bad motion.
+contact bone names, trajectory horizons and output block names -- because a model fed a
+differently shaped input does not throw, it just produces bad motion.
 
 Bone **names** are stored, never indices: an index goes stale silently when a rig gains a joint,
 while a name is checked against the live skeleton at load. Whether the checkpoint still matches its
@@ -46,6 +46,9 @@ class PfnnCheckpoint:
     hidden_units: int
     dropout: float
     losses: np.ndarray     # (epochs, 2) float32 -- train and validation loss per epoch
+    # The bone behind each contact slot, in slot order. None for a checkpoint written before the
+    # names were stored, which carries the legacy two slots and cannot be checked by name.
+    contact_bone_names: list | None = None
 
     @property
     def input_size(self) -> int:
@@ -66,8 +69,14 @@ class PfnnCheckpoint:
 
 def save_checkpoint(out_path: str, weights, biases, x_mean, x_std, y_mean, y_std,
                     bone_names, output_blocks, window_offsets, frame_time: float,
-                    hidden_units: int, dropout: float, losses) -> None:
-    """Write ``<name>.pfnn.npz``."""
+                    hidden_units: int, dropout: float, losses,
+                    contact_bone_names=None) -> None:
+    """
+    Write ``<name>.pfnn.npz``.
+
+    :param contact_bone_names: the bone behind each contact slot. None writes no names, which
+        reads back as a legacy checkpoint.
+    """
     if len(weights) != LAYER_COUNT or len(biases) != LAYER_COUNT:
         raise ValueError(f'expected {LAYER_COUNT} layers, got {len(weights)}/{len(biases)}')
 
@@ -87,6 +96,9 @@ def save_checkpoint(out_path: str, weights, biases, x_mean, x_std, y_mean, y_std
         'dropout': np.float32(dropout),
         'losses': np.ascontiguousarray(losses, dtype=np.float32).reshape(-1, 2),
     }
+
+    if contact_bone_names is not None:
+        arrays['contact_bone_names'] = np.array(list(contact_bone_names), dtype=np.str_)
 
     for i in range(LAYER_COUNT):
         arrays[f'layer{i}_weights'] = np.ascontiguousarray(weights[i], dtype=np.float32)
@@ -123,7 +135,9 @@ def load_checkpoint(path: str, log=print):
                 frame_time=float(f['frame_time']),
                 hidden_units=int(f['hidden_units']),
                 dropout=float(f['dropout']),
-                losses=np.ascontiguousarray(f['losses'], dtype=np.float32))
+                losses=np.ascontiguousarray(f['losses'], dtype=np.float32),
+                contact_bone_names=([str(name) for name in f['contact_bone_names']]
+                                    if 'contact_bone_names' in f.files else None))
     except (OSError, ValueError, KeyError) as exc:
         # KeyError: a file written by an older layout, which has no version to say so.
         log(f'[PFNN] could not read checkpoint {path}: {exc}. Press Train on the config to rebuild it.')

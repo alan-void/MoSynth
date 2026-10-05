@@ -59,7 +59,14 @@ class LmmPolicy:
         self.checkpoint = checkpoint
         self.device = resolve_device(device)
 
-        self._pose_layout = dataset.pose_vector_layout(checkpoint.n_bones)
+        # The bone behind each contact slot, for the stage to check against its own contact list.
+        # None for a legacy checkpoint, whose two slots cannot be checked by name.
+        self.contact_bone_names = (None if checkpoint.contact_bone_names is None
+                                   else list(checkpoint.contact_bone_names))
+        self.n_contacts = (dataset.LEGACY_CONTACT_COUNT if self.contact_bone_names is None
+                           else len(self.contact_bone_names))
+
+        self._pose_layout = dataset.pose_vector_layout(checkpoint.n_bones, self.n_contacts)
         # Before anything is fed through it, not at the first odd-looking frame.
         neural_packing.check_blocks(checkpoint.output_blocks, self._pose_layout, what='pose')
 
@@ -745,7 +752,20 @@ def full_rollout_report(policy: LmmPolicy, training_set, seeds: int = 256, frame
 
 
 def _excluded_for(policy: LmmPolicy, training_set) -> list:
-    """The bones the checkpoint does not predict, as names, against this database's skeleton."""
+    """
+    The bones the checkpoint does not predict, as names, against this database's skeleton.
+
+    Also refuses a database whose contact slots the checkpoint does not read, since every report
+    packs its truth from the database with the checkpoint's layout.
+    """
+    if policy.n_contacts != training_set.n_contacts:
+        raise ValueError(f'this checkpoint reads {policy.n_contacts} contact slots but the '
+                         f'database carries {training_set.n_contacts}')
+    if policy.contact_bone_names is not None and training_set.contact_bone_names is not None \
+            and list(policy.contact_bone_names) != list(training_set.contact_bone_names):
+        raise ValueError(f'this checkpoint reads contacts on {policy.contact_bone_names} but the '
+                         f'database carries them on {training_set.contact_bone_names}')
+
     predicted = set(policy.bone_names())
     missing = predicted.difference(training_set.bone_names)
     if missing:

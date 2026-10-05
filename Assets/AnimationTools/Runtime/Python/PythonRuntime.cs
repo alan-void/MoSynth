@@ -166,6 +166,16 @@ public static class PythonRuntime
     }
 
     /// <summary>
+    /// A Python list of strings as a C# array, or null for Python <c>None</c>. Call under the GIL.
+    /// </summary>
+    /// <remarks>Member access through <c>dynamic</c> hands <c>None</c> back as a C# null, so test both.</remarks>
+    public static string[] ToStringArrayOrNull(dynamic value)
+    {
+        if (value == null) return null;
+        return ((PyObject)value).IsNone() ? null : (string[])value;
+    }
+
+    /// <summary>
     /// Forget every already-imported module that lives under <see cref="ScriptsFolder"/>, so the
     /// next import re-reads them from disk. Returns how many were dropped.
     /// </summary>
@@ -201,6 +211,41 @@ for name in stale:
     del sys.modules[name]
 
 dropped = len(stale)
+";
+
+    /// <summary>
+    /// A Python value as JSON text, for logs a later script reads back. Call under the GIL.
+    /// </summary>
+    /// <remarks>
+    /// NaN and infinity become null, because strict JSON has no spelling for them; numpy and torch
+    /// values go through <c>tolist()</c>, and anything else unencodable through <c>str()</c>.
+    /// </remarks>
+    public static string ToJson(PyObject value)
+    {
+        using PyModule scope = Py.CreateScope();
+        scope.Set("value", value);
+        scope.Exec(ToJsonScript);
+        return scope.Get<string>("text");
+    }
+
+    private const string ToJsonScript = @"
+import json
+import math
+
+
+def _clean(v):
+    if hasattr(v, 'tolist'):
+        v = v.tolist()
+    if isinstance(v, float) and not math.isfinite(v):
+        return None
+    if isinstance(v, dict):
+        return {str(k): _clean(x) for k, x in v.items()}
+    if isinstance(v, (list, tuple)):
+        return [_clean(x) for x in v]
+    return v
+
+
+text = json.dumps(_clean(value), default=str)
 ";
 }
 }

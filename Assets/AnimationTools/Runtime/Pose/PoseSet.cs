@@ -31,9 +31,11 @@ public class PoseSet
     /// <summary>Layout of the buffers returned by <see cref="GetPoseBuffer"/>.</summary>
     public PoseLayout PoseLayout => _layout;
 
-    /// <summary>Reads the foot-contact Bool channels of a <see cref="GetPoseBuffer"/> frame.</summary>
-    public ChannelHandle LeftFootContactHandle => _leftFootContactHandle;
-    public ChannelHandle RightFootContactHandle => _rightFootContactHandle;
+    /// <summary>Reads the contact Bool channels of a <see cref="GetPoseBuffer"/> frame, one per slot.</summary>
+    public ContactHandles ContactHandles => _contactHandles;
+
+    /// <summary>Bones whose contact each pose flags, in slot order.</summary>
+    public IReadOnlyList<string> ContactBoneNames => _contactBoneNames;
 
     /// <summary>Gait phase of a stored pose, in radians in <c>[0, Tau)</c>.</summary>
     /// <remarks>
@@ -63,28 +65,42 @@ public class PoseSet
     // Capacity view over Domain-backed storage; only the first _poseCount frames hold poses.
     private PoseSequence _poseStorage;
     private int _poseCount;
-    private ChannelHandle _leftFootContactHandle;
-    private ChannelHandle _rightFootContactHandle;
+    private ContactHandles _contactHandles = ContactHandles.Empty;
+    private string[] _contactBoneNames = System.Array.Empty<string>();
     // Parallel to the pose storage, and grown with it. See GetPhase.
     private float[] _phase;
     private float[] _phaseRate;
 
     /// <summary>
-    /// Adopts an already-complete skeleton and rebuilds the layout over it. Pose storage starts
-    /// empty: every real caller sets the skeleton exactly once, before adding any pose.
+    /// Adopts an already-complete skeleton and contact-bone list and rebuilds the layout over them.
+    /// Pose storage starts empty: every real caller sets the skeleton exactly once, before adding
+    /// any pose.
     /// </summary>
-    public void SetSkeleton(Skeleton skeleton)
+    /// <exception cref="System.ArgumentException">A contact bone is not in the skeleton, or is listed twice.</exception>
+    public void SetSkeleton(Skeleton skeleton, IReadOnlyList<string> contactBoneNames)
     {
         Debug.Assert(_poseCount == 0, "Setting the skeleton discards previously stored poses");
         _skeleton = skeleton;
-        RebuildLayout();
+
+        var count = contactBoneNames?.Count ?? 0;
+        _contactBoneNames = new string[count];
+        var contactBoneIndices = new int[count];
+        for (var slot = 0; slot < count; slot++)
+        {
+            var boneName = contactBoneNames[slot];
+            contactBoneIndices[slot] = skeleton.IndexOfName(boneName);
+            if (contactBoneIndices[slot] < 0)
+                throw new System.ArgumentException($"Contact bone \"{boneName}\" is not in skeleton " +
+                                                   $"\"{skeleton.Name}\".", nameof(contactBoneNames));
+            _contactBoneNames[slot] = boneName;
+        }
+
+        RebuildLayout(contactBoneIndices);
     }
 
-    private void RebuildLayout()
+    private void RebuildLayout(int[] contactBoneIndices)
     {
-        _layout = PoseLayoutBuilder.Build(_skeleton, out var contacts);
-        _leftFootContactHandle = contacts.Left;
-        _rightFootContactHandle = contacts.Right;
+        _layout = PoseLayoutBuilder.Build(_skeleton, contactBoneIndices, out _contactHandles);
 
         _poseStorage = null;
         _poseCount = 0;
@@ -280,7 +296,7 @@ public class PoseSet
 
     /// <summary>
     /// View over one stored pose — never Dispose it; it aliases this set's storage. Contacts
-    /// are readable through <see cref="LeftFootContactHandle"/>/<see cref="RightFootContactHandle"/>.
+    /// are readable through <see cref="ContactHandles"/>.
     /// </summary>
     public PoseBuffer GetPoseBuffer(int poseIndex)
     {

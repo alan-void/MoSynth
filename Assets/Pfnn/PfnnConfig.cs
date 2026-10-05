@@ -37,11 +37,9 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
              "from these contacts, so it is what decides the network's phase.")]
     public float contactVelocityThreshold = 0.15f;
 
-    [Tooltip("Bone driving left foot-contact detection. Empty picks by name heuristic.")]
-    public SkeletonBone leftContactBone;
-
-    [Tooltip("Bone driving right foot-contact detection. Empty picks by name heuristic.")]
-    public SkeletonBone rightContactBone;
+    [Tooltip("Bones whose contact the database flags, one channel each, in this order. The network " +
+             "takes and predicts one flag per bone. Empty means no contact channels.")]
+    public List<SkeletonBone> contactBones = new();
 
     [Tooltip("Also bake every clip mirrored left-to-right, doubling the database.")]
     public bool mirrorClips;
@@ -99,8 +97,7 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
 
     public List<AnnotatedAnimationClip> AnimationClips => animationClips;
     public float ContactVelocityThreshold => contactVelocityThreshold;
-    public string LeftContactBoneName => leftContactBone?.Name;
-    public string RightContactBoneName => rightContactBone?.Name;
+    public IReadOnlyList<string> ContactBoneNames => ContactBoneSources.NamesOf(contactBones);
     public bool MirrorClips => mirrorClips;
 
     /// <summary>The pose skeleton: the rig's root bone, identical to each clip's skeleton.</summary>
@@ -165,8 +162,8 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
 
     /// <summary>
     /// Checks that this config can produce a pose database: a skeleton, at least one clip, and every
-    /// clip's skeleton being structurally identical to this one. Never logs — inspectors call it
-    /// every repaint.
+    /// clip's skeleton being structurally identical to this one. Loads every clip, so never call it
+    /// per repaint.
     /// </summary>
     public bool TryValidate(out string error) => PoseSetImporter.TryValidate(this, out error);
 

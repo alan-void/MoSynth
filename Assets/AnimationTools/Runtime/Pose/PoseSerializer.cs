@@ -26,6 +26,7 @@ public class PoseSerializer
             using (var writer = new BinaryWriter(stream, Encoding.UTF8))
             {
                 WriteSkeleton(writer, poseSet.Skeleton);
+                WriteContactBones(writer, poseSet.ContactBoneNames);
 
                 writer.Write((uint)poseSet.NumberClips);
                 for (var i = 0; i < poseSet.NumberClips; ++i)
@@ -39,6 +40,7 @@ public class PoseSerializer
                 writer.Write((uint)poseSet.NumberPoses);
                 writer.Write((uint)poseSet.Skeleton.BoneCount);
                 writer.Write((uint)poseSet.NumberTags);
+                var contacts = poseSet.ContactHandles;
                 for (var i = 0; i < poseSet.NumberPoses; ++i)
                 {
                     var frame = poseSet.GetPoseBuffer(i);
@@ -46,8 +48,10 @@ public class PoseSerializer
                     WriteQuaternionSlice(writer, frame.Rotations);
                     WriteFloat3Slice(writer, frame.Velocities);
                     WriteFloat3Slice(writer, frame.AngularVelocities);
-                    writer.Write(frame.GetBool(poseSet.LeftFootContactHandle) ? 1u : 0u);
-                    writer.Write(frame.GetBool(poseSet.RightFootContactHandle) ? 1u : 0u);
+                    for (var slot = 0; slot < contacts.Count; slot++)
+                    {
+                        writer.Write(frame.GetBool(contacts[slot]) ? 1u : 0u);
+                    }
                 }
 
                 WritePhase(writer, poseSet);
@@ -70,9 +74,11 @@ public class PoseSerializer
 
     /// <summary>
     /// Reads <c>path/fileName.mmpose</c> over <paramref name="skeleton"/>. False when the file is
-    /// missing, truncated, or was extracted over a different bone tree.
+    /// missing, truncated, was extracted over a different bone tree, or flags contacts on bones
+    /// other than <paramref name="contactBoneNames"/>, in that order.
     /// </summary>
-    public bool Deserialize(string path, string fileName, Skeleton skeleton, out PoseSet poseSet)
+    public bool Deserialize(string path, string fileName, Skeleton skeleton,
+        IReadOnlyList<string> contactBoneNames, out PoseSet poseSet)
     {
         poseSet = new PoseSet();
         if (skeleton == null || !skeleton.IsSet) return false;
@@ -87,8 +93,10 @@ public class PoseSerializer
             using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {
                 if (!ReadAndCheckSkeleton(reader, fileName, skeleton)) return false;
+                if (!ReadAndCheckContactBones(reader, fileName, skeleton.BoneCount, contactBoneNames)) return false;
 
-                poseSet.SetSkeleton(skeleton);
+                poseSet.SetSkeleton(skeleton, contactBoneNames);
+                var contacts = poseSet.ContactHandles;
 
                 var clipCount = reader.ReadUInt32();
                 poseSet.SetClipCapacity(clipCount);
@@ -185,8 +193,17 @@ public class PoseSerializer
                         );
                     }
 
-                    frame.SetBool(poseSet.LeftFootContactHandle, reader.ReadUInt32() == 1u);
-                    frame.SetBool(poseSet.RightFootContactHandle, reader.ReadUInt32() == 1u);
+                    if (stream.Length - stream.Position < (long)contacts.Count * sizeof(uint))
+                    {
+                        Debug.LogError($"\"{fileName}.mmpose\" ends inside pose {i} of {poseCount}; " +
+                                       "the file is truncated. Regenerate the databases.");
+                        return false;
+                    }
+
+                    for (var slot = 0; slot < contacts.Count; slot++)
+                    {
+                        frame.SetBool(contacts[slot], reader.ReadUInt32() == 1u);
+                    }
                 }
 
                 if (!ReadPhase(reader, stream, fileName, poseSet, (int)poseCount)) return false;
@@ -247,6 +264,58 @@ public class PoseSerializer
         }
 
         return true;
+    }
+
+    // --- Contact bone block -----------------------------------------------------------------
+    //
+    // The bones whose contact each pose flags, in slot order, so the per-pose flags are labelled
+    // and a file baked against a different list is refused rather than misread.
+
+    private static void WriteContactBones(BinaryWriter writer, IReadOnlyList<string> contactBoneNames)
+    {
+        writer.Write((uint)contactBoneNames.Count);
+        foreach (var boneName in contactBoneNames)
+        {
+            writer.Write(boneName);
+        }
+    }
+
+    private static bool ReadAndCheckContactBones(BinaryReader reader, string fileName, int boneCount,
+        IReadOnlyList<string> expected)
+    {
+        // A file from before this block reads its clip count here, so an implausible count or a
+        // string running off the end is a stale file, not a crash.
+        var count = reader.ReadUInt32();
+        string[] stored = null;
+        if (count <= boneCount)
+        {
+            try
+            {
+                stored = new string[count];
+                for (var i = 0; i < count; i++)
+                {
+                    stored[i] = reader.ReadString();
+                }
+            }
+            catch (Exception e) when (e is EndOfStreamException or FormatException)
+            {
+                stored = null;
+            }
+        }
+
+        if (stored == null)
+        {
+            Debug.LogError($"\"{fileName}.mmpose\" has no readable contact bone block; it predates the block " +
+                           "or is corrupt. Regenerate the databases.");
+            return false;
+        }
+
+        expected ??= Array.Empty<string>();
+        if (ContactBoneSources.SameNames(stored, expected)) return true;
+
+        Debug.LogError($"\"{fileName}.mmpose\" flags contacts on {ContactBoneSources.Describe(stored)} but " +
+                       $"the config lists {ContactBoneSources.Describe(expected)} — regenerate the database.");
+        return false;
     }
 
     // --- Skeleton block ---------------------------------------------------------------------

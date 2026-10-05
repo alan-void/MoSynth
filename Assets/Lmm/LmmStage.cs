@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AnimationTools;
 using MotionMatching;
 using Python.Runtime;
@@ -52,7 +53,7 @@ public enum LmmMode
 /// <para>See openwiki/motion-matching/learned-motion-matching.md.</para>
 /// </remarks>
 [Serializable]
-public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
+public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, IContactBoneSource
 {
     [SerializeField]
     [Tooltip("The trained config. Its checkpoint decides which bones this stage writes.")]
@@ -121,6 +122,9 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
 
     /// <summary>The database this drives from — see <see cref="IMotionMatchingDataProvider"/>.</summary>
     public MotionMatchingData MmData => config == null ? null : config.mmData;
+
+    /// <summary>The list of the database this learns; LMM carries none of its own.</summary>
+    public IReadOnlyList<string> ContactBoneNames => MmData == null ? null : MmData.ContactBoneNames;
 
     /// <summary>
     /// Current frame index in the pose/feature set. In <see cref="LmmMode.Stepper"/> this is the
@@ -253,6 +257,14 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
             return false;
         }
 
+        if (!ContactBoneSources.SameNames(_poseSet.ContactBoneNames, _owner.ContactBoneNames))
+        {
+            Fail($"MotionMatchingData '{config.mmData.name}' flags contacts on " +
+                 $"{ContactBoneSources.Describe(_poseSet.ContactBoneNames)} but the component adopted " +
+                 $"{ContactBoneSources.Describe(_owner.ContactBoneNames)}.");
+            return false;
+        }
+
         _skeletonData = _owner.SkeletonData;
         _databaseFrameRate = 1f / _poseSet.FrameTime;
         return true;
@@ -299,8 +311,18 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
             return false;
         }
 
+        if (!ContactBoneSources.TryMatchCheckpoint((int)_policy.n_contacts,
+                PythonRuntime.ToStringArrayOrNull(_policy.contact_bone_names),
+                _owner.ContactBoneNames, out error))
+        {
+            Fail($"'{config.name}' checkpoint does not fit this character: {error}. Regenerate the " +
+                 "database and retrain.");
+            return false;
+        }
+
         if (!PoseVectorLayout.TryBind((string[])_policy.pose_blocks(),
-                (int[])_policy.pose_block_offsets(), _boneIndices.Length, out _poseLayout, out error))
+                (int[])_policy.pose_block_offsets(), _boneIndices.Length, _owner.ContactHandles.Count,
+                out _poseLayout, out error))
         {
             Fail($"'{config.name}' checkpoint predicts a pose this code cannot read: {error}. Retrain.");
             return false;
@@ -654,8 +676,11 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider
         CharacterSpacePose.Apply(pose, _skeletonData, float3.zero, quaternion.identity,
             rootVelocity, rootYawRate, _positions, _rotations, _velocities, _angularVelocities);
 
-        pose.SetBool(_owner.LeftFootContactHandle, y[_poseLayout.Contacts] > 0.5f);
-        pose.SetBool(_owner.RightFootContactHandle, y[_poseLayout.Contacts + 1] > 0.5f);
+        var contacts = _owner.ContactHandles;
+        for (var slot = 0; slot < contacts.Count; slot++)
+        {
+            pose.SetBool(contacts[slot], y[_poseLayout.Contacts + slot] > 0.5f);
+        }
     }
 
     /// <summary>The training stage a mode needs, and whether the checkpoint carries it.</summary>

@@ -64,6 +64,10 @@ from core.simulation_frame import (canonical_quaternions, clip_ranges, derive_fr
                                    extend_by_one_frame, forward_kinematics, frame_rates,
                                    parent_indices)
 
+# Contact slots a database held when they were a fixed left/right foot pair, before the bones
+# behind them were named. A checkpoint that stores no names is read as having this many.
+LEGACY_CONTACT_COUNT = 2
+
 
 def rotations_to_6d(rotations: np.ndarray) -> np.ndarray:
     """
@@ -135,7 +139,8 @@ class TrainingSet:
     :param root_velocity: (n, 3) velocity of the character frame's origin, in its own
         space, m/s.
     :param root_yaw_rate: (n,) rate of change of the character frame's heading, rad/s.
-    :param contacts: (n, 2) float32 foot contact flags, left then right.
+    :param contacts: (n, n_contacts) float32 contact flags, one per contact bone, in the order
+        of :attr:`contact_bone_names`.
     :param phase: (n,) gait phase in [0, 2*pi), read off the ``.mmpose`` -- Unity evaluates
         it from each clip's authored footfalls.
     :param phase_rate: (n,) rate of change of the unwrapped phase, rad/s. Zero marks a
@@ -154,6 +159,8 @@ class TrainingSet:
     :param feature_counts: (n_features,) samples stored per feature.
     :param n_trajectory_features: how many of the above are trajectory features; the rest
         are pose features, and their first float offset is where the pose block starts.
+    :param contact_bone_names: the bone behind each contact slot, or None when the source
+        did not name them (an ``.npz`` written before the names were stored).
 
     :attr:`frame_position` and :attr:`frame_yaw` are the only world-space arrays here, and a
     model must not take either: where the character stands and which way it faces are exactly
@@ -187,6 +194,7 @@ class TrainingSet:
     feature_widths: np.ndarray | None = None
     feature_counts: np.ndarray | None = None
     n_trajectory_features: int = 0
+    contact_bone_names: list[str] | None = None
 
     @property
     def n_frames(self) -> int:
@@ -195,6 +203,10 @@ class TrainingSet:
     @property
     def n_bones(self) -> int:
         return int(self.positions.shape[1])
+
+    @property
+    def n_contacts(self) -> int:
+        return int(self.contacts.shape[1])
 
     @property
     def rotations_6d(self) -> np.ndarray:
@@ -206,8 +218,8 @@ class TrainingSet:
         One flat packing of the pose, in the character frame.
 
         ``[positions | rotations_6d | velocities | angular_velocities | root_velocity |
-        root_yaw_rate | contacts]``, so ``15 * n_bones + 6`` floats per frame. Named by
-        :meth:`pose_vector_layout`.
+        root_yaw_rate | contacts]``, so ``15 * n_bones + 4 + n_contacts`` floats per frame.
+        Named by :meth:`pose_vector_layout`.
 
         This is a convenience, not a format: nothing reads it back, and a caller with a
         different target in mind should pack the arrays directly. :mod:`lmm.dataset` is one
@@ -233,7 +245,7 @@ class TrainingSet:
                   ("angular_velocities", 3 * self.n_bones),
                   ("root_velocity", 3),
                   ("root_yaw_rate", 1),
-                  ("contacts", 2)]
+                  ("contacts", self.n_contacts)]
 
         layout = []
         offset = 0
@@ -432,7 +444,8 @@ def build_training_set(pose_set: PoseSet, feature_set: FeatureSet | None = None)
         phase=phase,
         phase_rate=phase_rate,
         frame_position=out_frame_position,
-        frame_yaw=out_frame_yaw)
+        frame_yaw=out_frame_yaw,
+        contact_bone_names=pose_set.contact_bone_names)
 
     if feature_set is not None:
         training_set.features = feature_set.features
@@ -490,6 +503,9 @@ def save_npz(training_set: TrainingSet, path: str) -> None:
         'frame_yaw': training_set.frame_yaw,
     }
 
+    if training_set.contact_bone_names is not None:
+        arrays['contact_bone_names'] = np.array(training_set.contact_bone_names, dtype=object)
+
     if training_set.features is not None:
         arrays.update({
             'features': training_set.features,
@@ -525,6 +541,10 @@ def load_npz(path: str) -> TrainingSet:
             phase_rate=data['phase_rate'],
             frame_position=data['frame_position'],
             frame_yaw=data['frame_yaw'])
+
+        # An older file holds no names; its slot count still comes from the contacts array.
+        if 'contact_bone_names' in data:
+            training_set.contact_bone_names = [str(name) for name in data['contact_bone_names']]
 
         if 'features' in data:
             training_set.features = data['features']

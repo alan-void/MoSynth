@@ -17,20 +17,21 @@ MonoBehaviour:
   skeleton:
     root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
   contactVelocityThreshold: 0.15
-  leftContactBone:
-    skeleton:
+  contactBones:
+  - skeleton:
       root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
-    bone: {fileID: 8292156279083153751, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
-  rightContactBone:
-    skeleton:
+    bone: {fileID: 4581474362363489848, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
+  - skeleton:
       root: {fileID: -1031852490016989477, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
-    bone: {fileID: 549183080246094770, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
+    bone: {fileID: 4832083527067105837, guid: 93cabd0f8698474ab1f451bb859175be, type: 3}
+  mirrorClips: 0
   kNeighbors: 15
   tugRatio: 0.1
   posWeight: 1
   velWeight: 0.06
   locomotionFactor: 1
   locomotionSpeedThreshold: 0.5
+  travelFactor: 0.5
   boneWeights: []
   thetaCount: 17
   epochs: 300

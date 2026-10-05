@@ -40,8 +40,7 @@ string  name { get; }                      // doubles as folder and file base na
 Skeleton Skeleton { get; }
 List<AnnotatedAnimationClip> AnimationClips { get; }
 float   ContactVelocityThreshold { get; }
-string  LeftContactBoneName { get; }
-string  RightContactBoneName { get; }
+IReadOnlyList<string> ContactBoneNames { get; }   // one contact flag per bone, in this order
 string  GetAssetPath();
 ```
 

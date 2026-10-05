@@ -32,10 +32,10 @@ Read them from `PfnnSpec.input_layout()` / `output_layout()` rather than hardcod
 gaps, which a unit test asserts.
 
 Input, in order: `trajectory_positions` (2·T), `trajectory_directions` (2·T), `joint_positions`
-(3·B), `joint_velocities` (3·B), `contacts` (2).
+(3·B), `joint_velocities` (3·B), `contacts` (N, one per contact bone).
 
 Output, in order: `joint_rotations_6d` (6·B), `joint_velocities` (3·B), `root_height` (1),
-`root_delta` (3), `phase_delta` (1), `contacts` (2).
+`root_delta` (3), `phase_delta` (1), `contacts` (N, one per contact bone).
 
 Defaults on the demo rig: T = 13 (offsets −30…30 step 5), B = 24 → **198 in, 223 out**, 696,188
 parameters at 256 hidden units.

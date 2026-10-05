@@ -17,7 +17,7 @@ public class PoseSetTests
     public void SetUp()
     {
         _poseSet = new PoseSet();
-        _poseSet.SetSkeleton(TestSkeletons.CreateChain3());
+        _poseSet.SetSkeleton(TestSkeletons.CreateChain3(), System.Array.Empty<string>());
         _poseSet.BeginClip(10, FrameTime);
         _poseSet.BeginClip(10, FrameTime);
     }

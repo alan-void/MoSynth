@@ -290,14 +290,23 @@ public static class GaitPhase
     /// radius and erasing any stance shorter than half the window. Edges are clamped.
     /// </remarks>
     /// <param name="contacts">Flags interleaved per frame: <c>frame * 2</c> left, <c>+ 1</c> right.</param>
-    public static void SmoothContacts(bool[] contacts, int frameCount, int radius)
+    public static void SmoothContacts(bool[] contacts, int frameCount, int radius) =>
+        SmoothInterleaved(contacts, frameCount, radius, stride: 2);
+
+    /// <summary>
+    /// As <see cref="SmoothContacts"/>, for one bone's flags: index <c>frame</c> is that frame.
+    /// </summary>
+    public static void SmoothContactTrack(bool[] contacts, int frameCount, int radius) =>
+        SmoothInterleaved(contacts, frameCount, radius, stride: 1);
+
+    private static void SmoothInterleaved(bool[] contacts, int frameCount, int radius, int stride)
     {
         if (contacts == null || radius <= 0 || frameCount <= 0) return;
 
         var source = (bool[])contacts.Clone();
         var window = radius * 2 + 1;
 
-        for (var foot = 0; foot < 2; foot++)
+        for (var track = 0; track < stride; track++)
         {
             for (var frame = 0; frame < frameCount; frame++)
             {
@@ -305,10 +314,10 @@ public static class GaitPhase
                 for (var offset = -radius; offset <= radius; offset++)
                 {
                     var sample = math.clamp(frame + offset, 0, frameCount - 1);
-                    if (source[sample * 2 + foot]) planted++;
+                    if (source[sample * stride + track]) planted++;
                 }
 
-                contacts[frame * 2 + foot] = planted * 2 > window;
+                contacts[frame * stride + track] = planted * 2 > window;
             }
         }
     }

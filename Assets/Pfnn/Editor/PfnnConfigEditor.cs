@@ -23,14 +23,12 @@ public class PfnnConfigEditor : UnityEditor.Editor
     private int[] _jointDepths;
     private bool _skeletonRead;
 
-    private SerializedProperty _leftContactBoneProperty;
-    private SerializedProperty _rightContactBoneProperty;
+    private SerializedProperty _contactBonesProperty;
 
     private void OnEnable()
     {
         InvalidateSkeleton();
-        _leftContactBoneProperty = serializedObject.FindProperty("leftContactBone");
-        _rightContactBoneProperty = serializedObject.FindProperty("rightContactBone");
+        _contactBonesProperty = serializedObject.FindProperty("contactBones");
     }
 
     private void InvalidateSkeleton()
@@ -43,15 +41,14 @@ public class PfnnConfigEditor : UnityEditor.Editor
     public override void OnInspectorGUI()
     {
         var config = (PfnnConfig)target;
-        var rigRoot = PoseSetSourceGUI.GetRigRoot(config.Skeleton);
 
         serializedObject.Update();
 
         // Scoped to the fields: GUI.changed is also set by a button press, so a blanket check would
         // wipe hasTrained the instant Train set it.
         EditorGUI.BeginChangeCheck();
-        DrawPropertiesExcluding(serializedObject, "m_Script", "leftContactBone", "rightContactBone");
-        DrawContactBones(rigRoot);
+        DrawPropertiesExcluding(serializedObject, "m_Script", "contactBones");
+        PoseSetSourceGUI.DrawContactBones(_contactBonesProperty, config.Skeleton);
         var fieldsChanged = EditorGUI.EndChangeCheck();
 
         serializedObject.ApplyModifiedProperties();
@@ -88,30 +85,10 @@ public class PfnnConfigEditor : UnityEditor.Editor
         EditorUtility.SetDirty(config);
     }
 
-    private void DrawContactBones(Transform rigRoot)
-    {
-        EditorGUILayout.LabelField("Contact Bones", EditorStyles.boldLabel);
-        SkeletonBoneDrawer.DrawLayout(
-            new GUIContent("Left Contact Bone",
-                "Drives foot-contact detection, which is what gait phase is reconstructed from. " +
-                "Leave unset to pick by name."),
-            _leftContactBoneProperty, rigRoot);
-        SkeletonBoneDrawer.DrawLayout(
-            new GUIContent("Right Contact Bone",
-                "Drives foot-contact detection, which is what gait phase is reconstructed from. " +
-                "Leave unset to pick by name."),
-            _rightContactBoneProperty, rigRoot);
-    }
-
     private void DrawDatabaseSection(PfnnConfig config)
     {
         EditorGUILayout.LabelField("Pose Database", EditorStyles.boldLabel);
         EditorGUILayout.LabelField("Output", ProjectRelative(config.GetAssetPath()));
-
-        if (config.animationClips == null || config.animationClips.Count == 0)
-        {
-            EditorGUILayout.HelpBox("Assign at least one animation clip.", MessageType.Warning);
-        }
 
         if (File.Exists(config.GetPoseDatabasePath()))
         {
@@ -120,7 +97,8 @@ public class PfnnConfigEditor : UnityEditor.Editor
                 "retrain — the network is fitted to these frames.");
         }
 
-        using (new EditorGUI.DisabledScope(!config.TryValidate(out _)))
+        // The clips are checked when the button is pressed; see PoseSetSourceGUI.DrawSkeletonValidation.
+        using (new EditorGUI.DisabledScope(!PoseSetImporter.TryValidateSettings(config, out _)))
         {
             if (GUILayout.Button("Generate Pose Database", GUILayout.Height(24)))
             {
@@ -344,6 +322,12 @@ public class PfnnConfigEditor : UnityEditor.Editor
     /// </summary>
     public static bool GeneratePoseDatabase(PfnnConfig config)
     {
+        if (!config.TryValidate(out var error))
+        {
+            Debug.LogError($"[PFNN] '{config.name}': {error}", config);
+            return false;
+        }
+
         try
         {
             EditorUtility.DisplayProgressBar("PFNN", "Extracting poses...", 0.3f);

@@ -19,7 +19,7 @@ namespace MotionMatching
 /// component's skeleton must be the database's own rig. See openwiki/motion-matching/matching-stage.md.
 /// </remarks>
 [Serializable]
-public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
+public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider, IContactBoneSource
 {
     private MotionSynthesisComponent _owner;
 
@@ -96,9 +96,7 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
 
     private bool _warnedNoControlInput;
 
-    // Contact TODO: this frame? prev frame ?
-    public bool IsLeftFootContact { get; private set; }
-    public bool IsRightFootContact { get; private set; }
+    public IReadOnlyList<string> ContactBoneNames => mmData == null ? null : mmData.ContactBoneNames;
 
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
@@ -128,6 +126,14 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider
             Debug.LogError($"MotionMatchingStage on \"{motionSynthesisComponent.name}\": the component's " +
                            $"Skeleton is not the rig MotionMatchingData \"{mmData.name}\" was built over. " +
                            "Assign that rig's root bone, or regenerate the database.");
+            return;
+        }
+
+        if (!ContactBoneSources.SameNames(_poseSet.ContactBoneNames, motionSynthesisComponent.ContactBoneNames))
+        {
+            Debug.LogError($"MotionMatchingStage on \"{motionSynthesisComponent.name}\": the database flags " +
+                           $"contacts on {ContactBoneSources.Describe(_poseSet.ContactBoneNames)} but the " +
+                           $"component adopted {ContactBoneSources.Describe(motionSynthesisComponent.ContactBoneNames)}.");
             return;
         }
 

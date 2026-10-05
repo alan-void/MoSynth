@@ -369,7 +369,8 @@ def train(data_dir: str,
         projector_weights=fitted_projector.weights() if fitted_projector else None,
         projector_biases=fitted_projector.biases() if fitted_projector else None,
         projector_losses=projector_losses if fitted_projector else None,
-        projector_loss_columns=PROJECTOR_LOSS_COLUMNS if fitted_projector else ())
+        projector_loss_columns=PROJECTOR_LOSS_COLUMNS if fitted_projector else (),
+        contact_bone_names=spec.contact_bone_names)
 
     final = losses[-1] if losses else (float('nan'),) * len(LOSS_COLUMNS)
     summary = {

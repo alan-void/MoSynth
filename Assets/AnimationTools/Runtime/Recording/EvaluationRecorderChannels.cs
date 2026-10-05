@@ -97,32 +97,38 @@ public sealed class StageCostChannel : RecorderChannel
     public override int GetContentHash() => GetHashCode();
 }
 
-/// <summary>Two floats, 0 or 1: whether each foot was flagged in contact on this tick.</summary>
+/// <summary>
+/// One float per contact slot of the synthesizer, 0 or 1: whether that bone was flagged in contact on
+/// this tick. Manifest components are the contact bone names, in slot order.
+/// </summary>
 [Serializable]
 public sealed class FootContactChannel : RecorderChannel
 {
-    [NonSerialized] private ChannelHandle _left;
-    [NonSerialized] private ChannelHandle _right;
+    [NonSerialized] private ContactHandles _contacts = ContactHandles.Empty;
+    [NonSerialized] private string[] _boneNames = Array.Empty<string>();
 
-    public override int FloatCount => 2;
+    public override int FloatCount => _contacts.Count;
 
     public override void Bind(MotionSynthesisComponent synthesizer)
     {
-        _left = synthesizer.LeftFootContactHandle;
-        _right = synthesizer.RightFootContactHandle;
+        _contacts = synthesizer.ContactHandles;
+        _boneNames = new string[synthesizer.ContactBoneNames.Count];
+        for (var slot = 0; slot < _boneNames.Length; slot++) _boneNames[slot] = synthesizer.ContactBoneNames[slot];
     }
 
     public override void Sample(in RecorderSampleContext context, ChannelHandle handle, StateBuffer frame)
     {
         var pose = context.Pose;
         var hasPose = pose.IsCreated;
-        frame.SetFloat(handle, 0, hasPose && _left.IsValid && pose.GetBool(_left) ? 1f : 0f);
-        frame.SetFloat(handle, 1, hasPose && _right.IsValid && pose.GetBool(_right) ? 1f : 0f);
+        for (var slot = 0; slot < _contacts.Count; slot++)
+        {
+            frame.SetFloat(handle, slot, hasPose && pose.GetBool(_contacts[slot]) ? 1f : 0f);
+        }
     }
 
     public override void PopulateManifest(RecordingManifestChannel entry)
     {
-        entry.components = new[] { "left", "right" };
+        entry.components = _boneNames;
     }
 
     public override bool Equals(ChannelDescriptor other) =>
@@ -167,18 +173,17 @@ public sealed class PoseDiscontinuityChannel : RecorderChannel
 }
 
 /// <summary>
-/// World position of one side's foot-contact bone, resolved the same way the pose layout resolves
-/// the contact flags themselves.
+/// World position of the bone behind one contact slot of the synthesizer.
 /// </summary>
 /// <remarks>
 /// Not a hand-picked <see cref="BoneWorldPositionChannel"/>: footskate needs the position and the
-/// contact flag to name the same bone, so this resolves it exactly as
-/// <see cref="PoseLayoutBuilder.Build"/> does.
+/// contact flag to name the same bone, so this takes the bone from the slot.
 /// </remarks>
 [Serializable]
 public sealed class ContactBoneWorldPositionChannel : RecorderChannel
 {
-    public bool left = true;
+    /// <summary>Contact slot whose bone this records, an index into the synthesizer's contact list.</summary>
+    public int slot;
 
     [NonSerialized] private int _boneIndex;
     [NonSerialized] private string _resolvedBoneName;
@@ -187,15 +192,19 @@ public sealed class ContactBoneWorldPositionChannel : RecorderChannel
 
     public override void Bind(MotionSynthesisComponent synthesizer)
     {
-        var skeleton = synthesizer.Skeleton;
-        if (!BoneNameConventions.TryFindContactBone(skeleton, left, out _boneIndex))
+        var contacts = synthesizer.ContactHandles;
+        if (slot < 0 || slot >= contacts.Count)
         {
-            Debug.LogWarning($"{nameof(ContactBoneWorldPositionChannel)} \"{name}\": no " +
-                             $"{(left ? "left" : "right")} foot bone found by name; footskate will be measured on bone 0.");
+            Debug.LogWarning($"{nameof(ContactBoneWorldPositionChannel)} \"{name}\": slot {slot} is outside the " +
+                             $"synthesizer's {contacts.Count} contact slots; recording bone 0 instead.");
             _boneIndex = 0;
         }
+        else
+        {
+            _boneIndex = contacts.GetBoneIndex(slot);
+        }
 
-        _resolvedBoneName = skeleton.GetBone(_boneIndex).Name;
+        _resolvedBoneName = synthesizer.Skeleton.GetBone(_boneIndex).Name;
     }
 
     public override void Sample(in RecorderSampleContext context, ChannelHandle handle, StateBuffer frame)
@@ -211,7 +220,7 @@ public sealed class ContactBoneWorldPositionChannel : RecorderChannel
     }
 
     public override bool Equals(ChannelDescriptor other) =>
-        other is ContactBoneWorldPositionChannel c && c.name == name && c.left == left;
+        other is ContactBoneWorldPositionChannel c && c.name == name && c.slot == slot;
 
     public override int GetHashCode()
     {
@@ -219,7 +228,7 @@ public sealed class ContactBoneWorldPositionChannel : RecorderChannel
         {
             var hash = GetType().GetHashCode();
             hash = hash * 31 + (name?.GetHashCode() ?? 0);
-            hash = hash * 31 + left.GetHashCode();
+            hash = hash * 31 + slot;
             return hash;
         }
     }

@@ -30,11 +30,9 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     [Tooltip("Foot speed below which a toe counts as planted.")]
     public float contactVelocityThreshold = 0.15f;
 
-    [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
-    public SkeletonBone leftContactBone = new();
-
-    [Tooltip("Bone whose velocity drives foot-contact detection; leave unset to pick by name (LeftToe/RightToe).")]
-    public SkeletonBone rightContactBone = new();
+    [Tooltip("Bones whose contact the database flags, one channel each, in this order. Empty means " +
+             "no contact channels.")]
+    public List<SkeletonBone> contactBones = new();
 
     [Tooltip("Also bake every clip mirrored left-to-right, doubling the database.")]
     public bool mirrorClips;
@@ -214,8 +212,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
 
     public List<AnnotatedAnimationClip> AnimationClips => animationClips;
     public float ContactVelocityThreshold => contactVelocityThreshold;
-    public string LeftContactBoneName => leftContactBone?.Name;
-    public string RightContactBoneName => rightContactBone?.Name;
+    public IReadOnlyList<string> ContactBoneNames => ContactBoneSources.NamesOf(contactBones);
     public bool MirrorClips => mirrorClips;
 
     /// <summary>The pose skeleton: the rig's root bone, identical to each clip's skeleton.</summary>
@@ -282,7 +279,7 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// <summary>
     /// Checks that this config can produce a pose database: a skeleton, at least one clip, and
     /// every clip's skeleton being structurally identical to this one. Returns false with a message
-    /// suitable for an Inspector HelpBox. Never logs — inspectors call it every repaint.
+    /// suitable for an Inspector HelpBox. Loads every clip, so never call it per repaint.
     /// </summary>
     public bool TryValidate(out string error) => PoseSetImporter.TryValidate(this, out error);
 

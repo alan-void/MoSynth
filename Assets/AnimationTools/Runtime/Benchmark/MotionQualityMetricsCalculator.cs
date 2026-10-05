@@ -14,11 +14,10 @@ public static class MotionQualityMetricsCalculator
     /// <paramref name="settleTime"/> are dropped, same as <see cref="PathFollowingMetricsCalculator"/>.
     /// </summary>
     /// <param name="rootPositions">World-space simulation-frame position per recorded frame.</param>
-    /// <param name="leftFootPositions">World-space left foot position per recorded frame, or null if the
-    /// foot channel wasn't recorded.</param>
-    /// <param name="rightFootPositions">World-space right foot position per recorded frame, or null.</param>
-    /// <param name="leftContacts">Left foot ground-contact flag per recorded frame, or null.</param>
-    /// <param name="rightContacts">Right foot ground-contact flag per recorded frame, or null.</param>
+    /// <param name="contactBonePositions">World-space position of each contact bone per recorded frame,
+    /// indexed <c>[slot][frame]</c>, or null if they weren't recorded.</param>
+    /// <param name="contacts">Ground-contact flag of each contact bone per recorded frame, indexed like
+    /// <paramref name="contactBonePositions"/>, or null.</param>
     /// <param name="discontinuities">Whether a stage replaced the pose discontinuously on that frame, or
     /// null if the channel wasn't recorded.</param>
     /// <param name="times">Seconds since recording start per frame, strictly increasing.</param>
@@ -26,10 +25,8 @@ public static class MotionQualityMetricsCalculator
     /// time to reach steady state.</param>
     public static MotionQualityMetricsResult Evaluate(
         float3[] rootPositions,
-        float3[] leftFootPositions,
-        float3[] rightFootPositions,
-        bool[] leftContacts,
-        bool[] rightContacts,
+        float3[][] contactBonePositions,
+        bool[][] contacts,
         bool[] discontinuities,
         float[] times,
         float settleTime)
@@ -57,13 +54,9 @@ public static class MotionQualityMetricsCalculator
 
         result.framesEvaluated = analysisFrames.Count;
 
-        var hasFeet = leftFootPositions != null && rightFootPositions != null
-            && leftContacts != null && rightContacts != null;
-
-        if (hasFeet)
+        if (HasContactSeries(contactBonePositions, contacts))
         {
-            EvaluateFootskate(analysisFrames, rootPositions, leftFootPositions, rightFootPositions,
-                leftContacts, rightContacts, times, result);
+            EvaluateFootskate(analysisFrames, rootPositions, contactBonePositions, contacts, times, result);
         }
         else
         {
@@ -79,13 +72,25 @@ public static class MotionQualityMetricsCalculator
         return result;
     }
 
+    /// <summary>At least one bone, and a position and a contact series for every one of them.</summary>
+    private static bool HasContactSeries(float3[][] positions, bool[][] contacts)
+    {
+        if (positions == null || contacts == null || positions.Length == 0 ||
+            positions.Length != contacts.Length) return false;
+
+        for (var slot = 0; slot < positions.Length; slot++)
+        {
+            if (positions[slot] == null || contacts[slot] == null) return false;
+        }
+
+        return true;
+    }
+
     private static void EvaluateFootskate(
         List<int> analysisFrames,
         float3[] rootPositions,
-        float3[] leftFootPositions,
-        float3[] rightFootPositions,
-        bool[] leftContacts,
-        bool[] rightContacts,
+        float3[][] contactBonePositions,
+        bool[][] contacts,
         float[] times,
         MotionQualityMetricsResult result)
     {
@@ -98,17 +103,13 @@ public static class MotionQualityMetricsCalculator
             var t1 = analysisFrames[i];
             var dt = times[t1] - times[t0];
 
-            // Counted once per foot: a pair with both feet planted contributes dt twice, matching the
-            // slip sum which is also over both feet, so the resulting ratio stays a per-foot speed.
-            if (leftContacts[t0] && leftContacts[t1])
+            // Counted once per bone: a pair with two bones planted contributes dt twice, matching the
+            // slip sum which is also over every bone, so the resulting ratio stays a per-bone speed.
+            for (var slot = 0; slot < contacts.Length; slot++)
             {
-                totalSlip += XZDistance(leftFootPositions[t0], leftFootPositions[t1]);
-                if (dt > 0f) totalContactSeconds += dt;
-            }
+                if (!contacts[slot][t0] || !contacts[slot][t1]) continue;
 
-            if (rightContacts[t0] && rightContacts[t1])
-            {
-                totalSlip += XZDistance(rightFootPositions[t0], rightFootPositions[t1]);
+                totalSlip += XZDistance(contactBonePositions[slot][t0], contactBonePositions[slot][t1]);
                 if (dt > 0f) totalContactSeconds += dt;
             }
         }
@@ -135,7 +136,13 @@ public static class MotionQualityMetricsCalculator
         for (var i = 0; i < analysisFrames.Count; i++)
         {
             var t = analysisFrames[i];
-            if (leftContacts[t] || rightContacts[t]) contactFrameCount++;
+            for (var slot = 0; slot < contacts.Length; slot++)
+            {
+                if (!contacts[slot][t]) continue;
+
+                contactFrameCount++;
+                break;
+            }
         }
 
         result.contactFraction = (float)contactFrameCount / analysisFrames.Count;

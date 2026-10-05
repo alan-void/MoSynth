@@ -51,28 +51,35 @@ def build_feature_set(n_frames: int, invalid=()) -> FeatureSet:
 
 
 def straight_walk_set(n_frames: int = 40, clips=None, invalid=(),
-                      with_features: bool = True) -> training_data.TrainingSet:
+                      with_features: bool = True, foot_contacts=None,
+                      contact_bone_names=None) -> training_data.TrainingSet:
     clips = clips or [(0, n_frames)]
     pose_set = build_pose_set(walking_straight(n_frames, speed=1.5),
                               np.zeros(n_frames, dtype=np.float32),
-                              clips)
+                              clips, foot_contacts=foot_contacts,
+                              contact_bone_names=contact_bone_names)
     feature_set = build_feature_set(n_frames, invalid) if with_features else None
     return training_data.build_training_set(pose_set, feature_set)
 
 
 class LayoutTests(unittest.TestCase):
-    def test_the_pose_vector_is_twelve_floats_a_bone_plus_the_roots_seven(self):
-        layout = lmm_dataset.pose_vector_layout(5)
+    def test_the_pose_vector_is_twelve_floats_a_bone_plus_the_roots_five_and_the_contacts(self):
+        layout = lmm_dataset.pose_vector_layout(5, 2)
 
         self.assertEqual([name for name, _, _ in layout],
                          ['rotations_6d', 'velocities', 'angular_velocities',
                           'root_height', 'root_velocity', 'root_yaw_rate', 'contacts'])
-        self.assertEqual(neural_packing.vector_size(layout), 12 * 5 + 7)
+        self.assertEqual(neural_packing.vector_size(layout), 12 * 5 + 5 + 2)
+
+    def test_the_contact_block_is_one_float_per_contact_bone(self):
+        counts = {name: count for name, _, count in lmm_dataset.pose_vector_layout(5, 3)}
+
+        self.assertEqual(counts['contacts'], 3)
 
     def test_the_pose_vector_carries_no_joint_positions(self):
         # They are forward kinematics of what it does carry, so predicting them as well would let
         # the network describe a pose its own rotations do not reach.
-        names = [name for name, _, _ in lmm_dataset.pose_vector_layout(5)]
+        names = [name for name, _, _ in lmm_dataset.pose_vector_layout(5, 2)]
 
         self.assertNotIn('positions', names)
 
@@ -151,6 +158,31 @@ class SpecTests(unittest.TestCase):
         with self.assertRaises(ValueError) as raised:
             lmm_dataset.build_spec(straight_walk_set(with_features=False))
         self.assertIn('.mmfeatures', str(raised.exception))
+
+    def test_an_unnamed_set_reads_as_the_legacy_two_contact_slots(self):
+        spec = lmm_dataset.build_spec(straight_walk_set())
+
+        self.assertIsNone(spec.contact_bone_names)
+        self.assertEqual(spec.n_contacts, 2)
+        self.assertEqual(spec.pose_size, 12 * spec.n_bones + 5 + 2)
+
+    def test_the_pose_vector_is_as_wide_as_the_databases_contact_list(self):
+        contacts = np.zeros((40, 3), dtype=bool)
+        contacts[::4, 1] = True
+        training_set = straight_walk_set(foot_contacts=contacts,
+                                         contact_bone_names=['foot', 'spine', 'root'])
+        spec = lmm_dataset.build_spec(training_set)
+        y = lmm_dataset.pose_vector(training_set, spec)
+
+        self.assertEqual(spec.contact_bone_names, ('foot', 'spine', 'root'))
+        self.assertEqual(spec.pose_size, 12 * spec.n_bones + 5 + 3)
+        self.assertEqual(y.shape[1], spec.pose_size)
+        np.testing.assert_array_equal(
+            neural_packing.block(y, spec.pose_layout(), 'contacts'), contacts.astype(np.float32))
+
+    def test_an_unnamed_set_with_other_than_two_slots_is_refused(self):
+        with self.assertRaises(ValueError):
+            lmm_dataset.build_spec(straight_walk_set(foot_contacts=np.zeros((40, 3), dtype=bool)))
 
     def test_excluding_a_bone_narrows_the_pose_vector(self):
         training_set = straight_walk_set()

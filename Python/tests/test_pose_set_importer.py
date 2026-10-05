@@ -34,9 +34,14 @@ def _csharp_string(text: str) -> bytes:
 
 
 def write_mmpose(path: str, n_poses: int, bone_names, parents, phase, phase_rate,
-                 contacts=None) -> None:
-    """A minimal database in the on-disk layout, with distinct values everywhere."""
+                 contacts=None, contact_bone_names=('foot_l', 'foot_r')) -> None:
+    """
+    A minimal database in the on-disk layout, with distinct values everywhere.
+
+    :param contacts: per pose, one flag per entry of ``contact_bone_names``; all clear if None.
+    """
     n_bones = len(bone_names)
+    n_contacts = len(contact_bone_names)
     out = bytearray()
 
     out += struct.pack('<I', n_bones)
@@ -45,6 +50,10 @@ def write_mmpose(path: str, n_poses: int, bone_names, parents, phase, phase_rate
         out += struct.pack('<i', parents[bone])
         out += struct.pack('<3f', 0.0, float(bone), 0.0)
         out += struct.pack('<4f', 0.0, 0.0, 0.0, 1.0)
+
+    out += struct.pack('<I', n_contacts)
+    for name in contact_bone_names:
+        out += _csharp_string(name)
 
     out += struct.pack('<I', 1)
     out += struct.pack('<IIf', 0, n_poses, FRAME_TIME)
@@ -58,8 +67,8 @@ def write_mmpose(path: str, n_poses: int, bone_names, parents, phase, phase_rate
                 if block == 'rot':
                     values = [0.0, 0.0, 0.0, 1.0]
                 out += struct.pack(f'<{width}f', *values)
-        left, right = (0, 0) if contacts is None else contacts[pose]
-        out += struct.pack('<II', int(left), int(right))
+        flags = [0] * n_contacts if contacts is None else contacts[pose]
+        out += struct.pack(f'<{n_contacts}I', *(int(flag) for flag in flags))
 
     for pose in range(n_poses):
         out += struct.pack('<2f', float(phase[pose]), float(phase_rate[pose]))
@@ -92,6 +101,7 @@ class PhaseBlockTests(unittest.TestCase):
         expected = np.array([[p % 2, (p + 1) % 2] for p in range(self.n_poses)], dtype=bool)
         np.testing.assert_array_equal(pose_set.foot_contacts, expected)
         np.testing.assert_allclose(pose_set.phase, self.phase)
+        self.assertEqual(pose_set.contact_bone_names, ['foot_l', 'foot_r'])
 
     def test_a_file_that_stops_before_the_phase_block_is_refused(self):
         # The format carries no version, so a file missing the block has to be caught by its
@@ -107,6 +117,40 @@ class PhaseBlockTests(unittest.TestCase):
         with self.assertRaises(ValueError) as raised:
             deserialize_pose_set(self.directory, 'stale')
         self.assertIn('gait phase', str(raised.exception))
+
+
+class ContactBlockTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.mkdtemp()
+        self.n_poses = 5
+        self.phase = np.linspace(0.0, 4.0, self.n_poses).astype(np.float32)
+        self.phase_rate = np.full(self.n_poses, 0.5, dtype=np.float32)
+
+    def test_three_contact_bones_read_back_by_slot(self):
+        names = ('toe_l', 'toe_r', 'hand_l')
+        contacts = [(p % 2, (p + 1) % 2, int(p >= 3)) for p in range(self.n_poses)]
+        write_mmpose(os.path.join(self.directory, 'db.mmpose'), self.n_poses,
+                     ['root', 'spine', 'foot'], [-1, 0, 1], self.phase, self.phase_rate,
+                     contacts=contacts, contact_bone_names=names)
+
+        pose_set = deserialize_pose_set(self.directory, 'db')
+
+        self.assertEqual(pose_set.contact_bone_names, list(names))
+        np.testing.assert_array_equal(pose_set.foot_contacts, np.array(contacts, dtype=bool))
+        # The phase block sits after three flags per pose rather than two.
+        np.testing.assert_allclose(pose_set.phase, self.phase)
+        np.testing.assert_allclose(pose_set.phase_rate, self.phase_rate)
+
+    def test_no_contact_bones_means_no_contact_columns(self):
+        write_mmpose(os.path.join(self.directory, 'db.mmpose'), self.n_poses,
+                     ['root', 'spine', 'foot'], [-1, 0, 1], self.phase, self.phase_rate,
+                     contact_bone_names=())
+
+        pose_set = deserialize_pose_set(self.directory, 'db')
+
+        self.assertEqual(pose_set.contact_bone_names, [])
+        self.assertEqual(pose_set.foot_contacts.shape, (self.n_poses, 0))
+        np.testing.assert_allclose(pose_set.phase, self.phase)
 
 
 if __name__ == '__main__':

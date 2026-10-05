@@ -33,14 +33,19 @@ public readonly struct PoseVectorLayout
     /// <summary>The character frame's own turn, one float, radians per second.</summary>
     public readonly int RootYawRate;
 
-    /// <summary>Left then right foot contact, two floats read as flags above 0.5.</summary>
+    /// <summary>
+    /// One float per contact slot, in the pipeline's slot order, read as flags above 0.5.
+    /// </summary>
     public readonly int Contacts;
+
+    /// <summary>Floats in the <see cref="Contacts"/> block: the number of contact slots.</summary>
+    public readonly int ContactCount;
 
     /// <summary>Total floats in a pose vector.</summary>
     public readonly int FloatCount;
 
     private PoseVectorLayout(int rotations, int velocities, int angularVelocities,
-        int rootHeight, int rootVelocity, int rootYawRate, int contacts, int floatCount)
+        int rootHeight, int rootVelocity, int rootYawRate, int contacts, int contactCount, int floatCount)
     {
         Rotations = rotations;
         Velocities = velocities;
@@ -49,6 +54,7 @@ public readonly struct PoseVectorLayout
         RootVelocity = rootVelocity;
         RootYawRate = rootYawRate;
         Contacts = contacts;
+        ContactCount = contactCount;
         FloatCount = floatCount;
     }
 
@@ -62,8 +68,13 @@ public readonly struct PoseVectorLayout
     /// <summary>Floats per predicted bone in each block, or 0 for a block that is not per-bone.</summary>
     private static readonly int[] FloatsPerBone = { 6, 3, 3, 0, 0, 0, 0 };
 
-    /// <summary>Floats in each block that is not per-bone, or 0 for one that is.</summary>
-    private static readonly int[] FixedFloats = { 0, 0, 0, 1, 3, 1, 2 };
+    /// <summary>
+    /// Floats in each block that is not per-bone, or 0 for one that is. The contact block's width is
+    /// the contact count, supplied by the caller.
+    /// </summary>
+    private static readonly int[] FixedFloats = { 0, 0, 0, 1, 3, 1, 0 };
+
+    private const int ContactBlock = 6;
 
     /// <summary>
     /// Reads a checkpoint's declared pose layout, refusing one this code cannot interpret.
@@ -74,8 +85,12 @@ public readonly struct PoseVectorLayout
     /// <c>LmmPolicy.pose_block_offsets</c>.
     /// </param>
     /// <param name="boneCount">How many bones the checkpoint predicts.</param>
+    /// <param name="contactCount">
+    /// How many contact slots the pipeline pose has. A checkpoint predicting a different number was
+    /// trained against a different contact list, and is refused.
+    /// </param>
     /// <param name="error">Why the layout was refused, suitable for a console message.</param>
-    public static bool TryBind(string[] names, int[] offsetsAndCounts, int boneCount,
+    public static bool TryBind(string[] names, int[] offsetsAndCounts, int boneCount, int contactCount,
         out PoseVectorLayout layout, out string error)
     {
         layout = default;
@@ -96,9 +111,16 @@ public readonly struct PoseVectorLayout
                 return false;
             }
 
-            var expectedCount = FloatsPerBone[i] * boneCount + FixedFloats[i];
             var count = offsetsAndCounts[i * 2 + 1];
-            if (count != expectedCount)
+            if (i == ContactBlock && count != contactCount)
+            {
+                error = $"the '{names[i]}' block is {count} floats where this character has " +
+                        $"{contactCount} contact bones";
+                return false;
+            }
+
+            var expectedCount = FloatsPerBone[i] * boneCount + FixedFloats[i];
+            if (i != ContactBlock && count != expectedCount)
             {
                 error = $"the '{names[i]}' block is {count} floats where {boneCount} bones make it " +
                         $"{expectedCount}";
@@ -110,7 +132,7 @@ public readonly struct PoseVectorLayout
 
         var last = ExpectedNames.Length - 1;
         layout = new PoseVectorLayout(offsets[0], offsets[1], offsets[2], offsets[3],
-            offsets[4], offsets[5], offsets[6],
+            offsets[4], offsets[5], offsets[ContactBlock], contactCount,
             offsets[last] + offsetsAndCounts[last * 2 + 1]);
         error = null;
         return true;

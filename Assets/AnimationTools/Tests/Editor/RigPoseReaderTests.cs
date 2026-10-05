@@ -14,6 +14,9 @@ public class RigPoseReaderTests
 {
     private const float DeltaTime = 1f / 30f;
 
+    // The head of the three-bone chain.
+    private static readonly int[] ContactBones = { 2 };
+
     private Skeleton _skeleton;
     private Transform[] _transforms;
     private PoseBuffer _pose;
@@ -28,7 +31,7 @@ public class RigPoseReaderTests
             _transforms[i] = _skeleton.GetBone(i).Transform;
         }
 
-        _pose = PoseBuffer.Allocate(PoseLayoutBuilder.Build(_skeleton, out _), Allocator.Temp);
+        _pose = PoseBuffer.Allocate(PoseLayoutBuilder.Build(_skeleton, ContactBones, out _), Allocator.Temp);
         RigPoseReader.Seed(_pose, _transforms);
     }
 
@@ -130,12 +133,12 @@ public class RigPoseReaderTests
     public void Read_LeavesFootContactsToWhicheverStageOwnsThem()
     {
         // The builder caches per skeleton, so this is the layout the buffer was allocated over.
-        PoseLayoutBuilder.Build(_skeleton, out var contacts);
-        _pose.SetBool(contacts.Left, true);
+        PoseLayoutBuilder.Build(_skeleton, ContactBones, out var contacts);
+        _pose.SetBool(contacts[0], true);
 
         RigPoseReader.Read(_pose, _transforms, DeltaTime);
 
-        Assert.IsTrue(_pose.GetBool(contacts.Left));
+        Assert.IsTrue(_pose.GetBool(contacts[0]));
     }
 }
 }

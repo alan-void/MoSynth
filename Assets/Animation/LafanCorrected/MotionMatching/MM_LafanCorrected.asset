@@ -17,6 +17,13 @@ MonoBehaviour:
   skeleton:
     root: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
   contactVelocityThreshold: 0.15
+  contactBones:
+  - skeleton:
+      root: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+    bone: {fileID: 4581474362363489848, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  - skeleton:
+      root: {fileID: -1031852490016989477, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+    bone: {fileID: 4832083527067105837, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
   leftContactBone:
     skeleton:
       root: {fileID: 0}
@@ -25,6 +32,7 @@ MonoBehaviour:
     skeleton:
       root: {fileID: 0}
     bone: {fileID: 549183080246094770, guid: 91069da7c10348f4a88d5f22800c2a16, type: 3}
+  mirrorClips: 0
   trajectoryFeatures:
   - name: FuturePosition
     featureType: 0

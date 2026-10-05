@@ -57,7 +57,7 @@ public class PoseMirrorTests
         _rig = hips.gameObject;
         _skeleton = new Skeleton(hips);
         Assert.IsTrue(PoseMirror.TryCreate(_skeleton, out _mirror, out var error), error);
-        _layout = PoseLayoutBuilder.Build(_skeleton, out _);
+        _layout = PoseLayoutBuilder.Build(_skeleton, System.Array.Empty<int>(), out _);
     }
 
     [TearDown]
@@ -74,6 +74,45 @@ public class PoseMirrorTests
         transform.localPosition = localPosition;
         transform.localRotation = localRotation;
         return transform;
+    }
+
+    [Test]
+    public void MirroredContactSlotsReadTheirCounterpartsSlot()
+    {
+        PoseLayoutBuilder.Build(_skeleton, new[] { LeftFoot, Spine, RightFoot }, out var contacts);
+
+        CollectionAssert.AreEqual(new[] { 2, 1, 0 }, PoseExtractor.MirrorSourceSlots(contacts, _mirror));
+        CollectionAssert.AreEqual(new[] { 0, 1, 2 }, PoseExtractor.MirrorSourceSlots(contacts, null));
+    }
+
+    [Test]
+    public void MirroredContactSlotWithoutItsCounterpartHasNoSource()
+    {
+        PoseLayoutBuilder.Build(_skeleton, new[] { LeftFoot }, out var contacts);
+
+        CollectionAssert.AreEqual(new[] { -1 }, PoseExtractor.MirrorSourceSlots(contacts, _mirror));
+    }
+
+    [Test]
+    public void ContactValidationRequiresCounterpartsOnlyWhenMirroring()
+    {
+        string[] oneFoot = { "mixamorig:LeftFoot", "mixamorig:Spine" };
+        string[] bothFeet = { "mixamorig:LeftFoot", "mixamorig:RightFoot", "mixamorig:Spine" };
+
+        Assert.IsTrue(PoseSetImporter.TryValidateContactBones(_skeleton, oneFoot, false, out var error), error);
+        Assert.IsTrue(PoseSetImporter.TryValidateContactBones(_skeleton, bothFeet, true, out error), error);
+
+        Assert.IsFalse(PoseSetImporter.TryValidateContactBones(_skeleton, oneFoot, true, out error));
+        StringAssert.Contains("mixamorig:RightFoot", error);
+    }
+
+    [Test]
+    public void ContactValidationRefusesUnknownDuplicateAndUnsetBones()
+    {
+        Assert.IsFalse(PoseSetImporter.TryValidateContactBones(_skeleton, new[] { "Nope" }, false, out _));
+        Assert.IsFalse(PoseSetImporter.TryValidateContactBones(_skeleton,
+            new[] { "mixamorig:Spine", "mixamorig:Spine" }, false, out _));
+        Assert.IsFalse(PoseSetImporter.TryValidateContactBones(_skeleton, new string[] { null }, false, out _));
     }
 
     [Test]

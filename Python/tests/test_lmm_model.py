@@ -195,5 +195,68 @@ class ParameterTests(unittest.TestCase):
         self.assertIn('layer 0', str(raised.exception))
 
 
+@unittest.skipUnless(HAS_TORCH, 'torch is not installed')
+class PolicyContactTests(unittest.TestCase):
+    """What ``LmmStage`` reads to size and check its contact slots."""
+
+    N_BONES = 2
+
+    def setUp(self):
+        import tempfile
+        self.directory = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def policy_with(self, n_contacts: int, contact_bone_names):
+        from lmm import dataset as lmm_dataset
+        from lmm import io as lmm_io
+        from lmm import runtime as lmm_runtime
+        from test_lmm_io import autoencoder_arguments
+
+        pose_layout = lmm_dataset.pose_vector_layout(self.N_BONES, n_contacts)
+        pose_size = sum(count for _, _, count in pose_layout)
+        decompressor = lmm_model.Decompressor(FEATURE_SIZE, LATENT_SIZE, pose_size,
+                                              hidden_units=8, hidden_layers=1)
+
+        arguments = autoencoder_arguments()
+        arguments.update(
+            decompressor_weights=decompressor.weights(), decompressor_biases=decompressor.biases(),
+            x_mean=np.zeros(FEATURE_SIZE, dtype=np.float32),
+            x_std=np.ones(FEATURE_SIZE, dtype=np.float32),
+            y_mean=np.zeros(pose_size, dtype=np.float32),
+            y_std=np.ones(pose_size, dtype=np.float32),
+            z_mean=np.zeros(LATENT_SIZE, dtype=np.float32),
+            z_std=np.ones(LATENT_SIZE, dtype=np.float32),
+            latents=np.zeros((4, LATENT_SIZE), dtype=np.float32),
+            latent_valid=np.ones(4, dtype=bool), n_frames=4, latent_size=LATENT_SIZE,
+            feature_weights=np.ones(FEATURE_SIZE, dtype=np.float32),
+            output_blocks=[name for name, _, _ in pose_layout],
+            contact_bone_names=contact_bone_names)
+
+        path = os.path.join(self.directory.name, 'policy.lmm.npz')
+        lmm_io.save_checkpoint(path, **arguments)
+        return lmm_runtime.LmmPolicy(path, log=lambda message: None)
+
+    @staticmethod
+    def contact_count(policy) -> int:
+        blocks = policy.pose_blocks()
+        return policy.pose_block_offsets()[2 * blocks.index('contacts') + 1]
+
+    def test_a_named_checkpoint_reports_its_contact_bones_and_their_width(self):
+        policy = self.policy_with(3, ['toe_l', 'toe_r', 'hand_l'])
+
+        self.assertEqual(policy.contact_bone_names, ['toe_l', 'toe_r', 'hand_l'])
+        self.assertEqual(self.contact_count(policy), 3)
+        self.assertEqual(len(policy.decompress_frame(np.zeros(FEATURE_SIZE), 0)),
+                         policy.checkpoint.pose_size)
+
+    def test_a_checkpoint_without_names_is_read_as_two_legacy_slots(self):
+        policy = self.policy_with(2, None)
+
+        self.assertIsNone(policy.contact_bone_names)
+        self.assertEqual(self.contact_count(policy), 2)
+
+
 if __name__ == '__main__':
     unittest.main()

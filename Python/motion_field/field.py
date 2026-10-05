@@ -198,10 +198,12 @@ class MotionField:
             only asks the character to *face* the goal, so a strafe that faces it
             scores perfectly. See `travel_penalty`. 0 disables it.
         :param value_function_path: Optional `.mffield.npz` enabling `optimal_action`.
-        :param pose_contacts: (state_count, 2) left/right foot contacts of each state's
-            own frame. Required by the policies, which report the contacts of the pose
-            they return; training and the embedding need neither.
-        :param next_contacts: (state_count, 2) foot contacts one frame after each state.
+        :param pose_contacts: (state_count, n_contacts) contact flags of each state's own
+            frame, one column per contact bone of the database. Required by the policies,
+            which report the contacts of the pose they return; training and the embedding
+            need neither.
+        :param next_contacts: (state_count, n_contacts) contact flags one frame after each
+            state.
         """
         self.current_frame = None
         assert (poses_x.shape[:-2] ==
@@ -513,7 +515,7 @@ class MotionField:
             frame, radians. Unity computes it as
             `-SignedAngle(root.forward, desiredWorldDir, up)`.
         :return: (new_x, new_v, contacts): the pose and velocity, both
-            (1, num_bones+2, 4), and the (2,) left/right foot contacts.
+            (1, num_bones+2, 4), and the (n_contacts,) contact flags.
         """
         if self.value_function is None:
             return self.greedy_action(theta, current_x, current_v, delta_time)
@@ -578,12 +580,12 @@ class MotionField:
 
     def _blend_contacts(self, indices: np.ndarray, action_weights: np.ndarray) -> np.ndarray:
         """
-        Foot contacts of a blended step: each foot is down when the neighbours' next
+        Contacts of a blended step: each contact bone is down when the neighbours' next
         frames, weighted as the action weighted their velocities, mostly have it down.
 
         :param indices: (k,) neighbour state ids
         :param action_weights: (k,) the chosen action's convex weights
-        :return: (2,) bool, left then right
+        :return: (n_contacts,) bool, in the database's contact slot order
         """
         contacts = self._require_contacts(self.next_contacts)[indices].astype(np.float32)
         return action_weights @ contacts >= 0.5

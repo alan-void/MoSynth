@@ -39,7 +39,7 @@ public class PoseFeatureChannelTests
     private PoseSet BuildTwoClipSet(int framesPerClip, float stepPerFrame, float clipGap)
     {
         var poseSet = new PoseSet();
-        poseSet.SetSkeleton(_skeleton);
+        poseSet.SetSkeleton(_skeleton, System.Array.Empty<string>());
 
         for (var clip = 0; clip < 2; clip++)
         {
