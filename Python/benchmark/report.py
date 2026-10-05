@@ -14,7 +14,9 @@ Usage, from the ``Python/`` folder::
 Every path is weighted equally, whatever its length. Timed-out runs are kept unless
 ``--exclude-timeouts`` is given: they are runs the method could not finish, so dropping them
 flatters it, but keeping them mixes partial laps into the averages. The timeout count is always
-reported so the reader can tell which applies.
+reported so the reader can tell which applies. A run that came to rest short of the end of an open
+path is not a timeout: it is kept, counted under Stopped, and how far short it stopped is averaged
+over the open paths as ``Short of end (m)``.
 """
 
 from __future__ import annotations
@@ -32,12 +34,14 @@ METRICS = [
     ('meanTrajectoryError', 'Path error (m)'),
     ('meanHeadingErrorDeg', 'Heading error (deg)'),
     ('meanActualSpeed', 'Speed (m/s)'),
+    ('meanVelocityError', 'Velocity error (m/s)'),
     ('footskatePerMeter', 'Footskate /m'),
     ('contactFraction', 'Contact'),
     ('rootJerkMean', 'Root jerk'),
     ('discontinuitiesPerSecond', 'Disc. /s'),
     ('applyMsMean', 'Cost (ms/tick)'),
     ('applyMsP95', 'Cost P95 (ms)'),
+    ('remainingDistance', 'Short of end (m)'),
 ]
 
 _TIMESTAMP_SUFFIX = re.compile(r'_?\d{8}_\d{6}$')
@@ -49,6 +53,7 @@ class MethodSummary:
     method: str
     runs: int
     timeouts: int
+    stopped: int
     errors: int
     values: dict[str, float]
 
@@ -71,8 +76,12 @@ def _number(text: str) -> float:
         return math.nan
 
 
+def _flag(row: dict, column: str) -> bool:
+    return row.get(column, '').strip().lower() == 'true'
+
+
 def _timed_out(row: dict) -> bool:
-    return row.get('timedOut', '').strip().lower() == 'true'
+    return _flag(row, 'timedOut')
 
 
 def summarize(rows: list[dict], sweep: str, stat: str = 'mean',
@@ -93,6 +102,7 @@ def summarize(rows: list[dict], sweep: str, stat: str = 'mean',
         summaries.append(MethodSummary(
             sweep=sweep, method=method, runs=len(method_rows),
             timeouts=sum(_timed_out(r) for r in method_rows),
+            stopped=sum(_flag(r, 'stoppedShort') for r in method_rows),
             errors=sum(bool(r.get('error', '').strip()) for r in method_rows),
             values=values))
     return summaries
@@ -112,10 +122,10 @@ def _format_value(value: float) -> str:
 
 
 def table(summaries: list[MethodSummary]) -> tuple[list[str], list[list[str]]]:
-    header = ['Sweep', 'Method'] + [title for _, title in METRICS] + ['Timeouts', 'Errors']
+    header = ['Sweep', 'Method'] + [title for _, title in METRICS] + ['Timeouts', 'Stopped', 'Errors']
     body = [[s.sweep, s.method]
             + [_format_value(s.values[column]) for column, _ in METRICS]
-            + [f'{s.timeouts}/{s.runs}', str(s.errors)]
+            + [f'{s.timeouts}/{s.runs}', f'{s.stopped}/{s.runs}', str(s.errors)]
             for s in summaries]
     return header, body
 

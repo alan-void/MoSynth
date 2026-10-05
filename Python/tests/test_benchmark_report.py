@@ -45,6 +45,13 @@ class SummarizeTests(unittest.TestCase):
         self.assertEqual((kept.timeouts, dropped.timeouts), (1, 1))
         self.assertEqual(dropped.runs, 2)
 
+    def test_stopped_short_runs_are_counted_and_kept(self):
+        rows = [row('Lmm', '0.2'), dict(row('Lmm', '0.4'), stoppedShort='true', remainingDistance='1.5')]
+        summary, = report.summarize(rows, 'sweep', exclude_timeouts=True)
+        self.assertEqual((summary.stopped, summary.timeouts), (1, 0))
+        self.assertAlmostEqual(summary.values['meanTrajectoryError'], 0.3)
+        self.assertAlmostEqual(summary.values['remainingDistance'], 1.5)
+
     def test_errors_are_counted(self):
         rows = [row('Mm', '0.1', run_error='spawn failed'), row('Mm', '0.1')]
         summary, = report.summarize(rows, 'sweep')

@@ -18,6 +18,12 @@ public class BenchmarkRunResult
     /// <summary>True when the run hit its time limit before completing the required laps.</summary>
     public bool timedOut;
 
+    /// <summary>True when the character came to rest short of the end of an open path and stayed there.</summary>
+    public bool stoppedShort;
+
+    /// <summary>Path length still ahead of the character when the run ended, in metres. NaN on a closed path.</summary>
+    public float remainingDistance;
+
     /// <summary>Laps actually completed after the settle time. Below the required count means the run was cut short.</summary>
     public float completedLaps;
 

@@ -6,7 +6,8 @@ namespace AnimationTools
 {
 /// <summary>
 /// Watches one benchmark run and decides when it is over: added to the spawned character, it counts
-/// the character's own progress round the path and reports completion or a timeout.
+/// the character's own progress round the path and reports completion, coming to rest short of the end
+/// of an open path, or a timeout.
 /// </summary>
 /// <remarks>
 /// Progress is only accumulated once <see cref="settleTime"/> has elapsed, so the measured lap is a
@@ -24,11 +25,28 @@ public class BenchmarkLapProbe : MonoBehaviour
     [Min(0.1f)] public float lapsRequired = 1f;
     [Min(1f)] public float maxRunSeconds = 120f;
 
+    /// <summary>Open paths only: seconds without forward progress before the run ends as stopped short. 0 disables it.</summary>
+    [Min(0f)] public float restTimeout = 5f;
+
+    /// <summary>
+    /// The least a character must advance along an open path within <see cref="restTimeout"/> to count
+    /// as still travelling. Well under one step, and well over the creep of a standing character.
+    /// </summary>
+    private const float RestProgressMetres = 0.25f;
+
     /// <summary>True once the required laps are done or the time limit is hit. The driver polls this.</summary>
     public bool IsFinished { get; private set; }
 
     /// <summary>True when <see cref="IsFinished"/> was reached by running out of time rather than by finishing.</summary>
     public bool TimedOut { get; private set; }
+
+    /// <summary>True when <see cref="IsFinished"/> was reached by coming to rest short of the end of an open path.</summary>
+    public bool StoppedShort { get; private set; }
+
+    /// <summary>Path length still ahead of the character on an open path, in metres; NaN on a closed one.</summary>
+    public float RemainingDistance => _tracker == null || _closed
+        ? float.NaN
+        : math.max(0f, 1f - _tracker.LatestT) * _pathLength;
 
     /// <summary>Laps completed since the settle time elapsed. Clamped at zero; a character that drifted backwards reports 0.</summary>
     public float CompletedLaps => _tracker == null ? 0f : math.max(0f, _tracker.Progress);
@@ -39,6 +57,9 @@ public class BenchmarkLapProbe : MonoBehaviour
     public int TickCount { get; private set; }
 
     private SplineLapTracker _tracker;
+    private OpenPathRestWatch _restWatch;
+    private bool _closed;
+    private float _pathLength;
     private readonly SplineProjector _projector = new();
     private bool _settled;
     private bool _running;
@@ -56,13 +77,17 @@ public class BenchmarkLapProbe : MonoBehaviour
             return;
         }
 
-        _tracker = new SplineLapTracker(spline.Spline.Closed);
+        _closed = spline.Spline.Closed;
+        _pathLength = spline.CalculateLength();
+        _tracker = new SplineLapTracker(_closed);
         _projector.Reset();
         _settled = settleTime <= 0f;
+        _restWatch = _settled ? CreateRestWatch() : null;
         ElapsedSeconds = 0f;
         TickCount = 0;
         IsFinished = false;
         TimedOut = false;
+        StoppedShort = false;
 
         synthesizer.OnPoseApplied += HandlePoseApplied;
         _running = true;
@@ -92,9 +117,11 @@ public class BenchmarkLapProbe : MonoBehaviour
             // Re-anchor exactly at the settle boundary so the first measured lap starts here.
             _settled = true;
             _tracker.Reset();
+            _restWatch = CreateRestWatch();
         }
 
-        _tracker.Sample(NearestT());
+        var t = NearestT();
+        _tracker.Sample(t);
 
         if (_tracker.HasCompleted(lapsRequired))
         {
@@ -102,7 +129,22 @@ public class BenchmarkLapProbe : MonoBehaviour
             return;
         }
 
+        _restWatch?.Sample(t, deltaTime);
+        if (_restWatch is { HasRested: true })
+        {
+            IsFinished = true;
+            StoppedShort = true;
+            return;
+        }
+
         CheckTimeout();
+    }
+
+    /// <summary>Null on a closed path, which a character cannot finish by stopping, or when the rule is off.</summary>
+    private OpenPathRestWatch CreateRestWatch()
+    {
+        if (_closed || restTimeout <= 0f || _pathLength <= 1e-5f) return null;
+        return new OpenPathRestWatch(restTimeout, RestProgressMetres / _pathLength);
     }
 
     private void CheckTimeout()

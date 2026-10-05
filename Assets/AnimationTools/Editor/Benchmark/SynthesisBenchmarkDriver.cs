@@ -324,12 +324,24 @@ public static class SynthesisBenchmarkDriver
             new TimeChannel { name = "time" },
             new BoneWorldPositionChannel { name = "root", simulationBone = true },
             new BoneWorldForwardChannel { name = "rootForward", simulationBone = true },
-            new ContactBoneWorldPositionChannel { name = "footL", left = true },
-            new ContactBoneWorldPositionChannel { name = "footR", left = false },
-            new FootContactChannel { name = "contacts" },
             new PoseDiscontinuityChannel { name = "discontinuity" },
             _costChannel
         };
+
+        // One position channel per contact slot, named for BenchmarkRunEvaluator to find.
+        var contactCount = synthesizer.ContactHandles.Count;
+        if (contactCount > 0)
+        {
+            _recorder.channels.Add(new FootContactChannel { name = BenchmarkRunEvaluator.ContactsChannel });
+            for (var slot = 0; slot < contactCount; slot++)
+            {
+                _recorder.channels.Add(new ContactBoneWorldPositionChannel
+                {
+                    name = BenchmarkRunEvaluator.ContactPositionChannel(slot),
+                    slot = slot
+                });
+            }
+        }
 
         if (_config.recordFullPose) _recorder.channels.Add(new FullPoseChannel { name = "pose" });
 
@@ -346,6 +358,7 @@ public static class SynthesisBenchmarkDriver
         _probe.settleTime = _config.settleTime;
         _probe.lapsRequired = _config.lapsRequired;
         _probe.maxRunSeconds = _config.maxRunSeconds;
+        _probe.restTimeout = _config.restTimeout;
         _probe.Begin();
     }
 
@@ -367,6 +380,8 @@ public static class SynthesisBenchmarkDriver
             method = method.name,
             path = pathName,
             timedOut = _probe.TimedOut,
+            stoppedShort = _probe.StoppedShort,
+            remainingDistance = _probe.RemainingDistance,
             completedLaps = _probe.CompletedLaps,
             durationSeconds = _probe.ElapsedSeconds
         };
@@ -393,6 +408,11 @@ public static class SynthesisBenchmarkDriver
         {
             Debug.LogWarning($"[Benchmark] {method.name} on {pathName} timed out after {result.durationSeconds:0.0} s, " +
                              $"having covered {result.completedLaps:0.00} of {_config.lapsRequired:0.##} lap(s).");
+        }
+        else if (result.stoppedShort)
+        {
+            Debug.LogWarning($"[Benchmark] {method.name} on {pathName} came to rest {result.remainingDistance:0.00} m " +
+                             $"short of the end after {result.durationSeconds:0.0} s.");
         }
 
         Results.Add(result);

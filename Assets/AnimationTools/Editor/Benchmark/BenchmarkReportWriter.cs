@@ -16,7 +16,8 @@ public static class BenchmarkReportWriter
 {
     private static readonly string[] CsvHeader =
     {
-        "method", "path", "completedLaps", "timedOut", "framesTotal", "durationSeconds",
+        "method", "path", "completedLaps", "timedOut", "stoppedShort", "remainingDistance",
+        "framesTotal", "durationSeconds",
         "framesEvaluated", "meanTrajectoryError", "meanHeadingErrorDeg", "maxHeadingErrorDeg",
         "meanActualSpeed", "targetSpeed", "meanVelocityError", "footskatePerMeter",
         "meanFootskateSpeed", "contactFraction", "rootJerkMean", "rootJerkP95",
@@ -60,28 +61,30 @@ public static class BenchmarkReportWriter
             row[1] = result.path;
             row[2] = FormatFloat(result.completedLaps);
             row[3] = result.timedOut ? "true" : "false";
-            row[4] = result.framesTotal.ToString(CultureInfo.InvariantCulture);
-            row[5] = FormatFloat(result.durationSeconds);
-            row[6] = pathFollowing.framesEvaluated.ToString(CultureInfo.InvariantCulture);
-            row[7] = FormatFloat(pathFollowing.meanTrajectoryError);
-            row[8] = FormatFloat(pathFollowing.meanHeadingErrorDeg);
-            row[9] = FormatFloat(pathFollowing.maxHeadingErrorDeg);
-            row[10] = FormatFloat(pathFollowing.meanActualSpeed);
-            row[11] = FormatFloat(pathFollowing.targetSpeed);
-            row[12] = FormatFloat(pathFollowing.meanVelocityError);
-            row[13] = FormatFloat(motionQuality.footskatePerMeter);
-            row[14] = FormatFloat(motionQuality.meanFootskateSpeed);
-            row[15] = FormatFloat(motionQuality.contactFraction);
-            row[16] = FormatFloat(motionQuality.rootJerkMean);
-            row[17] = FormatFloat(motionQuality.rootJerkP95);
-            row[18] = FormatFloat(motionQuality.discontinuitiesPerSecond);
-            row[19] = FormatFloat(cost.applyMsMean);
-            row[20] = FormatFloat(cost.applyMsP50);
-            row[21] = FormatFloat(cost.applyMsP95);
-            row[22] = FormatFloat(cost.applyMsMax);
-            row[23] = FormatFloat(cost.gcBytesPerTick);
-            row[24] = result.recordingFile;
-            row[25] = result.error;
+            row[4] = result.stoppedShort ? "true" : "false";
+            row[5] = FormatFloat(result.remainingDistance);
+            row[6] = result.framesTotal.ToString(CultureInfo.InvariantCulture);
+            row[7] = FormatFloat(result.durationSeconds);
+            row[8] = pathFollowing.framesEvaluated.ToString(CultureInfo.InvariantCulture);
+            row[9] = FormatFloat(pathFollowing.meanTrajectoryError);
+            row[10] = FormatFloat(pathFollowing.meanHeadingErrorDeg);
+            row[11] = FormatFloat(pathFollowing.maxHeadingErrorDeg);
+            row[12] = FormatFloat(pathFollowing.meanActualSpeed);
+            row[13] = FormatFloat(pathFollowing.targetSpeed);
+            row[14] = FormatFloat(pathFollowing.meanVelocityError);
+            row[15] = FormatFloat(motionQuality.footskatePerMeter);
+            row[16] = FormatFloat(motionQuality.meanFootskateSpeed);
+            row[17] = FormatFloat(motionQuality.contactFraction);
+            row[18] = FormatFloat(motionQuality.rootJerkMean);
+            row[19] = FormatFloat(motionQuality.rootJerkP95);
+            row[20] = FormatFloat(motionQuality.discontinuitiesPerSecond);
+            row[21] = FormatFloat(cost.applyMsMean);
+            row[22] = FormatFloat(cost.applyMsP50);
+            row[23] = FormatFloat(cost.applyMsP95);
+            row[24] = FormatFloat(cost.applyMsMax);
+            row[25] = FormatFloat(cost.gcBytesPerTick);
+            row[26] = result.recordingFile;
+            row[27] = result.error;
 
             AppendRow(sb, row);
         }
@@ -131,6 +134,7 @@ public static class BenchmarkReportWriter
             lapsRequired = config.lapsRequired,
             settleTime = config.settleTime,
             maxRunSeconds = config.maxRunSeconds,
+            restTimeout = config.restTimeout,
             synthesisFrameRate = config.synthesisFrameRate,
             fixedTimestep = config.fixedTimestep,
             speedSmoothingWindow = config.speedSmoothingWindow,
@@ -151,9 +155,9 @@ public static class BenchmarkReportWriter
 
         foreach (var result in results)
         {
-            var laps = result.timedOut
-                ? result.completedLaps.ToString("F2", CultureInfo.InvariantCulture) + "*"
-                : result.completedLaps.ToString("F2", CultureInfo.InvariantCulture);
+            var laps = result.completedLaps.ToString("F2", CultureInfo.InvariantCulture);
+            if (result.timedOut) laps += "*";
+            else if (result.stoppedShort) laps += "~";
 
             sb.Append(string.Format(
                 CultureInfo.InvariantCulture,
@@ -168,7 +172,7 @@ public static class BenchmarkReportWriter
                 result.cost.applyMsMean));
         }
 
-        sb.Append("(* = timed out before completing required laps)");
+        sb.Append("(* = timed out before completing required laps, ~ = came to rest short of the end of an open path)");
         Debug.Log(sb.ToString());
     }
 
@@ -189,6 +193,7 @@ public static class BenchmarkReportWriter
         public float lapsRequired;
         public float settleTime;
         public float maxRunSeconds;
+        public float restTimeout;
         public float synthesisFrameRate;
         public bool fixedTimestep;
         public float speedSmoothingWindow;

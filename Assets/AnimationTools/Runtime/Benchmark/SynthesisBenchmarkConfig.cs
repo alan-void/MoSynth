@@ -70,6 +70,12 @@ public class SynthesisBenchmarkConfig : ScriptableObject
              "timedOut set rather than being silently truncated.")]
     [Min(1f)] public float maxRunSeconds = 120f;
 
+    [Tooltip("Open paths only: a run whose character makes no forward progress along the path for " +
+             "this long ends with stoppedShort set and its remaining distance recorded, instead of " +
+             "idling to the time limit. Keep it longer than any pause a method makes mid-path. " +
+             "0 turns the rule off.")]
+    [Min(0f)] public float restTimeout = 5f;
+
     [Header("Timing")]
     [Tooltip("Synthesis ticks per second for every run, unless a method overrides it.")]
     [Min(0f)] public float synthesisFrameRate = 30f;
@@ -84,8 +90,8 @@ public class SynthesisBenchmarkConfig : ScriptableObject
              "computing velocity error. See PathFollowingMetricsCalculator.")]
     [Min(0f)] public float speedSmoothingWindow = 0.2f;
 
-    [Tooltip("Also record the full pose buffer every tick. Not needed for any metric here; costs " +
-             "roughly a kilobyte per tick and exists for offline analysis.")]
+    [Tooltip("Also record the full pose buffer every tick, roughly a kilobyte per tick. None of " +
+             "the in-Editor metrics read it; python -m benchmark.fmd needs it.")]
     public bool recordFullPose;
 
     [Header("Video")]
