@@ -1,89 +1,33 @@
+using AnimationTools;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace MotionMatching
 {
     /// <summary>
-    /// Analytic two-bone IK: places a three-joint chain so its end lands on a target, in closed form
-    /// rather than by iteration. The classic use is planting a foot on uneven ground after synthesis
-    /// has produced a pose that floats or sinks.
+    /// Analytic two-bone IK on scene Transforms: places a three-joint chain so its end lands on a
+    /// target. The classic use is planting a foot on uneven ground after synthesis has produced a pose
+    /// that floats or sinks. The maths is <see cref="TwoBoneIK"/>'s.
     /// </summary>
     public static class TwoJointIK
     {
         /// <summary>
         /// Rotates <paramref name="jointA"/> and <paramref name="jointB"/> so <paramref name="jointC"/>
-        /// lands on <paramref name="targetPos"/> (for a leg: hip, knee, ankle).
+        /// lands on <paramref name="targetPos"/> (for a leg: hip, knee, ankle). A target within a
+        /// millimetre of C leaves the chain untouched.
         /// </summary>
-        /// <remarks>
-        /// Two stages. <em>Extension</em>: the cosine rule gives the interior angles that make the
-        /// chain exactly as long as the distance to the target, and A and B rotate by the difference.
-        /// <em>Aiming</em>: with the length right, A rotates once more to swing onto the target
-        /// direction. An unreachable target is pulled in to the limit rather than failing.
-        /// </remarks>
         /// <param name="forward">
-        /// Which way the middle joint bends. Otherwise ambiguous — the chain can hinge anywhere on a
-        /// circle around the A-to-target axis — so this is what picks a forward-bending knee.
+        /// Which way the middle joint bends when the chain is straight. A bent chain keeps bending in
+        /// the plane it already lies in.
         /// </param>
         public static void Solve(float3 targetPos, Transform jointA, Transform jointB, Transform jointC, float3 forward)
         {
-            float lengthAB = math.distance(jointA.position, jointB.position);
-            float lengthBC = math.distance(jointB.position, jointC.position);
-
-            float3 aPos = jointA.position;
-            float3 bPos = jointB.position;
-            float3 cPos = jointC.position;
-
             if (math.lengthsq(targetPos - (float3)jointC.position) < 0.001f * 0.001f) return;
 
-            float lengthAT = GetLengthAT(targetPos, aPos, lengthAB, lengthBC);
-            if (math.length(targetPos - aPos) > lengthAT)
-            {
-                targetPos = aPos + math.normalize(targetPos - aPos) * lengthAT;
-            }
-            float3 axisAC = math.normalize(cPos - aPos);
-            forward = math.normalize(forward);
-            float3 rotationAxis = math.normalize(math.cross(axisAC, forward));
-
-            // Extension: rotate A and B so |AC| equals |AT|.
-            float interiorAngleA = math.acos(math.clamp(
-                                                math.dot(
-                                                    axisAC,
-                                                    math.normalize(bPos - aPos)),
-                                                -1f, 1f));
-            float interiorAngleB = math.acos(math.clamp(
-                                                math.dot(
-                                                    math.normalize(aPos - bPos),
-                                                    math.normalize(cPos - bPos)),
-                                                -1f, 1f));
-            Debug.Assert(!float.IsNaN(math.acos(math.clamp((lengthBC * lengthBC - lengthAB * lengthAB - lengthAT * lengthAT) / (-2f * lengthAB * lengthAT), -1f, 1f))), "Numerical error");
-            Debug.Assert(!float.IsNaN(math.acos(math.clamp((lengthAT * lengthAT - lengthAB * lengthAB - lengthBC * lengthBC) / (-2f * lengthAB * lengthBC), -1f, 1f))), "Numerical error");
-            float desiredInteriorAngleA = math.acos(math.clamp((lengthBC * lengthBC - lengthAB * lengthAB - lengthAT * lengthAT) / (-2f * lengthAB * lengthAT), -1f, 1f));
-            float desiredInteriorAngleB = math.acos(math.clamp((lengthAT * lengthAT - lengthAB * lengthAB - lengthBC * lengthBC) / (-2f * lengthAB * lengthBC), -1f, 1f));
-            // Axes are taken into each joint's local space, since the rotations are applied locally.
-            quaternion rotA = quaternion.AxisAngle(math.mul(math.inverse(jointA.rotation), rotationAxis), desiredInteriorAngleA - interiorAngleA);
-            quaternion rotB = quaternion.AxisAngle(math.mul(math.inverse(jointB.rotation), rotationAxis), desiredInteriorAngleB - interiorAngleB);
-
-            // Aiming: swing A so AC points along AT.
-            float3 axisAT = math.normalize(targetPos - aPos);
-            float angleACAT = math.acos(math.clamp(
-                                            math.dot(
-                                                axisAC,
-                                                axisAT),
-                                            -1f, 1f));
-            float3 rotationAxisACAT = math.normalize(math.cross(axisAC, axisAT));
-            quaternion rotA2 = quaternion.AxisAngle(math.mul(math.inverse(jointA.rotation), rotationAxisACAT), angleACAT);
-            jointA.rotation = math.mul(jointA.rotation, math.mul(rotA2, rotA));
-            jointB.rotation = math.mul(jointB.rotation, rotB);
-        }
-
-        /// <summary>
-        /// Reachable distance to the target, clamped to the chain's length. Held an epsilon short at
-        /// both ends, since at full extension or full fold the cosine rule above is degenerate.
-        /// </summary>
-        private static float GetLengthAT(float3 targetPos, float3 aPos, float lengthAB, float lengthBC)
-        {
-            const float epsilon = 0.001f;
-            return math.clamp(math.distance(aPos, targetPos), epsilon, lengthAB + lengthBC - epsilon);
+            TwoBoneIK.Solve(jointA.position, jointB.position, jointC.position, jointA.rotation, jointB.rotation,
+                targetPos, forward, out var rotationA, out var rotationB);
+            jointA.rotation = rotationA;
+            jointB.rotation = rotationB;
         }
     }
 }

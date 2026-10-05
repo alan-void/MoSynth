@@ -1,7 +1,7 @@
 ---
 type: Architecture Guide
 title: Root following
-description: Making the character land on something else that decides where it should be, why a correction goes through bone 0's velocity rather than the Transform, and the foot locking that is still missing.
+description: Making the character land on something else that decides where it should be, why a correction goes through bone 0's velocity rather than the Transform, and the contact locking that keeps feet planted while it does.
 tags: [root-motion, control-input, stage, capsule, drift]
 sources:
   - id: openwiki-source-721e7f001dd1252e3e9fe0e4
@@ -135,31 +135,35 @@ whenever the component implements it.
 This is not a nicety: every method in the benchmark sweep is spline-driven, so without it root
 following could not be measured at all.
 
-## Planned: foot locking
+## Contact locking
 
 Placing the character exactly makes feet slide. The correction moves the root while the animation's
 legs carry on doing what the clip said, and the difference shows up on the ground. The
 [benchmark's `footskatePerMeter`](benchmarking.md) is what that costs, in numbers.
+`ContactLockStage`, placed after this one, plants a bone in the world while its contact flag holds.
 
-The fix is a second stage after this one, not yet written. The design, so the slot is not
-re-litigated:
-
-- **Latch the ankle, not the toe.** The ankle is the IK end effector, and with the foot's world
-  rotation preserved the toe is rigidly attached to it, so it stays put too — and the footskate
-  metric, which measures the toe, then measures the same thing the stage is controlling.
-- **Latch on the rising edge of contact**, carrying any still-decaying offset into the new lock so a
-  re-latch mid-release does not pop.
-- **Release on a distance threshold as well as on contact ending.** A snap-mode follow can drag the
-  body further than a leg reaches; the leg has to let go rather than hyper-extend.
-- **Decay the residual on release** with the usual spring, so the foot returns to the animation
+- **Any contact bone can be locked, and the toes are the default.** The pose carries one contact
+  flag per bone in the config's `contactBones` list, and those lists hold the toes today. An empty
+  stage list locks every contact bone. Locking the toe is also what the footskate metric measures,
+  so the stage controls the quantity being scored.
+- **The IK chain ends at a separate bone.** Each entry names the bone to lock and, optionally, the
+  end of the two-bone chain, whose parent and grandparent bend. Left empty, it is the locked bone's
+  parent, so a toe lock bends the leg at the hip and knee. The segment from that end to the locked
+  bone keeps its animated world rotation, so the heel can still roll over a planted toe.
+- **It latches on the rising edge of contact**, at the current *output* position rather than the
+  animated one, so a re-latch while a previous release is still decaying does not pop.
+- **It releases on a distance threshold as well as on contact ending.** A snap-mode follow can drag
+  the body further than a leg reaches; the leg has to let go rather than hyper-extend.
+- **It decays the residual on release** with the usual spring, so the foot returns to the animation
   rather than jumping to it.
-- **Ask `MotionSynthesisComponent.ComputeAppliedFrame` where the pose will be rendered.** A foot is
-  planted in the world, but the pose is in its own clip space and the character's Transform has not
-  been advanced yet when a stage runs. That helper exists for this, and going through it is what
-  stops the stage's idea of the frame from drifting from the apply path's.
+- **It asks `MotionSynthesisComponent.ComputeAppliedFrame` where the pose will be rendered.** A
+  foot is planted in the world, but the pose is in its own clip space and the character's Transform
+  has not been advanced yet when a stage runs. Going through the helper is what stops the stage's
+  idea of the frame from drifting from the apply path's, and it is why the stage must come after
+  anything that changes bone 0's rates — this stage included.
 
-`TwoJointIK` already has the closed-form solver, unused, and would need a pose-space overload — it
-currently works on scene Transforms, which a stage does not have.
+The solver is `TwoBoneIK`, pure and in world space; the older Transform-based `TwoJointIK` delegates
+to it. The stage leaves the velocity channels alone, since the next tick re-reads them off the rig.
 
 ## Source map
 
@@ -170,6 +174,9 @@ currently works on scene Transforms, which a stage does not have.
 | Target seam | `Assets/AnimationTools/Runtime/ControlInput/IFrameTarget.cs` |
 | Anchored input | `Assets/MotionMatching/Runtime/CharacterController/AnchoredDirectionControlInput.cs` |
 | Shared steering maths | `Assets/AnimationTools/Runtime/ControlInput/TrajectorySteering.cs` |
+| The latch | `Assets/AnimationTools/Runtime/Stages/ContactLock.cs` |
+| The locking stage | `Assets/AnimationTools/Runtime/Stages/ContactLockStage.cs` |
+| Two-bone solver | `Assets/AnimationTools/Runtime/Pose/TwoBoneIK.cs` |
 | Frame integration | `Assets/AnimationTools/Runtime/Pose/SimulationFrame.cs` (`Advance`, `Yaw`, `SignedYawDelta`) |
 
 **Tests.** `RootFollowTests` pins the property that matters — that integrating the corrected velocity

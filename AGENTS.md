@@ -194,7 +194,9 @@ Assets/
 │   │   └── PoseFK.cs                [forward kinematics]
 │   ├── Runtime/Stages/
 │   │   ├── RootFollow.cs            [pure: the frame velocity that lands the character on a target]
-│   │   └── RootFollowStage.cs       [places the character on a capsule or path point, via bone 0's rates]
+│   │   ├── RootFollowStage.cs       [places the character on a capsule or path point, via bone 0's rates]
+│   │   ├── ContactLock.cs           [pure: latch, hold and release one planted bone]
+│   │   └── ContactLockStage.cs      [plants contact bones with two-bone IK; runs after RootFollowStage]
 │   ├── Runtime/ControlInput/
 │   │   ├── IMotionSynthesisControlInput.cs [synthesis-agnostic steering surfaces]
 │   │   ├── MotionSynthesisControlInput.cs [base for every control input: the one MSC reference, the claim, the input subscription]
@@ -281,7 +283,7 @@ Python/                              [one package per subsystem; see "Python mod
 │   ├── embedding.py                 [UMAP projection for the debug visualizer]
 │   └── action_predictor.py          [animation loading & conversion]
 ├── autotag/                         [Gemini video annotation of clip tags; CLI run by Unity's Auto Tag window]
-├── benchmark/                       [report.py: per-method summary table over one or more sweeps' results.csv]
+├── benchmark/                       [report.py: per-method summary table over sweeps' results.csv; fmd.py + motion_features.py: Fréchet Motion Distance against the database]
 ├── tests/                           [stdlib unittest suites; no Unity or venv extras needed]
 └── debugging/                       [debug scripts, not in builds]
 
@@ -311,9 +313,9 @@ start MoSynth.sln
 python -m venv .anim_env
 .anim_env\Scripts\activate
 
-# Install dependencies
-pip install numpy scipy torch
-pip install google-genai   # only for auto-tagging; the key comes from the GEMINI_API_KEY env var
+# Install the pinned dependencies (from the Python/ folder)
+pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu130
+pip install -r requirements-autotag.txt   # only for auto-tagging; the key comes from GEMINI_API_KEY
 
 # Smoke-test the Python side (from the Python/ folder)
 python -m unittest discover -s tests -t tests
@@ -335,6 +337,26 @@ setx MOSYNTH_PYTHON_VENV "C:/path/to/.anim_env"
 
 Restart Unity so it picks the variables up. Either way the interpreter is chosen once per process, so
 a path changed mid-session takes effect at the next domain reload.
+
+### Reproducing the results from a fresh clone
+
+`README.md` is the stranger's entry point. `Tools/reproduce.ps1` runs the stages fetch, retarget,
+databases, train, benchmark and report; `DATA.md` covers dataset provenance and licences. Hazards
+an edit can create:
+
+- **`Assets/LFS` is rebuilt, not shipped.** Tracked clips find the regenerated FBX only because
+  `Tools/Data/lfs_meta.py restore` puts the mirrored `.meta` (`Tools/Data/lfs-meta/`) beside each FBX
+  before Unity sees it. After a retarget that adds or renames an FBX referenced by a tracked asset, run
+  `lfs_meta.py export` and commit the mirror, and `Tools/Data/export_shard_lists.py` for the shard
+  lists. Renaming a take or bone changes the name-hashed sub-asset IDs, and no meta can rescue that
+- **The retarget calibration ships as stripped blends** in `Tools/Retargeting/setups/`, made by
+  `strip_setup.py`. Re-strip after editing a setup under `Assets/LFS/Retargeting/`
+- **What counts as a paper result is `Assets/Benchmarks/PaperReproduction.asset`.**
+  `ReproductionPipeline` (`Assets/Editor/Reproduction/`) derives every config it builds or trains
+  from the method prefabs of the benchmarks listed there, so a config is never listed twice. Its
+  entry points run synchronously and call `EditorApplication.Exit` in batchmode
+- Machine paths come from `MOSYNTH_UNITY_EXE`, `MOSYNTH_PYTHON_VENV` and `MOSYNTH_BLENDER_EXE`, else
+  from the default install locations (`Tools/common.ps1`). Never hard-code a path in a tool script
 
 ### Building for Distribution
 The project uses standard Unity build pipeline:
@@ -378,7 +400,11 @@ A sweep runs every configured method against every path, one character at a time
   predict a lap time from. A run that cannot finish is reported with `timedOut` set
 - **Open paths** finish at the far end instead: `lapsRequired` is ignored, and `completedLaps` reads
   as the fraction of the path covered rather than a lap count. Both spline inputs clamp instead of
-  wrapping there — see `SplineControlInput.Fold`
+  wrapping there — see `SplineControlInput.Fold`. Once the input's point clamps, the query only asks
+  the character to stop at the end, so a method that halts short of it would idle to `maxRunSeconds`.
+  Instead a run that makes less than 0.25 m of forward progress along the path for `restTimeout`
+  seconds ends with `stoppedShort` set and `remainingDistance` (metres to the end) recorded. That is
+  a measured result, not a timeout. Keep `restTimeout` longer than any pause a method makes mid-path
 
 Three metric families, all computed from the recording after the fact so the calculators stay pure
 and unit-tested: path following (`PathFollowingMetricsCalculator`, reused unchanged), motion quality
@@ -389,6 +415,16 @@ inside the Editor: valid for comparing methods within one sweep on one machine, 
 `python -m benchmark.report <sweep-folder>...` (from `Python/`) reduces each sweep's `results.csv` to one
 row per method, so sweeps over different datasets line up in one table. Every path counts equally;
 `--stat median` and `--exclude-timeouts` change the reduction, and `--format markdown|csv` the output.
+
+`python -m benchmark.fmd <sweep-folder> --database <folder with the .mmpose>` scores naturalness as a
+Fréchet Motion Distance: an autoencoder trained on the database's one-second windows, and the Fréchet
+distance between Gaussians fitted to database and generated latents. It needs a sweep recorded with
+`recordFullPose` on, and writes `fmd.csv` / `fmd_runs.csv` into the sweep folder. **Read the matched
+score, not the plain one**: a path asks for a narrow band of travel, and against the whole database
+even real walking windows score far from zero, so the headline compares each generated window only
+with database windows that travel alike. The recorded pose keeps bone 0 in its source clip's space;
+`benchmark.motion_features.world_pose` rebuilds the rendered root from the `root`/`rootForward`
+channels, and features computed without it are garbage.
 
 ### Testing & Validation
 - **C# edit-mode suites**: `MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests`,
@@ -405,6 +441,13 @@ row per method, so sweeps over different datasets line up in one table. Every pa
   --name <name> --rollout 300`, which runs the model against its own predictions.
   `MoSynth/Pfnn/Check Training Agreement` compares the C# and Python character-frame definitions on
   the same frames — the check that the model is run on the arrays it was trained on
+- **Record every training run's time.** The paper reports training cost, and a time not written
+  down when the run happens is lost. For each PFNN, LMM (every stage) and motion-field training run,
+  keep the wall-clock time together with the hardware, the config/dataset, the epoch or iteration
+  count, and whether it ran in the Editor or a shell. The trainers measure it (`seconds`,
+  `stepper_seconds`, `projector_seconds` in their returned summaries), and `ReproductionPipeline.Train`
+  writes those summaries, the wall-clock time and the machine to `training_log_*.json`. A checkpoint
+  still stores none of it, so a run trained from an inspector button must be written down by hand
 - **Motion database**: `MoSynth/Database/Regenerate Motion Matching Databases` rebuilds every
   `MotionMatchingData` asset's `.mmpose` and `.mmfeatures`. Run it after any change to an extraction
   format or a feature definition — the files are unversioned, and a stale one is refused rather than
@@ -545,8 +588,8 @@ Implementer agents need a spec that names the files, the intended design, and th
 
 1. **Module reloading**: `MotionFieldStage.reloadPythonModules` defaults to true for development convenience; disable it for builds
 2. **PoseBuffer vs Pose confusion**: dual representation exists; unify or document the split
-3. **Dropped pipeline features**: inertialized hips blending and toes-floor penetration correction were lost when the pipeline moved to stages and are both still missing; the intended home for each is a `MoSynthStage` running after the pose is produced. The foot-side design, and the slot after `RootFollowStage` it goes in, are written up in `openwiki/animation-tools/root-following.md`
-4. **Foot sliding under root following**: `RootFollowStage` places the character exactly, and nothing yet keeps planted feet still while it does. Expect `footskatePerMeter` to rise when it is enabled
+3. **Dropped pipeline features**: inertialized hips blending and toes-floor penetration correction were lost when the pipeline moved to stages and are both still missing; the intended home for each is a `MoSynthStage` running after the pose is produced
+4. **Foot sliding under root following**: `RootFollowStage` places the character exactly; `ContactLockStage`, placed after it, keeps each contact bone planted while its flag holds and lets go when the leg would over-reach. See `openwiki/animation-tools/root-following.md`
 
 ## Testing & Debugging
 
