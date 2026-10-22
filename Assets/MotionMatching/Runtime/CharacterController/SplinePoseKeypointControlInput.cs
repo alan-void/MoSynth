@@ -36,14 +36,12 @@ public class SplinePoseKeypointControlInput : SplineControlInput
     /// The path comes from the keypoints, which generate it and the constraint targets together, so
     /// there is no container to follow and nothing to keep in sync.
     /// </summary>
-    protected override bool HasPath => poseKeypoints != null && poseKeypoints.HasPath;
-
-    protected override float3 SamplePosition(float t) => poseKeypoints.EvaluateWorldPosition(t);
-
-    protected override float PathLength => poseKeypoints != null ? poseKeypoints.WorldLength : 0f;
-
-    /// <summary>Read off the keypoints, since the base class's container is deliberately null here.</summary>
-    protected override bool IsClosed => poseKeypoints != null && poseKeypoints.closed;
+    protected override bool TryGetPath(out Spline spline, out float4x4 localToWorld)
+    {
+        spline = poseKeypoints != null && poseKeypoints.HasPath ? poseKeypoints.LocalPath : null;
+        localToWorld = spline != null ? poseKeypoints.transform.localToWorldMatrix : float4x4.identity;
+        return spline != null;
+    }
 
     /// <summary>
     /// Always null, and refuses assignment out loud: <c>PathFollowingMetric</c> and the benchmark
@@ -74,14 +72,14 @@ public class SplinePoseKeypointControlInput : SplineControlInput
     /// The path's stored facing rather than the direction it travels in. Overridden here so the
     /// trajectory query, the gizmos and <see cref="SplineControlInput.GetCurrentRotation"/> agree.
     /// </summary>
-    protected override float2 SampleDirection(float t, float3 positionAtT)
+    protected override float2 SampleDirection(float distance)
     {
-        if (!HasKeypoints) return base.SampleDirection(t, positionAtT);
+        if (!HasKeypoints) return base.SampleDirection(distance);
 
-        var facing = poseKeypoints.GetWorldFacing(t);
+        var facing = poseKeypoints.GetWorldFacing(Pursuit.NormalizedAt(distance));
         var flat = new float2(facing.x, facing.z);
-        // Falling back costs an extra spline evaluation, so only pay it if the facing is unusable.
-        return math.lengthsq(flat) > 1e-8f ? math.normalize(flat) : base.SampleDirection(t, positionAtT);
+        // Falling back costs extra spline evaluations, so only pay them if the facing is unusable.
+        return math.lengthsq(flat) > 1e-8f ? math.normalize(flat) : base.SampleDirection(distance);
     }
 
     public override bool GetBoneTrajectoryFeature(TrajectoryFeatureChannel feature, int index, Transform character,
@@ -89,11 +87,10 @@ public class SplinePoseKeypointControlInput : SplineControlInput
     {
         if (poseKeypoints == null || feature.featureType != TrajectoryFeatureChannel.Type.Position) return false;
 
-        var pathLength = PathLength;
-        if (pathLength <= 1e-5f) return false;
+        if (!Pursuit.HasPath) return false;
 
         var tFuture = GetPredictedSplineT(feature.predictionFrames[index]);
-        var tolerance = activationWindowFrames * speed / pathLength * DatabaseDeltaTime;
+        var tolerance = activationWindowFrames * speed * DatabaseDeltaTime / Pursuit.Length;
         if (!poseKeypoints.TryGetKeypointNearT(tFuture, tolerance, out var keypoint)) return false;
 
         var boneIndex = feature.bone?.ResolveIndex(poseKeypoints.Skeleton) ?? -1;

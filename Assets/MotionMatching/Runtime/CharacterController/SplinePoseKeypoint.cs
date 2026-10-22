@@ -112,6 +112,10 @@ public class SplinePoseKeypoint : MonoBehaviour
         }
     }
 
+    /// <summary>The generated path in this GameObject's local space, for a follower that projects
+    /// onto it. Null when the clip cannot be read; check <see cref="HasPath"/> first.</summary>
+    public Spline LocalPath => Path;
+
     /// <summary>Number of knots in the fitted curve; 0 when the clip cannot be read.</summary>
     public int KnotCount => Path?.Count ?? 0;
 

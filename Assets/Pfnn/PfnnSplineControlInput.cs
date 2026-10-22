@@ -6,22 +6,23 @@ using UnityEngine.Splines;
 namespace Pfnn
 {
 /// <summary>
-/// Follows a spline at a constant speed, handing the network the stretch of path ahead of the
+/// Follows a spline at a target speed, handing the network the stretch of path ahead of the
 /// character as its future trajectory.
 /// </summary>
 /// <remarks>
-/// Advances on its own clock rather than tracking the character, as <c>SplineControlInput</c> does,
-/// so drift shows up as measurable path-following error instead of being steered out.
+/// Closed loop, through <see cref="SplinePursuit"/>: the stretch is laid from the point on the path
+/// nearest the character, as <c>SplineControlInput</c> does, so the request never asks it to catch
+/// up with a point that ran ahead.
 /// </remarks>
-public class PfnnSplineControlInput : PfnnControlInput, IMotionSynthesisSplineControlInput
+public class PfnnSplineControlInput : PfnnControlInput, IMotionSynthesisSplineControlInput, ISteeringTargetSource
 {
     [Tooltip("Path to follow. Closed splines loop; on open splines the character stops at the end.")]
     [SerializeField]
     private SplineContainer splineContainer;
 
-    [Tooltip("Travel speed along the spline, in m/s.")]
+    [Tooltip("Speed the trajectory is laid along the spline at, from the character's nearest point, in m/s.")]
     [SerializeField]
-    private float speed = 1.0f;
+    private float speed = SplinePursuit.DefaultTargetSpeed;
 
     public SplineContainer SplineContainer
     {
@@ -29,9 +30,9 @@ public class PfnnSplineControlInput : PfnnControlInput, IMotionSynthesisSplineCo
         set
         {
             splineContainer = value;
-            // A benchmark sweep hands this component a different spline for every run, and the
-            // tracked position means nothing on the new one.
-            _splineT = 0f;
+            // A benchmark sweep hands this component a different spline for every run, and where
+            // the character was on the old one means nothing on the new one.
+            _pursuit.Reset();
         }
     }
 
@@ -40,25 +41,32 @@ public class PfnnSplineControlInput : PfnnControlInput, IMotionSynthesisSplineCo
     /// <summary>The direction the path sets off in; a bare path carries no facing of its own.</summary>
     public float3 GetWorldInitDirection() => SplinePathDirection.WorldStartDirection(splineContainer);
 
-    /// <summary>Position along the path, normalized to 0..1.</summary>
-    private float _splineT;
+    private readonly SplinePursuit _pursuit = new();
 
-    private bool HasPath => splineContainer != null && splineContainer.Spline != null;
-    private bool IsClosed => HasPath && splineContainer.Spline.Closed;
-    private float PathLength => HasPath ? splineContainer.CalculateLength() : 0f;
+    /// <summary>Seconds per synthesis frame, which is what the stage counts horizons in.</summary>
+    private float _frameTime;
 
-    /// <summary>Fraction of the whole path a single synthesis frame covers.</summary>
-    private float _normalizedSpeedPerFrame;
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        if (!IsBound) return;
+
+        // Nothing carries over from a previous activation, so the first update back re-seeds.
+        _pursuit.Reset();
+    }
 
     protected override void OnUpdate()
     {
-        var pathLength = PathLength;
-        if (pathLength <= 1e-5f) return;
+        _frameTime = 1f / math.max(1f, Synthesizer.synthesisFrameRate);
 
-        var frameTime = 1f / math.max(1f, Synthesizer.synthesisFrameRate);
-        _normalizedSpeedPerFrame = speed / pathLength * frameTime;
+        var spline = splineContainer != null ? splineContainer.Spline : null;
+        if (spline == null)
+        {
+            _pursuit.Reset();
+            return;
+        }
 
-        _splineT = SplineFold.Normalized(_splineT + speed / pathLength * Time.deltaTime, IsClosed);
+        _pursuit.Update(spline, splineContainer.transform.localToWorldMatrix, RootPosition);
     }
 
     public override bool TryGetFutureSample(int frameOffset, out float2 position,
@@ -66,28 +74,21 @@ public class PfnnSplineControlInput : PfnnControlInput, IMotionSynthesisSplineCo
     {
         position = default;
         direction = default;
-        if (!HasPath || _normalizedSpeedPerFrame <= 0f) return false;
+        if (!_pursuit.HasPath) return false;
 
-        var t = SplineFold.Normalized(_splineT + frameOffset * _normalizedSpeedPerFrame, IsClosed);
-        var sampled = splineContainer.EvaluatePosition(t);
-        position = new float2(sampled.x, sampled.z);
+        var distance = _pursuit.DistanceAt(frameOffset * _frameTime, speed);
+        position = _pursuit.PositionAt(distance).xz;
+        direction = _pursuit.DirectionAt(distance);
+        return true;
+    }
 
-        // Measured as a short step further along rather than as the analytic tangent, so the facing
-        // handed to the network cannot disagree with the positions beside it.
-        var aheadT = SplineFold.Normalized(t + _normalizedSpeedPerFrame, IsClosed);
-        var ahead = splineContainer.EvaluatePosition(aheadT);
-        var step = new float2(ahead.x - sampled.x, ahead.z - sampled.z);
+    /// <summary>The far end of the requested trajectory: the stage's last future horizon along the path.</summary>
+    public bool TryGetSteeringTarget(out float3 worldPosition)
+    {
+        worldPosition = float3.zero;
+        if (!_pursuit.HasPath || Stage == null) return false;
 
-        // At the clamped end of an open path the step forward lands on the same point, so measure
-        // the last one instead of falling through to an arbitrary default.
-        if (math.lengthsq(step) < 1e-12f)
-        {
-            var behindT = SplineFold.Normalized(t - _normalizedSpeedPerFrame, IsClosed);
-            var behind = splineContainer.EvaluatePosition(behindT);
-            step = new float2(sampled.x - behind.x, sampled.z - behind.z);
-        }
-
-        direction = math.normalizesafe(step, new float2(0f, 1f));
+        worldPosition = _pursuit.PositionAt(_pursuit.DistanceAt(Stage.HorizonFrames * _frameTime, speed));
         return true;
     }
 }

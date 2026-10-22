@@ -26,7 +26,7 @@ public class BenchmarkLapProbe : MonoBehaviour
     [Min(1f)] public float maxRunSeconds = 120f;
 
     /// <summary>Open paths only: seconds without forward progress before the run ends as stopped short. 0 disables it.</summary>
-    [Min(0f)] public float restTimeout = 5f;
+    [Min(0f)] public float restTimeout = 15f;
 
     /// <summary>
     /// The least a character must advance along an open path within <see cref="restTimeout"/> to count

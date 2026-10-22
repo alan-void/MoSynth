@@ -22,6 +22,14 @@ public sealed class SplineProjector
     /// <summary>Chords per pass floor. Below this the search can step over a fold in the path.</summary>
     private const int MinimumSegments = 8;
 
+    /// <summary>
+    /// Smallest arc length searched ahead of the previous answer, in metres. A point cutting inside a
+    /// corner stays nearest the incoming leg until the outgoing one is well past the corner, so a
+    /// narrower window holds the projection on the incoming leg. Every caller shares it, so the
+    /// spline inputs and the metrics agree on which point of the path a character is at.
+    /// </summary>
+    public const float DefaultWindowMeters = 2.0f;
+
     private readonly float _minWindowMeters;
     private readonly float _windowSlack;
     private readonly float _reacquireDistanceMeters;
@@ -37,7 +45,7 @@ public sealed class SplineProjector
     /// <param name="reacquireDistanceMeters">Past this distance from the windowed result, give up on
     /// continuity and search globally. Generous, since re-acquiring must not happen at a crossing.</param>
     public SplineProjector(
-        float minWindowMeters = 0.5f,
+        float minWindowMeters = DefaultWindowMeters,
         float windowSlack = 3f,
         float reacquireDistanceMeters = 5f)
     {

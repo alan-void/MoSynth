@@ -195,6 +195,25 @@ public class SplineProjectorTests
     }
 
     [Test]
+    public void CuttingInsideACornerMovesOntoTheOutgoingLeg()
+    {
+        // Walks the first leg 0.5 m inside, turns 0.8 m short of the corner and walks parallel to the
+        // second leg. Once past z = 0.8 the second leg is the nearer one, and its nearest point is
+        // well over a metre of arc ahead of the last answer on the first leg.
+        var spline = BuildClosedSquareSpline();
+        var projector = new SplineProjector();
+
+        for (var x = 1f; x <= 9.2f; x += 0.02f) projector.Project(spline, new float3(x, 0f, 0.5f));
+
+        var end = new float3(9.2f, 0f, 4f);
+        var t = 0f;
+        for (var z = 0.5f; z <= 4f; z += 0.02f) t = projector.Project(spline, new float3(9.2f, 0f, z));
+
+        Assert.AreEqual(0.8f, math.distance(spline.EvaluatePosition(t), end), 0.05f,
+            "held on the incoming leg");
+    }
+
+    [Test]
     public void ReacquiresAfterATeleport()
     {
         var spline = BuildClosedSquareSpline();

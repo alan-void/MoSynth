@@ -20,9 +20,10 @@ public static class SplineFold
     /// </summary>
     /// <remarks>
     /// Folding a lookahead in metres, rather than as a parameter, keeps the fold independent of the
-    /// spline's parameterisation.
+    /// spline's parameterisation. Negative distances fold too, since a past horizon looks behind the
+    /// path's start.
     /// </remarks>
     public static float Distance(float distance, float length, bool closed) =>
-        closed ? distance % length : math.min(distance, length);
+        closed ? distance - math.floor(distance / length) * length : math.clamp(distance, 0f, length);
 }
 }

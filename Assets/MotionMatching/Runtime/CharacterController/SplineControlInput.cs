@@ -8,63 +8,68 @@ using UnityEngine.Splines;
 namespace MotionMatching
 {
 /// <summary>
-/// Follows a spline at constant speed, looping a closed path and stopping at the end of an open one.
+/// Follows a spline at a target speed, looping a closed path and stopping at the end of an open one.
 /// The trajectory is read straight off the spline rather than simulated, which makes this what
 /// <see cref="AnimationTools.PathFollowingMetric"/> drives.
 /// </summary>
 /// <remarks>
-/// Open loop: the point on the spline advances on its own clock and never reacts to the character,
-/// so drift shows up as measurable path-following error. Negative prediction frames need no special
-/// case, since the path behind the current point is where this input has been.
+/// Closed loop, through <see cref="SplinePursuit"/>: every horizon is laid along the path from the
+/// point nearest the character, plus a lead that grows while the character is slower than
+/// <see cref="speed"/> and is capped at <see cref="maxLead"/>, so a slow character is asked for more
+/// but never chases a point that ran away. Negative prediction frames look back from that same start.
 /// </remarks>
-public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSplineControlInput, IFrameTarget
+public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSplineControlInput, IFrameTarget,
+    ISteeringTargetSource
 {
     [FormerlySerializedAs("TrajectoryPositionFeatureName")] public string trajectoryPositionFeatureName = "FuturePosition";
     [FormerlySerializedAs("TrajectoryDirectionFeatureName")] public string trajectoryDirectionFeatureName = "FutureDirection";
 
     [FormerlySerializedAs("SplineContainer")] public SplineContainer splineContainer;
 
-    [Tooltip("Travel speed along the spline, in m/s.")]
-    [FormerlySerializedAs("Speed")] public float speed = 1.0f;
+    [Tooltip("Speed the trajectory is laid along the spline at, from the character's nearest point, in m/s.")]
+    [FormerlySerializedAs("Speed")] public float speed = SplinePursuit.DefaultTargetSpeed;
 
-    public virtual SplineContainer SplineContainer { get => splineContainer; set => splineContainer = value; }
+    [Tooltip("Most the trajectory may start ahead of the character's nearest point, in metres. The lead " +
+             "builds while the character is slower than the target speed; 0 lays it from the nearest point.")]
+    [Min(0f)] public float maxLead = SplinePursuit.DefaultMaxLead;
+
+    public virtual SplineContainer SplineContainer
+    {
+        get => splineContainer;
+        set
+        {
+            splineContainer = value;
+            // A benchmark sweep hands this component a different spline for every run, and where
+            // the character was on the old one means nothing on the new one.
+            Pursuit.Reset();
+        }
+    }
+
     public float TargetSpeed => speed;
 
-    /// <summary>
-    /// Whether there is a usable path to follow. Check before the evaluation seams below: a container
-    /// with an emptied spline list throws from <c>EvaluatePosition</c> and <c>CalculateLength</c>.
-    /// </summary>
-    protected virtual bool HasPath => splineContainer != null && splineContainer.Spline != null;
-
-    /// <summary>World position on the path at a normalized parameter. Overridden to follow a path that
-    /// does not live in a <see cref="SplineContainer"/>.</summary>
-    protected virtual float3 SamplePosition(float t) => splineContainer.EvaluatePosition(t);
-
-    /// <summary>The path's world length, or 0 when there is no usable path. Callers must treat 0 as
-    /// "do not divide".</summary>
-    protected virtual float PathLength => HasPath ? splineContainer.CalculateLength() : 0f;
-
-    /// <summary>Whether the path loops.</summary>
-    protected virtual bool IsClosed => HasPath && splineContainer.Spline.Closed;
+    /// <summary>The character's projection onto the path, refreshed once per update.</summary>
+    protected SplinePursuit Pursuit { get; } = new();
 
     /// <summary>
-    /// Folds a normalized parameter into the path, against this input's own <see cref="IsClosed"/>.
-    /// See <see cref="SplineFold"/> for why an open path clamps.
+    /// The path in its own local space, and the transform placing it in the world. Overridden to
+    /// follow a path that does not live in a <see cref="SplineContainer"/>.
     /// </summary>
-    protected float Fold(float t) => SplineFold.Normalized(t, IsClosed);
-
-    /// <summary>
-    /// Position along the spline, normalized to 0..1 and folded by <see cref="Fold"/>. Distances must
-    /// be divided by the spline's length before being added to it.
-    /// </summary>
-    protected float _splineT;
+    /// <remarks>
+    /// Check the spline list too: a container with an emptied list throws from <c>Spline</c>'s
+    /// evaluation.
+    /// </remarks>
+    protected virtual bool TryGetPath(out Spline spline, out float4x4 localToWorld)
+    {
+        spline = splineContainer != null ? splineContainer.Spline : null;
+        localToWorld = spline != null ? splineContainer.transform.localToWorldMatrix : float4x4.identity;
+        return spline != null;
+    }
 
     private float2 _currentPosition;
     private float2 _currentDirection;
 
-    /// <summary>Lookahead for the finite-difference direction, refreshed once per update so
-    /// <see cref="SampleDirection"/> does not re-measure the spline's length per sample.</summary>
-    private float _directionSampleStep;
+    private float2 _framePosition;
+    private float2 _frameDirection;
 
     private float2[] _predictedPositions;
     private float2[] _predictedDirections;
@@ -81,33 +86,46 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         _predictedDirections = new float2[PredictionCount];
     }
 
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        if (!IsBound) return;
+
+        // Nothing carries over from a previous activation, so the first update back re-seeds.
+        Pursuit.Reset();
+    }
+
     /// <summary>
-    /// Samples the spline now and at each prediction horizon.
+    /// Projects the character onto the spline and samples it at each prediction horizon from there.
     /// </summary>
     protected override void OnUpdate()
     {
-        // A zero-length path would divide to infinity and leave NaN stuck in _splineT; hold instead.
-        var pathLength = PathLength;
-        if (pathLength <= 1e-5f) return;
+        if (!TryGetPath(out var spline, out var localToWorld))
+        {
+            Pursuit.Reset();
+            return;
+        }
 
-        // Spline parameters are normalized, so metres per second becomes spline-fraction per second.
-        var normalizedSpeed = speed / pathLength;
-        _directionSampleStep = normalizedSpeed * DatabaseDeltaTime * 0.1f;
+        if (!Pursuit.Update(spline, localToWorld, synthesizer.transform.position)) return;
+        Pursuit.AdvanceLead(speed, Time.deltaTime, maxLead);
 
-        var pos = SamplePosition(_splineT);
-        _currentPosition = pos.xz;
-        _currentDirection = SampleDirection(_splineT, pos);
+        var nearest = Pursuit.NearestDistance;
+        _currentPosition = Pursuit.NearestWorld.xz;
+        _currentDirection = SampleDirection(nearest);
 
         for (var i = 0; i < PredictionCount; i++)
         {
-            var t = Fold(_splineT + _features.PredictionFrames[i] * normalizedSpeed * DatabaseDeltaTime);
-            var predPos = SamplePosition(t);
-            _predictedPositions[i] = predPos.xz;
-            _predictedDirections[i] = SampleDirection(t, predPos);
+            var distance = Pursuit.DistanceAt(_features.PredictionFrames[i] * DatabaseDeltaTime, speed);
+            _predictedPositions[i] = Pursuit.PositionAt(distance).xz;
+            _predictedDirections[i] = SampleDirection(distance);
         }
 
-        _splineT += normalizedSpeed * Time.deltaTime;
-        _splineT = Fold(_splineT);
+        // One frame of travel past the projection, so a follower landing the character there
+        // carries it along the path at the target speed rather than pinning it in place. Without
+        // the lead: a follower closes the gap itself, so a lead would only make it jump.
+        var frameDistance = Pursuit.NearestDistance + Time.deltaTime * speed;
+        _framePosition = Pursuit.PositionAt(frameDistance).xz;
+        _frameDirection = SampleDirection(frameDistance);
     }
 
     /// <summary>
@@ -115,41 +133,19 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     /// direction enters the input, so the query, the gizmos and <see cref="GetCurrentRotation"/> agree.
     /// </summary>
     /// <remarks>
-    /// A bare path has no facing, so this is the direction of travel, measured as a short step along
-    /// the path to stay consistent with the predicted positions. See
+    /// A bare path has no facing, so this is the direction of travel. See
     /// <see cref="SplinePoseKeypointControlInput"/> for a path that carries facing.
     /// </remarks>
-    /// <param name="t">Normalized spline parameter to sample at.</param>
-    /// <param name="positionAtT">The spline position there, already evaluated by the caller.</param>
+    /// <param name="distance">Distance along the path, in metres; folded by the caller's path.</param>
     /// <returns>A normalized XZ direction.</returns>
-    protected virtual float2 SampleDirection(float t, float3 positionAtT)
-    {
-        var ahead = SamplePosition(Fold(t + _directionSampleStep));
-        var step = new float2(ahead.x - positionAtT.x, ahead.z - positionAtT.z);
-
-        // At the clamped end of an open path the step forward lands back on the same point, so
-        // measure the last one instead of falling through to the arbitrary default direction.
-        if (math.lengthsq(step) < 1e-12f)
-        {
-            var behind = SamplePosition(Fold(t - _directionSampleStep));
-            step = new float2(positionAtT.x - behind.x, positionAtT.z - behind.z);
-        }
-
-        return math.normalizesafe(step, new float2(0f, 1f));
-    }
+    protected virtual float2 SampleDirection(float distance) => Pursuit.DirectionAt(distance);
 
     /// <summary>
     /// Normalized spline parameter this input predicts for a horizon of <paramref name="frames"/>
-    /// database frames ahead of the current position.
+    /// database frames ahead of the character's nearest point on the path.
     /// </summary>
-    public float GetPredictedSplineT(int frames)
-    {
-        var pathLength = PathLength;
-        if (pathLength <= 1e-5f) return _splineT;
-
-        var normalizedSpeed = speed / pathLength;
-        return Fold(_splineT + frames * normalizedSpeed * DatabaseDeltaTime);
-    }
+    public float GetPredictedSplineT(int frames) =>
+        Pursuit.HasPath ? Pursuit.NormalizedAt(Pursuit.DistanceAt(frames * DatabaseDeltaTime, speed)) : 0f;
 
     public quaternion GetCurrentRotation()
     {
@@ -184,6 +180,7 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
         return _predictedDirections[index];
     }
 
+    /// <summary>The point on the path nearest the character.</summary>
     public override float3 GetPosition()
     {
         return new Vector3(_currentPosition.x, 0, _currentPosition.y);
@@ -212,27 +209,38 @@ public class SplineControlInput : MotionMatchingControlInput, IMotionSynthesisSp
     }
 
     /// <summary>
-    /// Where on the path this input has got to, for a stage pulling the character onto it.
+    /// Where on the path the character should be after this frame, for a stage pulling it onto the
+    /// path: its own projection, one frame of travel further on at <see cref="speed"/>.
     /// </summary>
     /// <remarks>
-    /// The point travels along the spline while this Transform stays put, so a follower must ask
-    /// rather than read the Transform. False until the first update has sampled a usable path.
+    /// The point moves along the spline while this Transform stays put, so a follower must ask
+    /// rather than read the Transform. False until the first update has found a usable path.
     /// </remarks>
     public bool TryGetFrame(out float2 positionXZ, out float yaw)
     {
-        positionXZ = _currentPosition;
-        yaw = math.atan2(_currentDirection.x, _currentDirection.y);
-        return HasPath && math.lengthsq(_currentDirection) > 0f;
+        positionXZ = _framePosition;
+        yaw = math.atan2(_frameDirection.x, _frameDirection.y);
+        return Pursuit.HasPath && math.lengthsq(_frameDirection) > 0f;
+    }
+
+    /// <summary>The far end of the queried trajectory: the last prediction horizon along the path.</summary>
+    public bool TryGetSteeringTarget(out float3 worldPosition)
+    {
+        worldPosition = float3.zero;
+        if (!Pursuit.HasPath || _predictedPositions == null || PredictionCount == 0) return false;
+
+        var lastFrames = _features.PredictionFrames[PredictionCount - 1];
+        worldPosition = Pursuit.PositionAt(Pursuit.DistanceAt(lastFrames * DatabaseDeltaTime, speed));
+        return true;
     }
 
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        if (!HasPath) return;
+        if (!Application.isPlaying || !Pursuit.HasPath) return;
 
         const float heightOffset = 0.01f;
 
-        if (!Application.isPlaying) return;
         Gizmos.color = new Color(1.0f, 0.3f, 0.1f, 1.0f);
         Vector3 currentPos = (Vector3)GetPosition() + Vector3.up * heightOffset * 2;
         Gizmos.DrawSphere(currentPos, 0.1f);
