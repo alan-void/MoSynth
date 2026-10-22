@@ -68,14 +68,20 @@ public static class BenchmarkRunEvaluator
 
         if (rootPositions != null)
         {
-            ReadContacts(reader, frameCount, out var contactPositions, out var contacts);
+            var contactPositions = ReadContactPositions(reader, frameCount);
+            if (contactPositions == null)
+            {
+                Debug.LogWarning($"[Benchmark] \"{manifestPath}\" records no contact bone positions; footskate is unavailable.");
+            }
+
             result.motionQuality = MotionQualityMetricsCalculator.Evaluate(
                 rootPositions,
                 contactPositions,
-                contacts,
+                ReadContactFlags(reader, contactPositions?.Length ?? 0, frameCount),
                 ReadFlags(reader, "discontinuity", frameCount),
                 times,
-                config.settleTime);
+                config.settleTime,
+                config.groundContact);
         }
         else
         {
@@ -136,24 +142,35 @@ public static class BenchmarkRunEvaluator
     }
 
     /// <summary>
-    /// Every contact slot's flags and bone position, indexed <c>[slot][frame]</c>. Both null when
-    /// the recording has no contact channel or a slot's position channel is missing.
+    /// Every contact slot's bone position, indexed <c>[slot][frame]</c>, read from the consecutive
+    /// <see cref="ContactPositionChannel"/>s starting at slot 0. Null when there is none.
     /// </summary>
-    private static void ReadContacts(RecordingReader reader, int frameCount, out float3[][] positions,
-        out bool[][] contacts)
+    private static float3[][] ReadContactPositions(RecordingReader reader, int frameCount)
     {
-        positions = null;
-        contacts = null;
-        if (!reader.TryGetChannel(ContactsChannel, out var channel)) return;
+        var slotPositions = new List<float3[]>();
+        while (true)
+        {
+            var positions = ReadFloat3(reader, ContactPositionChannel(slotPositions.Count), frameCount);
+            if (positions == null) break;
 
-        var slotCount = channel.floatCount;
-        var slotPositions = new float3[slotCount][];
+            slotPositions.Add(positions);
+        }
+
+        return slotPositions.Count > 0 ? slotPositions.ToArray() : null;
+    }
+
+    /// <summary>
+    /// The method's own contact flags, indexed <c>[slot][frame]</c>. Null when the recording has no
+    /// contact channel or its slot count differs from <paramref name="slotCount"/>.
+    /// </summary>
+    private static bool[][] ReadContactFlags(RecordingReader reader, int slotCount, int frameCount)
+    {
+        if (slotCount == 0 || !reader.TryGetChannel(ContactsChannel, out var channel)) return null;
+        if (channel.floatCount != slotCount) return null;
+
         var slotContacts = new bool[slotCount][];
         for (var slot = 0; slot < slotCount; slot++)
         {
-            slotPositions[slot] = ReadFloat3(reader, ContactPositionChannel(slot), frameCount);
-            if (slotPositions[slot] == null) return;
-
             slotContacts[slot] = new bool[frameCount];
             for (var f = 0; f < frameCount; f++)
             {
@@ -161,8 +178,7 @@ public static class BenchmarkRunEvaluator
             }
         }
 
-        positions = slotPositions;
-        contacts = slotContacts;
+        return slotContacts;
     }
 
     private static bool[] ReadFlags(RecordingReader reader, string channelName, int frameCount)
