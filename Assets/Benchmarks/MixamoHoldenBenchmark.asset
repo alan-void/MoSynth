@@ -16,20 +16,49 @@ MonoBehaviour:
   - name: MotionMatching
     characterPrefab: {fileID: 1611389556046908346, guid: 0f78e78c16d682649ad153f14e1e98d2, type: 3}
     overrides: []
+    seeds: 
   - name: MotionField
     characterPrefab: {fileID: 8104046218015849655, guid: 46c02af8148f7684696c99f124f139e2, type: 3}
     overrides: []
+    seeds: 
   - name: Pfnn
     characterPrefab: {fileID: 1980268913643553218, guid: 41eb900dbdbf2894e8f484294433dd28, type: 3}
     overrides: []
+    seeds: 
   - name: Lmm
     characterPrefab: {fileID: 103629758286314267, guid: 0a9b7734cfaa7844eb8f8f8d214ee504, type: 3}
     overrides: []
+    seeds: 
+  - name: MotionMatchingNoLock
+    characterPrefab: {fileID: 1611389556046908346, guid: 0f78e78c16d682649ad153f14e1e98d2, type: 3}
+    overrides:
+    - rid: 5523055197604282368
+    seeds: 
+  - name: MotionFieldNoLock
+    characterPrefab: {fileID: 8104046218015849655, guid: 46c02af8148f7684696c99f124f139e2, type: 3}
+    overrides:
+    - rid: 5523055197604282369
+    seeds: 
+  - name: PfnnNoLock
+    characterPrefab: {fileID: 1980268913643553218, guid: 41eb900dbdbf2894e8f484294433dd28, type: 3}
+    overrides:
+    - rid: 5523055197604282370
+    seeds: 
+  - name: LmmNoLock
+    characterPrefab: {fileID: 103629758286314267, guid: 0a9b7734cfaa7844eb8f8f8d214ee504, type: 3}
+    overrides:
+    - rid: 5523055197604282371
+    seeds: 
   pathPrefabFolder: Assets/Benchmarks/Paths
   pathPrefabs: []
   lapsRequired: 1
   settleTime: 3
+  groundContact:
+    heightThreshold: 0.025
+    speedThreshold: 0.15
+    contactHeightPercentile: 0.05
   maxRunSeconds: 180
+  restTimeout: 15
   synthesisFrameRate: 30
   fixedTimestep: 1
   speedSmoothingWindow: 0.2
@@ -40,4 +69,24 @@ MonoBehaviour:
   outputDirectory: Benchmarks
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 5523055197604282368
+      type: {class: StageEnabledOverride, ns: AnimationTools, asm: AnimationTools}
+      data:
+        stageTypeName: ContactLockStage
+        enabled: 0
+    - rid: 5523055197604282369
+      type: {class: StageEnabledOverride, ns: AnimationTools, asm: AnimationTools}
+      data:
+        stageTypeName: ContactLockStage
+        enabled: 0
+    - rid: 5523055197604282370
+      type: {class: StageEnabledOverride, ns: AnimationTools, asm: AnimationTools}
+      data:
+        stageTypeName: ContactLockStage
+        enabled: 0
+    - rid: 5523055197604282371
+      type: {class: StageEnabledOverride, ns: AnimationTools, asm: AnimationTools}
+      data:
+        stageTypeName: ContactLockStage
+        enabled: 0

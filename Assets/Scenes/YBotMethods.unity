@@ -497,7 +497,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &346149582
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -716,7 +716,7 @@ Transform:
   m_GameObject: {fileID: 441432711}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.5000005, y: 2.0979187, z: 0.00000051621345}
+  m_LocalPosition: {x: 7.5, y: 2.0979187, z: 0.00000051621345}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -776,8 +776,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1106011243896429323, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: managedReferences[4326262761038807298].config
+      value: 
+      objectReference: {fileID: 11400000, guid: 10d4025b611d4d6bba905d91ca351eb9, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -901,7 +905,7 @@ Transform:
   m_GameObject: {fileID: 577864595}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.5000004, y: 2.0979187, z: 0.00000051621345}
+  m_LocalPosition: {x: 4.5, y: 2.0979187, z: 0.00000051621345}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -915,6 +919,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4138775977735469922, guid: 372cf0e2f627b494990f07be304f9a14, type: 3}
+      propertyPath: managedReferences[5432756614727467120].config
+      value: 
+      objectReference: {fileID: 11400000, guid: ec54d731333f49fb842e1b77bd867f1d, type: 2}
     - target: {fileID: 5308670859798615954, guid: 372cf0e2f627b494990f07be304f9a14, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -925,7 +933,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5980718487338172712, guid: 372cf0e2f627b494990f07be304f9a14, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6463817111127399314, guid: 372cf0e2f627b494990f07be304f9a14, type: 3}
       propertyPath: m_LocalPosition.x
@@ -985,9 +993,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 7078801268122924978, guid: b96c93efdef418647ac0a8fc9e32b004, type: 3}
+      propertyPath: managedReferences[4326263141704925273].config
+      value: 
+      objectReference: {fileID: 11400000, guid: e9f3e62b29004f8e95f66961d849add4, type: 2}
     - target: {fileID: 8401575458210882439, guid: b96c93efdef418647ac0a8fc9e32b004, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 4.5
+      value: 7.5
       objectReference: {fileID: 0}
     - target: {fileID: 8401575458210882439, guid: b96c93efdef418647ac0a8fc9e32b004, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1066,7 +1078,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1501823337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1161,7 +1173,7 @@ Transform:
   m_GameObject: {fileID: 1501823336}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7.5000005, y: 2.0979187, z: 0.00000051621345}
+  m_LocalPosition: {x: 1.5, y: 2.0979187, z: 0.00000051621345}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1222,9 +1234,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2733868244329562005, guid: 88df33aee6a2ecf49b8cc0a923bd2e8c, type: 3}
+      propertyPath: managedReferences[4326263141704925273].config
+      value: 
+      objectReference: {fileID: 11400000, guid: e9f3e62b29004f8e95f66961d849add4, type: 2}
     - target: {fileID: 3698641447398566816, guid: 88df33aee6a2ecf49b8cc0a923bd2e8c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 7.5
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 3698641447398566816, guid: 88df33aee6a2ecf49b8cc0a923bd2e8c, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1268,7 +1284,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4044204291685757210, guid: 88df33aee6a2ecf49b8cc0a923bd2e8c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1298,7 +1314,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1834418511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1407,9 +1423,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4654292218144951591, guid: 1a644523e85d3e2449c2f15318259a30, type: 3}
+      propertyPath: managedReferences[4326263141704925273].config
+      value: 
+      objectReference: {fileID: 11400000, guid: e9f3e62b29004f8e95f66961d849add4, type: 2}
     - target: {fileID: 6211535355076974866, guid: 1a644523e85d3e2449c2f15318259a30, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.5
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 6211535355076974866, guid: 1a644523e85d3e2449c2f15318259a30, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1609,8 +1629,12 @@ PrefabInstance:
       value: AnimationTools AnimationTools.ContactLockStage
       objectReference: {fileID: 0}
     - target: {fileID: 74078543960080390, guid: 3524e1ae068df88498f3e3f9aa51a683, type: 3}
+      propertyPath: managedReferences[4326263141704925273].mmData
+      value: 
+      objectReference: {fileID: 11400000, guid: 3d0dafa63faf4d3289048403f5ca64d5, type: 2}
+    - target: {fileID: 74078543960080390, guid: 3524e1ae068df88498f3e3f9aa51a683, type: 3}
       propertyPath: managedReferences[5523054825479340188].isEnabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 74078543960080390, guid: 3524e1ae068df88498f3e3f9aa51a683, type: 3}
       propertyPath: managedReferences[5523054825479340188].maxLockDistance

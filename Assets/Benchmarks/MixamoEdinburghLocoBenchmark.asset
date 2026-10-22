@@ -16,17 +16,40 @@ MonoBehaviour:
   - name: MotionMatching
     characterPrefab: {fileID: 3718662889022702993, guid: 6e7a5fc8a3b793845b4567000149062f, type: 3}
     overrides: []
+    seeds: 
   - name: Pfnn
     characterPrefab: {fileID: 8879430461016736673, guid: d4b8922f1e9b0b14b96f2c016017cb82, type: 3}
     overrides: []
+    seeds: 
   - name: Lmm
     characterPrefab: {fileID: 6673067915004925174, guid: 05d83959c2a7ecd4583d2127d0043065, type: 3}
     overrides: []
+    seeds: 
+  - name: MotionMatchingNoLock
+    characterPrefab: {fileID: 3718662889022702993, guid: 6e7a5fc8a3b793845b4567000149062f, type: 3}
+    overrides:
+    - rid: 5523055197604282372
+    seeds: 
+  - name: PfnnNoLock
+    characterPrefab: {fileID: 8879430461016736673, guid: d4b8922f1e9b0b14b96f2c016017cb82, type: 3}
+    overrides:
+    - rid: 5523055197604282373
+    seeds: 
+  - name: LmmNoLock
+    characterPrefab: {fileID: 6673067915004925174, guid: 05d83959c2a7ecd4583d2127d0043065, type: 3}
+    overrides:
+    - rid: 5523055197604282374
+    seeds: 
   pathPrefabFolder: Assets/Benchmarks/Paths
   pathPrefabs: []
   lapsRequired: 1
   settleTime: 3
+  groundContact:
+    heightThreshold: 0.025
+    speedThreshold: 0.15
+    contactHeightPercentile: 0.05
   maxRunSeconds: 180
+  restTimeout: 15
   synthesisFrameRate: 30
   fixedTimestep: 1
   speedSmoothingWindow: 0.2
@@ -37,4 +60,19 @@ MonoBehaviour:
   outputDirectory: Benchmarks
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 5523055197604282372
+      type: {class: StageEnabledOverride, ns: AnimationTools, asm: AnimationTools}
+      data:
+        stageTypeName: ContactLockStage
+        enabled: 0
+    - rid: 5523055197604282373
+      type: {class: StageEnabledOverride, ns: AnimationTools, asm: AnimationTools}
+      data:
+        stageTypeName: ContactLockStage
+        enabled: 0
+    - rid: 5523055197604282374
+      type: {class: StageEnabledOverride, ns: AnimationTools, asm: AnimationTools}
+      data:
+        stageTypeName: ContactLockStage
+        enabled: 0

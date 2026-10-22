@@ -52,6 +52,50 @@ PrefabInstance:
       propertyPath: m_Name
       value: Pfnn_Mixamo
       objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: stages.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: 'stages.Array.data[1]'
+      value: 5523055197214736387
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: 'stages.Array.data[2]'
+      value: 5523055197214736388
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: 'managedReferences[5523055197214736387]'
+      value: MotionMatching MotionMatching.Inertialization
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: 'managedReferences[5523055197214736388]'
+      value: AnimationTools AnimationTools.ContactLockStage
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: managedReferences[5523055197214736387].halfLife
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: managedReferences[5523055197214736387].isEnabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: managedReferences[5523055197214736388].isEnabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: managedReferences[5523055197214736388].maxLockDistance
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: managedReferences[5523055197214736388].releaseHalfLife
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1256990984966275070, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
+      propertyPath: managedReferences[5523055197214736388].lockedBones.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 214540215145990003, guid: 5fdd8d5dc2b535c45b3ca7857f54f46f, type: 3}
     m_RemovedGameObjects: []
