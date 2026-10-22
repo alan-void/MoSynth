@@ -52,8 +52,11 @@ public class SynthesisBenchmarkConfigEditor : UnityEditor.Editor
 
         if (runnable && paths.Count > 0)
         {
+            // Without sweep seeds the expansion reads only each method's own list, so it is repaint-cheap.
+            var methodRuns = config.ExpandRuns().Count;
             EditorGUILayout.HelpBox(
-                $"{config.methods.Count} method(s) x {paths.Count} path(s) = {config.methods.Count * paths.Count} runs, " +
+                $"{config.methods.Count} method(s), {methodRuns} with their seeds, x {paths.Count} path(s) = " +
+                $"{methodRuns * paths.Count} runs, " +
                 $"each at least {config.settleTime:0.#} s settle plus {config.lapsRequired:0.##} lap(s), " +
                 $"capped at {config.maxRunSeconds:0.#} s.",
                 MessageType.Info);

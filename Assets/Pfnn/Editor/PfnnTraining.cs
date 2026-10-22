@@ -20,7 +20,13 @@ public static class PfnnTraining
     /// <see cref="PfnnConfig.hasTrained"/> only when training actually produced one.
     /// </summary>
     /// <returns>The trainer's summary as JSON, or null when training failed.</returns>
-    public static string Run(PfnnConfig config)
+    public static string Run(PfnnConfig config) => Run(config, config.seed);
+
+    /// <summary>
+    /// <see cref="Run(PfnnConfig)"/> under <paramref name="seed"/>, writing that seed's checkpoint.
+    /// The config's own <see cref="PfnnConfig.seed"/> is left alone.
+    /// </summary>
+    public static string Run(PfnnConfig config, int seed)
     {
         string summaryJson = null;
 
@@ -44,7 +50,7 @@ public static class PfnnTraining
                 {
                     config.GetAssetPath().ToPython(),
                     config.name.ToPython(),
-                    config.GetCheckpointPath().ToPython(),
+                    config.GetCheckpointPath(seed).ToPython(),
                 });
 
                 using var kwargs = new PyDict();
@@ -58,7 +64,7 @@ public static class PfnnTraining
                 kwargs["learning_rate"] = ((double)config.learningRate).ToPython();
                 kwargs["weight_decay"] = ((double)config.weightDecay).ToPython();
                 kwargs["validation_fraction"] = ((double)config.validationFraction).ToPython();
-                kwargs["seed"] = config.seed.ToPython();
+                kwargs["seed"] = seed.ToPython();
                 kwargs["device"] = config.DeviceName.ToPython();
                 // A PFNN config authors no matching features, so there is no .mmfeatures to read.
                 kwargs["with_features"] = false.ToPython();

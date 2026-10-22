@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -18,7 +19,12 @@ public static class SynthesisBenchmarkLauncher
     /// play mode. Returns false when the sweep could not be started, having already logged why.
     /// </summary>
     /// <param name="exitEditorWhenDone">Quit the Editor with a status code at the end of the sweep.</param>
-    public static bool Launch(SynthesisBenchmarkConfig config, string outputDirectory, bool exitEditorWhenDone)
+    /// <param name="sweepSeeds">
+    /// When set, the training seeds every method with a per-seed checkpoint runs under, in place of
+    /// its own list. See <see cref="SynthesisBenchmarkConfig.ExpandRuns"/>.
+    /// </param>
+    public static bool Launch(SynthesisBenchmarkConfig config, string outputDirectory, bool exitEditorWhenDone,
+        IReadOnlyList<int> sweepSeeds = null)
     {
         if (config == null)
         {
@@ -59,7 +65,9 @@ public static class SynthesisBenchmarkLauncher
         {
             configAssetPath = configAssetPath,
             outputDirectory = outputDirectory,
-            exitEditorWhenDone = exitEditorWhenDone
+            exitEditorWhenDone = exitEditorWhenDone,
+            overrideSeeds = sweepSeeds != null,
+            seeds = sweepSeeds != null ? new List<int>(sweepSeeds) : new List<int>()
         };
 
         Directory.CreateDirectory(Path.GetDirectoryName(SynthesisBenchmarkPlan.PlanPath) ?? "Temp");

@@ -20,7 +20,13 @@ public static class LmmTraining
     /// <see cref="LmmConfig.hasTrained"/> only when training actually produced one.
     /// </summary>
     /// <returns>The trainer's summary as JSON, or null when training failed.</returns>
-    public static string Run(LmmConfig config) => Execute(config, Fit.Everything);
+    public static string Run(LmmConfig config) => Run(config, config.seed);
+
+    /// <summary>
+    /// <see cref="Run(LmmConfig)"/> under <paramref name="seed"/>, writing that seed's checkpoint.
+    /// The config's own <see cref="LmmConfig.seed"/> is left alone.
+    /// </summary>
+    public static string Run(LmmConfig config, int seed) => Execute(config, Fit.Everything, seed);
 
     /// <summary>
     /// Refit only the stepper, against the latents the checkpoint already carries.
@@ -29,7 +35,7 @@ public static class LmmTraining
     /// Does not set <see cref="LmmConfig.hasTrained"/>: the autoencoder stays as stale or fresh as
     /// it was, and the inspector cannot tell which field an edit moved.
     /// </remarks>
-    public static void RunStepper(LmmConfig config) => Execute(config, Fit.Stepper);
+    public static void RunStepper(LmmConfig config) => Execute(config, Fit.Stepper, config.seed);
 
     /// <summary>
     /// Refit only the projector, against the latents the checkpoint already carries.
@@ -37,7 +43,7 @@ public static class LmmTraining
     /// <remarks>
     /// Leaves <see cref="LmmConfig.hasTrained"/> alone, as <see cref="RunStepper"/> does.
     /// </remarks>
-    public static void RunProjector(LmmConfig config) => Execute(config, Fit.Projector);
+    public static void RunProjector(LmmConfig config) => Execute(config, Fit.Projector, config.seed);
 
     /// <summary>Which networks a run fits. Anything but <see cref="Everything"/> is a refit.</summary>
     private enum Fit
@@ -47,8 +53,11 @@ public static class LmmTraining
         Projector,
     }
 
-    /// <summary>Runs one fit; returns the trainer's summary as JSON, or null when it failed.</summary>
-    private static string Execute(LmmConfig config, Fit fit)
+    /// <summary>
+    /// Runs one fit against <paramref name="seed"/>'s checkpoint; returns the trainer's summary as
+    /// JSON, or null when it failed.
+    /// </summary>
+    private static string Execute(LmmConfig config, Fit fit, int seed)
     {
         if (!config.TryValidate(out var error))
         {
@@ -83,9 +92,9 @@ public static class LmmTraining
 
                 using var summary = fit switch
                 {
-                    Fit.Stepper => FitStepper(config, trainer, report),
-                    Fit.Projector => FitProjector(config, trainer, report),
-                    _ => TrainEverything(config, trainer, report)
+                    Fit.Stepper => FitStepper(config, seed, trainer, report),
+                    Fit.Projector => FitProjector(config, seed, trainer, report),
+                    _ => TrainEverything(config, seed, trainer, report)
                 };
                 Debug.Log($"[LMM] {summary}");
 
@@ -119,14 +128,14 @@ public static class LmmTraining
     /// <summary>
     /// Every network, from the database up. Must be called with the GIL held.
     /// </summary>
-    private static PyObject TrainEverything(LmmConfig config, dynamic trainer,
+    private static PyObject TrainEverything(LmmConfig config, int seed, dynamic trainer,
         Action<string, double> report)
     {
         using var args = new PyTuple(new[]
         {
             config.mmData.GetAssetPath().ToPython(),
             config.mmData.name.ToPython(),
-            config.GetCheckpointPath().ToPython(),
+            config.GetCheckpointPath(seed).ToPython(),
         });
 
         using var kwargs = new PyDict();
@@ -150,7 +159,7 @@ public static class LmmTraining
         kwargs["projector_patience"] = config.projectorPatience.ToPython();
         kwargs["projector_sigma"] = ((double)config.projectorNoise).ToPython();
         kwargs["projector_max_seconds"] = ((double)config.projectorMaxSeconds).ToPython();
-        AddSharedOptimiser(config, kwargs);
+        AddSharedOptimiser(config, seed, kwargs);
         kwargs["progress"] = report.ToPython();
 
         return trainer.InvokeMethod("train", args, kwargs);
@@ -162,7 +171,7 @@ public static class LmmTraining
     /// <remarks>
     /// Kwargs are unprefixed because <c>refit_stepper</c> forwards them to <c>fit_stepper</c>.
     /// </remarks>
-    private static PyObject FitStepper(LmmConfig config, dynamic trainer,
+    private static PyObject FitStepper(LmmConfig config, int seed, dynamic trainer,
         Action<string, double> report)
     {
         using var args = new PyTuple(new[]
@@ -178,7 +187,7 @@ public static class LmmTraining
         kwargs["iterations"] = config.stepperIterations.ToPython();
         kwargs["patience"] = config.stepperPatience.ToPython();
         kwargs["max_seconds"] = ((double)config.stepperMaxSeconds).ToPython();
-        AddSharedOptimiser(config, kwargs);
+        AddSharedOptimiser(config, seed, kwargs);
         kwargs["progress"] = report.ToPython();
 
         return trainer.InvokeMethod("refit_stepper", args, kwargs);
@@ -190,7 +199,7 @@ public static class LmmTraining
     /// <remarks>
     /// Kwargs are unprefixed because <c>refit_projector</c> forwards them to <c>fit_projector</c>.
     /// </remarks>
-    private static PyObject FitProjector(LmmConfig config, dynamic trainer,
+    private static PyObject FitProjector(LmmConfig config, int seed, dynamic trainer,
         Action<string, double> report)
     {
         using var args = new PyTuple(new[]
@@ -206,7 +215,7 @@ public static class LmmTraining
         kwargs["patience"] = config.projectorPatience.ToPython();
         kwargs["sigma"] = ((double)config.projectorNoise).ToPython();
         kwargs["max_seconds"] = ((double)config.projectorMaxSeconds).ToPython();
-        AddSharedOptimiser(config, kwargs);
+        AddSharedOptimiser(config, seed, kwargs);
         kwargs["progress"] = report.ToPython();
 
         return trainer.InvokeMethod("refit_projector", args, kwargs);
@@ -215,7 +224,7 @@ public static class LmmTraining
     /// <summary>
     /// The optimiser settings both fits share, under the names both Python entry points read.
     /// </summary>
-    private static void AddSharedOptimiser(LmmConfig config, PyDict kwargs)
+    private static void AddSharedOptimiser(LmmConfig config, int seed, PyDict kwargs)
     {
         kwargs["batch_size"] = config.batchSize.ToPython();
         kwargs["learning_rate"] = ((double)config.learningRate).ToPython();
@@ -223,7 +232,7 @@ public static class LmmTraining
         kwargs["learning_rate_decay"] = ((double)config.learningRateDecay).ToPython();
         kwargs["validation_fraction"] = ((double)config.validationFraction).ToPython();
         kwargs["validation_interval"] = config.validationInterval.ToPython();
-        kwargs["seed"] = config.seed.ToPython();
+        kwargs["seed"] = seed.ToPython();
         kwargs["device"] = config.DeviceName.ToPython();
     }
 

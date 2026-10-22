@@ -12,8 +12,9 @@
       fetch      download the raw datasets and check the Mixamo character (Tools/Data/fetch_datasets.py)
       retarget   rebuild Assets/LFS from the raw data in Blender (Tools/Retargeting/reproduce_all.py)
       databases  validate every config, then build the pose and feature databases
-      train      train PFNN, LMM and motion-field models, logging wall-clock time per run
-      benchmark  run every sweep listed in the reproduction manifest
+      train      train PFNN, LMM and motion-field models once per manifest training seed, logging
+                 wall-clock time per run
+      benchmark  run every sweep listed in the reproduction manifest, learned methods once per seed
       report     summarise the sweeps into tables
 
     Paths: see common.ps1 for MOSYNTH_UNITY_EXE and MOSYNTH_PYTHON_VENV; Blender is found by
@@ -98,7 +99,7 @@ try {
                 Write-Host "=== sweep ${name}: already done, skipping"
                 continue
             }
-            Invoke-Checked "sweep $name" { & "$PSScriptRoot\run-benchmark.ps1" -Config $benchmark -Output $sweep -UnityExe $UnityExe }
+            Invoke-Checked "sweep $name" { & "$PSScriptRoot\run-benchmark.ps1" -Config $benchmark -Output $sweep -UnityExe $UnityExe -Manifest $Manifest }
         }
     }
     if (Test-Stage "report") {

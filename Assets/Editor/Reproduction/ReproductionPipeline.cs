@@ -20,8 +20,8 @@ namespace Reproduction
 /// <summary>
 /// Validates, builds and trains every config a <see cref="ReproductionManifest"/>'s benchmarks use,
 /// one step per entry point: <c>-executeMethod Reproduction.ReproductionPipeline.Validate</c>,
-/// <c>.BuildDatabases</c> or <c>.Train</c>. The sweeps themselves run through
-/// <see cref="SynthesisBenchmarkCli.Run"/>.
+/// <c>.BuildDatabases</c> or <c>.Train</c>, the last once per <see cref="ReproductionManifest.trainingSeeds"/>
+/// entry. <c>.Benchmark</c> runs one sweep under those same seeds.
 /// </summary>
 /// <remarks>
 /// Each step is synchronous, because a batchmode Editor does not reliably pump
@@ -49,6 +49,44 @@ public static class ReproductionPipeline
 
     [MenuItem("MoSynth/Reproduction/3 Train")]
     public static void Train() => RunStep("Train", TrainAll);
+
+    /// <summary>
+    /// Runs the sweep named by <c>-benchmarkConfig</c> (output <c>-benchmarkOutput</c>), as
+    /// <see cref="SynthesisBenchmarkCli.Run()"/> does, but with the manifest's training seeds in place of
+    /// each learned method's own. Must not be invoked with <c>-quit</c>: the sweep exits the Editor.
+    /// </summary>
+    public static void Benchmark()
+    {
+        var manifestPath = SynthesisBenchmarkCli.GetArgument(ManifestArgument);
+        if (string.IsNullOrEmpty(manifestPath)) manifestPath = DefaultManifestPath;
+
+        var manifest = AssetDatabase.LoadAssetAtPath<ReproductionManifest>(manifestPath);
+        if (manifest == null)
+        {
+            SynthesisBenchmarkCli.Fail($"{LogPrefix} No ReproductionManifest at \"{manifestPath}\".");
+            return;
+        }
+
+        if (!TryValidateSeeds(manifest, out var error))
+        {
+            SynthesisBenchmarkCli.Fail($"{LogPrefix} \"{manifestPath}\": {error}");
+            return;
+        }
+
+        Debug.Log($"{LogPrefix} Benchmark with training seeds {string.Join(", ", manifest.trainingSeeds)}.");
+        SynthesisBenchmarkCli.Run(manifest.trainingSeeds);
+    }
+
+    private static bool TryValidateSeeds(ReproductionManifest manifest, out string error)
+    {
+        if (manifest.trainingSeeds == null || manifest.trainingSeeds.Count == 0)
+            error = "Lists no training seeds.";
+        else if (new HashSet<int>(manifest.trainingSeeds).Count != manifest.trainingSeeds.Count)
+            error = "Lists a training seed twice; both runs would write the same checkpoint.";
+        else
+            error = null;
+        return error == null;
+    }
 
     /// <summary>What one invocation works on, resolved from the command line.</summary>
     private sealed class Invocation
@@ -209,6 +247,7 @@ public static class ReproductionPipeline
         var manifestEntry = NewValidationEntry(invocation.Manifest);
         if (invocation.Manifest.benchmarks.Count == 0) manifestEntry.errors.Add("Lists no benchmarks.");
         if (invocation.Configs.Count == 0) manifestEntry.errors.Add("Its benchmarks use no config to build or train.");
+        if (!TryValidateSeeds(invocation.Manifest, out var seedError)) manifestEntry.errors.Add(seedError);
         CollectMissingReferences(invocation.Manifest, invocation.Manifest.name, manifestEntry.errors);
         log.entries.Add(manifestEntry);
 
@@ -422,6 +461,9 @@ public static class ReproductionPipeline
         public bool seeded;
         public int seed;
 
+        // What the run wrote: a per-seed checkpoint, or the embedding, which is not per seed.
+        public string artefact;
+
         // The Python trainer's own summary, as JSON text: its contents differ per method.
         public string summaryJson;
         public string error;
@@ -454,24 +496,40 @@ public static class ReproductionPipeline
             WriteLog(invocation, fileName, log);
         }
 
+        if (!TryValidateSeeds(invocation.Manifest, out var seedError))
+        {
+            Debug.LogError($"{LogPrefix} {seedError}");
+            return false;
+        }
+
+        // The seed passes straight through to the trainer; no config asset is rewritten per run.
         foreach (var config in invocation.Configs)
         {
-            switch (config)
+            foreach (var seed in invocation.Manifest.trainingSeeds)
             {
-                case LmmConfig lmm:
-                    Record(TrainOne(lmm, "Lmm", lmm.seed, () => LmmTraining.Run(lmm)));
-                    break;
-                case PfnnConfig pfnn:
-                    Record(TrainOne(pfnn, "Pfnn", pfnn.seed, () => PfnnTraining.Run(pfnn)));
-                    break;
-                case MotionFieldConfig motionField:
-                    // Value iteration draws no random numbers, so it takes no seed.
-                    Record(TrainOne(motionField, "MotionField", null,
-                        () => MotionFieldConfigEditor.TrainMotionField(motionField)));
-                    // The visualizer's embedding indexes the pose database, so it goes stale with it.
-                    Record(TrainOne(motionField, "MotionFieldEmbedding", motionField.umapSeed,
-                        () => MotionFieldConfigEditor.ComputeEmbedding(motionField)));
-                    break;
+                switch (config)
+                {
+                    case LmmConfig lmm:
+                        Record(TrainOne(lmm, "Lmm", seed, lmm.GetCheckpointPath(seed),
+                            () => LmmTraining.Run(lmm, seed)));
+                        break;
+                    case PfnnConfig pfnn:
+                        Record(TrainOne(pfnn, "Pfnn", seed, pfnn.GetCheckpointPath(seed),
+                            () => PfnnTraining.Run(pfnn, seed)));
+                        break;
+                    case MotionFieldConfig motionField:
+                        Record(TrainOne(motionField, "MotionField", seed, motionField.GetValueFunctionPath(seed),
+                            () => MotionFieldConfigEditor.TrainMotionField(motionField, seed)));
+                        break;
+                }
+            }
+
+            // The visualizer's embedding indexes the pose database, so it goes stale with it. It is
+            // debug-only and not a result, so it is fitted once under its own seed.
+            if (config is MotionFieldConfig embedded)
+            {
+                Record(TrainOne(embedded, "MotionFieldEmbedding", embedded.umapSeed, embedded.GetEmbeddingPath(),
+                    () => MotionFieldConfigEditor.ComputeEmbedding(embedded)));
             }
         }
 
@@ -480,7 +538,9 @@ public static class ReproductionPipeline
     }
 
     /// <param name="train">Runs the training; returns its summary as JSON, or null when it failed.</param>
-    private static TrainingRun TrainOne(ScriptableObject config, string method, int? seed, Func<string> train)
+    /// <param name="artefact">The file the run writes, recorded in the log.</param>
+    private static TrainingRun TrainOne(ScriptableObject config, string method, int? seed, string artefact,
+        Func<string> train)
     {
         var run = new TrainingRun
         {
@@ -490,9 +550,10 @@ public static class ReproductionPipeline
             startedUtc = UtcNow(),
             seeded = seed.HasValue,
             seed = seed ?? 0,
+            artefact = artefact,
         };
 
-        Debug.Log($"{LogPrefix} BEGIN train {method} {config.name}");
+        Debug.Log($"{LogPrefix} BEGIN train {method} {config.name} seed {run.seed}");
         var watch = System.Diagnostics.Stopwatch.StartNew();
         try
         {

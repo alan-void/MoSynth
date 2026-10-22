@@ -26,6 +26,7 @@ import torch
 from pfnn import dataset
 from pfnn import io as pfnn_io
 from pfnn.model import PhaseFunctionedNetwork, resolve_device
+from training.seeding import seed_everything
 from training.training_data import load_database
 
 
@@ -64,7 +65,7 @@ def train(data_dir: str,
     """
     progress = progress or _noop_progress
     started = time.time()
-    torch.manual_seed(seed)
+    seed_everything(seed)
 
     progress('Reading database', 0.0)
     training_set = load_database(data_dir, db_name, with_features=with_features)

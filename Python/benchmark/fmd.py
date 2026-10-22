@@ -36,7 +36,7 @@ Usage, from the ``Python/`` folder::
         --database ../Assets/StreamingAssets/MMDatabases/MM_YBot_Holden
 
 The sweep must have been recorded with ``recordFullPose`` on. Writes ``fmd.csv`` (per method),
-``fmd_runs.csv`` (per run) and ``fmd_encoder.pt`` into the sweep folder.
+``fmd_runs.csv`` (per run, carrying the run's training seed when the sweep has one) and ``fmd_encoder.pt`` into the sweep folder.
 """
 
 from __future__ import annotations
@@ -300,11 +300,12 @@ def main(argv=None) -> None:
                              'referenceWindows': len(reference), 'database': name})
 
     with open(os.path.join(args.sweep, 'fmd_runs.csv'), 'w', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=['method', 'path', 'windows', 'matchedFmd', 'fmd'])
+        writer = csv.DictWriter(f, fieldnames=['method', 'seed', 'path', 'windows', 'matchedFmd', 'fmd'])
         writer.writeheader()
         for method, runs in by_method.items():
             for row, latents, matches in runs:
-                writer.writerow({'method': method, 'path': row['path'], 'windows': len(latents),
+                writer.writerow({'method': method, 'seed': row.get('seed', ''), 'path': row['path'],
+                                 'windows': len(latents),
                                  'matchedFmd': matched_distance(latents, matches, reference),
                                  'fmd': frechet_distance(latents, reference)})
 

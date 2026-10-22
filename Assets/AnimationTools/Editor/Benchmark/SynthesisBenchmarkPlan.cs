@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AnimationTools.Editor
 {
@@ -22,5 +23,13 @@ public class SynthesisBenchmarkPlan
 
     /// <summary>Quit the Editor with a status code when the sweep ends. Set for headless runs.</summary>
     public bool exitEditorWhenDone;
+
+    /// <summary>
+    /// Run every method that loads a per-seed checkpoint once per entry of <see cref="seeds"/>,
+    /// whatever its own seed list says. Set by a reproduction, so its seeds are listed once.
+    /// </summary>
+    public bool overrideSeeds;
+
+    public List<int> seeds = new();
 }
 }

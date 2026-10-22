@@ -13,7 +13,7 @@ namespace Lmm
 /// <remarks>
 /// Owns no pose database: it reads a <see cref="MotionMatchingData"/>'s poses and the <em>same</em>
 /// feature vectors the classic matcher searches, which is the basis of the comparison. Its own
-/// artefact is <c>StreamingAssets/Lmm/&lt;name&gt;/&lt;name&gt;.lmm.npz</c>. See
+/// artefact is <c>StreamingAssets/Lmm/&lt;name&gt;/&lt;name&gt;.s&lt;seed&gt;.lmm.npz</c>, one per training seed. See
 /// openwiki/motion-matching/learned-motion-matching.md.
 /// </remarks>
 [CreateAssetMenu(fileName = "LmmConfig", menuName = "MoSynth/Learned Motion Matching Config")]
@@ -189,6 +189,8 @@ public class LmmConfig : ScriptableObject
     [Tooltip("Steps between held-out scores.")]
     [Min(1)] public int validationInterval = 1000;
 
+    [Tooltip("Seed of the default training run: the checkpoint the inspector trains and a stage loads " +
+             "unless a benchmark picks another seed. Every checkpoint name carries its seed.")]
     public int seed = 42;
     public ComputeDevice device = ComputeDevice.Auto;
 
@@ -205,8 +207,12 @@ public class LmmConfig : ScriptableObject
     /// <summary>Where the trained model lives. Its database stays under the source asset's folder.</summary>
     public string GetAssetPath() => PoseSetImporter.GetDatabasePath("Lmm", name);
 
-    /// <summary>The trained networks and baked latents, shipped with the player.</summary>
-    public string GetCheckpointPath() => Path.Combine(GetAssetPath(), name + ".lmm.npz");
+    /// <summary>The trained networks and baked latents for <see cref="seed"/>, shipped with the player.</summary>
+    public string GetCheckpointPath() => GetCheckpointPath(seed);
+
+    /// <summary>The checkpoint the training run with <paramref name="trainingSeed"/> writes.</summary>
+    public string GetCheckpointPath(int trainingSeed) =>
+        SeededCheckpoint.Path(GetAssetPath(), name, trainingSeed, ".lmm.npz");
 
     /// <summary><see cref="device"/> as the literal the Python side expects.</summary>
     public string DeviceName => device switch

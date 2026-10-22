@@ -13,5 +13,9 @@ namespace Reproduction
 public class ReproductionManifest : ScriptableObject
 {
     public List<SynthesisBenchmarkConfig> benchmarks = new();
+
+    [Tooltip("Every learned config is trained once per seed, and every benchmark method that loads a " +
+             "per-seed checkpoint runs once per seed, replacing the seeds the method lists itself.")]
+    public List<int> trainingSeeds = new() { 42, 43, 44 };
 }
 }

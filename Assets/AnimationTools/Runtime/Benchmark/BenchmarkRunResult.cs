@@ -12,6 +12,12 @@ public class BenchmarkRunResult
     public string method;
     public string path;
 
+    /// <summary>Whether the run loaded a chosen training seed's checkpoints; false runs used each config's own.</summary>
+    public bool seeded;
+
+    /// <summary>The training seed the run's learned stages loaded. Meaningful only when <see cref="seeded"/>.</summary>
+    public int seed;
+
     /// <summary>Sidecar-relative name of the .json manifest for this run's raw recording.</summary>
     public string recordingFile;
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -19,7 +20,13 @@ public static class SynthesisBenchmarkCli
     private const string ConfigArgument = "-benchmarkConfig";
     private const string OutputArgument = "-benchmarkOutput";
 
-    public static void Run()
+    public static void Run() => Run(null);
+
+    /// <summary>
+    /// <see cref="Run()"/>, with <paramref name="sweepSeeds"/> replacing the seed list of every method
+    /// that loads a per-seed checkpoint; null keeps each method's own.
+    /// </summary>
+    public static void Run(IReadOnlyList<int> sweepSeeds)
     {
         try
         {
@@ -48,7 +55,7 @@ public static class SynthesisBenchmarkCli
             // Only headless runs take the Editor down with them.
             var headless = Application.isBatchMode;
 
-            if (!SynthesisBenchmarkLauncher.Launch(config, outputDirectory, headless))
+            if (!SynthesisBenchmarkLauncher.Launch(config, outputDirectory, headless, sweepSeeds))
             {
                 Fail("The sweep could not be started (see the errors above).");
             }
@@ -74,7 +81,8 @@ public static class SynthesisBenchmarkCli
         return null;
     }
 
-    private static void Fail(string message)
+    /// <summary>Logs a failure and, headless, exits with 1: nothing else will set an exit code.</summary>
+    public static void Fail(string message)
     {
         Debug.LogError($"[Benchmark] {message}");
 

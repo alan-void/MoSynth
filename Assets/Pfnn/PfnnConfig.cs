@@ -88,6 +88,8 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
              "would report a validation loss that measures nothing.")]
     [Range(0f, 0.5f)] public float validationFraction = 0.1f;
 
+    [Tooltip("Seed of the default training run: the checkpoint the inspector trains and a stage loads " +
+             "unless a benchmark picks another seed. Every checkpoint name carries its seed.")]
     public int seed = 42;
     public ComputeDevice device = ComputeDevice.Auto;
 
@@ -111,8 +113,12 @@ public class PfnnConfig : ScriptableObject, IPoseSetSource
     /// <summary>The extracted pose database: one row per frame of the assigned clips.</summary>
     public string GetPoseDatabasePath() => Path.Combine(GetAssetPath(), name + ".mmpose");
 
-    /// <summary>The trained network, shipped with the player.</summary>
-    public string GetCheckpointPath() => Path.Combine(GetAssetPath(), name + ".pfnn.npz");
+    /// <summary>The trained network for <see cref="seed"/>, shipped with the player.</summary>
+    public string GetCheckpointPath() => GetCheckpointPath(seed);
+
+    /// <summary>The trained network the training run with <paramref name="trainingSeed"/> writes.</summary>
+    public string GetCheckpointPath(int trainingSeed) =>
+        SeededCheckpoint.Path(GetAssetPath(), name, trainingSeed, ".pfnn.npz");
 
     // --- Build state ------------------------------------------------------------------------
 

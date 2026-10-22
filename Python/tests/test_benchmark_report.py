@@ -58,6 +58,54 @@ class SummarizeTests(unittest.TestCase):
         self.assertEqual(summary.errors, 1)
 
 
+def seeded(method, seed, error):
+    return dict(row(method, error), seed=str(seed))
+
+
+class SeedTests(unittest.TestCase):
+    def test_paths_are_reduced_per_seed_then_seeds_are_averaged(self):
+        # Seed 1 has three paths and seed 2 one, so a plain mean over rows would give 0.4.
+        rows = [seeded('Pfnn', 1, '0.1'), seeded('Pfnn', 1, '0.1'), seeded('Pfnn', 1, '0.1'),
+                seeded('Pfnn', 2, '1.3')]
+        summary, = report.summarize(rows, 'sweep')
+        self.assertEqual(summary.seeds, 2)
+        self.assertAlmostEqual(summary.values['meanTrajectoryError'], 0.7)
+
+    def test_interval_is_t_over_per_seed_values(self):
+        rows = [seeded('Lmm', 42, '1'), seeded('Lmm', 43, '2'), seeded('Lmm', 44, '3')]
+        summary, = report.summarize(rows, 'sweep')
+        # stdev 1 over three seeds: t(0.975, 2) / sqrt(3).
+        self.assertAlmostEqual(summary.values['meanTrajectoryError'], 2.0)
+        self.assertAlmostEqual(summary.ci['meanTrajectoryError'], 4.303 / math.sqrt(3), places=6)
+
+    def test_one_seed_has_no_interval(self):
+        summary, = report.summarize([seeded('Lmm', 42, '1'), seeded('Lmm', 42, '3')], 'sweep')
+        self.assertEqual(summary.seeds, 1)
+        self.assertAlmostEqual(summary.values['meanTrajectoryError'], 2.0)
+        self.assertTrue(math.isnan(summary.ci['meanTrajectoryError']))
+
+    def test_unseeded_methods_in_a_seeded_sweep_reduce_as_before(self):
+        rows = [row('Mm', '0.2'), row('Mm', '0.4'), seeded('Pfnn', 1, '1'), seeded('Pfnn', 2, '3')]
+        mm, pfnn = report.summarize(rows, 'sweep')
+        self.assertEqual((mm.seeds, mm.ci), (0, {}))
+        self.assertAlmostEqual(mm.values['meanTrajectoryError'], 0.3)
+        self.assertEqual(pfnn.seeds, 2)
+
+    def test_rendering_adds_seeds_and_intervals_only_when_seeded(self):
+        plain = report.summarize([row('Mm', '0.5')], 'sweep')
+        self.assertNotIn('Seeds', report.render(plain, 'markdown'))
+
+        rows = [row('Mm', '0.5'), seeded('Lmm', 42, '1'), seeded('Lmm', 43, '3')]
+        summaries = report.summarize(rows, 'sweep')
+        markdown = report.render(summaries, 'markdown')
+        self.assertIn('| Seeds |', markdown)
+        self.assertIn('| sweep | Lmm | 2 | 2.000 ± 12.7 |', markdown)
+        self.assertIn('| sweep | Mm | 0 | 0.500 |', markdown)
+
+        header, *_ = report.render(summaries, 'csv').split('\n')
+        self.assertIn('Path error (m),Path error (m) ±95%', header)
+
+
 class LabelTests(unittest.TestCase):
     def test_timestamp_is_stripped(self):
         path = os.path.join('Benchmarks', 'MixamoHoldenBenchmark_20260929_081158', 'results.csv')

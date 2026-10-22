@@ -48,6 +48,7 @@ from lmm import dataset, fk
 from lmm import io as lmm_io
 from formats.feature_set_importer import read_feature_set
 from lmm.model import Compressor, Decompressor, Projector, Stepper, resolve_device
+from training.seeding import seed_everything
 from training.training_data import load_database
 
 LOSS_COLUMNS = ('local', 'character', 'local_velocity', 'character_velocity',
@@ -140,7 +141,7 @@ def train(data_dir: str,
 
     progress = progress or _noop_progress
     started = time.time()
-    torch.manual_seed(seed)
+    seed_everything(seed)
 
     progress('Reading database', 0.0)
     training_set = load_database(data_dir, db_name, with_features=True)
@@ -538,7 +539,7 @@ def fit_stepper(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     """
     progress = progress or _noop_progress
     started = time.time()
-    torch.manual_seed(seed)
+    seed_everything(seed)
 
     windows = dataset.latent_runs(latent_exists, window)
     if windows.size < 2:
@@ -843,7 +844,7 @@ def fit_projector(x: np.ndarray, latents: np.ndarray, latent_exists: np.ndarray,
     """
     progress = progress or _noop_progress
     started = time.time()
-    torch.manual_seed(seed)
+    seed_everything(seed)
 
     frames = np.flatnonzero(latent_exists).astype(np.int64)
     if frames.size < 2:
