@@ -1,0 +1,9 @@
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_BR.bvh
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_BW.bvh
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_FR.bvh
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_FW.bvh
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_ID.bvh
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_SR.bvh
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_SW.bvh
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_TR1.bvh
+External/LFS/100STYLE/bvh/BouncyLeft/BouncyLeft_TR2.bvh

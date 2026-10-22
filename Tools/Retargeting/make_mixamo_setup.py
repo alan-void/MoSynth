@@ -173,9 +173,19 @@ def import_model(path):
     The importer puts the file's centimetre units on the armature as a scale of 0.01. Exported like
     that, the scale lands on the FBX's armature node, which the Unity side rejects, so it is applied
     into the data here. The character's own take is dropped: its rest pose is re-keyed below.
+
+    The importer also sets the scene's frame rate to the file's, but the rate belongs to the
+    source: one BVH sample is one frame, and the export takes its rate from the scene. So the
+    setup's rate is put back.
     """
+    render = bpy.context.scene.render
+    rate = (render.fps, render.fps_base)
     before_objects, before_actions = set(bpy.data.objects), set(bpy.data.actions)
     bpy.ops.import_scene.fbx(filepath=path)
+    if (render.fps, render.fps_base) != rate:
+        log("the character import set the scene to {:g} fps; keeping the setup's {:g}".format(
+            render.fps / render.fps_base, rate[0] / rate[1]))
+        render.fps, render.fps_base = rate
     imported = [o for o in bpy.data.objects if o not in before_objects]
     armatures = [o for o in imported if o.type == "ARMATURE"]
     if len(armatures) != 1:
@@ -467,9 +477,10 @@ def verify(path):
         problems.append("the model carries an object scale")
     unmapped = [b for b in CORRECTED_TO_MIXAMO.values() if b not in
                 {m for _, m, _, _ in setup.bone_map}]
-    log('verified: source "{}" -> bridge "{}" -> model "{}", {} mapped bones; left at rest: {}'
-        .format(setup.source.name, setup.target.name, setup.model.name, len(setup.bone_map),
-                ", ".join(unmapped) or "none"))
+    log('verified: source "{}" -> bridge "{}" -> model "{}", {} mapped bones, {:g} fps; left at '
+        "rest: {}".format(setup.source.name, setup.target.name, setup.model.name,
+                          len(setup.bone_map), scene.render.fps / scene.render.fps_base,
+                          ", ".join(unmapped) or "none"))
     if problems:
         raise SetupError("The saved blend is not usable: " + "; ".join(problems))
 

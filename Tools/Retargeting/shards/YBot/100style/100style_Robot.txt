@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Robot/Robot_BR.bvh
+External/LFS/100STYLE/bvh/Robot/Robot_BW.bvh
+External/LFS/100STYLE/bvh/Robot/Robot_FR.bvh
+External/LFS/100STYLE/bvh/Robot/Robot_FW.bvh
+External/LFS/100STYLE/bvh/Robot/Robot_ID.bvh
+External/LFS/100STYLE/bvh/Robot/Robot_SR.bvh
+External/LFS/100STYLE/bvh/Robot/Robot_SW.bvh
+External/LFS/100STYLE/bvh/Robot/Robot_TR1.bvh

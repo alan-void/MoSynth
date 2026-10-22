@@ -1,0 +1,129 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b81a3691c81c50d41858624eac4a6299, type: 3}
+  m_Name: Elated_BW
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.AnnotatedAnimationClip
+  clip: {fileID: 8069865563472052290, guid: e7b5e70868d99474cba7d4166b974332, type: 3}
+  skeleton:
+    root: {fileID: -1050826867531605487, guid: e7b5e70868d99474cba7d4166b974332, type: 3}
+  rootMotionBone:
+    skeleton:
+      root: {fileID: -1050826867531605487, guid: e7b5e70868d99474cba7d4166b974332, type: 3}
+    bone: {fileID: -1050826867531605487, guid: e7b5e70868d99474cba7d4166b974332, type: 3}
+  startFrame: 348
+  endFrame: 1548
+  components:
+  - rid: 5523055174671401116
+  - rid: 5523055174671401117
+  references:
+    version: 2
+    RefIds:
+    - rid: 5523055174671401116
+      type: {class: AnimationTagComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        channels:
+        - tag: {fileID: 11400000, guid: 6c52ac917fc123a45a04e794286a79b2, type: 2}
+          toggles: 00000000
+        - tag: {fileID: 11400000, guid: 7a43a70d3286a6d4e8706187d2a63500, type: 2}
+          toggles: 00000000
+    - rid: 5523055174671401117
+      type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        footfalls:
+        - frame: 361
+          foot: 1
+        - frame: 391
+          foot: 0
+        - frame: 420
+          foot: 1
+        - frame: 450
+          foot: 0
+        - frame: 484
+          foot: 1
+        - frame: 514
+          foot: 0
+        - frame: 544
+          foot: 1
+        - frame: 577
+          foot: 0
+        - frame: 604
+          foot: 1
+        - frame: 636
+          foot: 0
+        - frame: 669
+          foot: 1
+        - frame: 700
+          foot: 0
+        - frame: 730
+          foot: 1
+        - frame: 762
+          foot: 0
+        - frame: 792
+          foot: 1
+        - frame: 824
+          foot: 0
+        - frame: 853
+          foot: 1
+        - frame: 883
+          foot: 0
+        - frame: 912
+          foot: 1
+        - frame: 943
+          foot: 0
+        - frame: 975
+          foot: 1
+        - frame: 1005
+          foot: 0
+        - frame: 1035
+          foot: 1
+        - frame: 1064
+          foot: 0
+        - frame: 1091
+          foot: 1
+        - frame: 1125
+          foot: 0
+        - frame: 1153
+          foot: 1
+        - frame: 1180
+          foot: 0
+        - frame: 1209
+          foot: 1
+        - frame: 1240
+          foot: 0
+        - frame: 1270
+          foot: 1
+        - frame: 1300
+          foot: 0
+        - frame: 1330
+          foot: 1
+        - frame: 1362
+          foot: 0
+        - frame: 1390
+          foot: 1
+        - frame: 1422
+          foot: 0
+        - frame: 1451
+          foot: 1
+        - frame: 1481
+          foot: 0
+        - frame: 1510
+          foot: 1
+        - frame: 1536
+          foot: 0
+        leftContactBoneName: 
+        rightContactBoneName: 
+        contactVelocityThreshold: 0.5
+        smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

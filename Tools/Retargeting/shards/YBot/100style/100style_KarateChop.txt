@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/KarateChop/KarateChop_BR.bvh
+External/LFS/100STYLE/bvh/KarateChop/KarateChop_BW.bvh
+External/LFS/100STYLE/bvh/KarateChop/KarateChop_FR.bvh
+External/LFS/100STYLE/bvh/KarateChop/KarateChop_FW.bvh
+External/LFS/100STYLE/bvh/KarateChop/KarateChop_ID.bvh
+External/LFS/100STYLE/bvh/KarateChop/KarateChop_SR.bvh
+External/LFS/100STYLE/bvh/KarateChop/KarateChop_SW.bvh
+External/LFS/100STYLE/bvh/KarateChop/KarateChop_TR1.bvh

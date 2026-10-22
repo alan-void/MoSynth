@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/FlickLegs/FlickLegs_BR.bvh
+External/LFS/100STYLE/bvh/FlickLegs/FlickLegs_BW.bvh
+External/LFS/100STYLE/bvh/FlickLegs/FlickLegs_FR.bvh
+External/LFS/100STYLE/bvh/FlickLegs/FlickLegs_FW.bvh
+External/LFS/100STYLE/bvh/FlickLegs/FlickLegs_ID.bvh
+External/LFS/100STYLE/bvh/FlickLegs/FlickLegs_SR.bvh
+External/LFS/100STYLE/bvh/FlickLegs/FlickLegs_SW.bvh
+External/LFS/100STYLE/bvh/FlickLegs/FlickLegs_TR1.bvh

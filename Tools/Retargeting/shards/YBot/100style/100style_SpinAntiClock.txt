@@ -1,0 +1,10 @@
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_BR.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_BW.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_FR.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_FW.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_ID.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_SR.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_SW.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_TR1.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_TR2.bvh
+External/LFS/100STYLE/bvh/SpinAntiClock/SpinAntiClock_TR3.bvh

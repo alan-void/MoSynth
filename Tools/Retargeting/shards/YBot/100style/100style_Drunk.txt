@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Drunk/Drunk_BR.bvh
+External/LFS/100STYLE/bvh/Drunk/Drunk_BW.bvh
+External/LFS/100STYLE/bvh/Drunk/Drunk_FR.bvh
+External/LFS/100STYLE/bvh/Drunk/Drunk_FW.bvh
+External/LFS/100STYLE/bvh/Drunk/Drunk_ID.bvh
+External/LFS/100STYLE/bvh/Drunk/Drunk_SR.bvh
+External/LFS/100STYLE/bvh/Drunk/Drunk_SW.bvh
+External/LFS/100STYLE/bvh/Drunk/Drunk_TR1.bvh

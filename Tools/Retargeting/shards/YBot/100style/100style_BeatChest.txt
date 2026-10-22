@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/BeatChest/BeatChest_BR.bvh
+External/LFS/100STYLE/bvh/BeatChest/BeatChest_BW.bvh
+External/LFS/100STYLE/bvh/BeatChest/BeatChest_FR.bvh
+External/LFS/100STYLE/bvh/BeatChest/BeatChest_FW.bvh
+External/LFS/100STYLE/bvh/BeatChest/BeatChest_ID.bvh
+External/LFS/100STYLE/bvh/BeatChest/BeatChest_SR.bvh
+External/LFS/100STYLE/bvh/BeatChest/BeatChest_SW.bvh
+External/LFS/100STYLE/bvh/BeatChest/BeatChest_TR1.bvh

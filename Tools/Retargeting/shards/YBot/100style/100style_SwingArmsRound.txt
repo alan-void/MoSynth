@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/SwingArmsRound/SwingArmsRound_BR.bvh
+External/LFS/100STYLE/bvh/SwingArmsRound/SwingArmsRound_BW.bvh
+External/LFS/100STYLE/bvh/SwingArmsRound/SwingArmsRound_FR.bvh
+External/LFS/100STYLE/bvh/SwingArmsRound/SwingArmsRound_FW.bvh
+External/LFS/100STYLE/bvh/SwingArmsRound/SwingArmsRound_ID.bvh
+External/LFS/100STYLE/bvh/SwingArmsRound/SwingArmsRound_SR.bvh
+External/LFS/100STYLE/bvh/SwingArmsRound/SwingArmsRound_SW.bvh
+External/LFS/100STYLE/bvh/SwingArmsRound/SwingArmsRound_TR1.bvh

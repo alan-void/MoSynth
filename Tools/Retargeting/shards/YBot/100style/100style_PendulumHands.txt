@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/PendulumHands/PendulumHands_BR.bvh
+External/LFS/100STYLE/bvh/PendulumHands/PendulumHands_BW.bvh
+External/LFS/100STYLE/bvh/PendulumHands/PendulumHands_FR.bvh
+External/LFS/100STYLE/bvh/PendulumHands/PendulumHands_FW.bvh
+External/LFS/100STYLE/bvh/PendulumHands/PendulumHands_ID.bvh
+External/LFS/100STYLE/bvh/PendulumHands/PendulumHands_SR.bvh
+External/LFS/100STYLE/bvh/PendulumHands/PendulumHands_SW.bvh
+External/LFS/100STYLE/bvh/PendulumHands/PendulumHands_TR1.bvh

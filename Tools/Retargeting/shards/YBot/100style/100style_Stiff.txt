@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Stiff/Stiff_BR.bvh
+External/LFS/100STYLE/bvh/Stiff/Stiff_BW.bvh
+External/LFS/100STYLE/bvh/Stiff/Stiff_FR.bvh
+External/LFS/100STYLE/bvh/Stiff/Stiff_FW.bvh
+External/LFS/100STYLE/bvh/Stiff/Stiff_ID.bvh
+External/LFS/100STYLE/bvh/Stiff/Stiff_SR.bvh
+External/LFS/100STYLE/bvh/Stiff/Stiff_SW.bvh
+External/LFS/100STYLE/bvh/Stiff/Stiff_TR1.bvh

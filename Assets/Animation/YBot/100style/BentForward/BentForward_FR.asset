@@ -1,0 +1,161 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b81a3691c81c50d41858624eac4a6299, type: 3}
+  m_Name: BentForward_FR
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.AnnotatedAnimationClip
+  clip: {fileID: 2128683050890133733, guid: 147c15fe378817a4f9d2ac7476569865, type: 3}
+  skeleton:
+    root: {fileID: -1050826867531605487, guid: 147c15fe378817a4f9d2ac7476569865, type: 3}
+  rootMotionBone:
+    skeleton:
+      root: {fileID: -1050826867531605487, guid: 147c15fe378817a4f9d2ac7476569865, type: 3}
+    bone: {fileID: -1050826867531605487, guid: 147c15fe378817a4f9d2ac7476569865, type: 3}
+  startFrame: 373
+  endFrame: 1573
+  components:
+  - rid: 5523055174671401010
+  - rid: 5523055174671401011
+  references:
+    version: 2
+    RefIds:
+    - rid: 5523055174671401010
+      type: {class: AnimationTagComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        channels:
+        - tag: {fileID: 11400000, guid: 634d300c1c7eb504dbf504eba0c80cc1, type: 2}
+          toggles: 00000000
+        - tag: {fileID: 11400000, guid: bf6f8dda6ecb7ad4682763b29f242555, type: 2}
+          toggles: 00000000
+    - rid: 5523055174671401011
+      type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        footfalls:
+        - frame: 385
+          foot: 1
+        - frame: 406
+          foot: 0
+        - frame: 424
+          foot: 1
+        - frame: 447
+          foot: 0
+        - frame: 469
+          foot: 1
+        - frame: 493
+          foot: 0
+        - frame: 512
+          foot: 1
+        - frame: 532
+          foot: 0
+        - frame: 552
+          foot: 1
+        - frame: 570
+          foot: 0
+        - frame: 581
+          foot: 1
+        - frame: 618
+          foot: 0
+        - frame: 639
+          foot: 1
+        - frame: 659
+          foot: 0
+        - frame: 681
+          foot: 1
+        - frame: 703
+          foot: 0
+        - frame: 723
+          foot: 1
+        - frame: 740
+          foot: 0
+        - frame: 762
+          foot: 1
+        - frame: 786
+          foot: 0
+        - frame: 807
+          foot: 1
+        - frame: 828
+          foot: 0
+        - frame: 852
+          foot: 1
+        - frame: 873
+          foot: 0
+        - frame: 893
+          foot: 1
+        - frame: 912
+          foot: 0
+        - frame: 931
+          foot: 1
+        - frame: 948
+          foot: 0
+        - frame: 975
+          foot: 1
+        - frame: 1001
+          foot: 0
+        - frame: 1023
+          foot: 1
+        - frame: 1044
+          foot: 0
+        - frame: 1067
+          foot: 1
+        - frame: 1088
+          foot: 0
+        - frame: 1109
+          foot: 1
+        - frame: 1130
+          foot: 0
+        - frame: 1150
+          foot: 1
+        - frame: 1174
+          foot: 0
+        - frame: 1198
+          foot: 1
+        - frame: 1223
+          foot: 0
+        - frame: 1232
+          foot: 0
+        - frame: 1242
+          foot: 1
+        - frame: 1264
+          foot: 0
+        - frame: 1286
+          foot: 1
+        - frame: 1309
+          foot: 0
+        - frame: 1332
+          foot: 1
+        - frame: 1354
+          foot: 0
+        - frame: 1378
+          foot: 1
+        - frame: 1400
+          foot: 0
+        - frame: 1424
+          foot: 1
+        - frame: 1446
+          foot: 0
+        - frame: 1468
+          foot: 1
+        - frame: 1490
+          foot: 0
+        - frame: 1511
+          foot: 1
+        - frame: 1535
+          foot: 0
+        - frame: 1557
+          foot: 1
+        leftContactBoneName: 
+        rightContactBoneName: 
+        contactVelocityThreshold: 0.5
+        smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

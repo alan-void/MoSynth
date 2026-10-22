@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Punch/Punch_BR.bvh
+External/LFS/100STYLE/bvh/Punch/Punch_BW.bvh
+External/LFS/100STYLE/bvh/Punch/Punch_FR.bvh
+External/LFS/100STYLE/bvh/Punch/Punch_FW.bvh
+External/LFS/100STYLE/bvh/Punch/Punch_ID.bvh
+External/LFS/100STYLE/bvh/Punch/Punch_SR.bvh
+External/LFS/100STYLE/bvh/Punch/Punch_SW.bvh
+External/LFS/100STYLE/bvh/Punch/Punch_TR1.bvh

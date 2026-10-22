@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Monk/Monk_BR.bvh
+External/LFS/100STYLE/bvh/Monk/Monk_BW.bvh
+External/LFS/100STYLE/bvh/Monk/Monk_FR.bvh
+External/LFS/100STYLE/bvh/Monk/Monk_FW.bvh
+External/LFS/100STYLE/bvh/Monk/Monk_ID.bvh
+External/LFS/100STYLE/bvh/Monk/Monk_SR.bvh
+External/LFS/100STYLE/bvh/Monk/Monk_SW.bvh
+External/LFS/100STYLE/bvh/Monk/Monk_TR1.bvh

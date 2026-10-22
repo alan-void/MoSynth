@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using AnimationTools;
 using AnimationTools.Editor;
 using UnityEditor;
@@ -18,10 +16,9 @@ public class PfnnConfigEditor : UnityEditor.Editor
 {
     private bool _showBones = true;
 
-    // Cached because OnInspectorGUI repaints constantly; dropped on enable and on regeneration.
-    private Skeleton _skeleton;
-    private int[] _jointDepths;
-    private bool _skeletonRead;
+    // Caches the skeleton, because OnInspectorGUI repaints constantly; dropped on enable and on
+    // regeneration.
+    private readonly BoneSelectionTreeGUI _boneTree = new("predicted", "Predict All");
 
     private SerializedProperty _contactBonesProperty;
 
@@ -31,12 +28,7 @@ public class PfnnConfigEditor : UnityEditor.Editor
         _contactBonesProperty = serializedObject.FindProperty("contactBones");
     }
 
-    private void InvalidateSkeleton()
-    {
-        _skeleton = null;
-        _jointDepths = null;
-        _skeletonRead = false;
-    }
+    private void InvalidateSkeleton() => _boneTree.Invalidate();
 
     public override void OnInspectorGUI()
     {
@@ -130,7 +122,7 @@ public class PfnnConfigEditor : UnityEditor.Editor
         _showBones = EditorGUILayout.Foldout(_showBones, "Predicted Bones", true);
         if (!_showBones) return;
 
-        if (!TryReadSkeleton(config))
+        if (!_boneTree.TryRead(config.TryGetDatabaseSkeleton))
         {
             EditorGUILayout.HelpBox(
                 "Assign this config's skeleton first — it is the bone list the network is defined " +
@@ -147,133 +139,8 @@ public class PfnnConfigEditor : UnityEditor.Editor
             "Changing the selection changes the model's shape, so it needs a retrain.",
             MessageType.None);
 
-        DrawBoneRows(config);
-        DrawBoneFooter(config);
-    }
-
-    private void DrawBoneRows(PfnnConfig config)
-    {
-        for (var i = 0; i < _skeleton.BoneCount; i++)
-        {
-            var boneName = _skeleton.GetBone(i).Name;
-            var predicted = config.IsPredicted(boneName);
-
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Space(_jointDepths[i] * 12f);
-
-                var toggled = EditorGUILayout.ToggleLeft(
-                    new GUIContent(boneName, $"joint {i}"), predicted,
-                    predicted ? EditorStyles.label : EditorStyles.miniLabel);
-
-                if (toggled == predicted) continue;
-
-                Undo.RecordObject(config, "Edit predicted bones");
-                SetSubtreePredicted(config, i, toggled);
-                // The extraction does not change, only the model's shape.
-                MarkStale(config, database: false);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Include or exclude a bone with its whole subtree, keeping the selection closed under parent.
-    /// Including one also includes its ancestors, which it needs as a frame.
-    /// </summary>
-    private void SetSubtreePredicted(PfnnConfig config, int boneIndex, bool predicted)
-    {
-        foreach (var bone in PfnnBoneSelection.Subtree(_skeleton, boneIndex))
-        {
-            config.SetPredicted(_skeleton.GetBone(bone).Name, predicted);
-        }
-
-        if (!predicted) return;
-
-        for (var parent = _skeleton.GetParentIndex(boneIndex);
-             parent >= 0;
-             parent = _skeleton.GetParentIndex(parent))
-        {
-            config.SetPredicted(_skeleton.GetBone(parent).Name, true);
-        }
-    }
-
-    private void DrawBoneFooter(PfnnConfig config)
-    {
-        var predicted = 0;
-        for (var i = 0; i < _skeleton.BoneCount; i++)
-        {
-            if (config.IsPredicted(_skeleton.GetBone(i).Name)) predicted++;
-        }
-
-        EditorGUILayout.LabelField(
-            $"{predicted} of {_skeleton.BoneCount} bones predicted.", EditorStyles.miniLabel);
-
-        using (new EditorGUILayout.HorizontalScope())
-        {
-            if (GUILayout.Button("Exclude Fingers And Leaves"))
-            {
-                Undo.RecordObject(config, "Exclude fingers and leaves");
-                PfnnDefaultBoneSelection.Apply(config, _skeleton);
-                MarkStale(config, database: false);
-            }
-
-            using (new EditorGUI.DisabledScope(!config.HasExcludedBones))
-            {
-                if (GUILayout.Button("Predict All"))
-                {
-                    Undo.RecordObject(config, "Predict all bones");
-                    config.excludedBones.Clear();
-                    MarkStale(config, database: false);
-                }
-            }
-
-            if (GUILayout.Button("Reload Skeleton")) InvalidateSkeleton();
-        }
-
-        // Python refuses names the skeleton does not have, so surface them before training does.
-        var orphans = config.excludedBones
-            .Where(boneName => !_skeleton.TryFindByName(boneName, out _))
-            .ToList();
-        if (orphans.Count == 0) return;
-
-        EditorGUILayout.HelpBox(
-            $"{orphans.Count} excluded bone(s) are not in this skeleton, which training refuses: " +
-            string.Join(", ", orphans), MessageType.Warning);
-
-        if (GUILayout.Button("Remove Stale Entries"))
-        {
-            Undo.RecordObject(config, "Remove stale excluded bones");
-            config.excludedBones.RemoveAll(boneName => !_skeleton.TryFindByName(boneName, out _));
-            MarkStale(config, database: false);
-        }
-    }
-
-    /// <summary>Read and cache the config's skeleton, with each joint's depth for indentation.</summary>
-    private bool TryReadSkeleton(PfnnConfig config)
-    {
-        if (_skeletonRead) return _skeleton != null;
-        _skeletonRead = true;
-
-        if (!config.TryGetDatabaseSkeleton(out var skeleton) || skeleton.BoneCount == 0) return false;
-
-        _skeleton = skeleton;
-        _jointDepths = new int[skeleton.BoneCount];
-
-        for (var i = 0; i < skeleton.BoneCount; i++)
-        {
-            var depth = 0;
-            var parent = skeleton.GetParentIndex(i);
-            // Bounded by the joint count so a cyclic parent index cannot hang the inspector.
-            while (parent >= 0 && parent < skeleton.BoneCount && depth < skeleton.BoneCount)
-            {
-                depth++;
-                parent = skeleton.GetParentIndex(parent);
-            }
-
-            _jointDepths[i] = depth;
-        }
-
-        return true;
+        // The extraction does not change, only the model's shape.
+        if (_boneTree.Draw(config, config.excludedBones)) MarkStale(config, database: false);
     }
 
     // --- Training ---------------------------------------------------------------------------------

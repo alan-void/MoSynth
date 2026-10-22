@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Morris/Morris_BR.bvh
+External/LFS/100STYLE/bvh/Morris/Morris_BW.bvh
+External/LFS/100STYLE/bvh/Morris/Morris_FR.bvh
+External/LFS/100STYLE/bvh/Morris/Morris_FW.bvh
+External/LFS/100STYLE/bvh/Morris/Morris_ID.bvh
+External/LFS/100STYLE/bvh/Morris/Morris_SR.bvh
+External/LFS/100STYLE/bvh/Morris/Morris_SW.bvh
+External/LFS/100STYLE/bvh/Morris/Morris_TR1.bvh

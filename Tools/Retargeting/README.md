@@ -79,6 +79,10 @@ That gives 9 shards — eight of `edin_locomotion` and one of `edin_test` — pe
 frames, half a LAFAN shard. `--prefix ""` is deliberate: the converter already names its files
 `edin_<split>_<index>`, so the default `bandai` prefix would only repeat itself.
 
+`--bvh-dir` is searched recursively, and a clip's shard is still read from its file name alone.
+100STYLE keeps one folder per style, `<Style>/<Style>_<Gait>.bvh`, and under `action` the first
+token is the style, so each style becomes one shard — see *100STYLE* below for the command.
+
 - **Resumable**: a shard whose FBX already exists is skipped, so a run interrupted at shard 12
   costs only the shards it had not reached. `--force` rebuilds regardless.
 - **Resume is the wrong tool for replacing output that is already there.** The predicate is only
@@ -178,6 +182,55 @@ has to do:
 - Expect worse foot contact than a rotational source. Edinburgh's own released root trajectory
   already slides a planted toe 5.5 cm/s, and retargeting onto an actor of different proportions
   roughly doubles it: 10.8 cm/s against LAFAN's 1.9 cm/s measured the same way.
+
+## 100STYLE
+
+100STYLE (`External/LFS/100STYLE/bvh/<Style>/<Style>_<Gait>.bvh`, 810 clips over 100 styles) is real
+joint rotations on one actor, and all 810 files declare the same skeleton, so one setup serves the
+whole dataset. `make_hundredstyle_setup.py` composes it from one BVH and the corrected rig, and
+verifies the saved blend with `batch_retarget`'s own resolver:
+
+```
+blender --background --python Tools/Retargeting/make_hundredstyle_setup.py -- \
+    --out Assets/LFS/Retargeting/hundredstyle_bvh_to_lafan_corrected.blend
+```
+
+What differs from the other setups:
+
+- **60 fps.** The setup's scene runs at 60, and that rate is the only thing that turns BVH samples
+  into seconds, so every exported take is 60 fps too. `make_mixamo_setup.py` keeps the input setup's
+  rate across the character import, which would otherwise reset it to the character file's 30.
+- **A plain rotation copy**, as for Edinburgh: the BVH rest is already a clean T-pose, so the cleaned
+  skeleton is a duplicate wired through with `COPY_ROTATION`, with no IK and no spine damping. Its
+  limbs sit within 6 degrees of the corrected rig's rest, the most at the feet.
+- **The source rest is turned a half turn about Z.** The raw import faces `+Y` and the corrected rig
+  faces `-Y`, and a retarget copies the root's position but only the rotation delta from rest, so
+  without the turn every clip travels against its facing. The script checks this on motion: over
+  `Neutral_FW` 0.92 of the distance travelled is along the facing.
+- **The mapping is not an identity.** `Chest`, `Chest2` and `Chest4` drive `Spine`, `Spine1` and
+  `Spine2`; each `Collar` drives the `Shoulder`, and `Shoulder`/`Elbow`/`Wrist` and
+  `Hip`/`Knee`/`Ankle`/`Toe` drive the arm and leg chains. **`Chest3` is unmapped on purpose**: the
+  source bends its back in four segments where the target has three, and `Spine2` copies `Chest4`'s
+  world rotation, which already carries `Chest3`'s bend. Retargeted onto Y Bot, the hips-to-neck lean
+  tracks the actor's to within its 4-degree rest difference on every clip, so no bend is lost and
+  none is added.
+- **No `--keep-capture-position`.** The `Hips` offset is zero in every file, so the flag would change
+  nothing.
+
+The Y Bot setup is built from it as in *Retargeting onto a Mixamo character*, parking
+`Neutral_FW`, `Neutral_FR` and `Neutral_BW` for the height. The actor's leg is the character's to
+0.01 percent, so the scale is 0.9999 and `RT_ground` drops by 7 mm. Then one shard per style:
+
+```
+python Tools/Retargeting/run_batch_all.py \
+    --setup   Assets/LFS/Retargeting/ybot/hundredstyle_bvh_to_ybot.blend \
+    --bvh-dir External/LFS/100STYLE/bvh \
+    --out-dir Assets/LFS/Animation/YBot/100style \
+    --prefix 100style --shard-by action --script direct --simplify 1 --workers 4
+```
+
+The largest shard, `StartStop`, is 89,236 frames, half again a LAFAN shard. `Frame_Cuts.csv` beside
+the BVH is not applied: every take is the whole file.
 
 ## Authoring a rest pose with live feedback
 
@@ -293,6 +346,8 @@ setups are in `Assets/LFS/Retargeting/ybot/`.
   so the model carries `fbx_add_leaf_bones = False` and the exporter adds no leaves. The FBX has
   the same 65 bones as the character, and the file's centimetre import scale is applied into the
   data so the armature node exports at unit scale.
+- **The frame rate is the setup's, not the character's.** Importing the character's FBX sets the
+  scene to the file's rate, so the script puts the input setup's back; every take exports at it.
 
 A batched Y Bot take matches its live rig to 0.000 degrees. The Hips of the existing LAFAN
 `Lafan_corrected` export are 1.1 degrees off their own rig on average, and 6.7 at worst. That export
@@ -309,6 +364,7 @@ corrected rig's motion-free `T-Pose` track, with no mesh and no capture data:
 | `lafan_bvh_to_lafan_corrected.blend` | `Assets/LFS/Retargeting/lafan_bvh_to_lafan_corrected.blend` | `ybot/lafan_bvh_to_ybot.blend` |
 | `bandai_namco_to_lafan_corrected.blend` | `bandai-namco/bandai_namco_retarget_to_corrected_lafan_claude.blend` | `ybot/bandai_namco_to_ybot.blend` |
 | `edinburgh_rest_authoring.blend` | `edinburgh_rest_authoring.blend` (the hand-authored rest) | `ybot/edinburgh_bvh_to_ybot.blend` |
+| `hundredstyle_bvh_to_lafan_corrected.blend` | `hundredstyle_bvh_to_lafan_corrected.blend` | `ybot/hundredstyle_bvh_to_ybot.blend` |
 
 `strip_setup.py` makes them, and refuses to write over its input:
 

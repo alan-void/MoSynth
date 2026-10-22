@@ -8,7 +8,7 @@ run stopped.
     python Tools/Data/fetch_datasets.py                 # fetch whatever is missing, then verify
     python Tools/Data/fetch_datasets.py --check         # report only, touch nothing
     python Tools/Data/fetch_datasets.py --only lafan1,bandai
-    python Tools/Data/fetch_datasets.py --record [--lafan-zip PATH]
+    python Tools/Data/fetch_datasets.py --record [--lafan-zip PATH] [--hundredstyle-zip PATH]
 
 `--record` re-hashes the local copies into `checksums.json`; it is how the file was made, and is
 only for whoever owns the reference copies.
@@ -50,6 +50,11 @@ EDINBURGH_URL = "https://bitbucket.org/jonathan-schwarz/edinburgh_locomotion_moc
 EDINBURGH_COMMIT = "38fb87f0874bdfcdfd2cd37b27e4aceabef1109d"
 EDINBURGH_CHECKOUT = REPO_ROOT / "External" / "LFS" / "edinburgh_locomotion_mocap_dataset"
 EDINBURGH_DATA = "data"
+
+HUNDREDSTYLE_URL = "https://zenodo.org/api/records/8127870/files/100STYLE.zip/content"
+# Outside Assets/ so BvhImporter never imports its thousand BVH; the retarget reads them from here.
+HUNDREDSTYLE_DIR = REPO_ROOT / "External" / "LFS" / "100STYLE"
+HUNDREDSTYLE_TABLES = ["Dataset_List.csv", "Frame_Cuts.csv"]
 
 CHARACTERS_DIR = REPO_ROOT / "Assets" / "LFS" / "Characters"
 CHARACTER_FILES = ["Y Bot.fbx"]
@@ -330,6 +335,71 @@ class Edinburgh(GitDataset):
     pattern = "*.npz"
 
 
+class HundredStyle(Dataset):
+    name = "hundredstyle"
+    title = "100STYLE (Mason, Starke and Komura, I3D 2022)"
+    licence = "CC BY 4.0 (Zenodo record 8127870)"
+
+    def check(self, sums):
+        expected = sums[self.name]["files"]
+        missing, mismatched = verify_files(HUNDREDSTYLE_DIR, expected)
+        say(f"  {relative(HUNDREDSTYLE_DIR)}: {describe(missing, mismatched, len(expected))}")
+        return not missing and not mismatched
+
+    def fetch(self, sums):
+        if self.check(sums):
+            return
+        entry = sums[self.name]
+        archive = DOWNLOAD_DIR / "100STYLE.zip"
+        if not archive.exists():
+            download(HUNDREDSTYLE_URL, archive)
+        digest = sha256_file(archive)
+        if digest != entry["zip_sha256"]:
+            say(f"  WARNING: 100STYLE.zip sha256 is {digest}, recorded {entry['zip_sha256']}")
+
+        # The archive nests everything under 100STYLE/ and carries macOS resource forks. Styles
+        # go under bvh/, the two tables beside it.
+        with zipfile.ZipFile(archive) as bundle:
+            for info in bundle.infolist():
+                parts = Path(info.filename).parts
+                if info.is_dir() or parts[0] != "100STYLE" or len(parts) < 2:
+                    continue
+                inner = Path(*parts[1:])
+                if inner.as_posix() in HUNDREDSTYLE_TABLES:
+                    path = HUNDREDSTYLE_DIR / inner
+                elif inner.suffix == ".bvh":
+                    path = HUNDREDSTYLE_DIR / "bvh" / inner
+                else:
+                    continue
+                wanted = entry["files"].get(path.relative_to(HUNDREDSTYLE_DIR).as_posix())
+                if wanted and path.is_file() and sha256_file(path) == wanted:
+                    continue
+                path.parent.mkdir(parents=True, exist_ok=True)
+                staging = path.with_name(path.name + ".part")
+                with bundle.open(info) as source, open(staging, "wb") as target:
+                    shutil.copyfileobj(source, target, CHUNK)
+                staging.replace(path)
+
+        if not self.check(sums):
+            archive.unlink()
+            raise DatasetError("extracted 100STYLE files do not match checksums.json; the archive "
+                               "was deleted so the next run downloads it again")
+        archive.unlink()
+
+    def record(self, sums, args):
+        entry = {"zip_sha256": sums.get(self.name, {}).get("zip_sha256", "")}
+        if args.hundredstyle_zip:
+            entry["zip_sha256"] = sha256_file(Path(args.hundredstyle_zip))
+        if not entry["zip_sha256"]:
+            say("  WARNING: no zip hash recorded; pass --hundredstyle-zip")
+        files = hash_tree(HUNDREDSTYLE_DIR, "bvh/*/*.bvh")
+        for table in HUNDREDSTYLE_TABLES:
+            if (HUNDREDSTYLE_DIR / table).is_file():
+                files[table] = sha256_file(HUNDREDSTYLE_DIR / table)
+        entry["files"] = files
+        return entry
+
+
 class Mixamo(Dataset):
     name = "mixamo"
     title = "Mixamo Y Bot character (manual download)"
@@ -361,7 +431,7 @@ class Mixamo(Dataset):
                           if (CHARACTERS_DIR / name).is_file()}}
 
 
-DATASETS = [Lafan1(), Bandai(), Edinburgh(), Mixamo()]
+DATASETS = [Lafan1(), Bandai(), Edinburgh(), HundredStyle(), Mixamo()]
 
 
 def load_checksums():
@@ -388,6 +458,8 @@ def main():
                              + ",".join(dataset.name for dataset in DATASETS))
     parser.add_argument("--lafan-zip", default="",
                         help="with --record, a lafan1.zip whose sha256 to record")
+    parser.add_argument("--hundredstyle-zip", default="",
+                        help="with --record, a 100STYLE.zip whose sha256 to record")
     args = parser.parse_args()
 
     selected = DATASETS

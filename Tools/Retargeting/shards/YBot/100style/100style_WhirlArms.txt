@@ -1,0 +1,9 @@
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_BR.bvh
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_BW.bvh
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_FR.bvh
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_FW.bvh
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_ID.bvh
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_SR.bvh
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_SW.bvh
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_TR1.bvh
+External/LFS/100STYLE/bvh/WhirlArms/WhirlArms_TR2.bvh

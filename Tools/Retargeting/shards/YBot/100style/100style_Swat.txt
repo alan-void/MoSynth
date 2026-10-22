@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Swat/Swat_BR.bvh
+External/LFS/100STYLE/bvh/Swat/Swat_BW.bvh
+External/LFS/100STYLE/bvh/Swat/Swat_FR.bvh
+External/LFS/100STYLE/bvh/Swat/Swat_FW.bvh
+External/LFS/100STYLE/bvh/Swat/Swat_ID.bvh
+External/LFS/100STYLE/bvh/Swat/Swat_SR.bvh
+External/LFS/100STYLE/bvh/Swat/Swat_SW.bvh
+External/LFS/100STYLE/bvh/Swat/Swat_TR1.bvh

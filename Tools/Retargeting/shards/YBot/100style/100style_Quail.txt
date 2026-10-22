@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Quail/Quail_BR.bvh
+External/LFS/100STYLE/bvh/Quail/Quail_BW.bvh
+External/LFS/100STYLE/bvh/Quail/Quail_FR.bvh
+External/LFS/100STYLE/bvh/Quail/Quail_FW.bvh
+External/LFS/100STYLE/bvh/Quail/Quail_ID.bvh
+External/LFS/100STYLE/bvh/Quail/Quail_SR.bvh
+External/LFS/100STYLE/bvh/Quail/Quail_SW.bvh
+External/LFS/100STYLE/bvh/Quail/Quail_TR1.bvh

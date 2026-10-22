@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/ShieldedRight/ShieldedRight_BR.bvh
+External/LFS/100STYLE/bvh/ShieldedRight/ShieldedRight_BW.bvh
+External/LFS/100STYLE/bvh/ShieldedRight/ShieldedRight_FR.bvh
+External/LFS/100STYLE/bvh/ShieldedRight/ShieldedRight_FW.bvh
+External/LFS/100STYLE/bvh/ShieldedRight/ShieldedRight_ID.bvh
+External/LFS/100STYLE/bvh/ShieldedRight/ShieldedRight_SR.bvh
+External/LFS/100STYLE/bvh/ShieldedRight/ShieldedRight_SW.bvh
+External/LFS/100STYLE/bvh/ShieldedRight/ShieldedRight_TR1.bvh

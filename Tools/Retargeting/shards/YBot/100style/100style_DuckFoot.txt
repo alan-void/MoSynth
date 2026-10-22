@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/DuckFoot/DuckFoot_BR.bvh
+External/LFS/100STYLE/bvh/DuckFoot/DuckFoot_BW.bvh
+External/LFS/100STYLE/bvh/DuckFoot/DuckFoot_FR.bvh
+External/LFS/100STYLE/bvh/DuckFoot/DuckFoot_FW.bvh
+External/LFS/100STYLE/bvh/DuckFoot/DuckFoot_ID.bvh
+External/LFS/100STYLE/bvh/DuckFoot/DuckFoot_SR.bvh
+External/LFS/100STYLE/bvh/DuckFoot/DuckFoot_SW.bvh
+External/LFS/100STYLE/bvh/DuckFoot/DuckFoot_TR1.bvh

@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/DragLeftLeg/DragLeftLeg_BR.bvh
+External/LFS/100STYLE/bvh/DragLeftLeg/DragLeftLeg_BW.bvh
+External/LFS/100STYLE/bvh/DragLeftLeg/DragLeftLeg_FR.bvh
+External/LFS/100STYLE/bvh/DragLeftLeg/DragLeftLeg_FW.bvh
+External/LFS/100STYLE/bvh/DragLeftLeg/DragLeftLeg_ID.bvh
+External/LFS/100STYLE/bvh/DragLeftLeg/DragLeftLeg_SR.bvh
+External/LFS/100STYLE/bvh/DragLeftLeg/DragLeftLeg_SW.bvh
+External/LFS/100STYLE/bvh/DragLeftLeg/DragLeftLeg_TR1.bvh

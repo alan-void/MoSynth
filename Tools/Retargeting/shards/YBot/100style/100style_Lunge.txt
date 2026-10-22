@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Lunge/Lunge_BR.bvh
+External/LFS/100STYLE/bvh/Lunge/Lunge_BW.bvh
+External/LFS/100STYLE/bvh/Lunge/Lunge_FR.bvh
+External/LFS/100STYLE/bvh/Lunge/Lunge_FW.bvh
+External/LFS/100STYLE/bvh/Lunge/Lunge_ID.bvh
+External/LFS/100STYLE/bvh/Lunge/Lunge_SR.bvh
+External/LFS/100STYLE/bvh/Lunge/Lunge_SW.bvh
+External/LFS/100STYLE/bvh/Lunge/Lunge_TR1.bvh

@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Heavyset/Heavyset_BR.bvh
+External/LFS/100STYLE/bvh/Heavyset/Heavyset_BW.bvh
+External/LFS/100STYLE/bvh/Heavyset/Heavyset_FR.bvh
+External/LFS/100STYLE/bvh/Heavyset/Heavyset_FW.bvh
+External/LFS/100STYLE/bvh/Heavyset/Heavyset_ID.bvh
+External/LFS/100STYLE/bvh/Heavyset/Heavyset_SR.bvh
+External/LFS/100STYLE/bvh/Heavyset/Heavyset_SW.bvh
+External/LFS/100STYLE/bvh/Heavyset/Heavyset_TR1.bvh

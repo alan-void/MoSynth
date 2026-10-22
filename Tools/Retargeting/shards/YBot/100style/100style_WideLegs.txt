@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/WideLegs/WideLegs_BR.bvh
+External/LFS/100STYLE/bvh/WideLegs/WideLegs_BW.bvh
+External/LFS/100STYLE/bvh/WideLegs/WideLegs_FR.bvh
+External/LFS/100STYLE/bvh/WideLegs/WideLegs_FW.bvh
+External/LFS/100STYLE/bvh/WideLegs/WideLegs_ID.bvh
+External/LFS/100STYLE/bvh/WideLegs/WideLegs_SR.bvh
+External/LFS/100STYLE/bvh/WideLegs/WideLegs_SW.bvh
+External/LFS/100STYLE/bvh/WideLegs/WideLegs_TR1.bvh

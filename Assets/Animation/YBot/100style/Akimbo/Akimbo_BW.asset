@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b81a3691c81c50d41858624eac4a6299, type: 3}
+  m_Name: Akimbo_BW
+  m_EditorClassIdentifier: AnimationTools::AnimationTools.AnnotatedAnimationClip
+  clip: {fileID: 5312999722125629713, guid: 5b8c73080b4ef524182384f423f6459a, type: 3}
+  skeleton:
+    root: {fileID: -1050826867531605487, guid: 5b8c73080b4ef524182384f423f6459a, type: 3}
+  rootMotionBone:
+    skeleton:
+      root: {fileID: -1050826867531605487, guid: 5b8c73080b4ef524182384f423f6459a, type: 3}
+    bone: {fileID: -1050826867531605487, guid: 5b8c73080b4ef524182384f423f6459a, type: 3}
+  startFrame: 388
+  endFrame: 1588
+  components:
+  - rid: 5523055174671400962
+  - rid: 5523055174671400963
+  references:
+    version: 2
+    RefIds:
+    - rid: 5523055174671400962
+      type: {class: AnimationTagComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        channels:
+        - tag: {fileID: 11400000, guid: 3970d326dc21f61428fc0f7f07115098, type: 2}
+          toggles: 00000000
+        - tag: {fileID: 11400000, guid: 7a43a70d3286a6d4e8706187d2a63500, type: 2}
+          toggles: 00000000
+    - rid: 5523055174671400963
+      type: {class: GaitPhaseComponent, ns: AnimationTools, asm: AnimationTools}
+      data:
+        isEnabled: 1
+        footfalls:
+        - frame: 413
+          foot: 1
+        - frame: 453
+          foot: 0
+        - frame: 490
+          foot: 1
+        - frame: 531
+          foot: 0
+        - frame: 561
+          foot: 1
+        - frame: 603
+          foot: 0
+        - frame: 642
+          foot: 1
+        - frame: 679
+          foot: 0
+        - frame: 717
+          foot: 1
+        - frame: 759
+          foot: 0
+        - frame: 799
+          foot: 1
+        - frame: 840
+          foot: 0
+        - frame: 877
+          foot: 1
+        - frame: 917
+          foot: 0
+        - frame: 940
+          foot: 1
+        - frame: 993
+          foot: 0
+        - frame: 1032
+          foot: 1
+        - frame: 1071
+          foot: 0
+        - frame: 1108
+          foot: 1
+        - frame: 1147
+          foot: 0
+        - frame: 1179
+          foot: 1
+        - frame: 1222
+          foot: 0
+        - frame: 1263
+          foot: 1
+        - frame: 1302
+          foot: 0
+        - frame: 1341
+          foot: 1
+        - frame: 1378
+          foot: 0
+        - frame: 1405
+          foot: 1
+        - frame: 1452
+          foot: 0
+        - frame: 1491
+          foot: 1
+        - frame: 1531
+          foot: 0
+        - frame: 1569
+          foot: 1
+        leftContactBoneName: 
+        rightContactBoneName: 
+        contactVelocityThreshold: 0.5
+        smoothingRadius: 6
+        standingSpeed: 0.1
+        standingPeriod: 1

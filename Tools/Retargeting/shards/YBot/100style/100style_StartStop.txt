@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/StartStop/StartStop_BR.bvh
+External/LFS/100STYLE/bvh/StartStop/StartStop_BW.bvh
+External/LFS/100STYLE/bvh/StartStop/StartStop_FR.bvh
+External/LFS/100STYLE/bvh/StartStop/StartStop_FW.bvh
+External/LFS/100STYLE/bvh/StartStop/StartStop_ID.bvh
+External/LFS/100STYLE/bvh/StartStop/StartStop_SR.bvh
+External/LFS/100STYLE/bvh/StartStop/StartStop_SW.bvh
+External/LFS/100STYLE/bvh/StartStop/StartStop_TR1.bvh

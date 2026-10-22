@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/LeanLeft/LeanLeft_BR.bvh
+External/LFS/100STYLE/bvh/LeanLeft/LeanLeft_BW.bvh
+External/LFS/100STYLE/bvh/LeanLeft/LeanLeft_FR.bvh
+External/LFS/100STYLE/bvh/LeanLeft/LeanLeft_FW.bvh
+External/LFS/100STYLE/bvh/LeanLeft/LeanLeft_ID.bvh
+External/LFS/100STYLE/bvh/LeanLeft/LeanLeft_SR.bvh
+External/LFS/100STYLE/bvh/LeanLeft/LeanLeft_SW.bvh
+External/LFS/100STYLE/bvh/LeanLeft/LeanLeft_TR1.bvh

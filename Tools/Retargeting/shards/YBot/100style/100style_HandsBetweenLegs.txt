@@ -1,0 +1,9 @@
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_BR.bvh
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_BW.bvh
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_FR.bvh
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_FW.bvh
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_ID.bvh
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_SR.bvh
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_SW.bvh
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_TR1.bvh
+External/LFS/100STYLE/bvh/HandsBetweenLegs/HandsBetweenLegs_TR2.bvh

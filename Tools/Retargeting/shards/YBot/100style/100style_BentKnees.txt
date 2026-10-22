@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/BentKnees/BentKnees_BR.bvh
+External/LFS/100STYLE/bvh/BentKnees/BentKnees_BW.bvh
+External/LFS/100STYLE/bvh/BentKnees/BentKnees_FR.bvh
+External/LFS/100STYLE/bvh/BentKnees/BentKnees_FW.bvh
+External/LFS/100STYLE/bvh/BentKnees/BentKnees_ID.bvh
+External/LFS/100STYLE/bvh/BentKnees/BentKnees_SR.bvh
+External/LFS/100STYLE/bvh/BentKnees/BentKnees_SW.bvh
+External/LFS/100STYLE/bvh/BentKnees/BentKnees_TR1.bvh

@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Swimming/Swimming_BR.bvh
+External/LFS/100STYLE/bvh/Swimming/Swimming_BW.bvh
+External/LFS/100STYLE/bvh/Swimming/Swimming_FR.bvh
+External/LFS/100STYLE/bvh/Swimming/Swimming_FW.bvh
+External/LFS/100STYLE/bvh/Swimming/Swimming_ID.bvh
+External/LFS/100STYLE/bvh/Swimming/Swimming_SR.bvh
+External/LFS/100STYLE/bvh/Swimming/Swimming_SW.bvh
+External/LFS/100STYLE/bvh/Swimming/Swimming_TR1.bvh

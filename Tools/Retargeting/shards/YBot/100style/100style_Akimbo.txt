@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Akimbo/Akimbo_BR.bvh
+External/LFS/100STYLE/bvh/Akimbo/Akimbo_BW.bvh
+External/LFS/100STYLE/bvh/Akimbo/Akimbo_FR.bvh
+External/LFS/100STYLE/bvh/Akimbo/Akimbo_FW.bvh
+External/LFS/100STYLE/bvh/Akimbo/Akimbo_ID.bvh
+External/LFS/100STYLE/bvh/Akimbo/Akimbo_SR.bvh
+External/LFS/100STYLE/bvh/Akimbo/Akimbo_SW.bvh
+External/LFS/100STYLE/bvh/Akimbo/Akimbo_TR1.bvh

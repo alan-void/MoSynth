@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/SlideFeet/SlideFeet_BR.bvh
+External/LFS/100STYLE/bvh/SlideFeet/SlideFeet_BW.bvh
+External/LFS/100STYLE/bvh/SlideFeet/SlideFeet_FR.bvh
+External/LFS/100STYLE/bvh/SlideFeet/SlideFeet_FW.bvh
+External/LFS/100STYLE/bvh/SlideFeet/SlideFeet_ID.bvh
+External/LFS/100STYLE/bvh/SlideFeet/SlideFeet_SR.bvh
+External/LFS/100STYLE/bvh/SlideFeet/SlideFeet_SW.bvh
+External/LFS/100STYLE/bvh/SlideFeet/SlideFeet_TR1.bvh

@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/TogetherStep/TogetherStep_BR.bvh
+External/LFS/100STYLE/bvh/TogetherStep/TogetherStep_BW.bvh
+External/LFS/100STYLE/bvh/TogetherStep/TogetherStep_FR.bvh
+External/LFS/100STYLE/bvh/TogetherStep/TogetherStep_FW.bvh
+External/LFS/100STYLE/bvh/TogetherStep/TogetherStep_ID.bvh
+External/LFS/100STYLE/bvh/TogetherStep/TogetherStep_SR.bvh
+External/LFS/100STYLE/bvh/TogetherStep/TogetherStep_SW.bvh
+External/LFS/100STYLE/bvh/TogetherStep/TogetherStep_TR1.bvh

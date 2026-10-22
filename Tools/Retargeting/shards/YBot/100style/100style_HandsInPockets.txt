@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/HandsInPockets/HandsInPockets_BR.bvh
+External/LFS/100STYLE/bvh/HandsInPockets/HandsInPockets_BW.bvh
+External/LFS/100STYLE/bvh/HandsInPockets/HandsInPockets_FR.bvh
+External/LFS/100STYLE/bvh/HandsInPockets/HandsInPockets_FW.bvh
+External/LFS/100STYLE/bvh/HandsInPockets/HandsInPockets_ID.bvh
+External/LFS/100STYLE/bvh/HandsInPockets/HandsInPockets_SR.bvh
+External/LFS/100STYLE/bvh/HandsInPockets/HandsInPockets_SW.bvh
+External/LFS/100STYLE/bvh/HandsInPockets/HandsInPockets_TR1.bvh

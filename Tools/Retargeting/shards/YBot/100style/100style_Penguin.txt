@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Penguin/Penguin_BR.bvh
+External/LFS/100STYLE/bvh/Penguin/Penguin_BW.bvh
+External/LFS/100STYLE/bvh/Penguin/Penguin_FR.bvh
+External/LFS/100STYLE/bvh/Penguin/Penguin_FW.bvh
+External/LFS/100STYLE/bvh/Penguin/Penguin_ID.bvh
+External/LFS/100STYLE/bvh/Penguin/Penguin_SR.bvh
+External/LFS/100STYLE/bvh/Penguin/Penguin_SW.bvh
+External/LFS/100STYLE/bvh/Penguin/Penguin_TR1.bvh

@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Chicken/Chicken_BR.bvh
+External/LFS/100STYLE/bvh/Chicken/Chicken_BW.bvh
+External/LFS/100STYLE/bvh/Chicken/Chicken_FR.bvh
+External/LFS/100STYLE/bvh/Chicken/Chicken_FW.bvh
+External/LFS/100STYLE/bvh/Chicken/Chicken_ID.bvh
+External/LFS/100STYLE/bvh/Chicken/Chicken_SR.bvh
+External/LFS/100STYLE/bvh/Chicken/Chicken_SW.bvh
+External/LFS/100STYLE/bvh/Chicken/Chicken_TR1.bvh

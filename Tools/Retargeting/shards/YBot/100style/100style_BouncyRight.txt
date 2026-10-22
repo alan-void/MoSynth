@@ -1,0 +1,9 @@
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_BR.bvh
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_BW.bvh
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_FR.bvh
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_FW.bvh
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_ID.bvh
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_SR.bvh
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_SW.bvh
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_TR1.bvh
+External/LFS/100STYLE/bvh/BouncyRight/BouncyRight_TR2.bvh

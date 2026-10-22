@@ -136,20 +136,26 @@ def split_evenly(items, maximum):
 
 
 def build_shards(bvh_dir, prefix, max_per_file, only, limit, scheme):
-    """Groups the folder's clips by motion label into the shards a run is made of."""
-    names = sorted(n for n in os.listdir(bvh_dir) if n.lower().endswith(".bvh"))
-    if not names:
+    """Groups the folder's clips by motion label into the shards a run is made of.
+
+    Subfolders are searched too, since 100STYLE keeps one folder per style; a shard is still
+    decided by the file name alone.
+    """
+    paths = sorted(os.path.join(folder, name) for folder, _, names in os.walk(bvh_dir)
+                   for name in names if name.lower().endswith(".bvh"))
+    if not paths:
         sys.exit("No .bvh files in " + bvh_dir)
 
     groups = {}
-    for name in names:
+    for path in paths:
+        name = os.path.basename(path)
         namespace, motion = parse_clip_name(name, scheme)
         if motion is None:
             say("  ignoring unparseable name: " + name)
             continue
         if only and motion not in only:
             continue
-        groups.setdefault((namespace, motion), []).append(name)
+        groups.setdefault((namespace, motion), []).append(path)
 
     if not groups:
         sys.exit("No clips left after --only " + ",".join(sorted(only)))
@@ -163,8 +169,7 @@ def build_shards(bvh_dir, prefix, max_per_file, only, limit, scheme):
             stem = "_".join(token for token in (prefix, namespace, motion) if token)
             if len(parts) > 1:
                 stem += "_part{:02d}".format(index)
-            shards.append({"name": stem,
-                           "clips": [os.path.join(bvh_dir, c) for c in part]})
+            shards.append({"name": stem, "clips": part})
     return shards
 
 
@@ -257,7 +262,9 @@ def run_shard(shard, options):
 def main():
     parser = argparse.ArgumentParser(prog="run_batch_all", description=__doc__)
     parser.add_argument("--setup", required=True, help="the retarget setup .blend")
-    parser.add_argument("--bvh-dir", help="folder of source BVH files, split into shards here")
+    parser.add_argument("--bvh-dir",
+                        help="folder of source BVH files, searched recursively and split into "
+                             "shards here")
     parser.add_argument("--shard-list-dir",
                         help="replay a previous run's split instead of computing one: a folder of "
                              "<shard>.txt files, each listing repo-relative BVH paths in take "

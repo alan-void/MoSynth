@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/SwingShoulders/SwingShoulders_BR.bvh
+External/LFS/100STYLE/bvh/SwingShoulders/SwingShoulders_BW.bvh
+External/LFS/100STYLE/bvh/SwingShoulders/SwingShoulders_FR.bvh
+External/LFS/100STYLE/bvh/SwingShoulders/SwingShoulders_FW.bvh
+External/LFS/100STYLE/bvh/SwingShoulders/SwingShoulders_ID.bvh
+External/LFS/100STYLE/bvh/SwingShoulders/SwingShoulders_SR.bvh
+External/LFS/100STYLE/bvh/SwingShoulders/SwingShoulders_SW.bvh
+External/LFS/100STYLE/bvh/SwingShoulders/SwingShoulders_TR1.bvh

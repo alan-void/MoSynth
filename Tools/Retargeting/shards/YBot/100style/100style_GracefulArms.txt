@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/GracefulArms/GracefulArms_BR.bvh
+External/LFS/100STYLE/bvh/GracefulArms/GracefulArms_BW.bvh
+External/LFS/100STYLE/bvh/GracefulArms/GracefulArms_FR.bvh
+External/LFS/100STYLE/bvh/GracefulArms/GracefulArms_FW.bvh
+External/LFS/100STYLE/bvh/GracefulArms/GracefulArms_ID.bvh
+External/LFS/100STYLE/bvh/GracefulArms/GracefulArms_SR.bvh
+External/LFS/100STYLE/bvh/GracefulArms/GracefulArms_SW.bvh
+External/LFS/100STYLE/bvh/GracefulArms/GracefulArms_TR1.bvh

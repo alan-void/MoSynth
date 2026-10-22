@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Crouched/Crouched_BR.bvh
+External/LFS/100STYLE/bvh/Crouched/Crouched_BW.bvh
+External/LFS/100STYLE/bvh/Crouched/Crouched_FR.bvh
+External/LFS/100STYLE/bvh/Crouched/Crouched_FW.bvh
+External/LFS/100STYLE/bvh/Crouched/Crouched_ID.bvh
+External/LFS/100STYLE/bvh/Crouched/Crouched_SR.bvh
+External/LFS/100STYLE/bvh/Crouched/Crouched_SW.bvh
+External/LFS/100STYLE/bvh/Crouched/Crouched_TR1.bvh

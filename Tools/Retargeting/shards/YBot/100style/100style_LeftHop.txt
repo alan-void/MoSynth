@@ -1,0 +1,9 @@
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_BR.bvh
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_BW.bvh
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_FR.bvh
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_FW.bvh
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_ID.bvh
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_SR.bvh
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_SW.bvh
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_TR1.bvh
+External/LFS/100STYLE/bvh/LeftHop/LeftHop_TR2.bvh

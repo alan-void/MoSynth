@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/TwoFootJump/TwoFootJump_BR.bvh
+External/LFS/100STYLE/bvh/TwoFootJump/TwoFootJump_BW.bvh
+External/LFS/100STYLE/bvh/TwoFootJump/TwoFootJump_FR.bvh
+External/LFS/100STYLE/bvh/TwoFootJump/TwoFootJump_FW.bvh
+External/LFS/100STYLE/bvh/TwoFootJump/TwoFootJump_ID.bvh
+External/LFS/100STYLE/bvh/TwoFootJump/TwoFootJump_SR.bvh
+External/LFS/100STYLE/bvh/TwoFootJump/TwoFootJump_SW.bvh
+External/LFS/100STYLE/bvh/TwoFootJump/TwoFootJump_TR1.bvh

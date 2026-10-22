@@ -39,6 +39,7 @@ BANDAI_BVH = ("External/LFS/Bandai-Namco-Research-Motiondataset/dataset/"
               "Bandai-Namco-Research-Motiondataset-2/data/")
 EDINBURGH_BVH = "Assets/LFS/Animation/Edinburgh/bvh"
 EDINBURGH_NPZ = "External/LFS/edinburgh_locomotion_mocap_dataset/data/"
+HUNDREDSTYLE_BVH = "External/LFS/100STYLE/bvh/"
 MIXAMO_CHARACTER = "Assets/LFS/Characters/Y Bot.fbx"
 
 # Every setup blend a recorded run names, and how to get it without the private Assets/LFS tree.
@@ -71,6 +72,17 @@ SETUP_RECIPES = {
                   for i in ("0000", "0300", "0700", "1100", "1500")]
                  + [EDINBURGH_BVH + "/edin_test_00.bvh"],
         "keep_capture_position": False,
+    },
+    "Assets/LFS/Retargeting/ybot/hundredstyle_bvh_to_ybot.blend": {
+        "kind": "mixamo",
+        "from": "Tools/Retargeting/setups/hundredstyle_bvh_to_lafan_corrected.blend",
+        "clips": [HUNDREDSTYLE_BVH + "Neutral/Neutral_{}.bvh".format(gait)
+                  for gait in ("FW", "FR", "BW")],
+        "keep_capture_position": False,
+    },
+    "Assets/LFS/Retargeting/hundredstyle_bvh_to_lafan_corrected.blend": {
+        "kind": "published",
+        "from": "Tools/Retargeting/setups/hundredstyle_bvh_to_lafan_corrected.blend",
     },
     "Assets/LFS/Retargeting/lafan_bvh_to_lafan_corrected.blend": {
         "kind": "published",

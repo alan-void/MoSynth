@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Sweep/Sweep_BR.bvh
+External/LFS/100STYLE/bvh/Sweep/Sweep_BW.bvh
+External/LFS/100STYLE/bvh/Sweep/Sweep_FR.bvh
+External/LFS/100STYLE/bvh/Sweep/Sweep_FW.bvh
+External/LFS/100STYLE/bvh/Sweep/Sweep_ID.bvh
+External/LFS/100STYLE/bvh/Sweep/Sweep_SR.bvh
+External/LFS/100STYLE/bvh/Sweep/Sweep_SW.bvh
+External/LFS/100STYLE/bvh/Sweep/Sweep_TR1.bvh

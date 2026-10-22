@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/OnPhoneRight/OnPhoneRight_BR.bvh
+External/LFS/100STYLE/bvh/OnPhoneRight/OnPhoneRight_BW.bvh
+External/LFS/100STYLE/bvh/OnPhoneRight/OnPhoneRight_FR.bvh
+External/LFS/100STYLE/bvh/OnPhoneRight/OnPhoneRight_FW.bvh
+External/LFS/100STYLE/bvh/OnPhoneRight/OnPhoneRight_ID.bvh
+External/LFS/100STYLE/bvh/OnPhoneRight/OnPhoneRight_SR.bvh
+External/LFS/100STYLE/bvh/OnPhoneRight/OnPhoneRight_SW.bvh
+External/LFS/100STYLE/bvh/OnPhoneRight/OnPhoneRight_TR1.bvh

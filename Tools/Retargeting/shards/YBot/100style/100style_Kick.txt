@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Kick/Kick_BR.bvh
+External/LFS/100STYLE/bvh/Kick/Kick_BW.bvh
+External/LFS/100STYLE/bvh/Kick/Kick_FR.bvh
+External/LFS/100STYLE/bvh/Kick/Kick_FW.bvh
+External/LFS/100STYLE/bvh/Kick/Kick_ID.bvh
+External/LFS/100STYLE/bvh/Kick/Kick_SR.bvh
+External/LFS/100STYLE/bvh/Kick/Kick_SW.bvh
+External/LFS/100STYLE/bvh/Kick/Kick_TR1.bvh

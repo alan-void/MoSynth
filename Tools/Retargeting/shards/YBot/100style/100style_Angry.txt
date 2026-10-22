@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Angry/Angry_BR.bvh
+External/LFS/100STYLE/bvh/Angry/Angry_BW.bvh
+External/LFS/100STYLE/bvh/Angry/Angry_FR.bvh
+External/LFS/100STYLE/bvh/Angry/Angry_FW.bvh
+External/LFS/100STYLE/bvh/Angry/Angry_ID.bvh
+External/LFS/100STYLE/bvh/Angry/Angry_SR.bvh
+External/LFS/100STYLE/bvh/Angry/Angry_SW.bvh
+External/LFS/100STYLE/bvh/Angry/Angry_TR1.bvh

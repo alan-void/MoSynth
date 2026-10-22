@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/BigSteps/BigSteps_BR.bvh
+External/LFS/100STYLE/bvh/BigSteps/BigSteps_BW.bvh
+External/LFS/100STYLE/bvh/BigSteps/BigSteps_FR.bvh
+External/LFS/100STYLE/bvh/BigSteps/BigSteps_FW.bvh
+External/LFS/100STYLE/bvh/BigSteps/BigSteps_ID.bvh
+External/LFS/100STYLE/bvh/BigSteps/BigSteps_SR.bvh
+External/LFS/100STYLE/bvh/BigSteps/BigSteps_SW.bvh
+External/LFS/100STYLE/bvh/BigSteps/BigSteps_TR1.bvh

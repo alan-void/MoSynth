@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/RaisedLeftArm/RaisedLeftArm_BR.bvh
+External/LFS/100STYLE/bvh/RaisedLeftArm/RaisedLeftArm_BW.bvh
+External/LFS/100STYLE/bvh/RaisedLeftArm/RaisedLeftArm_FR.bvh
+External/LFS/100STYLE/bvh/RaisedLeftArm/RaisedLeftArm_FW.bvh
+External/LFS/100STYLE/bvh/RaisedLeftArm/RaisedLeftArm_ID.bvh
+External/LFS/100STYLE/bvh/RaisedLeftArm/RaisedLeftArm_SR.bvh
+External/LFS/100STYLE/bvh/RaisedLeftArm/RaisedLeftArm_SW.bvh
+External/LFS/100STYLE/bvh/RaisedLeftArm/RaisedLeftArm_TR1.bvh

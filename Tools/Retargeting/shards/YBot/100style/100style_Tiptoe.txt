@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Tiptoe/Tiptoe_BR.bvh
+External/LFS/100STYLE/bvh/Tiptoe/Tiptoe_BW.bvh
+External/LFS/100STYLE/bvh/Tiptoe/Tiptoe_FR.bvh
+External/LFS/100STYLE/bvh/Tiptoe/Tiptoe_FW.bvh
+External/LFS/100STYLE/bvh/Tiptoe/Tiptoe_ID.bvh
+External/LFS/100STYLE/bvh/Tiptoe/Tiptoe_SR.bvh
+External/LFS/100STYLE/bvh/Tiptoe/Tiptoe_SW.bvh
+External/LFS/100STYLE/bvh/Tiptoe/Tiptoe_TR1.bvh

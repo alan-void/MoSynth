@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/HighKnees/HighKnees_BR.bvh
+External/LFS/100STYLE/bvh/HighKnees/HighKnees_BW.bvh
+External/LFS/100STYLE/bvh/HighKnees/HighKnees_FR.bvh
+External/LFS/100STYLE/bvh/HighKnees/HighKnees_FW.bvh
+External/LFS/100STYLE/bvh/HighKnees/HighKnees_ID.bvh
+External/LFS/100STYLE/bvh/HighKnees/HighKnees_SR.bvh
+External/LFS/100STYLE/bvh/HighKnees/HighKnees_SW.bvh
+External/LFS/100STYLE/bvh/HighKnees/HighKnees_TR1.bvh

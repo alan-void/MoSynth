@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/ArmsBySide/ArmsBySide_BR.bvh
+External/LFS/100STYLE/bvh/ArmsBySide/ArmsBySide_BW.bvh
+External/LFS/100STYLE/bvh/ArmsBySide/ArmsBySide_FR.bvh
+External/LFS/100STYLE/bvh/ArmsBySide/ArmsBySide_FW.bvh
+External/LFS/100STYLE/bvh/ArmsBySide/ArmsBySide_ID.bvh
+External/LFS/100STYLE/bvh/ArmsBySide/ArmsBySide_SR.bvh
+External/LFS/100STYLE/bvh/ArmsBySide/ArmsBySide_SW.bvh
+External/LFS/100STYLE/bvh/ArmsBySide/ArmsBySide_TR1.bvh

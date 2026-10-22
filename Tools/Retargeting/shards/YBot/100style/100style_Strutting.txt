@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Strutting/Strutting_BR.bvh
+External/LFS/100STYLE/bvh/Strutting/Strutting_BW.bvh
+External/LFS/100STYLE/bvh/Strutting/Strutting_FR.bvh
+External/LFS/100STYLE/bvh/Strutting/Strutting_FW.bvh
+External/LFS/100STYLE/bvh/Strutting/Strutting_ID.bvh
+External/LFS/100STYLE/bvh/Strutting/Strutting_SR.bvh
+External/LFS/100STYLE/bvh/Strutting/Strutting_SW.bvh
+External/LFS/100STYLE/bvh/Strutting/Strutting_TR1.bvh

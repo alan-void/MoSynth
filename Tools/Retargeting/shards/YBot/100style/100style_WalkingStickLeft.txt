@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/WalkingStickLeft/WalkingStickLeft_BR.bvh
+External/LFS/100STYLE/bvh/WalkingStickLeft/WalkingStickLeft_BW.bvh
+External/LFS/100STYLE/bvh/WalkingStickLeft/WalkingStickLeft_FR.bvh
+External/LFS/100STYLE/bvh/WalkingStickLeft/WalkingStickLeft_FW.bvh
+External/LFS/100STYLE/bvh/WalkingStickLeft/WalkingStickLeft_ID.bvh
+External/LFS/100STYLE/bvh/WalkingStickLeft/WalkingStickLeft_SR.bvh
+External/LFS/100STYLE/bvh/WalkingStickLeft/WalkingStickLeft_SW.bvh
+External/LFS/100STYLE/bvh/WalkingStickLeft/WalkingStickLeft_TR1.bvh

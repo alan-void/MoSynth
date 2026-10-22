@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Balance/Balance_BR.bvh
+External/LFS/100STYLE/bvh/Balance/Balance_BW.bvh
+External/LFS/100STYLE/bvh/Balance/Balance_FR.bvh
+External/LFS/100STYLE/bvh/Balance/Balance_FW.bvh
+External/LFS/100STYLE/bvh/Balance/Balance_ID.bvh
+External/LFS/100STYLE/bvh/Balance/Balance_SR.bvh
+External/LFS/100STYLE/bvh/Balance/Balance_SW.bvh
+External/LFS/100STYLE/bvh/Balance/Balance_TR1.bvh

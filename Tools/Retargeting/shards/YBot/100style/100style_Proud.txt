@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Proud/Proud_BR.bvh
+External/LFS/100STYLE/bvh/Proud/Proud_BW.bvh
+External/LFS/100STYLE/bvh/Proud/Proud_FR.bvh
+External/LFS/100STYLE/bvh/Proud/Proud_FW.bvh
+External/LFS/100STYLE/bvh/Proud/Proud_ID.bvh
+External/LFS/100STYLE/bvh/Proud/Proud_SR.bvh
+External/LFS/100STYLE/bvh/Proud/Proud_SW.bvh
+External/LFS/100STYLE/bvh/Proud/Proud_TR1.bvh

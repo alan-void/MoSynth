@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/Zombie/Zombie_BR.bvh
+External/LFS/100STYLE/bvh/Zombie/Zombie_BW.bvh
+External/LFS/100STYLE/bvh/Zombie/Zombie_FR.bvh
+External/LFS/100STYLE/bvh/Zombie/Zombie_FW.bvh
+External/LFS/100STYLE/bvh/Zombie/Zombie_ID.bvh
+External/LFS/100STYLE/bvh/Zombie/Zombie_SR.bvh
+External/LFS/100STYLE/bvh/Zombie/Zombie_SW.bvh
+External/LFS/100STYLE/bvh/Zombie/Zombie_TR1.bvh

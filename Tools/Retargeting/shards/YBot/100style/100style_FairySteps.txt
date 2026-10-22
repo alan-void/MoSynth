@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/FairySteps/FairySteps_BR.bvh
+External/LFS/100STYLE/bvh/FairySteps/FairySteps_BW.bvh
+External/LFS/100STYLE/bvh/FairySteps/FairySteps_FR.bvh
+External/LFS/100STYLE/bvh/FairySteps/FairySteps_FW.bvh
+External/LFS/100STYLE/bvh/FairySteps/FairySteps_ID.bvh
+External/LFS/100STYLE/bvh/FairySteps/FairySteps_SR.bvh
+External/LFS/100STYLE/bvh/FairySteps/FairySteps_SW.bvh
+External/LFS/100STYLE/bvh/FairySteps/FairySteps_TR1.bvh

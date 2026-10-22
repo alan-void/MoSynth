@@ -1,0 +1,8 @@
+External/LFS/100STYLE/bvh/OnToesCrouched/OnToesCrouched_BR.bvh
+External/LFS/100STYLE/bvh/OnToesCrouched/OnToesCrouched_BW.bvh
+External/LFS/100STYLE/bvh/OnToesCrouched/OnToesCrouched_FR.bvh
+External/LFS/100STYLE/bvh/OnToesCrouched/OnToesCrouched_FW.bvh
+External/LFS/100STYLE/bvh/OnToesCrouched/OnToesCrouched_ID.bvh
+External/LFS/100STYLE/bvh/OnToesCrouched/OnToesCrouched_SR.bvh
+External/LFS/100STYLE/bvh/OnToesCrouched/OnToesCrouched_SW.bvh
+External/LFS/100STYLE/bvh/OnToesCrouched/OnToesCrouched_TR1.bvh

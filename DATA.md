@@ -26,6 +26,7 @@ Everything rebuilt lands in two gitignored folders: `External/LFS/` holds the ra
 | LAFAN1 (Ubisoft La Forge) | `LafanHolden` clips (Holden benchmark), LAFAN shards | `lafan1.zip` by sha256 | CC BY-NC-ND 4.0 |
 | Bandai-Namco Research Motion Dataset, dataset-2 | `BandaiWalk*` clips (PFNN BandaiWalk config) | git commit `74ead3ba` | CC BY-NC 4.0 |
 | Edinburgh Locomotion MOCAP Database | `Edinburg` / `EdinburghLoco` clips | git commit `38fb87f0` | none stated by the authors |
+| 100STYLE | style transfer training (`StyleTransferConfig`) | `100STYLE.zip` by sha256 | CC BY 4.0 |
 | Mixamo Y Bot (Adobe) | target character for every paper result | manual download, sha256 checked | Mixamo terms; no redistribution |
 
 ### LAFAN1
@@ -91,6 +92,28 @@ Everything rebuilt lands in two gitignored folders: `External/LFS/` holds the ra
   booktitle = {Proceedings of the British Machine Vision Conference ({BMVC})},
   title     = {A Recurrent Variational Autoencoder for Human Motion Synthesis},
   year      = {2017}
+}
+```
+
+### 100STYLE
+
+- Source: Zenodo record 8127870, <https://zenodo.org/records/8127870>. The script downloads
+  `100STYLE.zip`, the raw BVH (1.47 GB, md5 `3cf627852fd8192024c04a8d0ef49583`). The processed
+  `100Style-Labelled-Data.zip` (14.8 GB) is not used.
+- 100 styles, each performed by one actor over the gaits `BR BW FR FW ID SR SW` and transitions
+  `TR1`–`TR3`: 810 BVH at 60 fps, in centimetres, on a 23-joint skeleton. Extracted to
+  `External/LFS/100STYLE/bvh/<Style>/<Style>_<Gait>.bvh`, outside `Assets/` so `BvhImporter`
+  does not import them. `Dataset_List.csv` (style descriptions) and `Frame_Cuts.csv` (usable frame
+  range per take) sit beside `bvh/`.
+- Licence: CC BY 4.0, as stated on the Zenodo record.
+- Cite:
+
+```bibtex
+@inproceedings{mason2022real,
+  author    = {Ian Mason and Sebastian Starke and Taku Komura},
+  title     = {Real-Time Style Modelling of Human Locomotion via Feature-Wise Transformations and Local Motion Phases},
+  booktitle = {Proceedings of the ACM on Computer Graphics and Interactive Techniques (I3D)},
+  volume    = {5}, number = {1}, year = {2022}
 }
 ```
 
