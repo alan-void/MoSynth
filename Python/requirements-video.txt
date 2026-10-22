@@ -1,0 +1,5 @@
+# Only for composing benchmark videos side by side (python -m benchmark.compose_videos).
+# imageio-ffmpeg ships its own ffmpeg binary, so nothing needs to be on PATH.
+-r requirements.txt
+imageio-ffmpeg==0.6.0
+pillow==12.2.0

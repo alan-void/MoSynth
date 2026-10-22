@@ -53,7 +53,8 @@ public enum LmmMode
 /// <para>See openwiki/motion-matching/learned-motion-matching.md.</para>
 /// </remarks>
 [Serializable]
-public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, IContactBoneSource
+public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, IContactBoneSource,
+    ISeededStage, ISynthesisInputSource
 {
     [SerializeField]
     [Tooltip("The trained config. Its checkpoint decides which bones this stage writes.")]
@@ -68,6 +69,15 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, 
     [Tooltip("Re-read the Python modules on Init, so edits apply without restarting the editor. " +
              "Turn off for builds.")]
     public bool reloadPythonModules = true;
+
+    /// <inheritdoc />
+    public int? CheckpointSeed { get; set; }
+
+    /// <inheritdoc />
+    public bool LoadsCheckpoint => true;
+
+    /// <summary>The checkpoint Init loads: <see cref="CheckpointSeed"/>'s, else the config's own seed's.</summary>
+    private string CheckpointPath => config.GetCheckpointPath(CheckpointSeed ?? config.seed);
 
     /// <summary>
     /// How the database is searched; the same strategy type <see cref="MotionMatchingStage"/> uses,
@@ -181,6 +191,11 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, 
     /// </summary>
     private float[] _query;
 
+    private MatchingInputRecorder _inputRecorder;
+
+    /// <summary>The query of the last search and the state it offered, for overlays.</summary>
+    public SynthesisInputs ConsumedInputs => _inputRecorder?.Inputs;
+
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
         if (_isInitialized || _initializationFailed) return;
@@ -199,7 +214,7 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, 
                 if (reloadPythonModules) PythonRuntime.InvalidateProjectModules();
 
                 dynamic runtime = PythonRuntime.Import("lmm.runtime");
-                _policy = runtime.LmmPolicy(config.GetCheckpointPath(), PythonLog,
+                _policy = runtime.LmmPolicy(CheckpointPath, PythonLog,
                     DeviceName(inferenceDevice));
 
                 if (!TryBindCheckpoint()) return;
@@ -211,13 +226,14 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, 
 
             // LmmMode.Full never searches, and removing the structure's cost is the mode's point.
             if (mode != LmmMode.Full) mmSearch.Initialize(_featureSet, _tagMask, _featureWeights);
+            _inputRecorder = new MatchingInputRecorder(config.mmData, _featureSet, _poseSet, _owner.Skeleton);
             _isInitialized = true;
         }
         catch (Exception e)
         {
             _initializationFailed = true;
             Debug.LogError($"[LMM] failed to start. Check Project Settings > MoSynth > Python, and " +
-                           $"that '{config.GetCheckpointPath()}' exists — press Train on the config " +
+                           $"that '{CheckpointPath}' exists — press Train on the config " +
                            "if it does not.");
             Debug.LogException(e);
         }
@@ -421,6 +437,8 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, 
     {
         if (!_isInitialized) return true;
 
+        _inputRecorder.BeginTick();
+
         var controlInput = ControlInput;
         if (controlInput == null)
         {
@@ -463,6 +481,9 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, 
 
             BuildCharacterSpacePose(y);
             WritePose(pose, y);
+
+            // Only DecompressorOnly plays a database row; the later modes hold a state of their own.
+            _inputRecorder.EndTick(mode == LmmMode.DecompressorOnly ? CurrentFrame : -1);
         }
         catch (Exception e)
         {
@@ -502,6 +523,14 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, 
         // Passed into the search as a bound so it can abandon candidates early.
         var bestFrame = mmSearch.FindBestFrame(_queryFeatureVector, heldDistance * acceptanceRatio);
 
+        // No candidate beat the bound, so the held state is both the answer and its cost.
+        var answer = bestFrame >= 0 ? _featureSet.GetFeatureVector(bestFrame) : _x;
+        var answerCost = bestFrame >= 0
+            ? MotionMatchingStage.SqrDistance(_queryFeatureVector, answer, _featureWeights)
+            : heldDistance;
+        _inputRecorder.RecordSearch(_queryFeatureVector, answer, _featureWeights, _owner.transform,
+            _owner.SkeletonTransforms, heldDistance, answerCost, bestFrame >= 0);
+
         if (bestFrame == -1)
         {
             Debug.Assert(heldDistance < float.MaxValue,
@@ -537,7 +566,10 @@ public class LmmStage : MoSynthStage, IDisposable, IMotionMatchingDataProvider, 
         }
 
         var offered = MotionMatchingStage.SqrDistance(_queryFeatureVector, candidateX, _featureWeights);
-        if (offered >= heldDistance * acceptanceRatio) return;
+        var accepted = offered < heldDistance * acceptanceRatio;
+        _inputRecorder.RecordSearch(_queryFeatureVector, candidateX, _featureWeights, _owner.transform,
+            _owner.SkeletonTransforms, heldDistance, offered, accepted);
+        if (!accepted) return;
 
         _x = candidateX;
         _z = candidateZ;

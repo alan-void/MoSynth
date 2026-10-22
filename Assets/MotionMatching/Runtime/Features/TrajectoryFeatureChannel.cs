@@ -95,12 +95,25 @@ public sealed class TrajectoryFeatureChannel : ChannelDescriptor, IMatchingFeatu
     /// </summary>
     public float3 Unpack(FeatureSet featureSet, int frameIndex, int trajectoryFeatureIndex, int predictionIndex)
     {
+        return Unpack(featureSet.GetFeatureVector(frameIndex), featureSet, trajectoryFeatureIndex, predictionIndex);
+    }
+
+    /// <summary>
+    /// Rebuilds one prediction out of any normalized feature vector, a query as well as a stored
+    /// frame, denormalized with <paramref name="featureSet"/>'s statistics.
+    /// </summary>
+    public float3 Unpack(ReadOnlySpan<float> featureVector, FeatureSet featureSet, int trajectoryFeatureIndex,
+        int predictionIndex)
+    {
+        var offset = featureSet.GetTrajectoryFeatureOffset(trajectoryFeatureIndex, predictionIndex);
         var value = float3.zero;
         var axis = 0;
         for (var f = 0; f < FloatsPerPrediction; ++f)
         {
             axis = SkipZeroedAxes(axis);
-            value[axis] = featureSet.GetTrajectoryFloat(frameIndex, trajectoryFeatureIndex, predictionIndex, f, true);
+            var dimension = offset + f;
+            value[axis] = featureVector[dimension] * featureSet.GetStandardDeviation(dimension) +
+                          featureSet.GetMean(dimension);
             axis += 1;
         }
 

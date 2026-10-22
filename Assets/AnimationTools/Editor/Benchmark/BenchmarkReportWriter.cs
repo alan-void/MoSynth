@@ -16,18 +16,50 @@ public static class BenchmarkReportWriter
 {
     private static readonly string[] CsvHeader =
     {
-        "method", "path", "completedLaps", "timedOut", "stoppedShort", "remainingDistance",
+        "method", "path", "seed", "completedLaps", "timedOut", "stoppedShort", "remainingDistance",
         "framesTotal", "durationSeconds",
         "framesEvaluated", "meanTrajectoryError", "meanHeadingErrorDeg", "maxHeadingErrorDeg",
         "meanActualSpeed", "targetSpeed", "meanVelocityError", "footskatePerMeter",
-        "meanFootskateSpeed", "contactFraction", "rootJerkMean", "rootJerkP95",
-        "discontinuitiesPerSecond", "applyMsMean", "applyMsP50", "applyMsP95", "applyMsMax",
+        "meanFootskateSpeed", "contactFraction", "flagFootskatePerMeter", "flagMeanFootskateSpeed",
+        "flagContactFraction", "contactFlagAgreement", "rootJerkMean", "rootJerkP95",
+        "rootVerticalJerkMean", "rootVerticalJerkP95", "discontinuitiesPerSecond", "applyMsMean", "applyMsP50", "applyMsP95", "applyMsMax",
         "gcBytesPerTick", "recordingFile", "error"
     };
 
+    /// <summary>The results.csv metrics averaged per method in averages.csv, in column order.</summary>
+    private static readonly (string column, Func<BenchmarkRunResult, float> value)[] AveragedMetrics =
+    {
+        ("completedLaps", r => r.completedLaps),
+        ("remainingDistance", r => r.remainingDistance),
+        ("durationSeconds", r => r.durationSeconds),
+        ("meanTrajectoryError", r => r.pathFollowing.meanTrajectoryError),
+        ("meanHeadingErrorDeg", r => r.pathFollowing.meanHeadingErrorDeg),
+        ("maxHeadingErrorDeg", r => r.pathFollowing.maxHeadingErrorDeg),
+        ("meanActualSpeed", r => r.pathFollowing.meanActualSpeed),
+        ("targetSpeed", r => r.pathFollowing.targetSpeed),
+        ("meanVelocityError", r => r.pathFollowing.meanVelocityError),
+        ("footskatePerMeter", r => r.motionQuality.footskatePerMeter),
+        ("meanFootskateSpeed", r => r.motionQuality.meanFootskateSpeed),
+        ("contactFraction", r => r.motionQuality.contactFraction),
+        ("flagFootskatePerMeter", r => r.motionQuality.flagFootskatePerMeter),
+        ("flagMeanFootskateSpeed", r => r.motionQuality.flagMeanFootskateSpeed),
+        ("flagContactFraction", r => r.motionQuality.flagContactFraction),
+        ("contactFlagAgreement", r => r.motionQuality.contactFlagAgreement),
+        ("rootJerkMean", r => r.motionQuality.rootJerkMean),
+        ("rootJerkP95", r => r.motionQuality.rootJerkP95),
+        ("rootVerticalJerkMean", r => r.motionQuality.rootVerticalJerkMean),
+        ("rootVerticalJerkP95", r => r.motionQuality.rootVerticalJerkP95),
+        ("discontinuitiesPerSecond", r => r.motionQuality.discontinuitiesPerSecond),
+        ("applyMsMean", r => r.cost.applyMsMean),
+        ("applyMsP50", r => r.cost.applyMsP50),
+        ("applyMsP95", r => r.cost.applyMsP95),
+        ("applyMsMax", r => r.cost.applyMsMax),
+        ("gcBytesPerTick", r => r.cost.gcBytesPerTick)
+    };
+
     /// <summary>
-    /// Writes results.csv and results.json into <paramref name="outputDirectory"/> and logs a
-    /// summary table. Returns the absolute path of results.csv.
+    /// Writes results.csv, results.json and averages.csv into <paramref name="outputDirectory"/>
+    /// and logs a summary table. Returns the absolute path of results.csv.
     /// </summary>
     public static string Write(
         string outputDirectory,
@@ -40,9 +72,137 @@ public static class BenchmarkReportWriter
 
         WriteCsv(csvPath, results);
         WriteJson(jsonPath, config, configAssetPath, results);
+        WriteAverages(Path.Combine(outputDirectory, "averages.csv"), results);
         LogSummary(results);
 
         return csvPath;
+    }
+
+    /// <summary>
+    /// One row per method, in first-run order, with each metric's mean over that method's runs,
+    /// every seed and path weighing the same. Timed-out runs are averaged in and counted, errored
+    /// runs are only counted because their metrics were never computed, and NaN values
+    /// (remainingDistance on a closed path) are skipped.
+    /// </summary>
+    /// <remarks>
+    /// Each metric's <c>SeedStd</c> column is the sample standard deviation of the per-seed means,
+    /// the spread a reader needs to tell a method from a lucky draw; NaN below two seeds.
+    /// <c>benchmark.report</c> turns the same per-seed means into a confidence interval.
+    /// </remarks>
+    private static void WriteAverages(string path, IReadOnlyList<BenchmarkRunResult> results)
+    {
+        var byMethod = new Dictionary<string, List<BenchmarkRunResult>>();
+        var methodOrder = new List<string>();
+        foreach (var result in results)
+        {
+            if (!byMethod.TryGetValue(result.method, out var runs))
+            {
+                runs = new List<BenchmarkRunResult>();
+                byMethod.Add(result.method, runs);
+                methodOrder.Add(result.method);
+            }
+            runs.Add(result);
+        }
+
+        var header = new List<string> { "method", "runs", "seeds", "timedOut", "stoppedShort", "errors" };
+        foreach (var metric in AveragedMetrics)
+        {
+            header.Add(metric.column);
+            header.Add(metric.column + "SeedStd");
+        }
+
+        var sb = new StringBuilder();
+        AppendRow(sb, header.ToArray());
+
+        var row = new string[header.Count];
+        foreach (var method in methodOrder)
+        {
+            var runs = byMethod[method];
+            var measured = runs.FindAll(r => string.IsNullOrEmpty(r.error));
+            var bySeed = GroupBySeed(measured);
+
+            var column = 0;
+            row[column++] = method;
+            row[column++] = runs.Count.ToString(CultureInfo.InvariantCulture);
+            row[column++] = CountSeeds(runs).ToString(CultureInfo.InvariantCulture);
+            row[column++] = runs.FindAll(r => r.timedOut).Count.ToString(CultureInfo.InvariantCulture);
+            row[column++] = runs.FindAll(r => r.stoppedShort).Count.ToString(CultureInfo.InvariantCulture);
+            row[column++] = (runs.Count - measured.Count).ToString(CultureInfo.InvariantCulture);
+            foreach (var metric in AveragedMetrics)
+            {
+                row[column++] = FormatFloat(MeanIgnoringNaN(measured, metric.value));
+                row[column++] = FormatFloat(SeedStandardDeviation(bySeed, metric.value));
+            }
+
+            AppendRow(sb, row);
+        }
+
+        File.WriteAllText(path, sb.ToString(), new UTF8Encoding(false));
+    }
+
+    /// <summary>Runs grouped by training seed; every unseeded run falls in one group of its own.</summary>
+    private static List<List<BenchmarkRunResult>> GroupBySeed(List<BenchmarkRunResult> runs)
+    {
+        var groups = new Dictionary<(bool seeded, int seed), List<BenchmarkRunResult>>();
+        var order = new List<List<BenchmarkRunResult>>();
+        foreach (var run in runs)
+        {
+            var key = (run.seeded, run.seeded ? run.seed : 0);
+            if (!groups.TryGetValue(key, out var group))
+            {
+                group = new List<BenchmarkRunResult>();
+                groups.Add(key, group);
+                order.Add(group);
+            }
+            group.Add(run);
+        }
+        return order;
+    }
+
+    private static int CountSeeds(List<BenchmarkRunResult> runs)
+    {
+        var seeds = new HashSet<int>();
+        foreach (var run in runs)
+        {
+            if (run.seeded) seeds.Add(run.seed);
+        }
+        return seeds.Count;
+    }
+
+    /// <summary>Sample standard deviation of the per-seed means, or NaN when fewer than two seeds have one.</summary>
+    private static float SeedStandardDeviation(List<List<BenchmarkRunResult>> bySeed,
+        Func<BenchmarkRunResult, float> value)
+    {
+        var means = new List<double>(bySeed.Count);
+        foreach (var group in bySeed)
+        {
+            var mean = MeanIgnoringNaN(group, value);
+            if (!float.IsNaN(mean)) means.Add(mean);
+        }
+
+        if (means.Count < 2) return float.NaN;
+
+        var average = 0.0;
+        foreach (var mean in means) average += mean;
+        average /= means.Count;
+
+        var sumOfSquares = 0.0;
+        foreach (var mean in means) sumOfSquares += (mean - average) * (mean - average);
+        return (float)Math.Sqrt(sumOfSquares / (means.Count - 1));
+    }
+
+    private static float MeanIgnoringNaN(List<BenchmarkRunResult> runs, Func<BenchmarkRunResult, float> value)
+    {
+        var sum = 0.0;
+        var count = 0;
+        foreach (var run in runs)
+        {
+            var v = value(run);
+            if (float.IsNaN(v)) continue;
+            sum += v;
+            count++;
+        }
+        return count > 0 ? (float)(sum / count) : float.NaN;
     }
 
     private static void WriteCsv(string path, IReadOnlyList<BenchmarkRunResult> results)
@@ -57,34 +217,43 @@ public static class BenchmarkReportWriter
             var motionQuality = result.motionQuality;
             var cost = result.cost;
 
-            row[0] = result.method;
-            row[1] = result.path;
-            row[2] = FormatFloat(result.completedLaps);
-            row[3] = result.timedOut ? "true" : "false";
-            row[4] = result.stoppedShort ? "true" : "false";
-            row[5] = FormatFloat(result.remainingDistance);
-            row[6] = result.framesTotal.ToString(CultureInfo.InvariantCulture);
-            row[7] = FormatFloat(result.durationSeconds);
-            row[8] = pathFollowing.framesEvaluated.ToString(CultureInfo.InvariantCulture);
-            row[9] = FormatFloat(pathFollowing.meanTrajectoryError);
-            row[10] = FormatFloat(pathFollowing.meanHeadingErrorDeg);
-            row[11] = FormatFloat(pathFollowing.maxHeadingErrorDeg);
-            row[12] = FormatFloat(pathFollowing.meanActualSpeed);
-            row[13] = FormatFloat(pathFollowing.targetSpeed);
-            row[14] = FormatFloat(pathFollowing.meanVelocityError);
-            row[15] = FormatFloat(motionQuality.footskatePerMeter);
-            row[16] = FormatFloat(motionQuality.meanFootskateSpeed);
-            row[17] = FormatFloat(motionQuality.contactFraction);
-            row[18] = FormatFloat(motionQuality.rootJerkMean);
-            row[19] = FormatFloat(motionQuality.rootJerkP95);
-            row[20] = FormatFloat(motionQuality.discontinuitiesPerSecond);
-            row[21] = FormatFloat(cost.applyMsMean);
-            row[22] = FormatFloat(cost.applyMsP50);
-            row[23] = FormatFloat(cost.applyMsP95);
-            row[24] = FormatFloat(cost.applyMsMax);
-            row[25] = FormatFloat(cost.gcBytesPerTick);
-            row[26] = result.recordingFile;
-            row[27] = result.error;
+            var column = 0;
+            row[column++] = result.method;
+            row[column++] = result.path;
+            // Blank, not 0, for a run that loaded each config's own seed.
+            row[column++] = result.seeded ? result.seed.ToString(CultureInfo.InvariantCulture) : "";
+            row[column++] = FormatFloat(result.completedLaps);
+            row[column++] = result.timedOut ? "true" : "false";
+            row[column++] = result.stoppedShort ? "true" : "false";
+            row[column++] = FormatFloat(result.remainingDistance);
+            row[column++] = result.framesTotal.ToString(CultureInfo.InvariantCulture);
+            row[column++] = FormatFloat(result.durationSeconds);
+            row[column++] = pathFollowing.framesEvaluated.ToString(CultureInfo.InvariantCulture);
+            row[column++] = FormatFloat(pathFollowing.meanTrajectoryError);
+            row[column++] = FormatFloat(pathFollowing.meanHeadingErrorDeg);
+            row[column++] = FormatFloat(pathFollowing.maxHeadingErrorDeg);
+            row[column++] = FormatFloat(pathFollowing.meanActualSpeed);
+            row[column++] = FormatFloat(pathFollowing.targetSpeed);
+            row[column++] = FormatFloat(pathFollowing.meanVelocityError);
+            row[column++] = FormatFloat(motionQuality.footskatePerMeter);
+            row[column++] = FormatFloat(motionQuality.meanFootskateSpeed);
+            row[column++] = FormatFloat(motionQuality.contactFraction);
+            row[column++] = FormatFloat(motionQuality.flagFootskatePerMeter);
+            row[column++] = FormatFloat(motionQuality.flagMeanFootskateSpeed);
+            row[column++] = FormatFloat(motionQuality.flagContactFraction);
+            row[column++] = FormatFloat(motionQuality.contactFlagAgreement);
+            row[column++] = FormatFloat(motionQuality.rootJerkMean);
+            row[column++] = FormatFloat(motionQuality.rootJerkP95);
+            row[column++] = FormatFloat(motionQuality.rootVerticalJerkMean);
+            row[column++] = FormatFloat(motionQuality.rootVerticalJerkP95);
+            row[column++] = FormatFloat(motionQuality.discontinuitiesPerSecond);
+            row[column++] = FormatFloat(cost.applyMsMean);
+            row[column++] = FormatFloat(cost.applyMsP50);
+            row[column++] = FormatFloat(cost.applyMsP95);
+            row[column++] = FormatFloat(cost.applyMsMax);
+            row[column++] = FormatFloat(cost.gcBytesPerTick);
+            row[column++] = result.recordingFile;
+            row[column] = result.error;
 
             AppendRow(sb, row);
         }
@@ -162,7 +331,7 @@ public static class BenchmarkReportWriter
             sb.Append(string.Format(
                 CultureInfo.InvariantCulture,
                 "{0,-20} {1,-20} {2,8} {3,10:F4} {4,10:F3} {5,10:F4} {6,10:F1} {7,10:F3}\n",
-                result.method,
+                result.seeded ? $"{result.method}_s{result.seed}" : result.method,
                 result.path,
                 laps,
                 result.pathFollowing.meanTrajectoryError,

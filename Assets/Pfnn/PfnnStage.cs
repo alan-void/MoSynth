@@ -17,7 +17,7 @@ namespace Pfnn
 /// that has to be written into a <see cref="PoseBuffer"/> anyway. See openwiki/pfnn/pfnn-stage.md.
 /// </remarks>
 [Serializable]
-public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
+public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource, ISeededStage, ISynthesisInputSource
 {
     [SerializeField]
     [Tooltip("The trained config. Its checkpoint decides which bones this stage writes.")]
@@ -51,11 +51,23 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
     [Range(0.25f, 4f)]
     public float feedbackFalloff = 1f;
 
+    /// <inheritdoc />
+    public int? CheckpointSeed { get; set; }
+
+    /// <inheritdoc />
+    public bool LoadsCheckpoint => true;
+
+    /// <summary>The checkpoint Init loads: <see cref="CheckpointSeed"/>'s, else the config's own seed's.</summary>
+    private string CheckpointPath => config.GetCheckpointPath(CheckpointSeed ?? config.seed);
+
     // Static so the delegate stays rooted for as long as Python holds it; PythonNET does not
     // forward Python's stdout to Unity on its own.
     private static readonly Action<string> PythonLog = message => Debug.Log(message);
 
     private const float Tau = 2f * math.PI;
+
+    /// <summary>Drawn length of a trajectory sample's facing, in metres; short, because neighbouring samples sit under 0.2 m apart at walking speed.</summary>
+    private const float DirectionDrawLength = 0.15f;
 
     private bool _isInitialized;
     private bool _initializationFailed;
@@ -76,6 +88,9 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
 
     /// <summary>Samples in the trajectory window, once one has been assembled.</summary>
     public int WindowSampleCount => _windowFilled ? _windowOffsets.Length : 0;
+
+    /// <summary>Synthesis frames to the trajectory window's furthest future sample; 0 before Init.</summary>
+    public int HorizonFrames => _horizonFrames;
 
     /// <summary>
     /// One sample of the window last handed to the network, taken back out of the character frame
@@ -136,6 +151,11 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
     private float _windowFrameYaw;
     private bool _windowFilled;
 
+    private SynthesisInputs _consumedInputs;
+
+    /// <summary>The trajectory window and phase last fed to the network, and the trajectory it predicted back.</summary>
+    public SynthesisInputs ConsumedInputs => _consumedInputs;
+
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
     {
         if (_isInitialized || _initializationFailed) return;
@@ -163,7 +183,7 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
                 if (reloadPythonModules) PythonRuntime.InvalidateProjectModules();
 
                 dynamic runtime = PythonRuntime.Import("pfnn.runtime");
-                _policy = runtime.PfnnPolicy(config.GetCheckpointPath(), PythonLog,
+                _policy = runtime.PfnnPolicy(CheckpointPath, PythonLog,
                     DeviceName(inferenceDevice));
 
                 if (!TryBindCheckpoint()) return;
@@ -180,7 +200,7 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
         {
             _initializationFailed = true;
             Debug.LogError($"[PFNN] failed to start. Check Project Settings > MoSynth > Python, " +
-                           $"and that '{config.GetCheckpointPath()}' exists — press Train on the " +
+                           $"and that '{CheckpointPath}' exists — press Train on the " +
                            "config if it does not.");
             Debug.LogException(e);
         }
@@ -265,6 +285,14 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
 
         _predictedPositions = new float2[predicted];
         _predictedDirections = new float2[predicted];
+
+        _consumedInputs = new SynthesisInputs("PFNN trajectory window",
+            2 * (_windowOffsets.Length + predicted), 4)
+        {
+            RequestLabel = "future fed",
+            AnswerLabel = "predicted",
+            StateLabel = "past fed"
+        };
     }
 
     /// <summary>
@@ -321,6 +349,7 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
             _trajectory.Push(CurrentGroundPosition(), CurrentYaw());
             FillTrajectoryWindow();
 
+            var phaseFed = Phase;
             float rootHeight, dx, dz, dyaw, phaseDelta;
             float[] rotations6d, jointVelocities, futurePositions, futureDirections;
 
@@ -366,6 +395,8 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
             // Every training phase delta was non-negative (GaitPhase is monotone), so a negative
             // prediction is extrapolation; letting it through runs the cycle backwards unrecoverably.
             Phase = Repeat(Phase + math.max(0f, phaseDelta), Tau);
+
+            RecordConsumedInputs(phaseFed, math.max(0f, phaseDelta));
         }
         catch (Exception e)
         {
@@ -432,6 +463,46 @@ public class PfnnStage : MoSynthStage, IDisposable, IContactBoneSource
             _windowDirections[i * 2] = localDirection.x;
             _windowDirections[i * 2 + 1] = localDirection.y;
         }
+    }
+
+    /// <summary>
+    /// Copies what this tick fed the network, read back out of the packed window, and what it
+    /// predicted, into <see cref="ConsumedInputs"/>.
+    /// </summary>
+    private void RecordConsumedInputs(float phaseFed, float phaseDelta)
+    {
+        var inputs = _consumedInputs;
+        inputs.ClearMarkers();
+        var height = _characterTransform.position.y;
+
+        for (var i = 0; i < _windowOffsets.Length; i++)
+        {
+            GetWindowSample(i, out var framesAhead, out var world, out var direction);
+            var role = framesAhead <= 0 ? SynthesisInputRole.State : SynthesisInputRole.Request;
+            AddSample(inputs, role, world, direction, height);
+        }
+
+        for (var slot = 0; slot < _predictedPositions.Length; slot++)
+        {
+            AddSample(inputs, SynthesisInputRole.Answer, _predictedPositions[slot], _predictedDirections[slot],
+                height);
+        }
+
+        inputs.HasPhase = true;
+        inputs.Phase = phaseFed / Tau;
+
+        inputs.ClearReadouts();
+        inputs.AddReadout("phase", phaseFed / Tau, "0.00", " cycle");
+        inputs.AddReadout("stride rate", phaseDelta / Tau / _databaseFrameTime, "0.00", " Hz");
+        inputs.AddReadout("trajectory feedback", trajectoryFeedback, "0.00");
+    }
+
+    private static void AddSample(SynthesisInputs inputs, SynthesisInputRole role, float2 world, float2 direction,
+        float height)
+    {
+        var position = new float3(world.x, height, world.y);
+        inputs.AddPoint(role, position);
+        inputs.AddArrow(role, position, new float3(direction.x, 0f, direction.y) * DirectionDrawLength);
     }
 
     /// <summary>

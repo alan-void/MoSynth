@@ -1,9 +1,20 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace AnimationTools
 {
+/// <summary>How a benchmark video frames its run.</summary>
+public enum BenchmarkVideoCamera
+{
+    /// <summary>Follows the character from behind and above, damped so root snaps never reach it.</summary>
+    Chase,
+
+    /// <summary>One fixed elevated view framing the whole path.</summary>
+    Overview
+}
+
 /// <summary>
 /// One synthesis method in a sweep: a character prefab plus the knobs that make this entry
 /// different from the others sharing that prefab.
@@ -23,6 +34,50 @@ public class BenchmarkMethod
     [SerializeReference] [SubclassSelector]
     public List<BenchmarkOverride> overrides = new();
 
+    [Tooltip("Training seeds to run the character's learned stages (PFNN, LMM, the motion field's " +
+             "optimal policy) with: one run per seed per path, each loading that seed's checkpoint. " +
+             "Empty runs once, with each config's own seed. A method with no such stage must leave " +
+             "this empty.")]
+    public List<int> seeds = new();
+
+    /// <summary>
+    /// Whether the character, with <see cref="overrides"/> applied, runs an enabled stage that loads
+    /// a per-seed checkpoint.
+    /// </summary>
+    /// <remarks>
+    /// Overrides can decide it (a motion field run under the greedy policy loads none), so this
+    /// instantiates the prefab inactive, applies them, and destroys it. Once per sweep, never per repaint.
+    /// </remarks>
+    public bool LoadsSeededCheckpoint()
+    {
+        if (characterPrefab == null) return false;
+
+        var holder = new GameObject("SeedProbeHolder");
+        holder.SetActive(false);
+        try
+        {
+            var instance = Object.Instantiate(characterPrefab, holder.transform);
+            if (overrides != null)
+            {
+                foreach (var methodOverride in overrides) methodOverride?.Apply(instance);
+            }
+
+            foreach (var synthesizer in instance.GetComponentsInChildren<MotionSynthesisComponent>(true))
+            {
+                foreach (var stage in synthesizer.stages)
+                {
+                    if (stage is { isEnabled: true } and ISeededStage { LoadsCheckpoint: true }) return true;
+                }
+            }
+
+            return false;
+        }
+        finally
+        {
+            Object.DestroyImmediate(holder);
+        }
+    }
+
     /// <summary>Name plus the overrides, for logs and for the raw recording's filename.</summary>
     public string DescribeFull()
     {
@@ -36,6 +91,25 @@ public class BenchmarkMethod
 
         return parts.Count == 0 ? name : $"{name} [{string.Join(", ", parts)}]";
     }
+}
+
+/// <summary>
+/// One entry of the list a sweep runs on every path: a method, and the training seed its learned
+/// stages load, or none for the configs' own.
+/// </summary>
+public readonly struct BenchmarkMethodRun
+{
+    public readonly BenchmarkMethod Method;
+    public readonly int? Seed;
+
+    public BenchmarkMethodRun(BenchmarkMethod method, int? seed)
+    {
+        Method = method;
+        Seed = seed;
+    }
+
+    /// <summary>The method's name, suffixed with the seed when there is one; names recordings and videos.</summary>
+    public string Label => Seed.HasValue ? $"{Method.name}_s{Seed.Value}" : Method.name;
 }
 
 /// <summary>
@@ -66,6 +140,10 @@ public class SynthesisBenchmarkConfig : ScriptableObject
              "up to speed from its spawn pose. Lap counting starts when this elapses.")]
     [Min(0f)] public float settleTime = 3f;
 
+    [Tooltip("Thresholds that decide geometric foot contact for footskate, judged from the contact " +
+             "bones' recorded positions rather than each method's own contact flags.")]
+    public GroundContactSettings groundContact = new();
+
     [Tooltip("Hard limit per run, including the settle time. A run that hits it is reported with " +
              "timedOut set rather than being silently truncated.")]
     [Min(1f)] public float maxRunSeconds = 120f;
@@ -74,7 +152,7 @@ public class SynthesisBenchmarkConfig : ScriptableObject
              "this long ends with stoppedShort set and its remaining distance recorded, instead of " +
              "idling to the time limit. Keep it longer than any pause a method makes mid-path. " +
              "0 turns the rule off.")]
-    [Min(0f)] public float restTimeout = 5f;
+    [Min(0f)] public float restTimeout = 15f;
 
     [Header("Timing")]
     [Tooltip("Synthesis ticks per second for every run, unless a method overrides it.")]
@@ -95,21 +173,64 @@ public class SynthesisBenchmarkConfig : ScriptableObject
     public bool recordFullPose;
 
     [Header("Video")]
-    [Tooltip("Also render every run to an MP4 per method, with the path and live speed/lap/error " +
-             "metrics drawn in. One encoder per method stays open across every path it runs, since " +
-             "paths are the outer loop. Costs meaningfully more time per sweep.")]
+    [Tooltip("Also render every run to its own MP4 under videos/, with a JSON sidecar that " +
+             "python -m benchmark.compose_videos reads to tile the methods side by side. Costs " +
+             "meaningfully more time per sweep, and needs a graphics device: never -nographics.")]
     public bool recordVideo;
 
-    [Tooltip("Video resolution in pixels. Rounded down to even numbers, which H.264 requires.")]
-    public int videoWidth = 960;
+    [Tooltip("Chase follows the character from a damped 3/4 view; Overview holds one fixed view " +
+             "framing the whole path.")]
+    public BenchmarkVideoCamera videoCamera = BenchmarkVideoCamera.Chase;
 
     [Tooltip("Video resolution in pixels. Rounded down to even numbers, which H.264 requires.")]
-    public int videoHeight = 540;
+    public int videoWidth = 1920;
+
+    [Tooltip("Video resolution in pixels. Rounded down to even numbers, which H.264 requires.")]
+    public int videoHeight = 1080;
+
+    [Tooltip("While recording, add a ground grid, a shadowing light, the path, the steering target, " +
+             "a root trail and footprints. Visual only: nothing it adds has a collider, so the " +
+             "simulation and the metrics are unchanged.")]
+    public bool videoSceneDressing = true;
+
+    [Tooltip("While recording, draw the exact inputs the method consumed each tick, read back from the " +
+             "stage rather than recomputed: the matching query against the matched frame, PFNN's " +
+             "trajectory window and phase, the motion field's goal heading and speed. A HUD panel " +
+             "lists the numbers. Visual only; the simulation and the metrics are unchanged.")]
+    public bool videoShowMethodInputs = true;
 
     [Header("Output")]
     [Tooltip("Where reports and raw recordings are written. Relative paths resolve against the " +
              "project root, next to Assets. Each sweep gets a timestamped subfolder.")]
     public string outputDirectory = "Benchmarks";
+
+    /// <summary>
+    /// Every method once per seed, in method order and then seed order: what a sweep runs on each
+    /// path.
+    /// </summary>
+    /// <param name="sweepSeeds">
+    /// When set, the seeds of every method that <see cref="BenchmarkMethod.LoadsSeededCheckpoint"/>,
+    /// replacing its own list; other methods run once. How a reproduction lists its seeds once.
+    /// </param>
+    public List<BenchmarkMethodRun> ExpandRuns(IReadOnlyList<int> sweepSeeds = null)
+    {
+        var runs = new List<BenchmarkMethodRun>();
+        foreach (var method in methods)
+        {
+            IReadOnlyList<int> methodSeeds = method.seeds;
+            if (sweepSeeds != null) methodSeeds = method.LoadsSeededCheckpoint() ? sweepSeeds : null;
+
+            if (methodSeeds == null || methodSeeds.Count == 0)
+            {
+                runs.Add(new BenchmarkMethodRun(method, null));
+                continue;
+            }
+
+            foreach (var seed in methodSeeds) runs.Add(new BenchmarkMethodRun(method, seed));
+        }
+
+        return runs;
+    }
 
     /// <summary>
     /// Whether this config could actually run. Called from the inspector every repaint and from the
@@ -148,6 +269,12 @@ public class SynthesisBenchmarkConfig : ScriptableObject
             if (method.characterPrefab == null)
             {
                 error = $"Method \"{method.name}\" has no character prefab.";
+                return false;
+            }
+
+            if (method.seeds != null && new HashSet<int>(method.seeds).Count != method.seeds.Count)
+            {
+                error = $"Method \"{method.name}\" lists a seed twice; each would overwrite the other's recording.";
                 return false;
             }
         }

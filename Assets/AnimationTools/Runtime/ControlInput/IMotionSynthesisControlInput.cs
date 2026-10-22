@@ -28,6 +28,16 @@ public interface IMotionSynthesisSplineControlInput : IMotionSynthesisControlInp
     float3 GetWorldInitDirection();
 }
 
+/// <summary>
+/// A control input that can say where it is steering the character this tick, for visualisation.
+/// What counts as the target is the input's own: a pursuit point, or the far end of its trajectory.
+/// </summary>
+public interface ISteeringTargetSource
+{
+    /// <summary>World position of the current steering target, or false before the input has one.</summary>
+    bool TryGetSteeringTarget(out float3 worldPosition);
+}
+
 /// <summary>A control input steered by a 2D movement direction (stick/WASD-style).</summary>
 public interface IMotionSynthesisDirectionControlInput : IMotionSynthesisControlInput
 {

@@ -166,6 +166,22 @@ public class FeatureSet
         return value;
     }
 
+    /// <summary>Float offset of one pose feature within a feature vector.</summary>
+    public int GetPoseFeatureOffset(int poseFeatureIndex) => _featureLayout.PoseHandles[poseFeatureIndex].FloatOffset;
+
+    /// <summary>One pose feature out of any normalized feature vector, a query as well as a stored frame, denormalized.</summary>
+    public float3 GetPoseFeature(ReadOnlySpan<float> featureVector, int poseFeatureIndex)
+    {
+        var offset = GetPoseFeatureOffset(poseFeatureIndex);
+        var value = float3.zero;
+        for (var j = 0; j < FloatsPerPoseFeature; j++)
+        {
+            value[j] = featureVector[offset + j] * _standardDeviation[offset + j] + _mean[offset + j];
+        }
+
+        return value;
+    }
+
     public float3 GetPoseFeature(int featureIndex, int poseFeatureIndex, bool denormalize = false)
     {
         var featureOffset = _featureLayout.PoseHandles[poseFeatureIndex].FloatOffset;

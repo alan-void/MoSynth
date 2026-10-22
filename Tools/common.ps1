@@ -48,11 +48,16 @@ function Invoke-MoSynthUnity {
         [Parameter(Mandatory)][string]$UnityExe,
         [Parameter(Mandatory)][string]$LogFile,
         [Parameter(Mandatory)][string[]]$Arguments,
-        [switch]$Visible
+        [switch]$Visible,
+        # Batchmode that keeps a graphics device, for steps that render (benchmark videos).
+        [switch]$Graphics
     )
 
     $unityArgs = @("-projectPath", (Get-MoSynthProjectPath), "-logFile", $LogFile) + $Arguments
-    if (-not $Visible) { $unityArgs += @("-batchmode", "-nographics") }
+    if (-not $Visible) {
+        $unityArgs += @("-batchmode")
+        if (-not $Graphics) { $unityArgs += @("-nographics") }
+    }
     # Start-Process joins arguments with spaces and does not quote them.
     $unityArgs = $unityArgs | ForEach-Object { if ($_ -match "\s") { "`"$_`"" } else { $_ } }
 

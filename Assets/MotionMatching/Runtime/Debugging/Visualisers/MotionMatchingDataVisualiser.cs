@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using AnimationTools;
 using Unity.Mathematics;
 using UnityEngine;
@@ -135,73 +134,60 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
 
         if (_featureSet == null) return;
 
-        DrawFeatureGizmos(_featureSet, motionMatchingData, spheresRadius, drawnFrame, characterOrigin, characterForward,
-            _skeletonTransforms, _poseSet.Skeleton, Color.blue, debugPose: debugPose, debugTrajectory: debugTrajectory);
+        DrawFeatureGizmos(drawnFrame, characterOrigin, characterForward, Color.blue);
     }
 
-    // Simulation-frame position predictions of the frame being drawn; direction arrows anchor to them.
-    private static readonly List<float3> _positionFeatures = new();
+    private FeatureVectorMarkers _featureMarkers;
+    private SynthesisInputs _drawnFeatures;
 
-    public static void DrawFeatureGizmos(FeatureSet set, MotionMatchingData mmData, float spheresRadius, int currentFrame,
-        float3 characterOrigin, float3 characterForward, Transform[] joints, Skeleton skeleton,
-        Color trajectoryColor, bool debugPose = true, bool debugTrajectory = true)
+    private static readonly Color PoseFeatureColor = new(0.0f, 0.8f, 0.8f);
+
+    /// <summary>Draws one frame's stored features, decoded the same way a stage's recorded query is.</summary>
+    private void DrawFeatureGizmos(int frame, float3 characterOrigin, float3 characterForward, Color trajectoryColor)
     {
-        if (!set.IsValidFeature(currentFrame)) return;
+        if (!_featureSet.IsValidFeature(frame)) return;
 
-        quaternion characterRot = quaternion.LookRotation(characterForward, math.up());
-
-        _positionFeatures.Clear();
-        for (var t = 0; t < mmData.trajectoryFeatures.Count; t++)
+        if (_featureMarkers == null)
         {
-            var trajectoryFeature = mmData.trajectoryFeatures[t];
-            if (trajectoryFeature.simulationBone && trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Position)
-            {
-                for (var p = 0; p < trajectoryFeature.predictionFrames.Length; p++)
-                {
-                    float3 value = trajectoryFeature.Unpack(set, currentFrame, t, p);
-                    value = characterOrigin + math.mul(characterRot, value);
-                    _positionFeatures.Add(value);
-                }
-            }
+            _featureMarkers = new FeatureVectorMarkers(motionMatchingData, _featureSet, _poseSet.Skeleton);
+            _drawnFeatures = new SynthesisInputs("stored features", 256, 0);
         }
+
+        var vector = _featureSet.GetFeatureVector(frame);
+        var rotation = quaternion.LookRotation(characterForward, math.up());
 
         if (debugTrajectory)
         {
-            for (var t = 0; t < mmData.trajectoryFeatures.Count; t++)
-            {
-                var trajectoryFeature = mmData.trajectoryFeatures[t];
-                for (var p = 0; p < trajectoryFeature.predictionFrames.Length; p++)
-                {
-                    DrawTrajectoryPoint(trajectoryFeature, set, currentFrame, t, p, trajectoryColor, characterOrigin, characterForward,
-                        characterRot, spheresRadius, joints, skeleton);
-                }
-            }
+            _drawnFeatures.ClearMarkers();
+            _featureMarkers.AddTrajectory(vector, default, characterOrigin, rotation, _skeletonTransforms,
+                SynthesisInputRole.Answer, _drawnFeatures);
+            DrawMarkers(_drawnFeatures, trajectoryColor);
         }
 
         if (debugPose)
         {
-            Gizmos.color = new Color(0.0f, 0.8f, 0.8f);
-            for (var p = 0; p < mmData.poseFeatures.Count; p++)
+            _drawnFeatures.ClearMarkers();
+            _featureMarkers.AddPose(vector, default, characterOrigin, rotation, _skeletonTransforms,
+                SynthesisInputRole.Answer, _drawnFeatures);
+            DrawMarkers(_drawnFeatures, PoseFeatureColor);
+        }
+    }
+
+    private void DrawMarkers(SynthesisInputs markers, Color color)
+    {
+        Gizmos.color = color;
+        for (var i = 0; i < markers.MarkerCount; i++)
+        {
+            ref readonly var marker = ref markers.GetMarker(i);
+            if (!marker.IsArrow)
             {
-                var poseFeature = mmData.poseFeatures[p];
-                float3 value = set.GetPoseFeature(currentFrame, p, true);
-                switch (poseFeature.featureType)
-                {
-                    case PoseFeatureChannel.Type.Position:
-                        value = characterOrigin + math.mul(characterRot, value);
-                        Gizmos.DrawSphere(value, spheresRadius);
-                        break;
-                    case PoseFeatureChannel.Type.Velocity:
-                        value = math.mul(characterRot, value);
-                        if (math.length(value) > 0.001f)
-                        {
-                            var jointIndex = ResolveBoneOrZero(poseFeature.bone, skeleton, poseFeature.name);
-                            float3 jointPos = joints[jointIndex].position;
-                            GizmosExtensions.DrawArrow(jointPos, jointPos + value * 0.2f, 0.25f * math.length(value) * 0.2f, thickness: 4, useDepth: false);
-                        }
-                        break;
-                }
+                Gizmos.DrawSphere(marker.Position, spheresRadius);
+                continue;
             }
+
+            var length = math.length(marker.Vector);
+            if (length < 0.001f) continue;
+            GizmosExtensions.DrawArrow(marker.Position, marker.Position + marker.Vector, 0.3f * length, thickness: 4);
         }
     }
 
@@ -212,41 +198,6 @@ public class MotionMatchingDataVisualiser : MonoBehaviour
 
         Debug.LogWarning($"[MotionMatchingDataVisualiser] Feature \"{featureName}\" has no resolvable bone; falling back to the skeleton root.");
         return 0;
-    }
-
-    private static void DrawTrajectoryPoint(TrajectoryFeatureChannel trajectoryFeature, FeatureSet set, int currentFrame, int trajectoryFeatureIndex,
-        int predictionIndex, Color trajectoryColor, float3 characterOrigin, float3 characterForward,
-        quaternion characterRot, float spheresRadius, Transform[] joints, Skeleton skeleton)
-    {
-        var t = trajectoryFeatureIndex;
-        var p = predictionIndex;
-        Gizmos.color = trajectoryColor + (new Color(1.0f, 1.0f, 1.0f) - trajectoryColor) * ((float)p / trajectoryFeature.predictionFrames.Length);
-        if (trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Position ||
-            trajectoryFeature.featureType == TrajectoryFeatureChannel.Type.Direction)
-        {
-            float3 value = trajectoryFeature.Unpack(set, currentFrame, t, p);
-            switch (trajectoryFeature.featureType)
-            {
-                case TrajectoryFeatureChannel.Type.Position:
-                    value = characterOrigin + math.mul(characterRot, value);
-                    Gizmos.DrawSphere(value, spheresRadius);
-                    break;
-                case TrajectoryFeatureChannel.Type.Direction:
-                    float3 jointPos;
-                    if (trajectoryFeature.simulationBone)
-                    {
-                        jointPos = _positionFeatures.Count > 0 ? _positionFeatures[p] : float3.zero;
-                    }
-                    else
-                    {
-                        var jointIndex = ResolveBoneOrZero(trajectoryFeature.bone, skeleton, trajectoryFeature.name);
-                        jointPos = joints[jointIndex].position;
-                    }
-                    value = math.mul(characterRot, value);
-                    GizmosExtensions.DrawArrow(jointPos, jointPos + value * 0.4f, 0.15f, thickness: 4);
-                    break;
-            }
-        }
     }
 #endif
 }

@@ -9,8 +9,9 @@ using Object = UnityEngine.Object;
 namespace AnimationTools.Editor
 {
 /// <summary>
-/// Runs a whole benchmark sweep inside one play session: every configured method against every
-/// path, one character alive at a time, writing a report when the queue empties.
+/// Runs a whole benchmark sweep inside one play session: every configured method, once per training
+/// seed it lists, against every path, one character alive at a time, writing a report when the queue
+/// empties.
 /// </summary>
 /// <remarks>
 /// Pumped from <see cref="EditorApplication.update"/> because loading prefabs needs
@@ -45,10 +46,11 @@ public static class SynthesisBenchmarkDriver
     private static SynthesisBenchmarkPlan _plan;
     private static SynthesisBenchmarkConfig _config;
     private static List<GameObject> _pathPrefabs;
+    private static List<BenchmarkMethodRun> _runs;
     private static readonly List<BenchmarkRunResult> Results = new();
 
     private static int _pathIndex;
-    private static int _methodIndex;
+    private static int _runIndex;
     private static int _cooldown;
     private static int _waitedForPlayMode;
     private static int _restoreVSyncCount = -1;
@@ -144,7 +146,7 @@ public static class SynthesisBenchmarkDriver
 
             case Phase.Cooldown:
                 if (--_cooldown > 0) return;
-                _methodIndex++;
+                _runIndex++;
                 _phase = Phase.Spawn;
                 return;
 
@@ -168,6 +170,8 @@ public static class SynthesisBenchmarkDriver
         if (!_config.TryValidate(out var error))
             throw new InvalidOperationException($"Config \"{_plan.configAssetPath}\" is not runnable: {error}");
 
+        _runs = _config.ExpandRuns(_plan.overrideSeeds ? _plan.seeds : null);
+
         _pathPrefabs = ResolvePathPrefabs(_config);
         if (_pathPrefabs.Count == 0)
             throw new InvalidOperationException("No usable path prefabs; every candidate lacked a SplineContainer.");
@@ -178,8 +182,7 @@ public static class SynthesisBenchmarkDriver
         if (_config.recordVideo)
         {
             var videosDirectory = Path.Combine(_plan.outputDirectory, "videos");
-            _videoRecorder = new BenchmarkVideoRecorder(videosDirectory, _config.videoWidth, _config.videoHeight,
-                _config.synthesisFrameRate);
+            _videoRecorder = new BenchmarkVideoRecorder(videosDirectory, _config);
         }
 
         // An unfocused Editor otherwise throttles to a few ticks a second.
@@ -197,14 +200,14 @@ public static class SynthesisBenchmarkDriver
         }
 
         _pathIndex = 0;
-        _methodIndex = 0;
+        _runIndex = 0;
         Results.Clear();
 
         _spawnHolder = new GameObject("BenchmarkSpawnHolder");
         _spawnHolder.SetActive(false);
 
-        Debug.Log($"[Benchmark] Sweep starting: {_config.methods.Count} method(s) x {_pathPrefabs.Count} path(s) " +
-                  $"= {_config.methods.Count * _pathPrefabs.Count} runs -> \"{_plan.outputDirectory}\".");
+        Debug.Log($"[Benchmark] Sweep starting: {_config.methods.Count} method(s), {_runs.Count} with their seeds, " +
+                  $"x {_pathPrefabs.Count} path(s) = {_runs.Count * _pathPrefabs.Count} runs -> \"{_plan.outputDirectory}\".");
     }
 
     private static void Spawn()
@@ -215,15 +218,15 @@ public static class SynthesisBenchmarkDriver
             return;
         }
 
-        if (_methodIndex >= _config.methods.Count)
+        if (_runIndex >= _runs.Count)
         {
             // This path is done. Advancing explicitly, rather than inferring a new path from a null
-            // instance, keeps a vanished instance from restarting the method list.
+            // instance, keeps a vanished instance from restarting the run list.
             if (_pathInstance != null) Object.DestroyImmediate(_pathInstance);
             _pathInstance = null;
             _spline = null;
             _pathIndex++;
-            _methodIndex = 0;
+            _runIndex = 0;
             return;
         }
 
@@ -240,9 +243,10 @@ public static class SynthesisBenchmarkDriver
 
     private static void StartRun()
     {
-        var method = _config.methods[_methodIndex];
+        var run = _runs[_runIndex];
+        var method = run.Method;
         var pathName = _pathPrefabs[_pathIndex].name;
-        var totalRuns = _config.methods.Count * _pathPrefabs.Count;
+        var totalRuns = _runs.Count * _pathPrefabs.Count;
 
         try
         {
@@ -276,6 +280,8 @@ public static class SynthesisBenchmarkDriver
             if (!HasOverride<SynthesisFrameRateOverride>(method))
                 synthesizer.synthesisFrameRate = _config.synthesisFrameRate;
 
+            if (run.Seed.HasValue) ApplySeed(synthesizer, run.Seed.Value);
+
             // Reparenting to the scene root activates the character and runs Awake.
             _character.transform.SetParent(null, worldPositionStays: true);
 
@@ -283,23 +289,20 @@ public static class SynthesisBenchmarkDriver
                 throw new InvalidOperationException(
                     "the synthesis component disabled itself during Awake (see the errors above).");
 
-            AttachRecorder(synthesizer, method, pathName);
+            AttachRecorder(synthesizer, run, pathName);
             AttachProbe(synthesizer);
-            _videoRecorder?.Attach(synthesizer, method.name, pathName, _spline, input.TargetSpeed, _probe);
+            _videoRecorder?.Attach(synthesizer, run, _runIndex, pathName, _spline, input, _probe);
 
-            Debug.Log($"[Benchmark] Run {Results.Count + 1}/{totalRuns}: {method.DescribeFull()} on {pathName}.");
+            var seedText = run.Seed.HasValue ? $" seed {run.Seed.Value}" : "";
+            Debug.Log($"[Benchmark] Run {Results.Count + 1}/{totalRuns}: {method.DescribeFull()}{seedText} on {pathName}.");
             _phase = Phase.Running;
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Benchmark] {method.name} on {pathName} could not start: {e.Message}");
+            Debug.LogError($"[Benchmark] {run.Label} on {pathName} could not start: {e.Message}");
 
-            var failed = new BenchmarkRunResult
-            {
-                method = method.name,
-                path = pathName,
-                error = e.Message
-            };
+            var failed = NewResult(run, pathName);
+            failed.error = e.Message;
             Results.Add(failed);
             AppendProgress(failed);
 
@@ -309,7 +312,34 @@ public static class SynthesisBenchmarkDriver
         }
     }
 
-    private static void AttachRecorder(MotionSynthesisComponent synthesizer, BenchmarkMethod method, string pathName)
+    /// <summary>
+    /// Points every seeded stage at <paramref name="seed"/>'s checkpoint. A method listing seeds with
+    /// nothing to apply them to is refused, or its runs would differ only in their labels.
+    /// </summary>
+    private static void ApplySeed(MotionSynthesisComponent synthesizer, int seed)
+    {
+        var loading = 0;
+        foreach (var stage in synthesizer.stages)
+        {
+            if (stage is not ISeededStage seeded) continue;
+            seeded.CheckpointSeed = seed;
+            if (stage.isEnabled && seeded.LoadsCheckpoint) loading++;
+        }
+
+        if (loading == 0)
+            throw new InvalidOperationException(
+                $"it runs with seed {seed}, but no enabled stage of \"{synthesizer.name}\" loads a per-seed checkpoint.");
+    }
+
+    private static BenchmarkRunResult NewResult(BenchmarkMethodRun run, string pathName) => new()
+    {
+        method = run.Method.name,
+        path = pathName,
+        seeded = run.Seed.HasValue,
+        seed = run.Seed ?? 0
+    };
+
+    private static void AttachRecorder(MotionSynthesisComponent synthesizer, BenchmarkMethodRun run, string pathName)
     {
         _costChannel = new StageCostChannel { name = "cost" };
 
@@ -318,7 +348,7 @@ public static class SynthesisBenchmarkDriver
         _recorder.Synthesizer = synthesizer;
         _recorder.trigger = RecordTrigger.EverySynthesisUpdate;
         _recorder.outputDirectory = _recordingsDirectory;
-        _recorder.recordingName = Sanitize($"{method.name}_{pathName}");
+        _recorder.recordingName = Sanitize($"{run.Label}_{pathName}");
         _recorder.channels = new List<RecorderChannel>
         {
             new TimeChannel { name = "time" },
@@ -364,27 +394,24 @@ public static class SynthesisBenchmarkDriver
 
     private static void Teardown()
     {
-        var method = _config.methods[_methodIndex];
+        var run = _runs[_runIndex];
+        var label = run.Label;
         var pathName = _pathPrefabs[_pathIndex].name;
 
         if (_recorder == null || _probe == null)
         {
             // An empty row would read as a measured zero.
-            Debug.LogError($"[Benchmark] {method.name} on {pathName} lost its recorder or probe; no row written.");
+            Debug.LogError($"[Benchmark] {label} on {pathName} lost its recorder or probe; no row written.");
             DestroyCharacter();
             return;
         }
 
-        var result = new BenchmarkRunResult
-        {
-            method = method.name,
-            path = pathName,
-            timedOut = _probe.TimedOut,
-            stoppedShort = _probe.StoppedShort,
-            remainingDistance = _probe.RemainingDistance,
-            completedLaps = _probe.CompletedLaps,
-            durationSeconds = _probe.ElapsedSeconds
-        };
+        var result = NewResult(run, pathName);
+        result.timedOut = _probe.TimedOut;
+        result.stoppedShort = _probe.StoppedShort;
+        result.remainingDistance = _probe.RemainingDistance;
+        result.completedLaps = _probe.CompletedLaps;
+        result.durationSeconds = _probe.ElapsedSeconds;
 
         // Read before the character is destroyed: the target speed lives on its control input.
         var targetSpeed = FindTargetSpeed();
@@ -401,17 +428,17 @@ public static class SynthesisBenchmarkDriver
         catch (Exception e)
         {
             result.error = $"evaluation failed: {e.Message}";
-            Debug.LogError($"[Benchmark] {method.name} on {pathName}: {e}");
+            Debug.LogError($"[Benchmark] {label} on {pathName}: {e}");
         }
 
         if (result.timedOut)
         {
-            Debug.LogWarning($"[Benchmark] {method.name} on {pathName} timed out after {result.durationSeconds:0.0} s, " +
+            Debug.LogWarning($"[Benchmark] {label} on {pathName} timed out after {result.durationSeconds:0.0} s, " +
                              $"having covered {result.completedLaps:0.00} of {_config.lapsRequired:0.##} lap(s).");
         }
         else if (result.stoppedShort)
         {
-            Debug.LogWarning($"[Benchmark] {method.name} on {pathName} came to rest {result.remainingDistance:0.00} m " +
+            Debug.LogWarning($"[Benchmark] {label} on {pathName} came to rest {result.remainingDistance:0.00} m " +
                              $"short of the end after {result.durationSeconds:0.0} s.");
         }
 

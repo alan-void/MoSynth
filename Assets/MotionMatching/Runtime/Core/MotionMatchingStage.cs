@@ -19,7 +19,8 @@ namespace MotionMatching
 /// component's skeleton must be the database's own rig. See openwiki/motion-matching/matching-stage.md.
 /// </remarks>
 [Serializable]
-public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider, IContactBoneSource
+public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider, IContactBoneSource,
+    ISynthesisInputSource
 {
     private MotionSynthesisComponent _owner;
 
@@ -96,6 +97,11 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider, IC
 
     private bool _warnedNoControlInput;
 
+    private MatchingInputRecorder _inputRecorder;
+
+    /// <summary>The query of the last search and the frame it matched, for overlays.</summary>
+    public SynthesisInputs ConsumedInputs => _inputRecorder?.Inputs;
+
     public IReadOnlyList<string> ContactBoneNames => mmData == null ? null : mmData.ContactBoneNames;
 
     public override void Init(MotionSynthesisComponent motionSynthesisComponent)
@@ -163,6 +169,7 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider, IC
         }
 
         mmSearch.Initialize(featureSet, _tagMask, _featureWeights);
+        _inputRecorder = new MatchingInputRecorder(mmData, featureSet, _poseSet, motionSynthesisComponent.Skeleton);
     }
 
     /// <summary>
@@ -173,6 +180,8 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider, IC
 
     public override bool Apply(PoseBuffer pose, float deltaTime)
     {
+        _inputRecorder?.BeginTick();
+
         var controlInput = ControlInput;
         if (controlInput == null)
         {
@@ -203,6 +212,7 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider, IC
         AdvancePlayback(deltaTime);
 
         pose.CopyFrom(_poseSet.GetPoseBuffer(CurrentFrame));
+        _inputRecorder?.EndTick(CurrentFrame);
         return true;
     }
 
@@ -226,7 +236,16 @@ public class MotionMatchingStage : MoSynthStage, IMotionMatchingDataProvider, IC
         if (isCurrentFrameValid && bestFrame == -1) bestFrame = CurrentFrame;
         Debug.Assert(bestFrame != -1, "Motion Matching is not able to find any valid pose. Maybe the motion database is empty or the query tag used produces an empty set of poses?");
 
-        if (math.abs(CurrentFrame - bestFrame) > minFrameSwitchDistance)
+        var switching = math.abs(CurrentFrame - bestFrame) > minFrameSwitchDistance;
+        if (bestFrame >= 0 && _inputRecorder != null)
+        {
+            var bestFeatureVector = featureSet.GetFeatureVector(bestFrame);
+            _inputRecorder.RecordSearch(_queryFeatureVector, bestFeatureVector, _featureWeights, _owner.transform,
+                _owner.SkeletonTransforms, currentDistance,
+                SqrDistance(_queryFeatureVector, bestFeatureVector, _featureWeights), switching);
+        }
+
+        if (switching)
         {
             CurrentFrame = bestFrame;
             _owner.PoseDiscontinuity = true;
