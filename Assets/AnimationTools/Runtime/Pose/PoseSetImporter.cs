@@ -124,11 +124,15 @@ public static class PoseSetImporter
                         $"this asset's skeleton ({skeleton.BoneCount} bones).";
                 return false;
             }
+
+            // Validation read the clip's curves; a large clip library would otherwise hold them all.
+            clip.ReleaseLoadedData();
         }
 
         error = null;
         return true;
     }
+
 
     /// <summary>
     /// Extracts the pose database from the source's clips, in memory. Null when
@@ -176,6 +180,10 @@ public static class PoseSetImporter
             {
                 Debug.LogWarning($"[PoseSet] '{source.name}': failed to extract the mirrored copy of clip {i}.");
             }
+
+            // The poses are copied out, so the bake is dead weight; a large clip library would
+            // otherwise hold every clip's bake and curves at once and exhaust Editor memory.
+            clip.ReleaseLoadedData();
         }
 
         poseSet.ConvertTagsToNativeArrays();

@@ -184,6 +184,20 @@ public class SkeletonAnimation : ScriptableObject
 
     public PoseBuffer GetFrame(int frameIndex) => PoseSequence.GetFrame(frameIndex);
 
+    /// <summary>
+    /// Frees the baked frames and unloads the clip's curves, so a caller walking many clips holds
+    /// one at a time. Both come back on next access. Frames from <see cref="GetFrame"/> taken
+    /// before the call are invalid after it.
+    /// </summary>
+    public void ReleaseLoadedData()
+    {
+        _poseSequence?.Dispose();
+        _poseSequence = null;
+
+        // Only reached after a read, so this does not load a clip just to unload it.
+        if (clip.isSet && !clip.isBroken && clip.asset != null) Resources.UnloadAsset(clip.asset);
+    }
+
     /// <summary>Editor-helper setup for creation menus and tests: assigns the source fields
     /// directly and invalidates any cached bake.</summary>
     public void SetSource(AnimationClip inClip, Transform inRootBone)
