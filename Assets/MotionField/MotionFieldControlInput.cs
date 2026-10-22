@@ -6,8 +6,8 @@ namespace MotionField
 {
 /// <summary>
 /// Base for components that steer a MotionFieldStage. Subclasses supply a desired world-space
-/// heading each frame; the base pushes it into the stage before the synthesis tick so the goal
-/// angle is measured against the root pose the stage is about to step from.
+/// heading and speed each frame; the base pushes them into the stage before the synthesis tick so
+/// the goal angle is measured against the root pose the stage is about to step from.
 /// </summary>
 public abstract class MotionFieldControlInput : MotionSynthesisControlInput
 {
@@ -36,16 +36,21 @@ public abstract class MotionFieldControlInput : MotionSynthesisControlInput
             }
         }
 
+        GetDesiredMotion(out var worldDirection, out var speed);
+
         // A near-zero vector keeps the stage's last heading while still refreshing Theta
         // against the root's current facing, so an idle stick does not let Theta go stale.
-        _stage.SetDesiredDirection(GetDesiredWorldDirection());
+        _stage.SetDesiredDirection(worldDirection);
+        _stage.SetDesiredSpeed(speed);
     }
 
     /// <summary>
-    /// The heading the character should turn toward, in world space, evaluated once per frame.
-    /// Return a near-zero vector to keep the previous heading.
+    /// What the character should do this frame, evaluated once per frame.
     /// </summary>
-    protected abstract Vector3 GetDesiredWorldDirection();
+    /// <param name="worldDirection">The heading to turn toward, in world space. A near-zero vector
+    /// keeps the previous heading.</param>
+    /// <param name="speed">Ground speed to move at, in m/s. 0 asks the character to stand.</param>
+    protected abstract void GetDesiredMotion(out Vector3 worldDirection, out float speed);
 
 #if UNITY_EDITOR
     protected virtual void OnDrawGizmos()

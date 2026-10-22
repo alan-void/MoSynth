@@ -75,6 +75,12 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
              "locomotionSpeedThreshold. Changing this needs a retrain.")]
     [Min(0f)] public float travelFactor = 0.5f;
 
+    [Tooltip("Penalty weight on the gap between the arrival state's ground speed and the requested " +
+             "speed, per m/s. A request below locomotionSpeedThreshold also fades out the " +
+             "locomotion bonus, so asking to stand is not paid for moving. Changing this needs a " +
+             "retrain.")]
+    [Min(0f)] public float speedFactor = 1.0f;
+
     /// <summary>
     /// Per-joint emphasis in the similarity metric, keyed by skeleton joint name.
     /// </summary>
@@ -160,6 +166,17 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     [Tooltip("Goal headings the value function is fitted over, spanning a full turn.")]
     [Min(3)] public int thetaCount = 17;
 
+    [Tooltip("Requested speeds the value function is fitted over, evenly spaced from Min Target " +
+             "Speed to Max Target Speed. Each one is a separate value-function slice, so the file " +
+             "size and the value-iteration time grow linearly with this.")]
+    [Min(1)] public int speedCount = 5;
+
+    [Tooltip("Slowest requested speed fitted, in m/s. 0 lets a control input ask the character to stand.")]
+    [Min(0f)] public float minTargetSpeed = 0f;
+
+    [Tooltip("Fastest requested speed fitted, in m/s. A faster request is answered as this one.")]
+    [Min(0f)] public float maxTargetSpeed = 2f;
+
     [Tooltip("Maximum Bellman iterations. Training stops early once the residual settles.")]
     [Min(1)] public int epochs = 300;
 
@@ -170,6 +187,11 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
 
     [Tooltip("Auto prefers CUDA when torch reports it available.")]
     public ComputeDevice device = ComputeDevice.Auto;
+
+    [Tooltip("Seed of the default training run: the value function the inspector trains and the " +
+             "stage loads unless a benchmark picks another seed. Every value function's file " +
+             "name carries its seed.")]
+    public int seed = 42;
 
     [Tooltip("Queries per batched k-NN chunk. Bounds VRAM; lower it if training runs out of memory.")]
     [Min(1)] public int knnChunk = 64;
@@ -232,8 +254,20 @@ public class MotionFieldConfig : ScriptableObject, IPoseSetSource
     /// <summary>The extracted pose database: one row per frame of the assigned clips.</summary>
     public string GetPoseDatabasePath() => Path.Combine(GetAssetPath(), name + ".mmpose");
 
-    /// <summary>The trained value function, shipped with the player.</summary>
-    public string GetValueFunctionPath() => Path.Combine(GetAssetPath(), name + ".mffield.npz");
+    /// <summary>The trained value function for <see cref="seed"/>, shipped with the player.</summary>
+    public string GetValueFunctionPath() => GetValueFunctionPath(seed);
+
+    /// <summary>The value function the training run with <paramref name="trainingSeed"/> writes.</summary>
+    public string GetValueFunctionPath(int trainingSeed) =>
+        SeededCheckpoint.Path(GetAssetPath(), name, trainingSeed, ValueFunctionExtension);
+
+    /// <summary>
+    /// Where value functions trained before checkpoints carried a seed were written. Only read to
+    /// name the file in the error a missing seeded one raises.
+    /// </summary>
+    public string GetUnseededValueFunctionPath() => Path.Combine(GetAssetPath(), name + ValueFunctionExtension);
+
+    private const string ValueFunctionExtension = ".mffield.npz";
 
     /// <summary>
     /// UMAP projection of the database, read by <see cref="MotionFieldVisualizer"/>. Debug-only, so

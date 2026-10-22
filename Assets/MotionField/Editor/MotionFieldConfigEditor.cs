@@ -466,7 +466,13 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
     /// <see cref="MotionFieldConfig.hasTrained"/> only when training actually produced one.
     /// </summary>
     /// <returns>The trainer's summary as JSON, or null when training failed.</returns>
-    public static string TrainMotionField(MotionFieldConfig config)
+    public static string TrainMotionField(MotionFieldConfig config) => TrainMotionField(config, config.seed);
+
+    /// <summary>
+    /// <see cref="TrainMotionField(MotionFieldConfig)"/> under <paramref name="seed"/>, writing that
+    /// seed's value function. The config's own <see cref="MotionFieldConfig.seed"/> is left alone.
+    /// </summary>
+    public static string TrainMotionField(MotionFieldConfig config, int seed)
     {
         string summaryJson = null;
 
@@ -490,7 +496,7 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 {
                     config.GetAssetPath().ToPython(),
                     config.name.ToPython(),
-                    config.GetValueFunctionPath().ToPython(),
+                    config.GetValueFunctionPath(seed).ToPython(),
                 });
 
                 using var kwargs = new PyDict();
@@ -506,9 +512,14 @@ public class MotionFieldConfigEditor : UnityEditor.Editor
                 kwargs["locomotion_speed_threshold"] =
                     ((double)config.locomotionSpeedThreshold).ToPython();
                 kwargs["travel_factor"] = ((double)config.travelFactor).ToPython();
+                kwargs["speed_factor"] = ((double)config.speedFactor).ToPython();
+                kwargs["speed_count"] = config.speedCount.ToPython();
+                kwargs["min_speed"] = ((double)config.minTargetSpeed).ToPython();
+                kwargs["max_speed"] = ((double)config.maxTargetSpeed).ToPython();
                 kwargs["device"] = config.DeviceName.ToPython();
                 kwargs["knn_chunk"] = config.knnChunk.ToPython();
                 kwargs["state_chunk"] = config.stateChunk.ToPython();
+                kwargs["seed"] = seed.ToPython();
                 kwargs["progress"] = report.ToPython();
 
                 using PyObject summary = trainer.InvokeMethod("train", args, kwargs);

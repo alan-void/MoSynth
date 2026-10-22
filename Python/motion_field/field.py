@@ -65,6 +65,65 @@ def travel_direction(packed_v: np.ndarray, speed_threshold: float):
     return beta.astype(np.float32), speed_weight.astype(np.float32)
 
 
+def ground_speed(packed_v: np.ndarray) -> np.ndarray:
+    """
+    Ground-plane speed of the character frame, m/s, from a packed per-second velocity.
+
+    :param packed_v: (..., num_bones + 2, 4)
+    :return: (...,) float32
+    """
+    velocity = np.asarray(packed_v)[..., 0, :3]
+    return np.linalg.norm(velocity[..., [0, 2]], axis=-1).astype(np.float32)
+
+
+def speed_penalty(arrival_speed, desired_speed, speed_factor: float) -> np.ndarray:
+    """
+    The reward's speed term: how far the arrival state's ground speed is from the
+    requested one, per m/s, scaled by `speed_factor`.
+
+    `trainer.train_value_function` computes the same term; the two must agree.
+
+    :param arrival_speed: (n,) arrival ground speeds, m/s, from `ground_speed`
+    :param desired_speed: requested ground speed, m/s; scalar or broadcastable
+    :return: (n,) non-negative penalty
+    """
+    gap = np.abs(np.asarray(arrival_speed, dtype=np.float32) - np.float32(desired_speed))
+    return (np.float32(speed_factor) * gap).astype(np.float32)
+
+
+def request_gate(desired_speed, speed_threshold: float):
+    """
+    How much of the locomotion bonus a speed request still pays, in [0, 1].
+
+    The bonus exists so that once aligned, moving beats freezing. A request to
+    stand asks the opposite, so the bonus fades out by the same linear ramp
+    `state_locomotion_scores` uses: full at `speed_threshold` and above, none at 0.
+    """
+    ratio = np.asarray(desired_speed, dtype=np.float32) / max(float(speed_threshold), 1e-6)
+    return np.clip(ratio, 0.0, 1.0).astype(np.float32)
+
+
+def speed_bracket(speeds: np.ndarray, desired_speed: float):
+    """
+    The two grid speeds bracketing a request, and the blend between them.
+
+    A request outside the grid is answered as its nearest end, since the value
+    function says nothing about speeds it was not fitted over.
+
+    :param speeds: (P,) ascending speed grid
+    :return: (lower index, upper index, alpha) with alpha the share of the upper slice
+    """
+    speeds = np.asarray(speeds, dtype=np.float32)
+    if speeds.shape[0] == 1:
+        return 0, 0, 0.0
+    desired = float(np.clip(desired_speed, speeds[0], speeds[-1]))
+    upper = int(np.clip(np.searchsorted(speeds, desired, side='right'), 1, speeds.shape[0] - 1))
+    lower = upper - 1
+    span = float(speeds[upper] - speeds[lower])
+    alpha = (desired - float(speeds[lower])) / span if span > 0.0 else 0.0
+    return lower, upper, float(np.clip(alpha, 0.0, 1.0))
+
+
 def resolve_device(preference=None) -> str:
     if preference in (None, '', 'auto'):
         return 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -165,6 +224,8 @@ class MotionField:
                  locomotion_factor: float = 1.0,
                  locomotion_speed_threshold: float = 0.5,
                  travel_factor: float = 0.5,
+                 speed_factor: float = 1.0,
+                 greedy_horizon: float = 0.5,
                  value_function_path: str = None,
                  pose_contacts: np.ndarray = None,
                  next_contacts: np.ndarray = None):
@@ -197,6 +258,13 @@ class MotionField:
             action for moving anywhere but toward the goal. The heading term alone
             only asks the character to *face* the goal, so a strafe that faces it
             scores perfectly. See `travel_penalty`. 0 disables it.
+        :param speed_factor: Weight on the speed penalty, which charges an action per
+            m/s its arrival ground speed is off the requested speed. See
+            `speed_penalty`; the locomotion bonus is gated by the request too, see
+            `request_gate`. 0 disables the penalty.
+        :param greedy_horizon: Seconds ahead the greedy policy judges heading at, by
+            extrapolating each action's turn rate. See `greedy_rewards`. 0 judges the
+            next frame alone. The value function does not read it.
         :param value_function_path: Optional `.mffield.npz` enabling `optimal_action`.
         :param pose_contacts: (state_count, n_contacts) contact flags of each state's own
             frame, one column per contact bone of the database. Required by the policies,
@@ -233,6 +301,8 @@ class MotionField:
         self.locomotion_speed_threshold = float(locomotion_speed_threshold)
         self.state_scores = state_locomotion_scores(poses_v, self.locomotion_speed_threshold)
         self.travel_factor = float(travel_factor)
+        self.speed_factor = float(speed_factor)
+        self.greedy_horizon = float(greedy_horizon)
 
         self.state_features = self.build_motion_states(poses_x, poses_v)
         self.feature_shape = self.state_features.shape[-2:]
@@ -412,35 +482,45 @@ class MotionField:
         if self.value_function is not None:
             log(f'[MotionField] loaded value function {path} '
                 f'({self.value_function.values.shape[0]} states x '
-                f'{self.value_function.theta_count} headings, '
+                f'{self.value_function.theta_count} headings x '
+                f'{self.value_function.speed_count} speeds, '
                 f'final residual {self.value_function.final_residual:.6f})')
         return self.value_function is not None
 
     def interpolate_value(self, indices: np.ndarray, weights: np.ndarray,
-                          theta: np.ndarray) -> np.ndarray:
+                          theta: np.ndarray, desired_speed: float) -> np.ndarray:
         """
-        V(s', theta') by bilinear interpolation.
+        V(s', theta', speed) by interpolation over all three.
 
-        Linear across the two bracketing headings on the task grid, then
-        weighted by the motion-space similarity weights, which makes the discrete
-        value function behave as if continuous over the whole field.
+        Linear across the two bracketing grid speeds and the two bracketing
+        headings on the task grid, then weighted by the motion-space similarity
+        weights, which makes the discrete value function behave as if continuous
+        over the whole field.
 
         :param indices: (n, k) neighbour state ids
         :param weights: (n, k) similarity weights
         :param theta: (n,) goal headings
+        :param desired_speed: requested ground speed, m/s, shared by every outcome
         :return: (n,)
         """
         vf = self.value_function
+        s0, s1, speed_alpha = speed_bracket(vf.speeds, desired_speed)
+
         coord = (np.asarray(theta, dtype=np.float32) + np.pi) / vf.theta_spacing
         lower = np.floor(coord)
         alpha = (coord - lower)[:, np.newaxis]
         i0 = (lower.astype(np.int64) % vf.theta_count)[:, np.newaxis]
         i1 = (i0 + 1) % vf.theta_count
 
-        v = (1.0 - alpha) * vf.values[indices, i0] + alpha * vf.values[indices, i1]
+        def at_speed(slot):
+            values = vf.values[:, :, slot]
+            return (1.0 - alpha) * values[indices, i0] + alpha * values[indices, i1]
+
+        v = (1.0 - speed_alpha) * at_speed(s0) + speed_alpha * at_speed(s1)
         return np.sum(v * weights, axis=1)
 
-    def value_reward(self, theta: float, next_x: np.ndarray, next_v: np.ndarray) -> float:
+    def value_reward(self, theta: float, desired_speed: float,
+                     next_x: np.ndarray, next_v: np.ndarray) -> float:
         """
         Reward for landing in a state, using the trained value function.
 
@@ -448,13 +528,15 @@ class MotionField:
         immediate term included so the runtime matches the value iteration.
 
         :param theta: the character's current heading in the goal frame, radians
+        :param desired_speed: requested ground speed, m/s
         :param next_x: packed pose after the action, (num_bones+2, 4) or (1, ...)
         :param next_v: matching packed velocity
         :return: scalar Q
         """
-        return float(self.value_rewards(theta, next_x, next_v)[0])
+        return float(self.value_rewards(theta, desired_speed, next_x, next_v)[0])
 
-    def value_rewards(self, theta: float, next_x: np.ndarray, next_v: np.ndarray) -> np.ndarray:
+    def value_rewards(self, theta: float, desired_speed: float,
+                      next_x: np.ndarray, next_v: np.ndarray) -> np.ndarray:
         """Batched `value_reward` over several candidate outcomes. Returns (n,)."""
         assert self.value_function is not None, 'no value function loaded'
 
@@ -469,13 +551,63 @@ class MotionField:
 
         indices, weights = self.get_batched_knn(self.build_motion_states(next_x, next_v),
                                                 self.value_function.k_neighbors)
-        future = self.interpolate_value(indices, weights, theta_prime)
+        future = self.interpolate_value(indices, weights, theta_prime, desired_speed)
         # The locomotion bonus is paid on the arrival state through the same
         # neighbourhood as V, matching what the value iteration optimised.
         arrival = np.sum(self.state_scores[indices] * weights, axis=1)
-        return (-np.abs(theta_prime) - self.travel_penalty(theta_prime, next_v)
-                + self.locomotion_factor * arrival
+        return (self.immediate_rewards(theta_prime, desired_speed, next_v, arrival)
                 + self.value_function.gamma * future)
+
+    def immediate_rewards(self, theta_prime: np.ndarray, desired_speed: float,
+                          next_v: np.ndarray, arrival_scores: np.ndarray) -> np.ndarray:
+        """
+        R(s, a) for several outcomes: heading, travel and speed penalties, plus the
+        locomotion bonus gated by the request. The terms
+        `trainer.train_value_function` fits, in the same form.
+
+        :param theta_prime: (n,) goal heading after each action, radians
+        :param desired_speed: requested ground speed, m/s
+        :param next_v: (n, num_bones + 2, 4) packed arrival velocities
+        :param arrival_scores: (n,) locomotion score of each arrival
+        :return: (n,)
+        """
+        return -np.abs(theta_prime) + self.non_heading_rewards(theta_prime, desired_speed,
+                                                               next_v, arrival_scores)
+
+    def non_heading_rewards(self, theta_prime: np.ndarray, desired_speed: float,
+                            next_v: np.ndarray, arrival_scores: np.ndarray) -> np.ndarray:
+        """Every term of `immediate_rewards` but the heading one: travel, speed and the gated bonus."""
+        gate = request_gate(desired_speed, self.locomotion_speed_threshold)
+        return (-self.travel_penalty(theta_prime, next_v)
+                - speed_penalty(ground_speed(next_v), desired_speed, self.speed_factor)
+                + self.locomotion_factor * gate * arrival_scores)
+
+    def greedy_rewards(self, theta: float, desired_speed: float, next_x: np.ndarray,
+                       next_v: np.ndarray, arrival_scores: np.ndarray,
+                       delta_time: float) -> np.ndarray:
+        """
+        What `greedy_action` maximises: `immediate_rewards`, except that heading is judged where
+        each action's turn rate would leave the goal after `greedy_horizon` seconds.
+
+        One frame turns a walk a few degrees, so the one-frame heading term barely separates the
+        actions, and the travel and speed terms decide alone: a strafe or backpedal toward the
+        goal then beats turning to face it. The value function supplies that foresight for
+        `optimal_action`; this is the greedy policy's cheap stand-in. The prediction is left
+        unwrapped, so turning past the goal is charged rather than wrapped into a reward.
+
+        :param theta: goal heading before the action, radians, as `optimal_action` takes it
+        :param next_x: (n, num_bones + 2, 4) packed poses after each action
+        :param next_v: matching packed velocities
+        :param arrival_scores: (n,) locomotion score of each arrival
+        :param delta_time: seconds the actions were integrated over
+        :return: (n,)
+        """
+        turn = root_yaw(next_x)
+        theta_prime = wrap_angle(theta + turn)
+        horizon = max(self.greedy_horizon, delta_time)
+        theta_ahead = wrap_angle(theta) + turn * (horizon / delta_time)
+        return -np.abs(theta_ahead) + self.non_heading_rewards(theta_prime, desired_speed,
+                                                                next_v, arrival_scores)
 
     def travel_penalty(self, theta_prime: np.ndarray, next_v: np.ndarray) -> np.ndarray:
         """
@@ -502,7 +634,7 @@ class MotionField:
     # Policies
     # ------------------------------------------------------------------ #
 
-    def optimal_action(self, theta: float,
+    def optimal_action(self, theta: float, desired_speed: float,
                        current_x: np.ndarray, current_v: np.ndarray,
                        delta_time: float):
         """
@@ -514,11 +646,13 @@ class MotionField:
         :param theta: The character's current heading expressed in the goal
             frame, radians. Unity computes it as
             `-SignedAngle(root.forward, desiredWorldDir, up)`.
+        :param desired_speed: The ground speed to move at, m/s. Outside the
+            value function's speed grid it is answered as the nearest end.
         :return: (new_x, new_v, contacts): the pose and velocity, both
             (1, num_bones+2, 4), and the (n_contacts,) contact flags.
         """
         if self.value_function is None:
-            return self.greedy_action(theta, current_x, current_v, delta_time)
+            return self.greedy_action(theta, desired_speed, current_x, current_v, delta_time)
 
         k = self.value_function.k_neighbors
         indices, distances = self.get_knn(self.build_motion_states(current_x, current_v), k=k)
@@ -528,16 +662,16 @@ class MotionField:
         xs, vs = self.compute_new_states(current_x, delta_time, indices, actions,
                                          tug_indices=indices)
 
-        best = int(np.argmax(self.value_rewards(theta, xs, vs)))
+        best = int(np.argmax(self.value_rewards(theta, desired_speed, xs, vs)))
         self._record_decision(indices, weights, best)
         return xs[best:best + 1], vs[best:best + 1], self._blend_contacts(indices, actions[best])
 
-    def greedy_action(self, theta: float,
+    def greedy_action(self, theta: float, desired_speed: float,
                       current_x: np.ndarray, current_v: np.ndarray,
                       delta_time: float):
         """
-        One-step-greedy fallback: pick whichever action best aligns the heading
-        with the goal on the next frame. Used when no value function is loaded.
+        One-step-greedy fallback: pick whichever action scores best on
+        `greedy_rewards`. Used when no value function is loaded.
 
         :return: (new_x, new_v, contacts), as `optimal_action`.
         """
@@ -549,13 +683,11 @@ class MotionField:
         xs, vs = self.compute_new_states(current_x, delta_time, indices, actions,
                                          tug_indices=indices)
 
-        # Heading and travel direction, plus the locomotion bonus -- without which
-        # standing (zero yaw) beats the yaw wiggle of any walk cycle once aligned.
-        theta_prime = wrap_angle(theta + root_yaw(xs))
+        # Heading, travel direction and speed, plus the locomotion bonus -- without
+        # which standing (zero yaw) beats the yaw wiggle of any walk cycle once aligned.
         arrival = actions @ self.state_scores[indices]
-        rewards = (-np.abs(theta_prime) - self.travel_penalty(theta_prime, vs)
-                   + self.locomotion_factor * arrival)
-        best = int(np.argmax(rewards))
+        best = int(np.argmax(self.greedy_rewards(theta, desired_speed, xs, vs, arrival,
+                                                 delta_time)))
         self._record_decision(indices, weights, best)
         return xs[best:best + 1], vs[best:best + 1], self._blend_contacts(indices, actions[best])
 

@@ -6,22 +6,29 @@ using UnityEngine.Splines;
 namespace MotionField
 {
 /// <summary>
-/// Pure-pursuit spline following: each frame, find the point on the spline nearest the character
-/// root, then steer toward the point a fixed arc length further along. The policy has no speed
-/// control, so the lookahead distance is the only tuning knob: shorter hugs the spline but can
-/// oscillate, longer cuts corners.
+/// Pure-pursuit spline following, through <see cref="SplinePursuit"/>: each frame, find the point on
+/// the spline nearest the character root, steer toward the point a fixed arc length further along,
+/// and ask for the target speed. Shorter lookahead hugs the spline but can oscillate, longer cuts
+/// corners.
 /// </summary>
-public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSynthesisSplineControlInput
+public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSynthesisSplineControlInput,
+    ISteeringTargetSource
 {
-    [Tooltip("Path to follow. Closed splines loop; on open splines the character keeps its last " +
-             "heading past the end.")]
+    [Tooltip("Path to follow. Closed splines loop; on open splines the character slows to a stop " +
+             "over the last lookahead distance.")]
     [SerializeField]
     private SplineContainer splineContainer;
 
     [Tooltip("Arc length ahead of the nearest spline point to steer toward, in meters.")]
     [SerializeField]
     [Min(0.1f)]
-    private float lookaheadDistance = 1.5f;
+    private float lookaheadDistance = SplinePursuit.DefaultLookaheadDistance;
+
+    [Tooltip("Ground speed to ask the motion field for, in m/s. Reachable only within the speed " +
+             "range the config's value function was trained over.")]
+    [SerializeField]
+    [Min(0f)]
+    private float speed = SplinePursuit.DefaultTargetSpeed;
 
     public SplineContainer SplineContainer
     {
@@ -31,11 +38,11 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
             splineContainer = value;
             // A new path makes the tracked position meaningless, and a benchmark sweep hands this
             // component a different spline for every run.
-            _projector.Reset();
+            _pursuit.Reset();
         }
     }
 
-    public float TargetSpeed => float.NaN;
+    public float TargetSpeed => speed;
 
     /// <summary>
     /// The direction the path sets off in. Pure pursuit steers toward the path and has no notion of
@@ -43,18 +50,10 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
     /// </summary>
     public float3 GetWorldInitDirection() => SplinePathDirection.WorldStartDirection(splineContainer);
 
-    /// <summary>Arc length ahead of the nearest spline point to steer toward, in meters. The only tuning knob this policy has.</summary>
+    /// <summary>Arc length ahead of the nearest spline point to steer toward, in meters.</summary>
     public float LookaheadDistance { get => lookaheadDistance; set => lookaheadDistance = value; }
 
-    /// <summary>
-    /// Tracks where on the path the character is continuously, so a self-crossing path does not
-    /// flip the nearest point to the other branch.
-    /// </summary>
-    private readonly SplineProjector _projector = new();
-
-    private Vector3 _nearestWorld;
-    private Vector3 _targetWorld;
-    private bool _hasTarget;
+    private readonly SplinePursuit _pursuit = new();
 
     protected override void OnEnable()
     {
@@ -62,57 +61,46 @@ public class MotionFieldSplineControlInput : MotionFieldControlInput, IMotionSyn
         if (!IsBound) return;
 
         // Nothing carries over from a previous activation, so the first frame back re-seeds.
-        _projector.Reset();
+        _pursuit.Reset();
     }
 
-    protected override Vector3 GetDesiredWorldDirection()
+    protected override void GetDesiredMotion(out Vector3 worldDirection, out float desiredSpeed)
     {
-        _hasTarget = false;
-        if (splineContainer == null) return Vector3.zero;
+        worldDirection = Vector3.zero;
+        desiredSpeed = 0f;
 
-        var spline = splineContainer.Spline;
-        if (spline == null || spline.Count < 2) return Vector3.zero;
+        var spline = splineContainer != null ? splineContainer.Spline : null;
+        if (spline == null)
+        {
+            _pursuit.Reset();
+            return;
+        }
 
-        var length = spline.GetLength();
-        if (length < 1e-3f) return Vector3.zero;
+        if (!_pursuit.Update(spline, splineContainer.transform.localToWorldMatrix, RootPosition)) return;
 
-        // The projection works in the spline's local space; the container transform maps it
-        // to the world. Lookahead is measured on the local curve, so a scaled container would
-        // skew it -- containers are assumed unscaled.
-        var splineTransform = splineContainer.transform;
-        var localRoot = (float3)splineTransform.InverseTransformPoint(RootPosition);
+        // Near-zero at an open spline's end, so the stage keeps the last heading as it stops.
+        worldDirection = _pursuit.DesiredWorldDirection(RootPosition, lookaheadDistance);
+        desiredSpeed = _pursuit.SpeedToward(speed, lookaheadDistance);
+    }
 
-        var nearestT = _projector.Project(spline, localRoot);
-        var nearestLocal = (Vector3)spline.EvaluatePosition(nearestT);
-
-        var nearestDistance = spline.ConvertIndexUnit(
-            nearestT, PathIndexUnit.Normalized, PathIndexUnit.Distance);
-        var targetDistance = SplineFold.Distance(
-            nearestDistance + lookaheadDistance, length, spline.Closed);
-
-        var targetT = spline.ConvertIndexUnit(
-            targetDistance, PathIndexUnit.Distance, PathIndexUnit.Normalized);
-        var targetLocal = spline.EvaluatePosition(targetT);
-
-        _nearestWorld = splineTransform.TransformPoint(nearestLocal);
-        _targetWorld = splineTransform.TransformPoint((Vector3)targetLocal);
-        _hasTarget = true;
-
-        var desired = _targetWorld - RootPosition;
-        desired.y = 0f;
-        return desired; // near-zero at an open spline's end -> stage keeps the last heading
+    /// <summary>The pursuit point: <see cref="LookaheadDistance"/> along the path from the character's projection.</summary>
+    public bool TryGetSteeringTarget(out float3 worldPosition)
+    {
+        worldPosition = _pursuit.HasPath ? _pursuit.TargetWorld(lookaheadDistance) : float3.zero;
+        return _pursuit.HasPath;
     }
 
 #if UNITY_EDITOR
     protected override void OnDrawGizmos()
     {
         base.OnDrawGizmos();
-        if (!Application.isPlaying || !_hasTarget) return;
+        if (!Application.isPlaying || !_pursuit.HasPath) return;
+        var target = (Vector3)_pursuit.TargetWorld(lookaheadDistance);
         Gizmos.color = new Color(0.1f, 1.0f, 0.1f, 1.0f);
-        Gizmos.DrawSphere(_nearestWorld + Vector3.up * 0.02f, 0.05f);
+        Gizmos.DrawSphere((Vector3)_pursuit.NearestWorld + Vector3.up * 0.02f, 0.05f);
         Gizmos.color = new Color(0.6f, 0.3f, 0.8f, 1.0f); // prediction purple, per MM gizmo style
-        Gizmos.DrawSphere(_targetWorld + Vector3.up * 0.02f, 0.08f);
-        Gizmos.DrawLine(RootPosition + Vector3.up * 0.05f, _targetWorld + Vector3.up * 0.05f);
+        Gizmos.DrawSphere(target + Vector3.up * 0.02f, 0.08f);
+        Gizmos.DrawLine(RootPosition + Vector3.up * 0.05f, target + Vector3.up * 0.05f);
     }
 #endif
 }

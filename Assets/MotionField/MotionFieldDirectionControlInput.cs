@@ -14,6 +14,12 @@ public class MotionFieldDirectionControlInput : MotionFieldControlInput, IMotion
     [SerializeField]
     private Transform inputReference;
 
+    [Tooltip("Speed requested at full stick deflection, in m/s. A partial deflection asks for " +
+             "proportionally less, and a released stick asks the character to stand.")]
+    [SerializeField]
+    [Min(0f)]
+    private float maxSpeed = SplinePursuit.DefaultTargetSpeed;
+
     private Vector2 _inputMovement;
 
     /// <summary>Latest 2D movement input; x is strafe, y is forward.</summary>
@@ -22,21 +28,30 @@ public class MotionFieldDirectionControlInput : MotionFieldControlInput, IMotion
         _inputMovement = movementDirection;
     }
 
-    protected override Vector3 GetDesiredWorldDirection()
+    protected override void GetDesiredMotion(out Vector3 worldDirection, out float speed)
     {
-        // The policy cannot stand still, so a released stick keeps the last heading rather
-        // than asking for a direction the field has no answer for.
-        if (_inputMovement.sqrMagnitude < 1e-4f) return Vector3.zero;
+        speed = maxSpeed * Mathf.Clamp01(_inputMovement.magnitude);
+
+        // A released stick keeps the last heading: standing still asks nothing of the direction.
+        if (_inputMovement.sqrMagnitude < 1e-4f)
+        {
+            worldDirection = Vector3.zero;
+            return;
+        }
 
         var reference = inputReference;
         if (reference == null && Camera.main != null) reference = Camera.main.transform;
-        if (reference == null) return new Vector3(_inputMovement.x, 0f, _inputMovement.y);
+        if (reference == null)
+        {
+            worldDirection = new Vector3(_inputMovement.x, 0f, _inputMovement.y);
+            return;
+        }
 
         var right = reference.right;
         var ahead = reference.forward;
         right.y = 0f;
         ahead.y = 0f;
-        return right.normalized * _inputMovement.x + ahead.normalized * _inputMovement.y;
+        worldDirection = right.normalized * _inputMovement.x + ahead.normalized * _inputMovement.y;
     }
 }
 }

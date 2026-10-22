@@ -4,8 +4,8 @@ Fitted value iteration for the motion field (Lee et al. 2010, section 6).
 The controller needs to know more than which action looks best right now --
 turning a walk cycle takes several steps of setup, so a one-step-greedy policy
 oscillates instead of committing. Training fits a value function V(state, goal
-heading) over the whole database, after which the runtime can act on
-`Q = R + gamma * V(s')` and anticipate.
+heading, requested speed) over the whole database, after which the runtime can
+act on `Q = R + gamma * V(s')` and anticipate.
 
 Pipeline:
 
@@ -16,10 +16,13 @@ Pipeline:
      residual stops moving.
   3. Write the value function to StreamingAssets.
 
-Both the task parameter (the goal heading, quantised onto a grid of
-`theta_count` values) and the motion state are interpolated, so although values
-are only stored at discrete database states the result behaves as a continuous
-function over the field.
+Both task parameters (the goal heading, quantised onto a grid of `theta_count`
+values, and the requested ground speed, onto a grid of `speed_count` values)
+and the motion state are interpolated, so although values are only stored at
+discrete database states the result behaves as a continuous function over the
+field. An action turns the goal but never changes the request, so each speed is
+its own Bellman problem: the speed grid multiplies the backup's cost, not the
+transition tables'.
 
 Runs from the Unity Editor through PythonNET, or standalone:
 
@@ -36,9 +39,10 @@ import numpy as np
 import torch
 
 from motion_field import io as mfio
-from motion_field.field import (MotionField, load_bone_weights_file, resolve_device, root_yaw,
-                                travel_direction)
+from motion_field.field import (MotionField, ground_speed, load_bone_weights_file, request_gate,
+                                resolve_device, root_yaw, travel_direction)
 from motion_field.action_predictor import load_animations
+from training.seeding import seed_everything
 
 # States per precompute chunk, bounding the neighbour gather of
 # states_per_chunk * K * K * (bones+2) * 4 floats.
@@ -60,6 +64,8 @@ def build_tables(motion_field: MotionField, k_neighbors: int, tug_ratio: float,
       * `travel_beta[s, a]` / `travel_weight[s, a]` -- which way the arrival state
         moves relative to its facing, and the speed gate on that, from
         `motion_field.field.travel_direction`.
+      * `arrival_speed[s, a]` -- the arrival state's ground speed, m/s, for the
+        speed term.
       * `value_indices[s, a, :]` / `value_weights[s, a, :]` -- the k nearest
         database states to wherever the action lands, and their similarity
         weights, so V(s') can be read off as a weighted sum.
@@ -67,7 +73,7 @@ def build_tables(motion_field: MotionField, k_neighbors: int, tug_ratio: float,
     Fully batched, rather than integrating one action at a time.
 
     :return: (delta_yaw (S,K) f32, travel_beta (S,K) f32, travel_weight (S,K) f32,
-        value_indices (S,K,K) i32, value_weights (S,K,K) f32)
+        arrival_speed (S,K) f32, value_indices (S,K,K) i32, value_weights (S,K,K) f32)
     """
     states_count = motion_field.states_count
     k = k_neighbors
@@ -86,6 +92,7 @@ def build_tables(motion_field: MotionField, k_neighbors: int, tug_ratio: float,
     delta_yaw = np.zeros((states_count, k), dtype=np.float32)
     travel_beta = np.zeros((states_count, k), dtype=np.float32)
     travel_weight = np.zeros((states_count, k), dtype=np.float32)
+    arrival_speed = np.zeros((states_count, k), dtype=np.float32)
     value_indices = np.zeros((states_count, k, k), dtype=np.int32)
     value_weights = np.zeros((states_count, k, k), dtype=np.float32)
 
@@ -111,6 +118,7 @@ def build_tables(motion_field: MotionField, k_neighbors: int, tug_ratio: float,
         beta, speed_weight = travel_direction(vs, motion_field.locomotion_speed_threshold)
         travel_beta[start:stop] = beta.reshape(span, k)
         travel_weight[start:stop] = speed_weight.reshape(span, k)
+        arrival_speed[start:stop] = ground_speed(vs).reshape(span, k)
 
         successor_indices, successor_weights = motion_field.get_batched_knn(
             motion_field.build_motion_states(xs, vs), k, chunk=knn_chunk)
@@ -119,7 +127,7 @@ def build_tables(motion_field: MotionField, k_neighbors: int, tug_ratio: float,
 
         progress('Precomputing transitions', stop / states_count)
 
-    return delta_yaw, travel_beta, travel_weight, value_indices, value_weights
+    return delta_yaw, travel_beta, travel_weight, arrival_speed, value_indices, value_weights
 
 
 def theta_grid(theta_count: int) -> np.ndarray:
@@ -127,9 +135,20 @@ def theta_grid(theta_count: int) -> np.ndarray:
     return np.linspace(-np.pi, np.pi, theta_count + 1, dtype=np.float32)[:theta_count]
 
 
+def speed_grid(min_speed: float = 0.0, max_speed: float = 2.0, speed_count: int = 5) -> np.ndarray:
+    """The requested-speed grid: `speed_count` ground speeds, m/s, evenly spaced over [min, max]."""
+    if speed_count < 1:
+        raise ValueError(f'speed_count must be at least 1, got {speed_count}')
+    if max_speed < min_speed:
+        raise ValueError(f'max_speed {max_speed} is below min_speed {min_speed}')
+    return np.linspace(min_speed, max_speed, speed_count, dtype=np.float32)
+
+
 def train_value_function(delta_yaw, value_indices, value_weights,
                          state_scores=None, locomotion_factor=1.0,
                          travel_beta=None, travel_weight=None, travel_factor=0.5,
+                         arrival_speed=None, speed_factor=1.0, speeds=None,
+                         locomotion_speed_threshold=0.5,
                          theta_count=17, epochs=300, gamma=0.99,
                          device=None, residual_tolerance=1e-5,
                          progress=_noop_progress):
@@ -139,19 +158,26 @@ def train_value_function(delta_yaw, value_indices, value_weights,
         theta'[s,a,t] = wrap(theta[t] + delta_yaw[s,a])
         bonus[s,a]    = factor * sum_j w[s,a,j] * state_scores[s'[s,a,j]]
         travel[s,a,t] = travel_factor * travel_weight[s,a] * |wrap(travel_beta[s,a] + theta'[s,a,t])|
-        reward[s,a,t] = -|theta'[s,a,t]| - travel[s,a,t] + bonus[s,a]
-        Q[s,a,t]      = reward + gamma * sum_j w[s,a,j] * V(s'[s,a,j], theta'[s,a,t])
-        V[s,t]        = max over a of Q[s,a,t]
+        speed[s,a,p]  = speed_factor * |arrival_speed[s,a] - speeds[p]|
+        gate[p]       = request_gate(speeds[p], locomotion_speed_threshold)
+        reward[s,a,t,p] = -|theta'[s,a,t]| - travel[s,a,t] - speed[s,a,p] + gate[p] * bonus[s,a]
+        Q[s,a,t,p]    = reward + gamma * sum_j w[s,a,j] * V(s'[s,a,j], theta'[s,a,t], p)
+        V[s,t,p]      = max over a of Q[s,a,t,p]
 
     The heading term is never positive, so the bonus term (keyed on root speed,
     paid on the arrival state) is what makes moving strictly better than freezing
-    once aligned. The action rotates the character, so the successor value is read
+    once aligned. A request to stand asks the opposite, so the bonus is gated by
+    the request. The action rotates the character, so the successor value is read
     at `theta + delta_yaw`, interpolated across the two bracketing grid headings.
+    The request is the same before and after an action, so the speed slices never
+    exchange value and are backed up one at a time, which keeps peak memory at a
+    single slice's.
 
     The heading term only asks the character to *face* the goal. The travel term
     asks it to *move* toward it too, which is what stops a strafe that faces the
     goal from scoring perfectly. It is `MotionField.travel_penalty`, whose
-    docstring derives the `beta + theta'` sign.
+    docstring derives the `beta + theta'` sign. The speed term is
+    `motion_field.field.speed_penalty`.
 
     :param delta_yaw: (states, actions) f32 -- yaw each action turns the
         character through, from `build_tables`.
@@ -167,6 +193,13 @@ def train_value_function(delta_yaw, value_indices, value_weights,
         to facing, from `build_tables`; None trains without the travel term.
     :param travel_weight: (states, actions) f32 -- speed gate on that direction.
     :param travel_factor: scale on the travel term; 0 disables it.
+    :param arrival_speed: (states, actions) f32 -- arrival ground speed, m/s, from
+        `build_tables`; None trains without the speed term.
+    :param speed_factor: scale on the speed term; 0 disables it.
+    :param speeds: (speed_count,) ascending requested-speed grid, m/s; None for
+        `speed_grid()`. Must be what the runtime policy reads back.
+    :param locomotion_speed_threshold: request speed, m/s, at and above which the
+        bonus is paid in full; see `motion_field.field.request_gate`.
     :param theta_count: number of goal headings on the task grid, spanning
         [-pi, pi). Must match what the runtime policy will use.
     :param epochs: maximum Bellman backup iterations.
@@ -174,15 +207,17 @@ def train_value_function(delta_yaw, value_indices, value_weights,
         of per-step reward.
     :param device: torch device name, or None to pick via `resolve_device`.
     :param residual_tolerance: stop early once the mean Bellman residual for
-        an epoch falls below this.
+        an epoch, over every speed, falls below this.
     :param progress: optional callable(stage_name, fraction_0_to_1).
-    :return: (V (states, theta_count) f32, scores (epochs_run, 3) f32) where
-        scores columns are the min / max / mean Bellman residual per epoch.
+    :return: (V (states, theta_count, speed_count) f32, scores (epochs_run, 3) f32)
+        where scores columns are the min / max / mean Bellman residual per epoch.
     """
     device = resolve_device(device)
     states_count, k = delta_yaw.shape
+    speeds = speed_grid() if speeds is None else np.asarray(speeds, dtype=np.float32).reshape(-1)
+    speed_count = speeds.shape[0]
 
-    values = torch.zeros((states_count, theta_count), device=device)
+    values = torch.zeros((states_count, theta_count, speed_count), device=device)
     delta = torch.from_numpy(delta_yaw).to(device, torch.float32)
     neighbour_ids = torch.from_numpy(value_indices).to(device, torch.long)
     neighbour_weights = torch.from_numpy(value_weights).to(device, torch.float32)
@@ -191,7 +226,7 @@ def train_value_function(delta_yaw, value_indices, value_weights,
     # Goal heading after the action, per (state, action, starting heading).
     next_theta = thetas.view(1, 1, theta_count) + delta.view(states_count, k, 1)
     next_theta = (next_theta + torch.pi) % (2.0 * torch.pi) - torch.pi
-    rewards = -torch.abs(next_theta)
+    heading_rewards = -torch.abs(next_theta)
 
     if travel_beta is not None and travel_factor != 0.0:
         # Gap between travel direction and goal, both measured from the arrival
@@ -199,14 +234,23 @@ def train_value_function(delta_yaw, value_indices, value_weights,
         beta = torch.from_numpy(travel_beta).to(device, torch.float32).unsqueeze(-1)
         gate = torch.from_numpy(travel_weight).to(device, torch.float32).unsqueeze(-1)
         travel_gap = (beta + next_theta + torch.pi) % (2.0 * torch.pi) - torch.pi
-        rewards = rewards - travel_factor * gate * torch.abs(travel_gap)
+        heading_rewards = heading_rewards - travel_factor * gate * torch.abs(travel_gap)
+
+    # The heading-independent part of each slice's reward, (speeds, S, A): small
+    # enough to keep whole, unlike the per-slice (S, A, T) reward it is added to.
+    speed_rewards = torch.zeros((speed_count, states_count, k), device=device)
+    speed_targets = torch.from_numpy(speeds).to(device).view(speed_count, 1, 1)
 
     if state_scores is not None and locomotion_factor != 0.0:
-        # Interpolated through the same successor neighbourhood as V, and
-        # heading-independent, so it broadcasts over the theta axis.
+        # Interpolated through the same successor neighbourhood as V.
         scores = torch.from_numpy(state_scores).to(device, torch.float32)
         bonus = (scores[neighbour_ids] * neighbour_weights).sum(dim=2)
-        rewards = rewards + locomotion_factor * bonus.unsqueeze(-1)
+        gates = torch.from_numpy(request_gate(speeds, locomotion_speed_threshold)).to(device)
+        speed_rewards = speed_rewards + locomotion_factor * gates.view(speed_count, 1, 1) * bonus
+
+    if arrival_speed is not None and speed_factor != 0.0:
+        arrival = torch.from_numpy(arrival_speed).to(device, torch.float32).unsqueeze(0)
+        speed_rewards = speed_rewards - speed_factor * torch.abs(arrival - speed_targets)
 
     # Fractional position of next_theta on the heading grid, split into the two
     # bracketing grid indices and a blend factor. Fixed for all epochs.
@@ -221,16 +265,19 @@ def train_value_function(delta_yaw, value_indices, value_weights,
     epochs_run = 0
 
     for epoch in range(epochs):
-        neighbour_values = values[neighbour_ids]                     # (S, A, J, T)
-        at_lower = torch.gather(neighbour_values, 3, lower_id)
-        at_upper = torch.gather(neighbour_values, 3, upper_id)
+        updated = torch.empty_like(values)
+        for slot in range(speed_count):
+            neighbour_values = values[:, :, slot][neighbour_ids]         # (S, A, J, T)
+            at_lower = torch.gather(neighbour_values, 3, lower_id)
+            at_upper = torch.gather(neighbour_values, 3, upper_id)
 
-        # Interpolate over the task grid first, then over motion space.
-        by_task = (1.0 - alpha) * at_lower + alpha * at_upper
-        expected_next = (by_task * neighbour_weights.unsqueeze(-1)).sum(dim=2)
+            # Interpolate over the task grid first, then over motion space.
+            by_task = (1.0 - alpha) * at_lower + alpha * at_upper
+            expected_next = (by_task * neighbour_weights.unsqueeze(-1)).sum(dim=2)
 
-        q_values = rewards + gamma * expected_next
-        updated = q_values.max(dim=1).values
+            rewards = heading_rewards + speed_rewards[slot].unsqueeze(-1)
+            q_values = rewards + gamma * expected_next
+            updated[:, :, slot] = q_values.max(dim=1).values
 
         residual = torch.abs(values - updated)
         scores[epoch] = (residual.min().item(), residual.max().item(), residual.mean().item())
@@ -258,10 +305,15 @@ def train(data_dir: str,
           locomotion_factor: float = 1.0,
           locomotion_speed_threshold: float = 0.5,
           travel_factor: float = 0.5,
+          speed_factor: float = 1.0,
+          speed_count: int = 5,
+          min_speed: float = 0.0,
+          max_speed: float = 2.0,
           device: str = 'auto',
           knn_chunk: int = 64,
           state_chunk: int = DEFAULT_STATE_CHUNK,
           residual_tolerance: float = 1e-5,
+          seed: int = 42,
           progress=None) -> dict:
     """
     Train a motion field value function and write it to `out_path`.
@@ -277,11 +329,20 @@ def train(data_dir: str,
         counts as fully moving.
     :param travel_factor: penalty weight on moving anywhere but toward the goal;
         see `MotionField.travel_penalty`.
+    :param speed_factor: penalty weight per m/s between the arrival ground speed
+        and the requested one; see `motion_field.field.speed_penalty`.
+    :param speed_count: requested speeds fitted, evenly spaced over
+        [min_speed, max_speed]; the value function and the backup's time grow
+        linearly with it.
+    :param seed: seeds every random number generator before anything is built.
     :param progress: optional callable(stage_name, fraction_0_to_1)
     :return: a summary dict (also useful as the value Unity logs)
     """
     progress = progress or _noop_progress
     started = time.perf_counter()
+    seed_everything(seed)
+
+    speeds = speed_grid(min_speed, max_speed, speed_count)
 
     progress('Loading pose database', 0.0)
     skeleton, poses_x, poses_v, poses_y, _, _, frame_time, _ = load_animations(data_dir, db_name)
@@ -292,9 +353,10 @@ def train(data_dir: str,
                                knn_chunk=knn_chunk, bone_weights=bone_weights,
                                locomotion_factor=locomotion_factor,
                                locomotion_speed_threshold=locomotion_speed_threshold,
-                               travel_factor=travel_factor)
+                               travel_factor=travel_factor,
+                               speed_factor=speed_factor)
 
-    delta_yaw, travel_beta, travel_weight, value_indices, value_weights = build_tables(
+    delta_yaw, travel_beta, travel_weight, arrival_speed, value_indices, value_weights = build_tables(
         motion_field, k_neighbors, tug_ratio,
         state_chunk=state_chunk, knn_chunk=knn_chunk, progress=progress)
 
@@ -304,6 +366,8 @@ def train(data_dir: str,
         locomotion_factor=locomotion_factor,
         travel_beta=travel_beta, travel_weight=travel_weight,
         travel_factor=travel_factor,
+        arrival_speed=arrival_speed, speed_factor=speed_factor, speeds=speeds,
+        locomotion_speed_threshold=locomotion_speed_threshold,
         theta_count=theta_count, epochs=epochs, gamma=gamma,
         device=motion_field.device, residual_tolerance=residual_tolerance,
         progress=progress)
@@ -311,19 +375,21 @@ def train(data_dir: str,
     progress('Writing value function', 1.0)
     mfio.save_value_function(out_path, values, scores,
                              theta_count=int(theta_count), gamma=float(gamma),
-                             k_neighbors=int(k_neighbors))
+                             k_neighbors=int(k_neighbors), speeds=speeds)
 
     summary = {
         'out_path': out_path,
         'states_count': int(motion_field.states_count),
         'theta_count': int(theta_count),
+        'speeds': [float(speed) for speed in speeds],
         'epochs_run': int(scores.shape[0]),
         'final_residual': float(scores[-1, 2]) if scores.size else float('nan'),
         'device': motion_field.device,
+        'seed': int(seed),
         'seconds': round(time.perf_counter() - started, 2),
     }
     print(f'[MotionField] trained {summary["states_count"]} states x '
-          f'{summary["theta_count"]} headings in {summary["seconds"]}s on '
+          f'{summary["theta_count"]} headings x {len(speeds)} speeds in {summary["seconds"]}s on '
           f'{summary["device"]} ({summary["epochs_run"]} epochs, '
           f'final residual {summary["final_residual"]:.6f}) -> {out_path}')
     return summary
@@ -347,11 +413,16 @@ def _parse_args(argv=None):
     parser.add_argument('--locomotion-factor', type=float, default=1.0)
     parser.add_argument('--locomotion-speed-threshold', type=float, default=0.5)
     parser.add_argument('--travel-factor', type=float, default=0.5)
+    parser.add_argument('--speed-factor', type=float, default=1.0)
+    parser.add_argument('--speed-count', type=int, default=5)
+    parser.add_argument('--min-speed', type=float, default=0.0)
+    parser.add_argument('--max-speed', type=float, default=2.0)
     parser.add_argument('--bone-weights', default=None,
                         help='JSON file of {"JointName": [pos, vel]} per-joint metric weights')
     parser.add_argument('--device', default='auto', choices=['auto', 'cuda', 'cpu'])
     parser.add_argument('--knn-chunk', type=int, default=64)
     parser.add_argument('--state-chunk', type=int, default=DEFAULT_STATE_CHUNK)
+    parser.add_argument('--seed', type=int, default=42)
     return parser.parse_args(argv)
 
 
