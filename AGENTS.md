@@ -90,6 +90,38 @@ Python behind PythonNET.
   contained
 - Full detail: `openwiki/pfnn/`
 
+### StyleTransferStage
+
+A post-pose `MoSynthStage` that restyles the pose any synthesis method produced (sad, old, proud),
+trained on 100STYLE. It writes per-bone rotation deltas on top of the input, so at zero intensity it
+is the identity. v1 is validated over motion matching.
+
+- **C# side** (`Assets/Style/`): `StyleTransferStage` extracts the character-space pose, updates the
+  causal gait phase, calls one stateless Python `step`, and composes the deltas itself (intensities,
+  region weights, gate and style crossfade are per-character state). `StyleTransferConfig` owns the
+  clips, tags and training settings
+- **Python side** (`Python/style/*.py`): `style.phase` ports the causal phase, `style.dataset` pairs
+  styled frames with `Neutral` ones, `style.model` is the network, `style.trainer` fits it,
+  `style.io` stores it, `style.runtime` runs it
+- **Placement**: `<method> → Inertialization → StyleTransferStage → RootFollowStage →
+  ContactLockStage`. After `Inertialization` so it sees a smooth stream; before `RootFollowStage` and
+  `ContactLockStage` so they place and plant the *restyled* pose. `Init` warns about a placement
+  stage ahead of it
+- **`rootMotion`**: `Preserve` leaves the root's travel to the method and styles only bone 0's
+  height, pitch and roll; `Stylize` also rewrites bone 0's frame velocity (speed, sway, yaw wobble).
+  An exact `RootFollowStage` (position half-life 0) cancels `Stylize`, and `Init` warns about it
+- **Timing stays with the method**: the stage reads the method's contact flags and never changes
+  them. Phase comes from `OnlineGaitPhase` (`AnimationTools/Runtime/Animation/`), a causal reading of
+  those flags. **It has a Python port, `style.phase`, and the two must stay identical** because the
+  network trains on the Python phase and runs on the C# one. Golden vectors in
+  `Python/tests/fixtures/online_gait_phase_golden.json` are asserted by both suites
+- **Style labels** come from the `<name>.style_labels.json` sidecar the config bakes beside the
+  `.mmpose`: one `{style, gait}` entry per clip, in database clip order, so `mirrorClips` must be
+  off. Each clip carries one whole-clip tag under the config's style root and one under its gait root
+- **Tags live under `Assets/Resources/GameplayTags`**, because `GameplayTagConfig` only loads from
+  `Resources`; `HundredStyleClipSetup` creates them there
+- Full detail: `.junie/plans/style-transfer-stage.md`
+
 ### Steering a character: three roles
 
 Intent, trajectory origin and root reconciliation are separate concerns, and the combination decides
@@ -106,6 +138,19 @@ how a character behaves:
   damped and rate-limited; a half-life of 0 is exact placement. It must run **after**
   `Inertialization`, and it follows in the ground plane only
 - Anchored and capsule authority **do not compose** — an anchored input has no object to follow
+
+**Spline inputs are closed loop, on one helper.** Every method's spline input (`SplineControlInput`
+for MM and LMM, `PfnnSplineControlInput`, `MotionFieldSplineControlInput`) runs on `SplinePursuit`
+(`AnimationTools`): each tick it projects the character onto the path, and everything is measured
+from that nearest point — never from a point advancing on its own clock, so a character that falls
+behind is not asked to catch up. The MM-family inputs lay their trajectory samples along the path
+from it at `speed` (default 1 m/s); the motion field steers toward a point `lookaheadDistance`
+(default 1.5 m) further on and asks for `speed`. An open path clamps every distance at its end, so
+near it the samples bunch onto the end point and the motion field's speed ramps to zero over the
+last lookahead: both ask the character to stop there. As an `IFrameTarget`, `SplineControlInput`
+answers its projection plus one frame of travel at `speed`, so an exact `RootFollowStage` carries the
+character along the path at the target speed. Their Direction samples are still the direction of
+travel, not facing, which is a known mismatch with how the database bakes those channels
 
 **One reference, and it lives on the input.** Every control input derives from
 `MotionSynthesisControlInput` (`AnimationTools`), which holds the only link to the
@@ -132,13 +177,30 @@ Integrates a neural motion field into the pipeline via PythonNET:
 - Initializes Python engine, loads the `motion_field.field` and `motion_field.action_predictor` modules
 - Each frame `StepPolicy()` calls one of the four Python policy methods, chosen by the stage's
   `Policy` enum. The dispatch lives in C# so the policy never crosses the boundary as a value
+- The task is a goal heading **and a requested ground speed**: the control input sets both each
+  frame (`SetDesiredDirection`, `SetDesiredSpeed`), and both go to the policy call
 - Converts Python arrays back to `PoseBuffer` for Unity
 
 **Python side (`Python/motion_field/field.py`):**
 - KNN search over motion states (positions + velocities as features)
 - Blends nearest neighbor poses and velocities
-- Policy methods: `optimal_action()` (value function, falling back to greedy when none is loaded),
+- Policy methods: `optimal_action()` (value function, falling back to greedy when none is loaded; the
+  C# stage refuses to start the `Optimal` policy when its seed's `.s<seed>.mffield.npz` is missing),
   `greedy_action()`, and the debug pair `get_next_pose()` / `get_next_pose_from_field()`
+- **Heading convention**: `theta = -SignedAngle(facing, goal)` against the character Transform's
+  forward, which is the simulation frame (bone 0's rest forward), so a goal on the right is negative
+  and an action's frame yaw `root_yaw` (positive = right turn) moves it to `theta + yaw`. Travel
+  `beta` is measured from facing, positive right, so walking at the goal is `beta + theta' = 0`
+- **Greedy judges heading `greedyHorizon` seconds ahead** (on the stage, default 0.5 s): one frame
+  of turning is a few degrees, too little to outweigh the travel and speed terms, and with only the
+  one-frame heading term the greedy policy strafes or backpedals toward the goal while facing up to
+  180° away. The value function needs no such term, and the horizon never needs a retrain
+- The reward charges `speedFactor` per m/s between the arrival ground speed and the request, and a
+  request below `locomotionSpeedThreshold` fades out the locomotion bonus so standing can win. The
+  value function is `(states, thetas, speeds)` over the config's speed grid (default 0–2 m/s, 5
+  speeds); each speed is its own Bellman problem, so the backup's time and the file grow linearly
+  with `speedCount` while the transition tables do not. A heading-only `.mffield.npz` from before is
+  refused by its shape, with a request to retrain
 - Supporting: `get_knn()`, `get_batched_knn()`, `build_motion_states()`, `load_value_function()`
 
 **Python setup:**
@@ -148,7 +210,7 @@ Integrates a neural motion field into the pipeline via PythonNET:
 
 ### Python module layout
 
-`Python/` is one package per subsystem — `core`, `formats`, `training`, `pfnn`, `lmm`,
+`Python/` is one package per subsystem — `core`, `formats`, `training`, `pfnn`, `lmm`, `style`,
 `motion_field`, `autotag`, `benchmark`, `debugging` — and `Python/` itself is the import root, because that is the single
 folder `PythonRuntime` puts on `sys.path`. Three consequences follow, and all three are easy to
 break:
@@ -187,7 +249,8 @@ Assets/
 │   │   ├── AnimationClipComponent.cs [base for polymorphic per-clip annotation]
 │   │   ├── GaitPhaseComponent.cs    [footfall anchors + how they were detected]
 │   │   ├── GaitPhase.cs             [footfalls -> phase; the project's only definition of it]
-│   │   └── GaitMeasure.cs           [foot contacts + ground speed off a baked clip, for the editor and the bake]
+│   │   ├── GaitMeasure.cs           [foot contacts + ground speed off a baked clip, for the editor and the bake]
+│   │   └── OnlineGaitPhase.cs       [causal gait phase from contact flags; C# twin of Python/style/phase.py]
 │   ├── Runtime/Pose/
 │   │   ├── PoseBuffer.cs            [mutable pose in motion synthesis]
 │   │   ├── CharacterSpacePose.cs    [Extract/Apply: a pose measured in, and written back from, its character frame]
@@ -202,7 +265,8 @@ Assets/
 │   │   ├── MotionSynthesisControlInput.cs [base for every control input: the one MSC reference, the claim, the input subscription]
 │   │   ├── UserInput.cs             [publishes the move action as a static channel; InputActions.inputactions lives beside it]
 │   │   ├── IFrameTarget.cs          [a target that answers for its own position, not its Transform's]
-│   │   └── TrajectorySteering.cs    [request damping + horizon prediction, shared by MM and PFNN inputs]
+│   │   ├── TrajectorySteering.cs    [request damping + horizon prediction, shared by MM and PFNN inputs]
+│   │   └── SplinePursuit.cs         [closed-loop path following: projection, lookahead, speed-laid samples; every spline input]
 │   ├── Runtime/Python/
 │   │   ├── PythonRuntime.cs         [shared CPython bootstrap and module reloading]
 │   │   └── PythonPathSettings.cs    [per-user interpreter paths in UserSettings/MoSynthPython.json]
@@ -216,7 +280,8 @@ Assets/
 │   ├── Editor/ClipEditor/           [the clip editor window: axis, timeline, track seam, registry]
 │   │   └── Tracks/GaitPhaseTrack.cs [the worked example track]
 │   ├── Editor/
-│   │   └── SkeletonBoneDrawer.cs    [Inspector dropdown for bone selection]
+│   │   ├── SkeletonBoneDrawer.cs    [Inspector dropdown for bone selection]
+│   └── BoneSelectionTreeGUI.cs  [bone-exclusion tree shared by the PFNN, LMM and Style config inspectors]
 │   └── (other runtime & editor features)
 ├── MotionField/
 │   ├── MotionFieldStage.cs          [stage implementing neural field]
@@ -229,6 +294,11 @@ Assets/
 │   ├── PfnnTrajectory.cs            [history ring buffer and the ground-plane frame transform]
 │   ├── PfnnControlInput.cs          [steering contract; + spline and direction inputs]
 │   └── Editor/                      [config inspector, training, default bone selection, agreement check]
+├── Style/
+│   ├── StyleTransferStage.cs        [restyling stage; owns phase, descriptor history, blends]
+│   ├── StyleTransferConfig.cs       [clips, style/gait tags, styled bones, network + training settings, label sidecar]
+│   ├── StyleComposition.cs          [pure: compose and crossfade deltas, root-velocity styling]
+│   └── Editor/                      [config inspector, training, HundredStyleClipSetup (tags 100STYLE clips)]
 ├── MotionMatching/
 │   ├── Runtime/CharacterController/
 │   │   ├── MotionMatchingControlInput.cs   [steering contract + the character-frame query helpers]
@@ -276,6 +346,13 @@ Python/                              [one package per subsystem; see "Python mod
 │   ├── model.py                     [compressor, decompressor, stepper, projector]
 │   ├── trainer.py                   [training loop and the Unity entry point]
 │   └── runtime.py                   [inference policy, + an offline rollout]
+├── style/                           [style transfer]
+│   ├── phase.py                     [causal gait phase; Python port of OnlineGaitPhase]
+│   ├── dataset.py                   [labelled database -> neutral/styled pairs, inputs, targets]
+│   ├── model.py                     [FiLM-modulated residual MLP]
+│   ├── io.py                        [.style.npz checkpoint format; numpy only]
+│   ├── trainer.py                   [training loop and the Unity entry point]
+│   └── runtime.py                   [stateless inference policy, + an offline check CLI]
 ├── motion_field/                    [neural motion field]
 │   ├── field.py                     [neural motion field implementation]
 │   ├── io.py                        [.mffield.npz value function format]
@@ -283,7 +360,7 @@ Python/                              [one package per subsystem; see "Python mod
 │   ├── embedding.py                 [UMAP projection for the debug visualizer]
 │   └── action_predictor.py          [animation loading & conversion]
 ├── autotag/                         [Gemini video annotation of clip tags; CLI run by Unity's Auto Tag window]
-├── benchmark/                       [report.py: per-method summary table over sweeps' results.csv; fmd.py + motion_features.py: Fréchet Motion Distance against the database]
+├── benchmark/                       [report.py: per-method summary table over sweeps' results.csv; fmd.py + motion_features.py: Fréchet Motion Distance against the database; compose_videos.py: per-path side-by-side video grid]
 ├── tests/                           [stdlib unittest suites; no Unity or venv extras needed]
 └── debugging/                       [debug scripts, not in builds]
 
@@ -316,6 +393,7 @@ python -m venv .anim_env
 # Install the pinned dependencies (from the Python/ folder)
 pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu130
 pip install -r requirements-autotag.txt   # only for auto-tagging; the key comes from GEMINI_API_KEY
+pip install -r requirements-video.txt     # only for composing benchmark videos side by side
 
 # Smoke-test the Python side (from the Python/ folder)
 python -m unittest discover -s tests -t tests
@@ -355,6 +433,11 @@ an edit can create:
   `ReproductionPipeline` (`Assets/Editor/Reproduction/`) derives every config it builds or trains
   from the method prefabs of the benchmarks listed there, so a config is never listed twice. Its
   entry points run synchronously and call `EditorApplication.Exit` in batchmode
+- **Training seeds are listed once, as the manifest's `trainingSeeds`** (default 42, 43, 44).
+  `ReproductionPipeline.Train` trains every learned config once per seed, passing the seed to the
+  trainer rather than writing it into the asset, and `reproduce.ps1` runs each sweep through
+  `ReproductionPipeline.Benchmark` (`run-benchmark.ps1 -Manifest`), which hands the same list to every
+  method that loads a per-seed checkpoint
 - Machine paths come from `MOSYNTH_UNITY_EXE`, `MOSYNTH_PYTHON_VENV` and `MOSYNTH_BLENDER_EXE`, else
   from the default install locations (`Tools/common.ps1`). Never hard-code a path in a tool script
 
@@ -366,14 +449,26 @@ The project uses standard Unity build pipeline:
 
 ### Benchmarking the synthesis methods
 
-A sweep runs every configured method against every path, one character at a time, and writes
-`results.csv` / `results.json` plus the raw per-tick recordings.
+A sweep runs every configured method, once per training seed it lists, against every path, one
+character at a time, and writes `results.csv` / `results.json` plus the raw per-tick recordings, and
+`averages.csv`: one row per method with each metric's mean over its seeds and paths (errored runs
+counted, not averaged; NaN skipped) and, as `<metric>SeedStd`, the standard deviation of its per-seed
+means.
 
 - **Configure**: a `SynthesisBenchmarkConfig` asset (`Assets/Create/MoSynth/Synthesis Benchmark
   Config`). A "method" is a character prefab plus an optional list of `BenchmarkOverride`s, so the
   four MotionField policies are four config entries over one prefab rather than four prefabs. Paths
   are prefabs with a `SplineContainer` in a folder the config points at
   (`Assets/Benchmarks/Paths` by default) — drop a prefab in and it joins the sweep
+- **Seeds**: a method's `seeds` list runs it once per seed per path, each run loading that seed's
+  checkpoint through `ISeededStage.CheckpointSeed` (PFNN, LMM, and the motion field's `Optimal`
+  policy); empty runs once on each config's own `seed`. The seed is a first-class field, not an
+  override, because the sweep expands it into runs (`SynthesisBenchmarkConfig.ExpandRuns`). A seeded
+  run's row carries `seed`, an unseeded one leaves it blank, and its recording and video are named
+  `<method>_s<seed>`. Seeds handed down by a reproduction replace the method's own list, but only
+  for a method whose character, with its overrides applied, loads a checkpoint — so the greedy and
+  debug motion-field policies still run once. A method listing seeds with nothing to apply them to
+  fails each run rather than repeating an identical one
 - **First-time setup**: `MoSynth/Benchmark/Create Starter Assets` extracts the characters and
   splines already wired up in `Assets/Scenes/ExampleSplines 1.unity` into those folders and writes a
   config pointing at them; `MoSynth/Benchmark/Create Standard Paths` adds the parametric suite
@@ -396,15 +491,43 @@ A sweep runs every configured method against every path, one character at a time
   the sweep runs across play-mode frames, so `SynthesisBenchmarkDriver` sets the exit code itself
 - Each run spawns the character **on** the path's first point facing the tangent, waits out
   `settleTime`, then measures at least `lapsRequired` laps of the character's own progress round the
-  spline — not a fixed duration, because `MotionFieldSplineControlInput` has no speed model to
-  predict a lap time from. A run that cannot finish is reported with `timedOut` set
+  spline — not a fixed duration, because a method asked for a speed need not deliver it, so no lap
+  time can be predicted. A run that cannot finish is reported with `timedOut` set
 - **Open paths** finish at the far end instead: `lapsRequired` is ignored, and `completedLaps` reads
-  as the fraction of the path covered rather than a lap count. Both spline inputs clamp instead of
-  wrapping there — see `SplineControlInput.Fold`. Once the input's point clamps, the query only asks
-  the character to stop at the end, so a method that halts short of it would idle to `maxRunSeconds`.
+  as the fraction of the path covered rather than a lap count. Every spline input clamps instead of
+  wrapping there — see `SplinePursuit` and `SplineFold`. Near the end the request only asks the
+  character to stop there, so a method that halts short of it would idle to `maxRunSeconds`.
   Instead a run that makes less than 0.25 m of forward progress along the path for `restTimeout`
   seconds ends with `stoppedShort` set and `remainingDistance` (metres to the end) recorded. That is
   a measured result, not a timeout. Keep `restTimeout` longer than any pause a method makes mid-path
+- **Videos**: `recordVideo` renders every run to its own `videos/<label>_<path>.mp4`
+  (`BenchmarkVideoRecorder`), one frame per synthesis tick, beside a JSON sidecar giving the method,
+  path, seed and `measureStartFrame` — the first frame after `settleTime`. `videoCamera` picks a
+  damped 3/4 chase (default) or a fixed overview framing the whole path; `videoWidth`/`videoHeight`
+  default to 1080p, rendered at twice that and filtered down, because the URP asset has MSAA off and
+  URP then ignores a target texture's own sample count. `videoSceneDressing` adds a grid ground, a
+  shadowing light, the path, the input's steering target (`ISteeringTargetSource`), a root trail and
+  footprints placed by the `groundContact` rule, never the method's flags. Nothing it adds has a
+  collider, so metrics do not change. **Headless video needs `-Graphics`** on `run-benchmark.ps1`:
+  the default `-nographics` leaves the camera nothing to render with
+- **Method inputs in the video**: `videoShowMethodInputs` (default on) draws what the stage actually
+  consumed that tick, never a recomputation from the control input. A stage implements
+  `ISynthesisInputSource` (`AnimationTools/Runtime/Core/SynthesisInputs.cs`) and fills a preallocated
+  `SynthesisInputs` inside its own `Apply`: world-space points and arrows tagged request (green),
+  answer (violet) or state (cyan), readouts, search/match-changed flags and an optional phase.
+  `BenchmarkInputOverlay` draws them and a top-right HUD panel. MM and LMM share
+  `MatchingInputRecorder`: every channel of the query and of the best candidate, placed in the
+  character Transform the query was built against at search time, so the markers hold still between
+  searches; zero-weight (masked) channels are not drawn, only counted. The decoding is
+  `FeatureVectorMarkers`, which `MotionMatchingDataVisualiser`'s gizmos use too. PFNN shows the packed
+  window (past cyan, future green, after the horizon blend), its predicted future (violet) and the
+  phase it was fed; MotionField shows the facing, the goal heading turned by the `Theta` it sent,
+  sized by the desired speed, and the chosen state's travel. A stage without the interface draws nothing extra
+- **Side by side**: `python -m benchmark.compose_videos <sweep-folder>` (from `Python/`, after
+  `pip install -r requirements-video.txt`) tiles every method's video of a path into
+  `videos/compare_<path>.mp4`, synchronised at `measureStartFrame`; a shorter run holds its last
+  frame, a missing one gets a blank tile. `--stills 10 40 70 95` also writes PNGs into `stills/`.
+  `imageio-ffmpeg` brings its own ffmpeg, so none is needed on PATH
 
 Three metric families, all computed from the recording after the fact so the calculators stay pure
 and unit-tested: path following (`PathFollowingMetricsCalculator`, reused unchanged), motion quality
@@ -412,14 +535,36 @@ and unit-tested: path following (`PathFollowingMetricsCalculator`, reused unchan
 (`SynthesisCostMetrics` — per-stage `Apply()` ms and GC bytes per tick). Cost is measured wall-clock
 inside the Editor: valid for comparing methods within one sweep on one machine, and nothing more.
 
+**Footskate is judged from the contact bones' recorded world positions, never from the method's
+contact flags.** A method that flags fewer contacts would otherwise slide "less", and
+`ContactLockStage` pins a bone exactly while its flag holds. `footskatePerMeter` and
+`meanFootskateSpeed` sum each bone's horizontal slip weighted by `clamp(2 − 2^(h/H), 0, 1)`, where
+`h` is its height above its contact height — a low percentile of that bone's own height over the
+run, since a toe joint does not sit at y = 0. The gate is height only: gating on speed would cap the
+slip being measured. `contactFraction` is geometric too (low **and** slower than `V`). The
+self-reported figures survive as `flagFootskatePerMeter`, `flagMeanFootskateSpeed` and
+`flagContactFraction`, and `contactFlagAgreement` says how often a method's flags match geometry. `H`,
+`V` and the percentile are a `GroundContactSettings` (defaults 2.5 cm, 0.15 m/s, 5th percentile). The
+rule assumes flat ground. Every paper benchmark method runs `ContactLockStage`, so each also has a
+`<name>NoLock` entry that disables it through a `StageEnabledOverride`: the pair reports footskate
+both as the method produces it and after post-processing.
+
+**Root jerk is ground-plane (XZ) only.** A 2.5 cm bob at 2 Hz alone is about 50 m/s³, which would
+bury the horizontal pops the metric is after and penalise running. The vertical part is reported
+apart as `rootVerticalJerkMean` / `rootVerticalJerkP95`, so a vertical pop still shows. The
+discontinuity rate is unaffected: it counts the stages' `PoseDiscontinuity` flags, not a derivative.
+
 `python -m benchmark.report <sweep-folder>...` (from `Python/`) reduces each sweep's `results.csv` to one
 row per method, so sweeps over different datasets line up in one table. Every path counts equally;
 `--stat median` and `--exclude-timeouts` change the reduction, and `--format markdown|csv` the output.
+A method run per seed is reduced over paths per seed first, then shown as the mean of those per-seed
+values ± a 95% Student's t interval over them (the seeds, not the paths, are the independent draws);
+a sweep with no `seed` column reduces exactly as it always did.
 
 `python -m benchmark.fmd <sweep-folder> --database <folder with the .mmpose>` scores naturalness as a
 Fréchet Motion Distance: an autoencoder trained on the database's one-second windows, and the Fréchet
 distance between Gaussians fitted to database and generated latents. It needs a sweep recorded with
-`recordFullPose` on, and writes `fmd.csv` / `fmd_runs.csv` into the sweep folder. **Read the matched
+`recordFullPose` on, and writes `fmd.csv` / `fmd_runs.csv` (which carries each run's seed) into the sweep folder. **Read the matched
 score, not the plain one**: a path asks for a narrow band of travel, and against the whole database
 even real walking windows score far from zero, so the headline compares each generated window only
 with database windows that travel alike. The recorded pose keeps bone 0 in its source clip's space;
@@ -428,7 +573,7 @@ channels, and features computed without it are garbage.
 
 ### Testing & Validation
 - **C# edit-mode suites**: `MoSynth/Tests/Run EditMode Tests` runs `AnimationTools.Tests`,
-  `MotionMatching.Tests` and `Pfnn.Tests` and writes `Temp/animtools_test_results.txt`, which
+  `MotionMatching.Tests`, `Pfnn.Tests`, `Lmm.Tests` and `Style.Tests` and writes `Temp/animtools_test_results.txt`, which
   survives the domain reload a test run causes — so a scripted caller reads results from there, not
   from the console. That assembly list is hardcoded in `TestResultDump`; a new test assembly must be
   added to it or its tests silently do not run
@@ -441,13 +586,24 @@ channels, and features computed without it are garbage.
   --name <name> --rollout 300`, which runs the model against its own predictions.
   `MoSynth/Pfnn/Check Training Agreement` compares the C# and Python character-frame definitions on
   the same frames — the check that the model is run on the arrays it was trained on
+- **Style transfer**: train from the config's inspector, or standalone —
+  `python -m style.trainer <database-folder> <name>`. Judge a checkpoint with
+  `python -m style.runtime <checkpoint> --database <folder> --name <db> --style <Name>`
 - **Record every training run's time.** The paper reports training cost, and a time not written
   down when the run happens is lost. For each PFNN, LMM (every stage) and motion-field training run,
   keep the wall-clock time together with the hardware, the config/dataset, the epoch or iteration
   count, and whether it ran in the Editor or a shell. The trainers measure it (`seconds`,
   `stepper_seconds`, `projector_seconds` in their returned summaries), and `ReproductionPipeline.Train`
-  writes those summaries, the wall-clock time and the machine to `training_log_*.json`. A checkpoint
-  still stores none of it, so a run trained from an inspector button must be written down by hand
+  writes those summaries, the wall-clock time, the seed, the file written and the machine to
+  `training_log_*.json`. A checkpoint still stores none of it, so a run trained from an inspector
+  button must be written down by hand
+- **Every checkpoint name carries its training seed**: `<name>.s<seed>.pfnn.npz`, `.lmm.npz`,
+  `.mffield.npz`, built only by `SeededCheckpoint` through each config's
+  `GetCheckpointPath(seed)` / `GetValueFunctionPath(seed)`. The parameterless overloads, which the
+  inspectors and a stage with no seed chosen use, mean the config's own `seed`. A motion field's
+  `Optimal` policy refuses to start without its seed's value function rather than running greedy
+  under the wrong label. Every trainer seeds `random`, numpy and torch through
+  `training.seeding.seed_everything`
 - **Motion database**: `MoSynth/Database/Regenerate Motion Matching Databases` rebuilds every
   `MotionMatchingData` asset's `.mmpose` and `.mmfeatures`. Run it after any change to an extraction
   format or a feature definition — the files are unversioned, and a stale one is refused rather than
