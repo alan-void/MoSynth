@@ -99,7 +99,8 @@ try {
                 Write-Host "=== sweep ${name}: already done, skipping"
                 continue
             }
-            Invoke-Checked "sweep $name" { & "$PSScriptRoot\run-benchmark.ps1" -Config $benchmark -Output $sweep -UnityExe $UnityExe -Manifest $Manifest }
+            # -Graphics: the paper sweeps record video, which -nographics cannot render.
+            Invoke-Checked "sweep $name" { & "$PSScriptRoot\run-benchmark.ps1" -Config $benchmark -Output $sweep -UnityExe $UnityExe -Manifest $Manifest -Graphics }
         }
     }
     if (Test-Stage "report") {

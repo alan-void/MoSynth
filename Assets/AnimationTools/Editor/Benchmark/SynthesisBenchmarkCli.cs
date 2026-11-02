@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace AnimationTools.Editor
 {
@@ -41,6 +42,14 @@ public static class SynthesisBenchmarkCli
             if (config == null)
             {
                 Fail($"No SynthesisBenchmarkConfig at \"{configPath}\".");
+                return;
+            }
+
+            // Rendering without a device crashes the Editor natively rather than throwing.
+            if (config.recordVideo && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+            {
+                Fail($"\"{config.name}\" records video, which needs a graphics device: launch without " +
+                     "-nographics (run-benchmark.ps1 -Graphics).");
                 return;
             }
 
