@@ -48,6 +48,7 @@ METRICS = [
     ('contactFraction', 'Contact'),
     ('flagFootskatePerMeter', 'Flag footskate /m'),
     ('contactFlagAgreement', 'Flag agreement'),
+    ('flagOnsetHeightError', 'Flag onset height (m)'),
     ('rootJerkMean', 'Root jerk'),
     ('rootVerticalJerkMean', 'Vert. jerk'),
     ('discontinuitiesPerSecond', 'Disc. /s'),

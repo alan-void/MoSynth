@@ -17,16 +17,19 @@ public class MotionQualityMetricsResult
 
     /// <summary>
     /// Meters the contact bones slide horizontally, each step weighted by how near the bone is to its
-    /// contact height (<see cref="GroundContactSettings"/>), summed over bones, per meter the root
-    /// travelled. Judged from positions alone, so every method is scored by the same rule. 0 is
-    /// perfect planting.
+    /// database rest height (<see cref="ContactFloor.RestHeights"/>, <see cref="GroundContactSettings"/>), summed
+    /// over bones, per meter the root travelled. Judged from positions alone, so every method is scored
+    /// by the same rule. 0 is perfect planting; NaN without a contact floor.
     /// </summary>
     public float footskatePerMeter;
 
-    /// <summary>The same weighted slip per weighted contact-second, m/s. NaN when no bone ever came near its contact height.</summary>
+    /// <summary>The same weighted slip per weighted contact-second, m/s. NaN when no bone ever came near its database rest height.</summary>
     public float meanFootskateSpeed;
 
-    /// <summary>Fraction of evaluated frames with at least one contact bone low and slow enough to be in geometric contact.</summary>
+    /// <summary>
+    /// Fraction of evaluated frames with at least one contact bone near its database rest height and
+    /// slow enough to be in geometric contact.
+    /// </summary>
     public float contactFraction;
 
     /// <summary>
@@ -38,6 +41,13 @@ public class MotionQualityMetricsResult
 
     /// <summary>Flag-gated slip speed in m/s, averaged over flagged frames only. NaN when nothing was ever flagged.</summary>
     public float flagMeanFootskateSpeed;
+
+    /// <summary>
+    /// Mean height in meters at which a contact flag rises, above the bone's mean database contact height
+    /// (<see cref="ContactFloor.MeanContactHeights"/>). Positive means the flag rises higher than the
+    /// database's average planted height, so a contact lock plants the bone in the air.
+    /// </summary>
+    public float flagOnsetHeightError;
 
     /// <summary>Fraction of evaluated frames with at least one contact bone flagged in contact.</summary>
     public float flagContactFraction;

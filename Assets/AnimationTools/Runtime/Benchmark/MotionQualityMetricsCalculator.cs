@@ -25,6 +25,12 @@ public static class MotionQualityMetricsCalculator
     /// <param name="times">Seconds since recording start per frame, strictly increasing.</param>
     /// <param name="settleTime">Seconds at the start of the recording to exclude, giving the character
     /// time to reach steady state.</param>
+    /// <param name="restHeights">Each contact bone's floor (<see cref="ContactFloor.RestHeights"/>), indexed
+    /// like <paramref name="contactBonePositions"/>, or null. Without it the geometric metrics and
+    /// <see cref="MotionQualityMetricsResult.contactFlagAgreement"/> are NaN.</param>
+    /// <param name="meanContactHeights">Each contact bone's mean database contact height
+    /// (<see cref="ContactFloor.MeanContactHeights"/>), indexed the same way, or null. Without it
+    /// <see cref="MotionQualityMetricsResult.flagOnsetHeightError"/> is NaN.</param>
     /// <param name="contactSettings">Thresholds for judging ground contact from position alone.</param>
     public static MotionQualityMetricsResult Evaluate(
         float3[] rootPositions,
@@ -33,6 +39,8 @@ public static class MotionQualityMetricsCalculator
         bool[] discontinuities,
         float[] times,
         float settleTime,
+        float[] restHeights,
+        float[] meanContactHeights,
         GroundContactSettings contactSettings)
     {
         if (contactSettings == null) throw new ArgumentNullException(nameof(contactSettings));
@@ -63,13 +71,31 @@ public static class MotionQualityMetricsCalculator
 
         if (HasPositionSeries(contactBonePositions))
         {
-            var geometricContacts = EvaluateGeometricFootskate(
-                analysisFrames, rootPositions, contactBonePositions, times, contactSettings, result);
+            var slotCount = contactBonePositions.Length;
+            var hasRestHeights = restHeights != null && restHeights.Length == slotCount;
+            var hasMeanContactHeights = meanContactHeights != null && meanContactHeights.Length == slotCount;
+
+            bool[][] geometricContacts = null;
+            if (hasRestHeights)
+            {
+                geometricContacts = EvaluateGeometricFootskate(
+                    analysisFrames, rootPositions, contactBonePositions, times, restHeights, contactSettings,
+                    result);
+            }
+            else
+            {
+                SetGeometricFootskateUnavailable(result);
+            }
 
             if (HasFlagSeries(contacts, contactBonePositions.Length))
             {
                 EvaluateFlagFootskate(analysisFrames, rootPositions, contactBonePositions, contacts, times, result);
-                result.contactFlagAgreement = EvaluateFlagAgreement(analysisFrames, contacts, geometricContacts);
+                result.contactFlagAgreement = geometricContacts != null
+                    ? EvaluateFlagAgreement(analysisFrames, contacts, geometricContacts)
+                    : float.NaN;
+                result.flagOnsetHeightError = hasMeanContactHeights
+                    ? EvaluateFlagOnsetHeightError(analysisFrames, contactBonePositions, contacts, meanContactHeights)
+                    : float.NaN;
             }
             else
             {
@@ -102,6 +128,7 @@ public static class MotionQualityMetricsCalculator
         result.flagMeanFootskateSpeed = float.NaN;
         result.flagContactFraction = float.NaN;
         result.contactFlagAgreement = float.NaN;
+        result.flagOnsetHeightError = float.NaN;
     }
 
     /// <summary>At least one bone, and a position series for every one of them.</summary>
@@ -132,7 +159,7 @@ public static class MotionQualityMetricsCalculator
 
     /// <summary>
     /// The headline footskate, from positions only: each bone's horizontal slip weighted by how close
-    /// it is to its contact height. Returns each bone's geometric contact, indexed
+    /// it is to its database floor. Returns each bone's geometric contact, indexed
     /// <c>[slot][analysis frame]</c>.
     /// </summary>
     private static bool[][] EvaluateGeometricFootskate(
@@ -140,6 +167,7 @@ public static class MotionQualityMetricsCalculator
         float3[] rootPositions,
         float3[][] contactBonePositions,
         float[] times,
+        float[] restHeights,
         GroundContactSettings settings,
         MotionQualityMetricsResult result)
     {
@@ -155,9 +183,7 @@ public static class MotionQualityMetricsCalculator
         {
             var positions = contactBonePositions[slot];
 
-            for (var i = 0; i < frameCount; i++) heights[i] = positions[analysisFrames[i]].y;
-            var contactHeight = MetricsMath.Percentile(heights, settings.contactHeightPercentile);
-            for (var i = 0; i < frameCount; i++) heights[i] -= contactHeight;
+            for (var i = 0; i < frameCount; i++) heights[i] = positions[analysisFrames[i]].y - restHeights[slot];
 
             // Gated on height alone: gating on low speed as well would cap the very slip being measured.
             for (var i = 1; i < frameCount; i++)
@@ -266,6 +292,34 @@ public static class MotionQualityMetricsCalculator
         }
 
         result.flagContactFraction = (float)contactFrameCount / analysisFrames.Count;
+    }
+
+    /// <summary>
+    /// Mean height above the bone's mean database contact height at which its flag rises, over every
+    /// rise of every bone. A flag already set on the first analysis frame is not a rise. NaN when none rises.
+    /// </summary>
+    private static float EvaluateFlagOnsetHeightError(
+        List<int> analysisFrames,
+        float3[][] contactBonePositions,
+        bool[][] contacts,
+        float[] meanContactHeights)
+    {
+        var sum = 0.0;
+        var rises = 0;
+
+        for (var slot = 0; slot < contacts.Length; slot++)
+        {
+            for (var i = 1; i < analysisFrames.Count; i++)
+            {
+                var frame = analysisFrames[i];
+                if (!contacts[slot][frame] || contacts[slot][analysisFrames[i - 1]]) continue;
+
+                sum += contactBonePositions[slot][frame].y - meanContactHeights[slot];
+                rises++;
+            }
+        }
+
+        return rises > 0 ? (float)(sum / rises) : float.NaN;
     }
 
     /// <summary>

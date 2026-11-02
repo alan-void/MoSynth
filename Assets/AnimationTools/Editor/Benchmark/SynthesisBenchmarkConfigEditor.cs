@@ -30,6 +30,19 @@ public class SynthesisBenchmarkConfigEditor : UnityEditor.Editor
         var runnable = config.TryValidate(out var error);
         if (!runnable) EditorGUILayout.HelpBox(error, MessageType.Error);
 
+        if (config.groundReference == null)
+        {
+            EditorGUILayout.HelpBox(
+                "No ground reference: geometric footskate, contact fraction, flag agreement and flag onset " +
+                "height will be NaN.", MessageType.Warning);
+        }
+        else if (config.GroundReferenceSource == null)
+        {
+            EditorGUILayout.HelpBox(
+                $"Ground reference \"{config.groundReference.name}\" is not a pose database (Motion Matching " +
+                "Data, Motion Field Config, PFNN Config).", MessageType.Error);
+        }
+
         var paths = PreviewPaths(config, out var skipped);
         _showPaths = EditorGUILayout.Foldout(_showPaths, $"Paths ({paths.Count})", true);
         if (_showPaths)

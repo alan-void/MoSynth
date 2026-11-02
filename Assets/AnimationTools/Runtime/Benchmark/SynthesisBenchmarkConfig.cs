@@ -144,6 +144,16 @@ public class SynthesisBenchmarkConfig : ScriptableObject
              "bones' recorded positions rather than each method's own contact flags.")]
     public GroundContactSettings groundContact = new();
 
+    // Typed as Object because Unity cannot serialize an interface field; must implement IPoseSetSource.
+    [Tooltip("The pose database (Motion Matching Data, Motion Field Config, PFNN Config) the contact " +
+             "bones are judged against. Footskate is measured above each bone's rest height in it (5th " +
+             "percentile over the frames flagged in contact); flag onset height above its mean height " +
+             "over those frames. Flat ground is assumed.")]
+    public Object groundReference;
+
+    /// <summary><see cref="groundReference"/> as a pose database, or null when unset or not one.</summary>
+    public IPoseSetSource GroundReferenceSource => groundReference as IPoseSetSource;
+
     [Tooltip("Hard limit per run, including the settle time. A run that hits it is reported with " +
              "timedOut set rather than being silently truncated.")]
     [Min(1f)] public float maxRunSeconds = 120f;

@@ -539,12 +539,19 @@ inside the Editor: valid for comparing methods within one sweep on one machine, 
 contact flags.** A method that flags fewer contacts would otherwise slide "less", and
 `ContactLockStage` pins a bone exactly while its flag holds. `footskatePerMeter` and
 `meanFootskateSpeed` sum each bone's horizontal slip weighted by `clamp(2 − 2^(h/H), 0, 1)`, where
-`h` is its height above its contact height — a low percentile of that bone's own height over the
-run, since a toe joint does not sit at y = 0. The gate is height only: gating on speed would cap the
-slip being measured. `contactFraction` is geometric too (low **and** slower than `V`). The
-self-reported figures survive as `flagFootskatePerMeter`, `flagMeanFootskateSpeed` and
-`flagContactFraction`, and `contactFlagAgreement` says how often a method's flags match geometry. `H`,
-`V` and the percentile are a `GroundContactSettings` (defaults 2.5 cm, 0.15 m/s, 5th percentile). The
+`h` is its height above the database rest height — `ContactFloor`, built from
+`SynthesisBenchmarkConfig.groundReference`: the 5th percentile of each contact bone's height over the
+database frames flagged in contact, since a toe joint does not sit at y = 0. A low quantile rather than
+the mean, because flags also cover frames where the toe is rolling on or off the ground. It is taken from the database, never
+from the run, because a contact lock that latches early holds a foot in the air and a per-run floor
+would rise with it. Without a ground reference every metric judged against it is NaN. The gate is
+height only: gating on speed would cap the slip being measured. `contactFraction` is geometric too
+(low **and** slower than `V`). The self-reported figures survive as `flagFootskatePerMeter`,
+`flagMeanFootskateSpeed` and `flagContactFraction`, and `contactFlagAgreement` says how often a
+method's flags match geometry. `flagOnsetHeightError` is the mean height at which a contact flag rises — where
+`ContactLockStage` latches — minus the bone's mean height over the database's flagged frames, so a
+positive value means feet planted higher than the database plants them. Motion matching, which
+replays database frames, is the baseline to read it against, not zero. `H` and `V` are a `GroundContactSettings` (defaults 2.5 cm, 0.15 m/s). The
 rule assumes flat ground. Every paper benchmark method runs `ContactLockStage`, so each also has a
 `<name>NoLock` entry that disables it through a `StageEnabledOverride`: the pair reports footskate
 both as the method produces it and after post-processing.
@@ -746,6 +753,7 @@ Implementer agents need a spec that names the files, the intended design, and th
 2. **PoseBuffer vs Pose confusion**: dual representation exists; unify or document the split
 3. **Dropped pipeline features**: inertialized hips blending and toes-floor penetration correction were lost when the pipeline moved to stages and are both still missing; the intended home for each is a `MoSynthStage` running after the pose is produced
 4. **Foot sliding under root following**: `RootFollowStage` places the character exactly; `ContactLockStage`, placed after it, keeps each contact bone planted while its flag holds and lets go when the leg would over-reach. See `openwiki/animation-tools/root-following.md`
+5. **Flat-ground metrics**: `ContactFloor`, the footskate rule and the video footprints take the floor as one constant height per bone; with terrain the reference must become the ground height under the bone plus the database offset
 
 ## Testing & Debugging
 

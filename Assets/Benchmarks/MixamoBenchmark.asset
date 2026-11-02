@@ -29,6 +29,7 @@ MonoBehaviour:
   pathPrefabs: []
   lapsRequired: 1
   settleTime: 3
+  groundReference: {fileID: 11400000, guid: 50beb943ee9b28c4da10dbeea9a2ad63, type: 2}
   maxRunSeconds: 180
   synthesisFrameRate: 30
   fixedTimestep: 1

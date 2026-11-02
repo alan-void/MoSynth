@@ -21,7 +21,7 @@ public static class BenchmarkReportWriter
         "framesEvaluated", "meanTrajectoryError", "meanHeadingErrorDeg", "maxHeadingErrorDeg",
         "meanActualSpeed", "targetSpeed", "meanVelocityError", "footskatePerMeter",
         "meanFootskateSpeed", "contactFraction", "flagFootskatePerMeter", "flagMeanFootskateSpeed",
-        "flagContactFraction", "contactFlagAgreement", "rootJerkMean", "rootJerkP95",
+        "flagOnsetHeightError", "flagContactFraction", "contactFlagAgreement", "rootJerkMean", "rootJerkP95",
         "rootVerticalJerkMean", "rootVerticalJerkP95", "discontinuitiesPerSecond", "applyMsMean", "applyMsP50", "applyMsP95", "applyMsMax",
         "gcBytesPerTick", "recordingFile", "error"
     };
@@ -43,6 +43,7 @@ public static class BenchmarkReportWriter
         ("contactFraction", r => r.motionQuality.contactFraction),
         ("flagFootskatePerMeter", r => r.motionQuality.flagFootskatePerMeter),
         ("flagMeanFootskateSpeed", r => r.motionQuality.flagMeanFootskateSpeed),
+        ("flagOnsetHeightError", r => r.motionQuality.flagOnsetHeightError),
         ("flagContactFraction", r => r.motionQuality.flagContactFraction),
         ("contactFlagAgreement", r => r.motionQuality.contactFlagAgreement),
         ("rootJerkMean", r => r.motionQuality.rootJerkMean),
@@ -240,6 +241,7 @@ public static class BenchmarkReportWriter
             row[column++] = FormatFloat(motionQuality.contactFraction);
             row[column++] = FormatFloat(motionQuality.flagFootskatePerMeter);
             row[column++] = FormatFloat(motionQuality.flagMeanFootskateSpeed);
+            row[column++] = FormatFloat(motionQuality.flagOnsetHeightError);
             row[column++] = FormatFloat(motionQuality.flagContactFraction);
             row[column++] = FormatFloat(motionQuality.contactFlagAgreement);
             row[column++] = FormatFloat(motionQuality.rootJerkMean);

@@ -27,11 +27,14 @@ public static class BenchmarkRunEvaluator
     /// <paramref name="manifestPath"/>. Throws only if the recording itself cannot be read; a
     /// missing channel degrades the affected metric to NaN instead.
     /// </summary>
+    /// <param name="floor">Each contact bone's floor height, or null; without it the metrics judged
+    /// against that height are NaN.</param>
     public static void Evaluate(
         string manifestPath,
         SynthesisBenchmarkConfig config,
         float targetSpeed,
         SplineContainer spline,
+        ContactFloor floor,
         BenchmarkRunResult result)
     {
         var reader = RecordingReader.Load(manifestPath);
@@ -74,6 +77,10 @@ public static class BenchmarkRunEvaluator
                 Debug.LogWarning($"[Benchmark] \"{manifestPath}\" records no contact bone positions; footskate is unavailable.");
             }
 
+            float[] restHeights = null, meanContactHeights = null;
+            if (contactPositions != null)
+                ResolveContactHeights(reader, contactPositions.Length, floor, out restHeights, out meanContactHeights);
+
             result.motionQuality = MotionQualityMetricsCalculator.Evaluate(
                 rootPositions,
                 contactPositions,
@@ -81,6 +88,8 @@ public static class BenchmarkRunEvaluator
                 ReadFlags(reader, "discontinuity", frameCount),
                 times,
                 config.settleTime,
+                restHeights,
+                meanContactHeights,
                 config.groundContact);
         }
         else
@@ -130,6 +139,35 @@ public static class BenchmarkRunEvaluator
         }
 
         return SynthesisCostMetrics.Evaluate(stageNames, stageMilliseconds, totals, gcBytes);
+    }
+
+    /// <summary>
+    /// Each contact slot's rest and mean contact heights, found by the bone name its position channel
+    /// records. Both null when there is no floor or any slot's bone has no height in it.
+    /// </summary>
+    private static void ResolveContactHeights(RecordingReader reader, int slotCount, ContactFloor floor,
+        out float[] restHeights, out float[] meanContactHeights)
+    {
+        restHeights = null;
+        meanContactHeights = null;
+        if (floor == null) return;
+
+        var rest = new float[slotCount];
+        var mean = new float[slotCount];
+        for (var slot = 0; slot < slotCount; slot++)
+        {
+            reader.TryGetChannel(ContactPositionChannel(slot), out var channel);
+            var boneName = channel?.bone;
+            if (!floor.TryGetHeights(boneName, out rest[slot], out mean[slot]))
+            {
+                Debug.LogWarning($"[Benchmark] The ground reference has no contact height for \"{boneName}\"; " +
+                                 "footskate judged against it is unavailable.");
+                return;
+            }
+        }
+
+        restHeights = rest;
+        meanContactHeights = mean;
     }
 
     private static float3[] ReadFloat3(RecordingReader reader, string channelName, int frameCount)

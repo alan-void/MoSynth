@@ -37,9 +37,6 @@ internal sealed class BenchmarkVideoDressing
     private const float FootprintLifetime = 6f;
     private static readonly Vector3 FootprintScale = new(0.05f, 1f, 0.11f);
 
-    /// <summary>Ticks between re-estimates of each toe's contact height, a sort of the run's history.</summary>
-    private const int ContactHeightRefreshTicks = 15;
-
     private static readonly Color PathColor = new(0.95f, 0.70f, 0.10f);
     private static readonly Color TargetColor = new(0.85f, 0.15f, 0.55f);
     private static readonly Color TrailColor = new(0.15f, 0.45f, 0.85f);
@@ -72,6 +69,7 @@ internal sealed class BenchmarkVideoDressing
     private ISteeringTargetSource _steering;
     private GroundContactSettings _contactSettings;
     private ToeContact[] _toes = Array.Empty<ToeContact>();
+    private bool _warnedNoFloor;
 
     public BenchmarkVideoDressing(Transform parent)
     {
@@ -147,8 +145,9 @@ internal sealed class BenchmarkVideoDressing
     }
 
     /// <summary>Starts drawing one run: clears the previous run's trail and footprints.</summary>
+    /// <param name="floor">Each contact bone's floor height; a toe without one gets no footprints.</param>
     public void BeginRun(MotionSynthesisComponent synthesizer, ISteeringTargetSource steering,
-        GroundContactSettings contactSettings)
+        GroundContactSettings contactSettings, ContactFloor floor)
     {
         _synthesizer = synthesizer;
         _steering = steering;
@@ -166,9 +165,34 @@ internal sealed class BenchmarkVideoDressing
         }
         _nextFootprint = 0;
 
+        _toes = CreateToes(synthesizer, floor);
+    }
+
+    /// <summary>One <see cref="ToeContact"/> per contact slot whose bone has a floor height.</summary>
+    private ToeContact[] CreateToes(MotionSynthesisComponent synthesizer, ContactFloor floor)
+    {
+        if (floor == null)
+        {
+            if (!_warnedNoFloor)
+                Debug.LogWarning("[Benchmark] No ground reference; the video places no footprints.");
+            _warnedNoFloor = true;
+            return Array.Empty<ToeContact>();
+        }
+
         var contacts = synthesizer.ContactHandles;
-        _toes = new ToeContact[contacts.Count];
-        for (var slot = 0; slot < _toes.Length; slot++) _toes[slot] = new ToeContact(contacts.GetBoneIndex(slot));
+        var toes = new List<ToeContact>(contacts.Count);
+        for (var slot = 0; slot < contacts.Count; slot++)
+        {
+            var boneIndex = contacts.GetBoneIndex(slot);
+            var boneName = synthesizer.Skeleton.GetBone(boneIndex).Name;
+            if (floor.TryGetHeights(boneName, out var restHeight, out _))
+                toes.Add(new ToeContact(slot, boneIndex, restHeight));
+            else
+                Debug.LogWarning($"[Benchmark] The ground reference has no contact height for \"{boneName}\"; " +
+                                 "the video places no footprints for it.");
+        }
+
+        return toes.ToArray();
     }
 
     /// <summary>Stops drawing the run; the next <see cref="BeginRun"/> starts clean.</summary>
@@ -232,11 +256,10 @@ internal sealed class BenchmarkVideoDressing
         var facing = _synthesizer.transform.forward;
         var yaw = math.degrees(math.atan2(facing.x, facing.z));
 
-        for (var slot = 0; slot < _toes.Length; slot++)
+        foreach (var toe in _toes)
         {
-            var toe = _toes[slot];
             if (toe.Sample(transforms[toe.BoneIndex].position, deltaTime, _contactSettings, out var landedAt))
-                PlaceFootprint(landedAt, yaw, FootprintColors[slot % FootprintColors.Length]);
+                PlaceFootprint(landedAt, yaw, FootprintColors[toe.Slot % FootprintColors.Length]);
         }
 
         for (var i = 0; i < FootprintCapacity; i++)
@@ -476,30 +499,30 @@ internal sealed class BenchmarkVideoDressing
     }
 
     /// <summary>
-    /// One toe judged live by <see cref="GroundContactSettings"/>' rule: height above its contact height
-    /// under H, horizontal speed under V.
+    /// One toe judged live by <see cref="GroundContactSettings"/>' rule: height above its database
+    /// rest height (<see cref="ContactFloor"/>) under H, horizontal speed under V.
     /// </summary>
     /// <remarks>
     /// Judged one tick late, so the speed can be a central difference as in
-    /// <see cref="MotionQualityMetricsCalculator"/>. The contact height is a percentile of the run so far
-    /// rather than of the whole run, which only the recording afterwards can know.
+    /// <see cref="MotionQualityMetricsCalculator"/>.
     /// </remarks>
     private sealed class ToeContact
     {
+        public readonly int Slot;
         public readonly int BoneIndex;
 
-        private float[] _heights = new float[1024];
-        private float[] _sorted = new float[1024];
-        private float _contactHeight = float.PositiveInfinity;
+        private readonly float _contactHeight;
         private Vector3 _beforePrevious;
         private Vector3 _previous;
         private float _previousDeltaTime;
         private int _samples;
         private bool _wasInContact;
 
-        public ToeContact(int boneIndex)
+        public ToeContact(int slot, int boneIndex, float contactHeight)
         {
+            Slot = slot;
             BoneIndex = boneIndex;
+            _contactHeight = contactHeight;
         }
 
         /// <summary>Takes this tick's position; true when the previous tick was a landing.</summary>
@@ -507,17 +530,6 @@ internal sealed class BenchmarkVideoDressing
         public bool Sample(Vector3 position, float deltaTime, GroundContactSettings settings, out Vector3 landedAt)
         {
             landedAt = _previous;
-
-            if (_samples == _heights.Length)
-            {
-                Array.Resize(ref _heights, _heights.Length * 2);
-                _sorted = new float[_heights.Length];
-            }
-            _heights[_samples] = position.y;
-
-            if (_samples < 2 * ContactHeightRefreshTicks) _contactHeight = math.min(_contactHeight, position.y);
-            else if (_samples % ContactHeightRefreshTicks == 0)
-                _contactHeight = Percentile(_samples + 1, settings.contactHeightPercentile);
 
             var landed = false;
             if (_samples >= 2)
@@ -537,19 +549,6 @@ internal sealed class BenchmarkVideoDressing
             _previousDeltaTime = deltaTime;
             _samples++;
             return landed;
-        }
-
-        /// <summary>
-        /// Nearest-rank percentile of the first <paramref name="count"/> heights, as
-        /// <see cref="MetricsMath.Percentile"/> computes it, sorted in a reused buffer so the
-        /// recorder adds nothing to the sweep's GC-per-tick metric.
-        /// </summary>
-        private float Percentile(int count, float quantile)
-        {
-            Array.Copy(_heights, _sorted, count);
-            Array.Sort(_sorted, 0, count);
-            var rank = (int)math.ceil(math.clamp(quantile, 0f, 1f) * count) - 1;
-            return _sorted[math.clamp(rank, 0, count - 1)];
         }
     }
 

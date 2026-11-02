@@ -41,7 +41,7 @@ MonoBehaviour:
   groundContact:
     heightThreshold: 0.025
     speedThreshold: 0.15
-    contactHeightPercentile: 0.05
+  groundReference: {fileID: 11400000, guid: a6231d3468c147cf8a5805332bbcd65e, type: 2}
   maxRunSeconds: 180
   restTimeout: 15
   synthesisFrameRate: 30

@@ -7,6 +7,14 @@ public class MotionQualityMetricsCalculatorTests
 {
     private static readonly GroundContactSettings Settings = new();
 
+    /// <summary>One height per contact bone, all <paramref name="height"/>.</summary>
+    private static float[] Floor(int boneCount, float height = 0f)
+    {
+        var heights = new float[boneCount];
+        for (var slot = 0; slot < boneCount; slot++) heights[slot] = height;
+        return heights;
+    }
+
     private static float[] UniformTimes(int count, float dt)
     {
         var times = new float[count];
@@ -30,7 +38,7 @@ public class MotionQualityMetricsCalculatorTests
         var rightContacts = new[] { false, false, false, false, false };
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0f, Settings);
+            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0f, Floor(2), Floor(2), Settings);
 
         Assert.AreEqual(5, result.framesEvaluated);
         Assert.AreEqual(0f, result.footskatePerMeter, 1e-5f);
@@ -52,7 +60,7 @@ public class MotionQualityMetricsCalculatorTests
         var rightContacts = new[] { false, false, false, false, false };
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0f, Settings);
+            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0f, Floor(2), Floor(2), Settings);
 
         // totalSlip = 4 * 0.05 = 0.2, totalRootTravelXZ = 4 * 0.1 = 0.4
         Assert.AreEqual(0.5f, result.footskatePerMeter, 1e-4f);
@@ -85,7 +93,7 @@ public class MotionQualityMetricsCalculatorTests
         var rightContacts = new bool[11];
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0.5f, Settings);
+            root, new[] { leftFoot, rightFoot }, new[] { leftContacts, rightContacts }, null, times, 0.5f, Floor(2), Floor(2), Settings);
 
         Assert.AreEqual(6, result.framesEvaluated);
         Assert.Less(result.framesEvaluated, times.Length);
@@ -100,7 +108,7 @@ public class MotionQualityMetricsCalculatorTests
         for (var i = 0; i < 20; i++) root[i] = new float3(times[i], 0f, 0f);
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, times, 0f, Settings);
+            root, null, null, null, times, 0f, null, null, Settings);
 
         Assert.AreEqual(0f, result.rootJerkMean, 1e-3f);
         Assert.AreEqual(0f, result.rootJerkP95, 1e-3f);
@@ -117,7 +125,7 @@ public class MotionQualityMetricsCalculatorTests
         root[5] += new float3(1f, 0f, 0f); // single-frame pop
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, times, 0f, Settings);
+            root, null, null, null, times, 0f, null, null, Settings);
 
         Assert.Greater(result.rootJerkP95, 0f);
         Assert.Greater(result.rootJerkP95, result.rootJerkMean);
@@ -140,7 +148,7 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, times, 0f, Settings);
+            root, null, null, null, times, 0f, null, null, Settings);
 
         Assert.AreEqual(0f, result.rootJerkMean, 1e-3f);
         Assert.AreEqual(0f, result.rootJerkP95, 1e-3f);
@@ -166,7 +174,7 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, times, 0f, Settings);
+            root, null, null, null, times, 0f, null, null, Settings);
 
         // A 1 m/s step over one tick is a jerk of 1 / dt^2 ~ 4096 m/s^3 on the samples straddling it.
         Assert.Greater(result.rootJerkP95, 1000f);
@@ -181,7 +189,7 @@ public class MotionQualityMetricsCalculatorTests
         for (var i = 0; i < 5; i++) root[i] = new float3(times[i], 0f, 0f);
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, times, 0f, Settings);
+            root, null, null, null, times, 0f, null, null, Settings);
 
         Assert.IsNaN(result.footskatePerMeter);
         Assert.IsNaN(result.meanFootskateSpeed);
@@ -201,7 +209,7 @@ public class MotionQualityMetricsCalculatorTests
         var root = new[] { float3.zero, float3.zero, float3.zero };
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, null, times, 0f, Settings);
+            root, null, null, null, times, 0f, null, null, Settings);
 
         Assert.AreEqual(0, result.framesEvaluated);
         Assert.IsNaN(result.footskatePerMeter);
@@ -211,6 +219,7 @@ public class MotionQualityMetricsCalculatorTests
         Assert.IsNaN(result.flagMeanFootskateSpeed);
         Assert.IsNaN(result.flagContactFraction);
         Assert.IsNaN(result.contactFlagAgreement);
+        Assert.IsNaN(result.flagOnsetHeightError);
         Assert.IsNaN(result.rootJerkMean);
         Assert.IsNaN(result.rootJerkP95);
         Assert.IsNaN(result.rootVerticalJerkMean);
@@ -230,7 +239,7 @@ public class MotionQualityMetricsCalculatorTests
         discontinuities[8] = true;
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, null, null, discontinuities, times, 0f, Settings);
+            root, null, null, discontinuities, times, 0f, null, null, Settings);
 
         Assert.AreEqual(3f, result.discontinuitiesPerSecond, 1e-4f);
     }
@@ -251,7 +260,7 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { foot, foot }, new[] { contacts, contacts }, null, times, 0f, Settings);
+            root, new[] { foot, foot }, new[] { contacts, contacts }, null, times, 0f, Floor(2), Floor(2), Settings);
 
         Assert.IsNaN(result.flagFootskatePerMeter);
         Assert.IsNaN(result.flagMeanFootskateSpeed);
@@ -283,7 +292,7 @@ public class MotionQualityMetricsCalculatorTests
         var once = new[] { false, false, true, false, false };
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { planted, sliding, planted }, new[] { always, always, once }, null, times, 0f, Settings);
+            root, new[] { planted, sliding, planted }, new[] { always, always, once }, null, times, 0f, Floor(3), Floor(3), Settings);
 
         Assert.AreEqual(0.5f, result.flagFootskatePerMeter, 1e-4f);
         // Two bones flagged across four intervals: 0.2 m over 0.8 contact-seconds.
@@ -296,7 +305,7 @@ public class MotionQualityMetricsCalculatorTests
         Assert.AreEqual(1f, result.contactFraction, 1e-5f);
 
         var sparse = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { planted, sliding, planted }, new[] { never, never, once }, null, times, 0f, Settings);
+            root, new[] { planted, sliding, planted }, new[] { never, never, once }, null, times, 0f, Floor(3), Floor(3), Settings);
         Assert.AreEqual(0.2f, sparse.flagContactFraction, 1e-5f);
         Assert.AreEqual(1f, sparse.contactFraction, 1e-5f);
     }
@@ -314,7 +323,7 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { foot }, null, null, times, 0f, Settings);
+            root, new[] { foot }, null, null, times, 0f, Floor(1, 0.04f), Floor(1, 0.04f), Settings);
 
         Assert.AreEqual(0f, result.footskatePerMeter, 1e-6f);
         Assert.AreEqual(0f, result.meanFootskateSpeed, 1e-6f);
@@ -335,7 +344,7 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { foot }, null, null, times, 0f, Settings);
+            root, new[] { foot }, null, null, times, 0f, Floor(1), Floor(1), Settings);
 
         Assert.AreEqual(0.2f, result.footskatePerMeter, 1e-4f);
         Assert.AreEqual(0.2f, result.meanFootskateSpeed, 1e-4f);
@@ -357,7 +366,7 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { foot }, null, null, times, 0f, Settings);
+            root, new[] { foot }, null, null, times, 0f, Floor(1), Floor(1), Settings);
 
         Assert.AreEqual(0f, result.footskatePerMeter, 1e-6f);
         Assert.AreEqual(0f, result.meanFootskateSpeed, 1e-6f);
@@ -385,13 +394,13 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var reference = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { foot }, null, null, times, 0f, Settings);
+            root, new[] { foot }, null, null, times, 0f, Floor(1), Floor(1), Settings);
         Assert.Greater(reference.footskatePerMeter, 0f);
 
         foreach (var flags in new[] { correct, allTrue, allFalse })
         {
             var result = MotionQualityMetricsCalculator.Evaluate(
-                root, new[] { foot }, new[] { flags }, null, times, 0f, Settings);
+                root, new[] { foot }, new[] { flags }, null, times, 0f, Floor(1), Floor(1), Settings);
 
             Assert.AreEqual(reference.footskatePerMeter, result.footskatePerMeter);
             Assert.AreEqual(reference.meanFootskateSpeed, result.meanFootskateSpeed);
@@ -419,38 +428,115 @@ public class MotionQualityMetricsCalculatorTests
         }
 
         var result = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { liftingFoot, plantedFoot }, new[] { lateFlags, plantedFlags }, null, times, 0f, Settings);
+            root, new[] { liftingFoot, plantedFoot }, new[] { lateFlags, plantedFlags }, null, times, 0f, Floor(2), Floor(2), Settings);
 
         // 15 of 20 frames agree on the lifting foot, all 20 on the planted one.
         Assert.AreEqual((0.75f + 1f) / 2f, result.contactFlagAgreement, 1e-6f);
     }
 
     [Test]
-    public void ContactHeight_ConstantToeOffsetIsTakenAsTheGround()
+    public void ContactHeight_SlipIsWeightedAgainstTheGivenHeight()
     {
-        // A planted toe joint sits above y = 0. Measured from y = 0, an 8 cm offset would put the
-        // weight at zero and hide the slide; measured from the bone's own contact height, it counts.
+        // Both toes slide at 0.1 m/s over 1 m of root travel. One sits exactly at its contact height and
+        // counts fully; the other is held one height threshold (2.5 cm) above it and counts nothing.
         var times = UniformTimes(31, 1f / 30f);
         var root = new float3[31];
-        var groundFoot = new float3[31];
-        var offsetFoot = new float3[31];
+        var atFloor = new float3[31];
+        var aboveFloor = new float3[31];
         for (var i = 0; i < 31; i++)
         {
             root[i] = new float3(times[i], 0f, 0f);
-            groundFoot[i] = new float3(0.1f * times[i], 0f, 0f);
-            offsetFoot[i] = new float3(0.1f * times[i], 0.08f, 0f);
+            atFloor[i] = new float3(0.1f * times[i], 0.08f, 0f);
+            aboveFloor[i] = new float3(0.1f * times[i], 0.08f + Settings.heightThreshold, 0f);
         }
 
-        var onGround = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { groundFoot }, null, null, times, 0f, Settings);
-        var offset = MotionQualityMetricsCalculator.Evaluate(
-            root, new[] { offsetFoot }, null, null, times, 0f, Settings);
+        var planted = MotionQualityMetricsCalculator.Evaluate(
+            root, new[] { atFloor }, null, null, times, 0f, Floor(1, 0.08f), Floor(1, 0.08f), Settings);
+        var raised = MotionQualityMetricsCalculator.Evaluate(
+            root, new[] { aboveFloor }, null, null, times, 0f, Floor(1, 0.08f), Floor(1, 0.08f), Settings);
 
-        Assert.AreEqual(0.1f, offset.footskatePerMeter, 1e-4f);
-        Assert.AreEqual(onGround.footskatePerMeter, offset.footskatePerMeter, 1e-6f);
-        Assert.AreEqual(onGround.meanFootskateSpeed, offset.meanFootskateSpeed, 1e-6f);
+        Assert.AreEqual(0.1f, planted.footskatePerMeter, 1e-4f);
+        Assert.AreEqual(0.1f, planted.meanFootskateSpeed, 1e-4f);
         // 0.1 m/s is under the stance speed threshold.
-        Assert.AreEqual(1f, offset.contactFraction, 1e-6f);
+        Assert.AreEqual(1f, planted.contactFraction, 1e-6f);
+
+        Assert.AreEqual(0f, raised.footskatePerMeter, 1e-6f);
+    }
+
+    [Test]
+    public void FlagOnsetHeightError_IsTheHeightAboveTheMeanContactHeightWhereTheFlagRises()
+    {
+        var times = UniformTimes(20, 1f / 30f);
+        var root = new float3[20];
+        var early = new float3[20];
+        var exact = new float3[20];
+        var earlyFlags = new bool[20];
+        var exactFlags = new bool[20];
+        for (var i = 0; i < 20; i++)
+        {
+            root[i] = new float3(times[i], 0f, 0f);
+            // Descends 1 cm per frame onto a 3 cm mean contact height, reaching it at frame 10. The rest
+            // height is left at 0 to show the onset is measured from the mean, not from the floor.
+            var height = 0.03f + 0.01f * math.max(0, 10 - i);
+            early[i] = new float3(0f, height, 0f);
+            exact[i] = new float3(0.3f, height, 0f);
+            earlyFlags[i] = i >= 5; // rises 5 cm above the floor
+            exactFlags[i] = i >= 10; // rises at the floor
+        }
+
+        var result = MotionQualityMetricsCalculator.Evaluate(
+            root, new[] { early, exact }, new[] { earlyFlags, exactFlags }, null, times, 0f, Floor(2), Floor(2, 0.03f),
+            Settings);
+
+        Assert.AreEqual((0.05f + 0f) / 2f, result.flagOnsetHeightError, 1e-5f);
+    }
+
+    [Test]
+    public void FlagOnsetHeightError_NoRise_IsNaN()
+    {
+        // A flag already set on the first analysis frame never rises within the window.
+        var times = UniformTimes(10, 1f / 30f);
+        var root = new float3[10];
+        var foot = new float3[10];
+        var always = new bool[10];
+        for (var i = 0; i < 10; i++)
+        {
+            root[i] = new float3(times[i], 0f, 0f);
+            foot[i] = new float3(0f, 0.1f, 0f);
+            always[i] = true;
+        }
+
+        var result = MotionQualityMetricsCalculator.Evaluate(
+            root, new[] { foot }, new[] { always }, null, times, 0f, Floor(1), Floor(1), Settings);
+
+        Assert.IsNaN(result.flagOnsetHeightError);
+    }
+
+    [Test]
+    public void NullContactHeights_GeometricMetricsAndOnsetErrorAreNaN()
+    {
+        var times = UniformTimes(10, 1f / 30f);
+        var root = new float3[10];
+        var foot = new float3[10];
+        var flags = new bool[10];
+        for (var i = 0; i < 10; i++)
+        {
+            root[i] = new float3(times[i], 0f, 0f);
+            foot[i] = new float3(0.05f * times[i], 0f, 0f);
+            flags[i] = i >= 3;
+        }
+
+        var result = MotionQualityMetricsCalculator.Evaluate(
+            root, new[] { foot }, new[] { flags }, null, times, 0f, null, null, Settings);
+
+        Assert.IsNaN(result.footskatePerMeter);
+        Assert.IsNaN(result.meanFootskateSpeed);
+        Assert.IsNaN(result.contactFraction);
+        Assert.IsNaN(result.contactFlagAgreement);
+        Assert.IsNaN(result.flagOnsetHeightError);
+        // The flag-gated figures need no floor.
+        Assert.IsFalse(float.IsNaN(result.flagFootskatePerMeter));
+        Assert.IsFalse(float.IsNaN(result.flagContactFraction));
     }
 }
 }

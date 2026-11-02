@@ -40,6 +40,7 @@ public sealed class BenchmarkVideoRecorder : IDisposable
     private readonly float _frameRate;
     private readonly BenchmarkVideoCamera _cameraMode;
     private readonly GroundContactSettings _groundContact;
+    private readonly ContactFloor _contactFloor;
     private readonly SplineProjector _projector = new();
 
     private GameObject _root;
@@ -69,7 +70,9 @@ public sealed class BenchmarkVideoRecorder : IDisposable
     private double _errorSum;
     private int _errorSamples;
 
-    public BenchmarkVideoRecorder(string outputDirectory, SynthesisBenchmarkConfig config)
+    /// <param name="contactFloor">Each contact bone's floor height, where footprints are judged from;
+    /// null places none.</param>
+    public BenchmarkVideoRecorder(string outputDirectory, SynthesisBenchmarkConfig config, ContactFloor contactFloor)
     {
         _outputDirectory = outputDirectory;
         _width = Mathf.Max(16, config.videoWidth & ~1);
@@ -77,6 +80,7 @@ public sealed class BenchmarkVideoRecorder : IDisposable
         _frameRate = config.synthesisFrameRate;
         _cameraMode = config.videoCamera;
         _groundContact = config.groundContact;
+        _contactFloor = contactFloor;
 
         Directory.CreateDirectory(_outputDirectory);
         BuildResources(config.videoSceneDressing, config.videoShowMethodInputs);
@@ -102,7 +106,7 @@ public sealed class BenchmarkVideoRecorder : IDisposable
         _title.text = run.Method.name;
         _subtitle.text = run.Seed.HasValue ? $"{pathName}   ·   seed {run.Seed.Value}" : pathName;
 
-        _dressing?.BeginRun(synthesizer, input as ISteeringTargetSource, _groundContact);
+        _dressing?.BeginRun(synthesizer, input as ISteeringTargetSource, _groundContact, _contactFloor);
         _inputSource = SynthesisInputs.FindSource(synthesizer);
         _inputOverlay?.BeginRun();
 

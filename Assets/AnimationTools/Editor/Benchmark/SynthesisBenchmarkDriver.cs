@@ -64,6 +64,7 @@ public static class SynthesisBenchmarkDriver
     private static StageCostChannel _costChannel;
     private static string _recordingsDirectory;
     private static BenchmarkVideoRecorder _videoRecorder;
+    private static ContactFloor _contactFloor;
 
     static SynthesisBenchmarkDriver()
     {
@@ -179,10 +180,12 @@ public static class SynthesisBenchmarkDriver
         _recordingsDirectory = Path.Combine(_plan.outputDirectory, "recordings");
         Directory.CreateDirectory(_recordingsDirectory);
 
+        _contactFloor = LoadContactFloor(_config);
+
         if (_config.recordVideo)
         {
             var videosDirectory = Path.Combine(_plan.outputDirectory, "videos");
-            _videoRecorder = new BenchmarkVideoRecorder(videosDirectory, _config);
+            _videoRecorder = new BenchmarkVideoRecorder(videosDirectory, _config, _contactFloor);
         }
 
         // An unfocused Editor otherwise throttles to a few ticks a second.
@@ -208,6 +211,51 @@ public static class SynthesisBenchmarkDriver
 
         Debug.Log($"[Benchmark] Sweep starting: {_config.methods.Count} method(s), {_runs.Count} with their seeds, " +
                   $"x {_pathPrefabs.Count} path(s) = {_runs.Count * _pathPrefabs.Count} runs -> \"{_plan.outputDirectory}\".");
+    }
+
+    /// <summary>
+    /// Each contact bone's floor height from the config's ground reference, or null (with a warning)
+    /// when there is none or its database cannot be loaded.
+    /// </summary>
+    private static ContactFloor LoadContactFloor(SynthesisBenchmarkConfig config)
+    {
+        const string unavailable = "geometric footskate, contact fraction, flag agreement and flag onset " +
+                                   "height will be NaN.";
+
+        var source = config.GroundReferenceSource;
+        if (source == null)
+        {
+            var reason = config.groundReference == null
+                ? "No ground reference is set"
+                : $"Ground reference \"{config.groundReference.name}\" is not a pose database";
+            Debug.LogWarning($"[Benchmark] {reason}; {unavailable}");
+            return null;
+        }
+
+        var poseSet = PoseSetImporter.GetOrImport(source);
+        if (poseSet == null)
+        {
+            Debug.LogWarning($"[Benchmark] The pose database of \"{source.name}\" could not be loaded; {unavailable}");
+            return null;
+        }
+
+        try
+        {
+            var floor = ContactFloor.FromDatabase(poseSet);
+
+            var heights = new List<string>(floor.BoneNames.Count);
+            for (var slot = 0; slot < floor.BoneNames.Count; slot++)
+                heights.Add($"{floor.BoneNames[slot]} rest {floor.RestHeights[slot] * 100f:0.00} cm, " +
+                            $"mean contact {floor.MeanContactHeights[slot] * 100f:0.00} cm");
+            Debug.Log($"[Benchmark] Floor from {source.name}: {string.Join(", ", heights)}.");
+
+            return floor;
+        }
+        finally
+        {
+            // Databases run to hundreds of megabytes; only the per-bone heights are kept.
+            poseSet.Dispose();
+        }
     }
 
     private static void Spawn()
@@ -423,7 +471,8 @@ public static class SynthesisBenchmarkDriver
         try
         {
             result.recordingFile = Path.GetFileName(_recorder.ManifestPath);
-            BenchmarkRunEvaluator.Evaluate(_recorder.ManifestPath, _config, targetSpeed, _spline, result);
+            BenchmarkRunEvaluator.Evaluate(_recorder.ManifestPath, _config, targetSpeed, _spline, _contactFloor,
+                result);
         }
         catch (Exception e)
         {
@@ -483,6 +532,7 @@ public static class SynthesisBenchmarkDriver
 
         _videoRecorder?.Dispose();
         _videoRecorder = null;
+        _contactFloor = null;
 
         // Written even on failure: completed runs are real numbers. Success governs the exit code.
         if (_config != null && _plan != null && Results.Count > 0)
